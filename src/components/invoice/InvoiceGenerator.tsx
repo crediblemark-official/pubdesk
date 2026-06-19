@@ -387,7 +387,7 @@ const InvoiceGenerator: React.FC = () => {
               <option value="PENDING">PENDING</option>
             </select>
           </div>
-          {invoiceType === 'spt_mitra' && (
+          {activeProfile?.showSpesifikasi && (
             <div>
               <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Spesifikasi & Fasilitas</label>
               <input
