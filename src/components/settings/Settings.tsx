@@ -68,37 +68,79 @@ const Settings: React.FC = () => {
     setSyncing(true);
     setSyncProgress('Menghubungkan ke Google Drive...');
     try {
-      let q = "trashed = false";
-      if (parentFolderId.trim()) {
-        q = `'${parentFolderId.trim()}' in parents and trashed = false`;
-      }
-      
-      const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime,size,parents)`;
-      const res = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      // Kita selalu query "trashed = false" agar dapat mengambil seluruh struktur file/folder GDrive 
+      // (My Drive + Shared with me), lalu jika parentFolderId ditentukan, kita filter keturunannya secara lokal.
+      const q = "trashed = false";
+      const driveFiles: any[] = [];
+      let nextPageToken = '';
+      let page = 1;
+
+      do {
+        setSyncProgress(`Mengambil daftar file Google Drive (Halaman ${page})...`);
+        let url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=nextPageToken,files(id,name,mimeType,modifiedTime,size,parents)&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+        if (nextPageToken) {
+          url += `&pageToken=${nextPageToken}`;
         }
-      });
-      
-      if (!res.ok) {
-        throw new Error(`Gagal mengambil data file: ${res.status}`);
+
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error(`Gagal mengambil data halaman ${page}: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const filesPage = data.files || [];
+        driveFiles.push(...filesPage);
+
+        nextPageToken = data.nextPageToken || '';
+        page++;
+      } while (nextPageToken);
+
+      // Penyaringan rekursif secara lokal jika parentFolderId diisi
+      let filteredDriveFiles = driveFiles;
+      if (parentFolderId.trim()) {
+        const targetParentId = parentFolderId.trim();
+        const descendantIds = new Set<string>();
+        descendantIds.add(targetParentId);
+
+        let addedNew = true;
+        while (addedNew) {
+          addedNew = false;
+          for (const df of driveFiles) {
+            const parents = df.parents || [];
+            for (const p of parents) {
+              if (descendantIds.has(p) && !descendantIds.has(df.id)) {
+                descendantIds.add(df.id);
+                addedNew = true;
+              }
+            }
+          }
+        }
+
+        // Hanya sertakan file yang parent-nya ada di descendantIds (dan bukan folder induk itu sendiri)
+        filteredDriveFiles = driveFiles.filter(df => {
+          if (df.id === targetParentId) return false;
+          const parents = df.parents || [];
+          return parents.some((p: string) => descendantIds.has(p));
+        });
       }
-      
-      const data = await res.json();
-      const driveFiles = data.files || [];
-      
-      setSyncProgress(`Ditemukan ${driveFiles.length} file di Drive. Menyinkronkan ke database lokal...`);
-      
+
+      setSyncProgress(`Ditemukan ${filteredDriveFiles.length} file yang cocok. Menyinkronkan ke database lokal...`);
+
       const existingGDriveFiles = files.filter(f => f.type === 'gdrive');
-      
+
       let createdCount = 0;
       let updatedCount = 0;
       let deletedCount = 0;
-      
-      for (const df of driveFiles) {
+
+      for (const df of filteredDriveFiles) {
         const path = `gdrive://${df.id}`;
         const existing = existingGDriveFiles.find(f => f.path === path);
-        
+
         const parentId = df.parents && df.parents.length > 0 ? df.parents[0] : 'root';
         const fileData = {
           path,
@@ -110,7 +152,7 @@ const Settings: React.FC = () => {
           modified_by: `${df.size ? df.size.toString() : '0'}|${parentId}`,
           is_readonly: true
         };
-        
+
         if (existing) {
           await updateFile({
             ...existing,
@@ -122,15 +164,15 @@ const Settings: React.FC = () => {
           createdCount++;
         }
       }
-      
-      const driveFilePaths = driveFiles.map((df: any) => `gdrive://${df.id}`);
+
+      const driveFilePaths = filteredDriveFiles.map((df: any) => `gdrive://${df.id}`);
       for (const lf of existingGDriveFiles) {
         if (!driveFilePaths.includes(lf.path)) {
           await deleteFile(lf.id!);
           deletedCount++;
         }
       }
-      
+
       showToast(`Sinkronisasi selesai! ${createdCount} file baru, ${updatedCount} diperbarui, ${deletedCount} dihapus.`, 'success');
       testConnection(token); // Update status koneksi
     } catch (error: any) {

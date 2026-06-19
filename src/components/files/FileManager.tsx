@@ -189,6 +189,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     return 'Berkas';
   };
 
+  // Buat Set berisi semua ID file/folder GDrive yang ada di database lokal
+  const gdriveIdSet = new Set(
+    files
+      .filter(f => f.type === 'gdrive')
+      .map(f => f.path.replace('gdrive://', ''))
+  );
+
   const filteredFiles = files.filter((file) => {
     const matchesCategory =
       fileCategory === 'all' ||
@@ -201,10 +208,16 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
       file.path.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Filter folder jika menjelajah gdrive secara normal (tanpa pencarian)
+    const fileParentId = getParentId(file);
     const matchesFolder = searchQuery || 
       fileCategory !== 'gdrive' ||
-      getParentId(file) === currentFolderId ||
-      (currentFolderId === rootFolderId && (getParentId(file) === 'root' || getParentId(file) === rootFolderId));
+      fileParentId === currentFolderId ||
+      (currentFolderId === rootFolderId && (
+        fileParentId === 'root' || 
+        fileParentId === rootFolderId || 
+        !fileParentId || 
+        !gdriveIdSet.has(fileParentId)
+      ));
 
     return matchesCategory && matchesSearch && matchesFolder;
   });
