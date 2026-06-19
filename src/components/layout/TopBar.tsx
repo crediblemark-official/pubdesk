@@ -138,9 +138,8 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
             aria-label="Toggle right panel"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="3"></circle>
-              <line x1="16" y1="17" x2="14.5" y2="15.5"></line>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
           
