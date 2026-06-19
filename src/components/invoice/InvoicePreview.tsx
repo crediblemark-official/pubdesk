@@ -394,30 +394,17 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: '"Montserrat", "Segoe UI", sans-serif' }}>
               <thead>
                 <tr style={{ color: '#ffffff' }}>
-                  <th style={{ background: accentColorDark, width: '35px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
-                  {(profile?.tableColumns || []).map((col) => (
-                    <th 
-                      key={col.key} 
-                      style={{ 
-                        background: accentColor, 
-                        textAlign: col.align || 'left', 
-                        padding: '8px 8px', 
-                        fontSize: '9px', 
-                        fontWeight: '700', 
-                        textTransform: 'uppercase', 
-                        width: col.width || 'auto', 
-                        border: 'none' 
-                      }}
-                    >
-                      {col.label}
-                    </th>
-                  ))}
+                  <th style={{ background: accentColorDark, width: '28px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
+                  <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul / Detail</th>
+                  <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '90px', whiteSpace: 'nowrap' }}>Harga</th>
+                  <th style={{ background: accentColor, textAlign: 'center', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '50px' }}>Jml.</th>
+                  <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '95px', whiteSpace: 'nowrap' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={(profile?.tableColumns?.length || 4) + 1} style={{ padding: '20px', textAlign: 'center', fontSize: '11px', color: '#6b7280', fontStyle: 'italic', borderBottom: '1px solid #e5e7eb' }}>
+                    <td colSpan={5} style={{ padding: '20px', textAlign: 'center', fontSize: '11px', color: '#6b7280', fontStyle: 'italic', borderBottom: '1px solid #e5e7eb' }}>
                       Belum ada rincian item. Silakan tambahkan di menu generator.
                     </td>
                   </tr>
@@ -426,52 +413,70 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
                     const rowBg = index % 2 === 0 ? '#fdf2f2' : '#ffffff';
                     const columns = profile?.tableColumns || [];
 
+                    // Kumpulkan kolom detail — semua kecuali book_title, price, quantity, dan formula total
+                    const keysToSkip = new Set(['book_title', 'price', 'quantity', 'total']);
+                    const detailParts: string[] = [];
+                    columns.forEach(col => {
+                      if (keysToSkip.has(col.key)) return;
+                      // Jika formula yang merupakan total, lewati
+                      if (col.type === 'formula' && (col.key === 'total' || col.key.toLowerCase().includes('total'))) return;
+
+                      let val: any;
+                      if (col.type === 'formula' && col.formula) {
+                        val = evaluateItemFormula(col.formula, item);
+                      } else {
+                        val = item[col.key];
+                      }
+                      if (val === undefined || val === null || val === '' || val === 0) return;
+
+                      const displayVal = col.type === 'currency'
+                        ? `Rp ${formatPrice(Number(val))}`
+                        : String(val);
+                      detailParts.push(`${col.label}: ${displayVal}`);
+                    });
+
+                    // Harga: ambil dari kolom price
+                    const priceVal = item.price || 0;
+                    const priceDisplay = `Rp ${formatPrice(priceVal)}`;
+
+                    // Jumlah: ambil quantity, jika tidak ada default 1
+                    const qtyVal = item.quantity ?? 1;
+
+                    // Total: gunakan calculateItemTotal yang sudah pakai formula profil
+                    const totalVal = calculateItemTotal(item);
+                    const totalDisplay = `Rp ${formatPrice(totalVal)}`;
+
                     return (
                       <tr key={index} style={{ background: rowBg }}>
                         {/* No */}
-                        <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>
+                        <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
                           {index + 1}.
                         </td>
-                        
-                        {/* Kolom Dinamis */}
-                        {columns.map((col) => {
-                          let displayVal = '';
-                          let val = item[col.key];
-                          
-                          if (col.type === 'formula' && col.formula) {
-                            val = evaluateItemFormula(col.formula, item);
-                          }
-                          
-                          if (col.type === 'currency' && typeof val === 'number') {
-                            displayVal = `Rp ${formatPrice(val)}`;
-                          } else if (col.type === 'number' && typeof val === 'number') {
-                            displayVal = String(val);
-                          } else {
-                            displayVal = val !== undefined && val !== null ? String(val) : '';
-                          }
-                          
-                          if (col.key === 'book_title') {
-                            displayVal = `"${displayVal.replace(/"/g, '')}"`;
-                          }
-                          
-                          return (
-                            <td 
-                              key={col.key} 
-                              style={{ 
-                                padding: '6px 8px', 
-                                textAlign: col.align || 'left', 
-                                fontSize: '9.5px', 
-                                color: '#1f2937', 
-                                fontWeight: col.key === 'book_title' || col.key === 'total' || col.key.includes('total') ? '700' : '500',
-                                borderBottom: '1px solid #e5e7eb',
-                                whiteSpace: col.type === 'currency' ? 'nowrap' : 'normal',
-                                wordBreak: 'break-word'
-                              }}
-                            >
-                              {displayVal}
-                            </td>
-                          );
-                        })}
+
+                        {/* Judul / Detail */}
+                        <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
+                          <div style={{ fontWeight: '700' }}>"{item.book_title || '-'}"</div>
+                          {detailParts.length > 0 && (
+                            <div style={{ fontWeight: '400', color: '#6b7280', fontSize: '8.5px', marginTop: '2px', lineHeight: '1.4' }}>
+                              {detailParts.join(' | ')}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Harga */}
+                        <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                          {priceDisplay}
+                        </td>
+
+                        {/* Jumlah */}
+                        <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
+                          {qtyVal}
+                        </td>
+
+                        {/* Total */}
+                        <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                          {totalDisplay}
+                        </td>
                       </tr>
                     );
                   })
