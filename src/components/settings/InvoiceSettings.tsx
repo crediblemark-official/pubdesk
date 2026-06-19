@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { InvoiceProfile, InvoiceTableColumn } from '../../types';
-import kbmProfilesBackup from '../../assets/kbm_profiles_backup.json';
+import { invoiceTemplates } from '../../data/invoiceTemplates';
 import InvoicePreview from '../invoice/InvoicePreview';
 
 const InvoiceSettings: React.FC = () => {
@@ -49,6 +49,7 @@ const InvoiceSettings: React.FC = () => {
   const [signatureImg, setSignatureImg] = useState('');
   const [headerType, setHeaderType] = useState<'logo_only' | 'logo_text' | 'text_only'>('logo_text');
   const [tableColumns, setTableColumns] = useState<InvoiceTableColumn[]>([]);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   // Memuat data profil terpilih ke dalam state form
   useEffect(() => {
@@ -237,6 +238,43 @@ const InvoiceSettings: React.FC = () => {
     setIsEditingNew(true);
   };
 
+  // Memuat semua field form dari template yang dipilih
+  const handleLoadTemplate = (templateId: string) => {
+    const tmpl = invoiceTemplates.find(t => t.templateId === templateId);
+    if (!tmpl) return;
+    const p = tmpl.profile;
+    setProfileName(`${tmpl.label} (Salinan)`);
+    setCompanyName(p.companyName || '');
+    setCompanyTagline(p.companyTagline || '');
+    setInvoiceTitleText(p.invoiceTitleText || 'INVOICE');
+    setAccentColor(p.accentColor || '#1e70cd');
+    setAccentColorDark(p.accentColorDark || '#1e3a8a');
+    setHeaderBgColor(p.headerBgColor || '#222933');
+    setHeaderPrimaryColor(p.headerPrimaryColor || '#d93838');
+    setHeaderSecondaryColor(p.headerSecondaryColor || '#d93838');
+    setDefaultHal(p.defaultHal || '');
+    setDefaultLampiran(p.defaultLampiran || '-');
+    setSalamPembuka(p.salamPembuka || '');
+    setActionLabel(p.actionLabel || '');
+    setTableType(p.tableType || '');
+    setNotes(p.notes || []);
+    setShowSpesifikasi(p.showSpesifikasi || false);
+    setDefaultSpesifikasi(p.defaultSpesifikasi || '');
+    setSignatureOffice(p.signatureOffice || '');
+    setSignatureLocation(p.signatureLocation || '');
+    setSignatureRole(p.signatureRole || '');
+    setSignatureName(p.signatureName || '');
+    setShowBankInfo(p.showBankInfo || false);
+    setBankName(p.bankName || '');
+    setBankAccountNo(p.bankAccountNo || '');
+    setBankAccountOwner(p.bankAccountOwner || '');
+    setCompanyLogo(p.companyLogo || '');
+    setSignatureImg(p.signatureImg || '');
+    setHeaderType(p.headerType || 'logo_text');
+    setTableColumns(p.tableColumns || []);
+    setShowTemplateModal(false);
+  };
+
   const handleCancelNew = () => {
     setIsEditingNew(false);
     setSelectedProfileId(activeProfileId);
@@ -307,28 +345,6 @@ const InvoiceSettings: React.FC = () => {
     }
   };
 
-  const handleImportKbmOriginal = () => {
-    if (
-      confirm(
-        'Apakah Anda yakin ingin mengimpor Profil KBM & Undiksha asli? Tindakan ini akan menambahkan profil asli KBM ke daftar profil Anda.'
-      )
-    ) {
-      let updatedProfiles = [...profiles];
-      kbmProfilesBackup.forEach((kbmProf: any) => {
-        const idx = updatedProfiles.findIndex((p) => p.id === kbmProf.id);
-        if (idx > -1) {
-          updatedProfiles[idx] = kbmProf as InvoiceProfile;
-        } else {
-          updatedProfiles.push(kbmProf as InvoiceProfile);
-        }
-      });
-      setProfiles(updatedProfiles);
-      setSelectedProfileId(kbmProfilesBackup[0].id);
-      setActiveProfileId(kbmProfilesBackup[0].id);
-      alert('Profil KBM Cetak, KBM Creator, dan SPT Undiksha asli berhasil di-import!');
-    }
-  };
-
   const handleResetToDefault = () => {
     if (
       confirm(
@@ -384,6 +400,12 @@ const InvoiceSettings: React.FC = () => {
                 </>
               ) : (
                 <>
+                  <button
+                    className="btn-secondary compact-btn"
+                    style={{ height: '32px' }}
+                    onClick={() => setShowTemplateModal(true)}
+                    title="Isi form dari template yang tersedia"
+                  >📋 Dari Template</button>
                   <button className="btn-secondary compact-btn" style={{ height: '32px' }} onClick={handleCancelNew}>Batal</button>
                 </>
               )}
@@ -398,8 +420,6 @@ const InvoiceSettings: React.FC = () => {
               <input type="file" accept=".json" onChange={handleImportBackup} style={{ display: 'none' }} />
             </label>
 
-            <button className="btn-success compact-btn" style={{ height: '32px' }} onClick={handleImportKbmOriginal}>✨ Impor KBM Asli</button>
-            
             <button className="btn-danger compact-btn" style={{ marginLeft: 'auto', height: '32px' }} onClick={handleResetToDefault}>🔄 Reset Bawaan</button>
           </div>
         </div>
@@ -1077,6 +1097,75 @@ const InvoiceSettings: React.FC = () => {
           <InvoicePreview previewProfile={currentEditingProfile} />
         </div>
       </div>
+
+      {/* Modal Pilih Template */}
+      {showTemplateModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+          onClick={() => setShowTemplateModal(false)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
+              borderRadius: '12px', padding: '24px', width: '480px', maxWidth: '90vw',
+              boxShadow: 'var(--shadow-lg)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                📋 Pilih Template Invoice
+              </h2>
+              <button
+                onClick={() => setShowTemplateModal(false)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', color: 'var(--text-secondary)', lineHeight: 1 }}
+              >
+                ✕
+              </button>
+            </div>
+            <p style={{ margin: '0 0 16px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+              Form profil akan diisi dari template yang dipilih. Anda tetap bisa mengubah field sebelum menyimpan.
+            </p>
+
+            {/* Kelompokkan berdasarkan kategori */}
+            {Array.from(new Set(invoiceTemplates.map(t => t.category))).map(cat => (
+              <div key={cat} style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                  {cat}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {invoiceTemplates.filter(t => t.category === cat).map(tmpl => (
+                    <div
+                      key={tmpl.templateId}
+                      style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '10px 12px', borderRadius: '8px',
+                        border: '1px solid var(--border)', background: 'var(--bg-main)'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{tmpl.label}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{tmpl.description}</div>
+                      </div>
+                      <button
+                        className="btn-primary compact-btn"
+                        style={{ height: '30px', whiteSpace: 'nowrap', marginLeft: '12px' }}
+                        onClick={() => handleLoadTemplate(tmpl.templateId)}
+                      >
+                        Gunakan
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,0 +1,41 @@
+{
+  "id": "kbm_cetak",
+  "name": "KBM – Cetak Buku",
+  "companyName": "CV KBM",
+  "companyTagline": "KARYA BAKTI MAKMUR",
+  "invoiceTitleText": "INVOICE",
+  "accentColor": "#d93838",
+  "accentColorDark": "#991b1b",
+  "headerBgColor": "#222933",
+  "headerPrimaryColor": "#d93838",
+  "headerSecondaryColor": "#d93838",
+  "defaultHal": "Biaya Cetak Buku",
+  "defaultLampiran": "-",
+  "salamPembuka": "Bersama surat ini kami memberikan gambaran rincian biaya cetak buku dengan ketentuan sebagai berikut:",
+  "actionLabel": "cetak buku",
+  "tableType": "kbm_cetak",
+  "notes": [
+    "Jika terkait pajak maka pajak ditanggung penulis atau pemesan.",
+    "Fasilitas sesuai paket yang diambil."
+  ],
+  "showSpesifikasi": false,
+  "defaultSpesifikasi": "",
+  "signatureOffice": "KBM Kreator Yogyakarta",
+  "signatureLocation": "Yogyakarta",
+  "signatureRole": "CEO CV Karya Bakti Makmur",
+  "signatureName": "MOHAMMAD IMAM JUNAIDI, M.H.",
+  "showBankInfo": true,
+  "bankName": "Bank Nasional Indonesia (BNI)",
+  "bankAccountNo": "0876830659",
+  "bankAccountOwner": "Mohammad Imam Junaidi",
+  "headerType": "logo_text",
+  "tableColumns": [
+    { "key": "book_title", "label": "Judul Buku", "type": "text", "align": "left" },
+    { "key": "pages", "label": "Hal", "type": "text", "align": "center", "width": "90px" },
+    { "key": "paper_type", "label": "Jenis Naskah", "type": "text", "align": "center", "width": "90px" },
+    { "key": "quantity", "label": "Jml. Cetak", "type": "number", "align": "center", "width": "80px" },
+    { "key": "price", "label": "Cetak/pcs", "type": "currency", "align": "right", "width": "100px" },
+    { "key": "item_shipping_cost", "label": "Ongkos Kirim", "type": "currency", "align": "right", "width": "100px" },
+    { "key": "total", "label": "Total Biaya", "type": "formula", "align": "right", "width": "110px", "formula": "({price} * {quantity}) + {item_shipping_cost}" }
+  ]
+}
