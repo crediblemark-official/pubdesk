@@ -4,7 +4,7 @@ import InvoicePreview from '../invoice/InvoicePreview';
 import { invoke } from '@tauri-apps/api/core';
 
 const PanelKanan: React.FC = () => {
-  const { appState, files, invoices, selectedFileId, services, selectedServiceId, activeSettingsTab, showToast, updateFile } = useAppContext();
+  const { appState, files, invoices, selectedFileId, services, selectedServiceId, activeSettingsTab, showToast, updateFile, refreshAccessToken } = useAppContext();
 
   const renderPreview = () => {
     switch (appState.activeModule) {
@@ -174,7 +174,11 @@ const PanelKanan: React.FC = () => {
             e.stopPropagation();
             try {
               const fileId = file.path.replace('gdrive://', '');
-              const token = localStorage.getItem('gdrive_token');
+              let token = localStorage.getItem('gdrive_token');
+              if (!token && refreshAccessToken) {
+                showToast('Memperbarui koneksi Google Drive...', 'info');
+                token = await refreshAccessToken();
+              }
               if (!token) {
                 showToast('Google Drive belum dikonfigurasi. Atur token di Pengaturan.', 'error');
                 return;
@@ -209,11 +213,24 @@ const PanelKanan: React.FC = () => {
                 }
               }
 
-              const response = await fetch(url, {
+              let response = await fetch(url, {
                 headers: {
                   'Authorization': `Bearer ${token}`
                 }
               });
+
+              if (response.status === 401 && refreshAccessToken) {
+                showToast('Token kedaluwarsa. Memperbarui token...', 'info');
+                const newToken = await refreshAccessToken();
+                if (newToken) {
+                  token = newToken;
+                  response = await fetch(url, {
+                    headers: {
+                      'Authorization': `Bearer ${token}`
+                    }
+                  });
+                }
+              }
 
               if (!response.ok) {
                 throw new Error('HTTP error');

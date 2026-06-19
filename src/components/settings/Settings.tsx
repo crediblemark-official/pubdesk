@@ -13,11 +13,16 @@ const Settings: React.FC = () => {
     updateFile, 
     deleteFile, 
     showConfirm,
-    setConnectedUser: setGlobalConnectedUser
+    setConnectedUser: setGlobalConnectedUser,
+    refreshAccessToken
   } = useAppContext();
 
   const [token, setToken] = useState(localStorage.getItem('gdrive_token') || '');
   const [parentFolderId, setParentFolderId] = useState(localStorage.getItem('gdrive_parent_folder_id') || '');
+  const [clientId, setClientId] = useState(localStorage.getItem('gdrive_client_id') || '');
+  const [clientSecret, setClientSecret] = useState(localStorage.getItem('gdrive_client_secret') || '');
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('gdrive_refresh_token') || '');
+  const [showSecret, setShowSecret] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [connectedUser, setConnectedUser] = useState<{ name: string, email: string } | null>(null);
@@ -68,10 +73,24 @@ const Settings: React.FC = () => {
   };
 
   const handleSync = async () => {
-    if (!token) {
-      showToast('Masukkan Token Akses terlebih dahulu!', 'error');
+    let activeToken = token;
+    
+    // Coba refresh token jika access token kosong tapi ada refresh token
+    if (!activeToken && refreshToken && clientId && clientSecret) {
+      setSyncing(true);
+      setSyncProgress('Memperbarui token Google Drive...');
+      const renewed = await refreshAccessToken();
+      if (renewed) {
+        activeToken = renewed;
+        setToken(renewed);
+      }
+    }
+
+    if (!activeToken) {
+      showToast('Masukkan Token Akses atau Refresh Token terlebih dahulu!', 'error');
       return;
     }
+    
     setSyncing(true);
     setSyncProgress('Menghubungkan ke Google Drive...');
     try {
@@ -89,11 +108,25 @@ const Settings: React.FC = () => {
           url += `&pageToken=${nextPageToken}`;
         }
 
-        const res = await fetch(url, {
+        let res = await fetch(url, {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${activeToken}`
           }
         });
+
+        if (res.status === 401 && refreshAccessToken) {
+          setSyncProgress('Token kedaluwarsa. Mencoba memperbarui token...');
+          const renewed = await refreshAccessToken();
+          if (renewed) {
+            activeToken = renewed;
+            setToken(renewed);
+            res = await fetch(url, {
+              headers: {
+                'Authorization': `Bearer ${activeToken}`
+              }
+            });
+          }
+        }
 
         if (!res.ok) {
           throw new Error(`Gagal mengambil data halaman ${page}: ${res.status}`);
@@ -323,7 +356,7 @@ const Settings: React.FC = () => {
                     <input
                       type={showToken ? 'text' : 'password'}
                       className="compact-input"
-                      placeholder="Masukkan Access Token Anda..."
+                      placeholder="Masukkan Access Token Anda (Bisa kosong jika Refresh Token diisi)..."
                       value={token}
                       onChange={(e) => {
                         setToken(e.target.value);
@@ -340,6 +373,65 @@ const Settings: React.FC = () => {
                       {showToken ? '👁️ Sembunyikan' : '👁️ Tampilkan'}
                     </button>
                   </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="compact-form-group">
+                    <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Client ID (Jangka Panjang)</label>
+                    <input
+                      type="text"
+                      className="compact-input"
+                      placeholder="Masukkan Client ID Google Cloud..."
+                      value={clientId}
+                      onChange={(e) => {
+                        setClientId(e.target.value);
+                        localStorage.setItem('gdrive_client_id', e.target.value);
+                      }}
+                      style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div className="compact-form-group">
+                    <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Client Secret (Jangka Panjang)</label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input
+                        type={showSecret ? 'text' : 'password'}
+                        className="compact-input"
+                        placeholder="Masukkan Client Secret..."
+                        value={clientSecret}
+                        onChange={(e) => {
+                          setClientSecret(e.target.value);
+                          localStorage.setItem('gdrive_client_secret', e.target.value);
+                        }}
+                        style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSecret(!showSecret)}
+                        className="btn-secondary compact-btn"
+                        style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        {showSecret ? '👁️' : '👁️'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="compact-form-group">
+                  <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google OAuth2 Refresh Token (Jangka Panjang)</label>
+                  <input
+                    type="password"
+                    className="compact-input"
+                    placeholder="Masukkan Refresh Token Anda..."
+                    value={refreshToken}
+                    onChange={(e) => {
+                      setRefreshToken(e.target.value);
+                      localStorage.setItem('gdrive_refresh_token', e.target.value);
+                    }}
+                    style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  />
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
+                    💡 Dapatkan Refresh Token dari OAuth Playground menggunakan Client ID Anda agar aplikasi tetap terhubung selamanya.
+                  </span>
                 </div>
 
                 <div className="compact-form-group">

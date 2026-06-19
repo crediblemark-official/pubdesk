@@ -7,7 +7,7 @@ interface FileManagerProps {
 }
 
 export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
-  const { files, deleteFile, updateFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm, fileLayoutMode, currentFolderId, navigateFolder } = useAppContext();
+  const { files, deleteFile, updateFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm, fileLayoutMode, currentFolderId, navigateFolder, refreshAccessToken } = useAppContext();
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
 
@@ -133,7 +133,11 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     }
     if (path.startsWith('gdrive://')) {
       const fileId = path.replace('gdrive://', '');
-      const token = localStorage.getItem('gdrive_token');
+      let token = localStorage.getItem('gdrive_token');
+      if (!token && refreshAccessToken) {
+        showToast('Memperbarui koneksi Google Drive...', 'info');
+        token = await refreshAccessToken();
+      }
       if (!token) {
         showToast('Google Drive belum dikonfigurasi. Atur token di Pengaturan.', 'error');
         return;
@@ -169,11 +173,24 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
           }
         }
 
-        const response = await fetch(url, {
+        let response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
+
+        if (response.status === 401 && refreshAccessToken) {
+          showToast('Token kedaluwarsa. Memperbarui token...', 'info');
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            token = newToken;
+            response = await fetch(url, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+          }
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

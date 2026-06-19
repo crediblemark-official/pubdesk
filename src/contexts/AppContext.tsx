@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { AppState, Book, Contact, Invoice, File, Service } from '../types';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -67,6 +67,7 @@ interface AppContextType {
   connectedUser: { name: string, email: string } | null;
   setConnectedUser: (user: { name: string, email: string } | null) => void;
   testConnection: (token: string) => Promise<void>;
+  refreshAccessToken: () => Promise<string | null>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -123,11 +124,84 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('gdrive_token');
-    if (token) {
-      testConnection(token);
+  const refreshPromiseRef = useRef<Promise<string | null> | null>(null);
+
+  const refreshAccessToken = async (): Promise<string | null> => {
+    if (refreshPromiseRef.current) {
+      return refreshPromiseRef.current;
     }
+
+    const refreshToken = localStorage.getItem('gdrive_refresh_token');
+    const clientId = localStorage.getItem('gdrive_client_id');
+    const clientSecret = localStorage.getItem('gdrive_client_secret');
+
+    if (!refreshToken || !clientId || !clientSecret) {
+      return null;
+    }
+
+    const runRefresh = async (): Promise<string | null> => {
+      try {
+        const res = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            refresh_token: refreshToken,
+            grant_type: 'refresh_token'
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const newAccessToken = data.access_token;
+          localStorage.setItem('gdrive_token', newAccessToken);
+          
+          await testConnection(newAccessToken);
+          return newAccessToken;
+        } else {
+          console.error('Respon Google OAuth refresh gagal:', res.status);
+          return null;
+        }
+      } catch (err) {
+        console.error('Gagal melakukan refresh token:', err);
+        return null;
+      } finally {
+        refreshPromiseRef.current = null;
+      }
+    };
+
+    refreshPromiseRef.current = runRefresh();
+    return refreshPromiseRef.current;
+  };
+
+  useEffect(() => {
+    const initConnection = async () => {
+      const token = localStorage.getItem('gdrive_token');
+      if (token) {
+        try {
+          const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setConnectedUser({
+              name: data.user.displayName,
+              email: data.user.emailAddress
+            });
+          } else if (res.status === 401) {
+            await refreshAccessToken();
+          }
+        } catch {
+          await refreshAccessToken();
+        }
+      }
+    };
+    initConnection();
   }, []);
 
   useEffect(() => {
@@ -372,6 +446,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       connectedUser,
       setConnectedUser,
       testConnection,
+      refreshAccessToken,
     }}>
       {children}
     </AppContext.Provider>
