@@ -541,8 +541,7 @@ body {
 }
 
 .invoice-footer {
-  padding: 20px 40px 30px;
-  background: #f9fafb;
+  line-height: 0;
 }
 
 .invoice-footer-section {

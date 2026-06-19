@@ -365,28 +365,31 @@ const InvoicePreview: React.FC = () => {
             </div>
           </div>
 
-          {/* Bar Geometris Bawah */}
-          <div style={{ height: '18px', background: '#23252a', width: '100%', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-            {/* Stripe 1 */}
-            <div style={{ 
-              position: 'absolute', 
-              top: 0, 
-              left: 0, 
-              width: '100%', 
-              height: '100%', 
-              background: '#1e70cd', 
-              clipPath: 'polygon(265px 0, 285px 0, 274px 18px, 254px 18px)' 
-            }} />
-            {/* Stripe 2 */}
-            <div style={{ 
-              position: 'absolute', 
-              top: 0, 
-              left: 0, 
-              width: '100%', 
-              height: '100%', 
-              background: '#1e70cd', 
-              clipPath: 'polygon(295px 0, 308px 0, 297px 18px, 284px 18px)' 
-            }} />
+          {/* Footer SVG */}
+          <div className="invoice-footer" style={{ flexShrink: 0 }}>
+            <svg
+              viewBox="0 0 1045 71"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="none"
+              shapeRendering="geometricPrecision"
+              aria-label="Footer invoice"
+              style={{ display: 'block', width: '100%' }}
+            >
+              {/* Background */}
+              <rect width="1045" height="71" fill="#ffffff" />
+
+              {/* Bidang hitam */}
+              <path d="M 0 20 H 462 L 499.5 70 H 0 Z" fill="#222933" />
+
+              {/* Bidang biru kanan */}
+              <path d="M 538.25 20 H 1045 V 70 H 575.75 Z" fill="#2b71c6" />
+
+              {/* Diagonal biru tengah */}
+              <path d="M 470 5 H 509 L 557.75 70 H 518.75 Z" fill="#2b71c6" />
+
+              {/* Pemisah putih */}
+              <path d="M 509 5 H 527 L 575.75 70 H 557.75 Z" fill="#ffffff" />
+            </svg>
           </div>
 
         </div>
