@@ -173,51 +173,51 @@ const InvoicePreview: React.FC = () => {
               <rect x="0" y="0" width="657" height="2" fill="#dddddd" />
 
                {/* Panel hitam di belakang seluruh shape */}
-              <rect x="267" y="54" width="390" height="78" fill={headerBgColor} />
+              <rect x="267" y="0" width="390" height="78" fill={headerBgColor} />
 
-              {/* Bidang merah utama (Warna dinamis) - Sejajar dengan panel hitam y=54 ke y=132 */}
-              <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
+              {/* Bidang merah utama (Warna dinamis) - Sejajar dengan panel hitam y=0 ke y=78 */}
+              <polygon points="0,0 220,0 264.5,78 0,78" fill={headerPrimaryColor} />
 
               {/* Pemisah putih agar warna hitam tidak menyelip - Diperpanjang membungkus */}
-              <polygon points="189.2,0 205.2,0 284.5,139 268.5,139" fill="#ffffff" />
+              <polygon points="219.4,0 235.4,0 284,84 268,84" fill="#ffffff" />
 
               {/* Aksen merah kedua (Warna dinamis) - Diperpanjang membungkus */}
-              <polygon points="205.2,0 239.5,0 320.5,139 284.5,139" fill={headerSecondaryColor} />
+              <polygon points="235.4,0 270.9,0 320,84 284,84" fill={headerSecondaryColor} />
 
               {/* Logo placeholder / Gambar Logo Kustom */}
               {activeProfile?.companyLogo ? (
                 <image
                   href={activeProfile.companyLogo}
                   x="35"
-                  y="62"
+                  y="8"
                   width="180"
                   height="62"
                   preserveAspectRatio="xMinYMid meet"
                 />
               ) : (
                 <>
-                  <g transform="translate(40 61)">
+                  <g transform="translate(40 7)">
                     <path d="M20 0 L38 10 L38 33 L20 44 L2 33 L2 10 Z" fill="#ffffff" />
                     <path d="M20 11 L29 16 L29 28 L20 33 L11 28 L11 16 Z" fill={headerPrimaryColor} />
                   </g>
 
                   {/* Nama perusahaan */}
-                  <text x="88" y="82" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">
+                  <text x="88" y="28" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">
                     {activeProfile?.companyName || 'CV KBM'}
                   </text>
-                  <text x="89" y="96" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">
+                  <text x="89" y="42" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">
                     {activeProfile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                   </text>
                 </>
               )}
 
               {/* Judul invoice */}
-              <text x="622" y="98" textAnchor="end" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="44" fontWeight="700" letterSpacing="2">
+              <text x="622" y="44" textAnchor="end" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="44" fontWeight="700" letterSpacing="2">
                 {activeProfile?.invoiceTitleText || 'INVOICE'}
               </text>
 
               {/* Nomor invoice di bawah judul */}
-              <text x="622" y="118" textAnchor="end" fill="#dddddd" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="700" letterSpacing="1">
+              <text x="622" y="64" textAnchor="end" fill="#dddddd" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="700" letterSpacing="1">
                 NO. {invoiceNo || 'RA.01/11/06/2026'}
               </text>
             </svg>
