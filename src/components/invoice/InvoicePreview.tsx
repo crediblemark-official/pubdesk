@@ -179,14 +179,17 @@ const InvoicePreview: React.FC = () => {
                 </filter>
               </defs>
 
-              {/* Grup shape background dengan efek timbul (drop shadow) */}
+              {/* Grup shape background horizontal dengan efek timbul (drop shadow) */}
               <g filter="url(#drop-shadow)">
                 {/* Panel hitam di belakang seluruh shape */}
                 <rect x="267" y="54" width="390" height="78" fill={headerBgColor} />
 
                 {/* Bidang merah utama (Warna dinamis) - Sejajar dengan panel hitam y=54 ke y=132 */}
                 <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
+              </g>
 
+              {/* Grup shape miring tengah dengan efek timbul (drop shadow) di atas shape horizontal */}
+              <g filter="url(#drop-shadow)">
                 {/* Pemisah putih agar warna hitam tidak menyelip - Diperpanjang membungkus */}
                 <polygon points="214.3,44 230.3,44 284.5,139 268.5,139" fill="#ffffff" />
 
