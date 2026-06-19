@@ -22,7 +22,7 @@ const InvoiceSettings: React.FC = () => {
     deleteProfile,
     setProfiles
   } = useInvoiceContext();
-  const { showToast, showConfirm, addFile, files } = useAppContext();
+  const { showToast, showConfirm, addFile, files, rightPanelVisible } = useAppContext();
 
   const [selectedProfileId, setSelectedProfileId] = useState<string>(activeProfileId);
   const [isEditingNew, setIsEditingNew] = useState<boolean>(false);
@@ -333,7 +333,7 @@ const InvoiceSettings: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(300px, 1fr)', gap: '16px', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? 'minmax(0, 1.25fr) minmax(300px, 1fr)' : '1fr', gap: '16px', alignItems: 'start' }}>
       {/* Kolom Kiri: Form Editor */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         
@@ -490,14 +490,16 @@ const InvoiceSettings: React.FC = () => {
       </div>
 
       {/* Kolom Kanan: Panel Realtime Preview */}
-      <div style={{ position: 'sticky', top: '16px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'calc(100vh - 100px)', minHeight: '400px' }}>
-        <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
-          👁️ Realtime Preview
-        </h3>
-        <div style={{ flex: 1, border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
-          <InvoicePreview previewProfile={currentEditingProfile} />
+      {rightPanelVisible && (
+        <div style={{ position: 'sticky', top: '16px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'calc(100vh - 100px)', minHeight: '400px' }}>
+          <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
+            👁️ Realtime Preview
+          </h3>
+          <div style={{ flex: 1, border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
+            <InvoicePreview previewProfile={currentEditingProfile} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal Pilih Template */}
       {showTemplateModal && (
