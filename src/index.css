@@ -398,36 +398,7 @@ body {
 }
 
 .invoice-header {
-  background: linear-gradient(135deg, #003366 0%, #002244 100%);
-  padding: 30px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-
-.invoice-header::before {
-  content: '';
-  position: absolute;
-  right: -100px;
-  top: -50px;
-  width: 300px;
-  height: 200px;
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  transform: rotate(-15deg);
-}
-
-.invoice-header::after {
-  content: '';
-  position: absolute;
-  right: -50px;
-  bottom: -80px;
-  width: 200px;
-  height: 150px;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  transform: rotate(25deg);
+  line-height: 0;
 }
 
 .company-info {
