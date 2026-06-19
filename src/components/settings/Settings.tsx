@@ -73,7 +73,7 @@ const Settings: React.FC = () => {
         q = `'${parentFolderId.trim()}' in parents and trashed = false`;
       }
       
-      const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime,size)`;
+      const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime,size,parents)`;
       const res = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -99,6 +99,7 @@ const Settings: React.FC = () => {
         const path = `gdrive://${df.id}`;
         const existing = existingGDriveFiles.find(f => f.path === path);
         
+        const parentId = df.parents && df.parents.length > 0 ? df.parents[0] : 'root';
         const fileData = {
           path,
           filename: df.name,
@@ -106,7 +107,7 @@ const Settings: React.FC = () => {
           status: existing ? existing.status : 'Cloud',
           version_label: df.mimeType,
           last_modified: df.modifiedTime,
-          modified_by: df.size ? df.size.toString() : '0',
+          modified_by: `${df.size ? df.size.toString() : '0'}|${parentId}`,
           is_readonly: true
         };
         

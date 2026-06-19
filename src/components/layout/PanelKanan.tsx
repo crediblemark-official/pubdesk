@@ -256,9 +256,10 @@ const PanelKanan: React.FC = () => {
 
           const formatBytes = (bytesStr?: string) => {
             if (!bytesStr) return '-';
-            const bytes = parseInt(bytesStr);
-            if (isNaN(bytes)) return bytesStr;
-            if (bytes === 0) return '0 Bytes';
+            const sizePart = bytesStr.split('|')[0] || '0';
+            const bytes = parseInt(sizePart);
+            if (isNaN(bytes)) return sizePart;
+            if (bytes === 0 || file.version_label === 'application/vnd.google-apps.folder') return '-';
             const k = 1024;
             const sizes = ['Bytes', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -273,9 +274,13 @@ const PanelKanan: React.FC = () => {
             return mime;
           };
 
+          const isFolder = file.version_label === 'application/vnd.google-apps.folder';
+
           return (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', padding: '30px', overflow: 'auto', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', marginBottom: '24px' }}>Detail Berkas Google Drive</h3>
+              <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+                {isFolder ? 'Detail Folder Google Drive' : 'Detail Berkas Google Drive'}
+              </h3>
               
               <div style={{
                 width: '100%',
@@ -295,21 +300,23 @@ const PanelKanan: React.FC = () => {
                 overflow: 'hidden',
                 border: '1px solid rgba(255,255,255,0.05)'
               }}>
-                <div style={{ position: 'absolute', right: '-20px', bottom: '-20px', fontSize: '96px', opacity: 0.05, userSelect: 'none' }}>☁️</div>
-                <span style={{ fontSize: '48px' }}>☁️</span>
+                <div style={{ position: 'absolute', right: '-20px', bottom: '-20px', fontSize: '96px', opacity: 0.05, userSelect: 'none' }}>
+                  {isFolder ? '📁' : '☁️'}
+                </div>
+                <span style={{ fontSize: '48px' }}>{isFolder ? '📁' : '☁️'}</span>
                 <div>
                   <span style={{
                     padding: '2px 10px',
                     borderRadius: '12px',
                     fontSize: '11px',
                     fontWeight: '600',
-                    background: file.status === 'Tersimpan' ? 'rgba(46, 194, 126, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                    background: isFolder ? 'rgba(30, 144, 255, 0.2)' : (file.status === 'Tersimpan' ? 'rgba(46, 194, 126, 0.2)' : 'rgba(255, 255, 255, 0.1)'),
                     backdropFilter: 'blur(4px)',
-                    color: file.status === 'Tersimpan' ? '#2ec27e' : '#e5e7eb',
+                    color: isFolder ? '#1e90ff' : (file.status === 'Tersimpan' ? '#2ec27e' : '#e5e7eb'),
                     textTransform: 'uppercase',
                     border: '1px solid rgba(255,255,255,0.1)'
                   }}>
-                    {file.status === 'Tersimpan' ? 'Tersimpan Lokal (Cached)' : 'Tersedia di Cloud'}
+                    {isFolder ? 'Folder Cloud' : (file.status === 'Tersimpan' ? 'Tersimpan Lokal (Cached)' : 'Tersedia di Cloud')}
                   </span>
                 </div>
               </div>
@@ -339,13 +346,19 @@ const PanelKanan: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                  <button
-                    className="btn-primary compact-btn"
-                    onClick={handleOpenGDrivePhysically}
-                    style={{ width: '100%', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                  >
-                    <span>📥</span> {file.status === 'Tersimpan' ? 'Buka Berkas Native' : 'Unduh & Buka Native'}
-                  </button>
+                  {!isFolder ? (
+                    <button
+                      className="btn-primary compact-btn"
+                      onClick={handleOpenGDrivePhysically}
+                      style={{ width: '100%', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    >
+                      <span>📥</span> {file.status === 'Tersimpan' ? 'Buka Berkas Native' : 'Unduh & Buka Native'}
+                    </button>
+                  ) : (
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', background: 'rgba(0,0,0,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '8px', lineHeight: '1.4' }}>
+                      💡 <strong>Klik dua kali</strong> pada baris folder di sebelah kiri untuk masuk dan menjelajah isinya.
+                    </div>
+                  )}
 
                   <button
                     className="btn-secondary compact-btn"
@@ -360,7 +373,7 @@ const PanelKanan: React.FC = () => {
                     onClick={handleCopyLink}
                     style={{ width: '100%', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--bg-card)' }}
                   >
-                    <span>📋</span> Salin Link Drive
+                    <span>📋</span> {isFolder ? 'Salin Link Folder' : 'Salin Link Drive'}
                   </button>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -9,10 +9,42 @@ interface FileManagerProps {
 export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const { files, deleteFile, updateFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm } = useAppContext();
 
+  const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
+  const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
+
+  // Reset folder view saat kategori berkas berubah
+  useEffect(() => {
+    setCurrentFolderId(rootFolderId);
+  }, [fileCategory]);
+
+  const getParentId = (file: any) => {
+    if (file.type !== 'gdrive') return null;
+    const parts = file.modified_by?.split('|') || [];
+    return parts[1] || 'root';
+  };
+
+  const handleGoUp = () => {
+    const currentFolder = files.find(f => f.path === `gdrive://${currentFolderId}`);
+    if (currentFolder) {
+      const parentId = getParentId(currentFolder);
+      setCurrentFolderId(parentId || rootFolderId);
+    } else {
+      setCurrentFolderId(rootFolderId);
+    }
+    setSelectedFileId(null);
+  };
+
   // Handler Buka Berkas Fisik via Rust Backend
   const handleOpenFile = async (e: React.MouseEvent, file: any) => {
     e.stopPropagation();
     const path = file.path;
+    
+    // Navigasi masuk folder Google Drive
+    if (file.type === 'gdrive' && file.version_label === 'application/vnd.google-apps.folder') {
+      setCurrentFolderId(file.path.replace('gdrive://', ''));
+      setSelectedFileId(null);
+      return;
+    }
     if (path.startsWith('gdrive://')) {
       const fileId = path.replace('gdrive://', '');
       const token = localStorage.getItem('gdrive_token');
@@ -145,6 +177,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const getDisplayType = (file: any) => {
     if (file.type === 'invoice') return 'Invoice';
     if (file.type === 'service') return 'Layanan';
+    if (file.type === 'gdrive' && file.version_label === 'application/vnd.google-apps.folder') return 'Folder';
     
     const parts = file.filename.split('.');
     if (parts.length > 1) {
@@ -173,7 +206,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     const matchesSearch = file.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
       file.path.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesCategory && matchesSearch;
+    // Filter folder jika menjelajah gdrive secara normal (tanpa pencarian)
+    const matchesFolder = searchQuery || 
+      fileCategory !== 'gdrive' ||
+      getParentId(file) === currentFolderId ||
+      (currentFolderId === rootFolderId && (getParentId(file) === 'root' || getParentId(file) === rootFolderId));
+
+    return matchesCategory && matchesSearch && matchesFolder;
   });
 
   return (
@@ -197,6 +236,31 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
               </tr>
             </thead>
             <tbody>
+              {/* Baris kembali ke folder induk */}
+              {fileCategory === 'gdrive' && !searchQuery && currentFolderId !== rootFolderId && (
+                <tr
+                  onClick={() => setSelectedFileId(null)}
+                  onDoubleClick={handleGoUp}
+                  title="Klik dua kali untuk naik ke folder induk"
+                  style={{
+                    borderBottom: '1px solid var(--border)',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    color: 'var(--text-primary)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <td style={{ padding: '10px 12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>📁</span>
+                    <span>.. (Kembali ke folder sebelumnya)</span>
+                  </td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>Folder Induk</td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>-</td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>-</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>-</td>
+                </tr>
+              )}
               {filteredFiles.map((file) => {
                 const isSelected = selectedFileId === file.id;
                 return (
@@ -223,7 +287,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                       <span style={{ fontSize: '16px' }}>
                         {file.type === 'invoice' && '📄'}
                         {file.type === 'service' && '🛠️'}
-                        {file.type === 'gdrive' && '☁️'}
+                        {file.type === 'gdrive' && (file.version_label === 'application/vnd.google-apps.folder' ? '📁' : '☁️')}
                         {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
                       </span>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
