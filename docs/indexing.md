@@ -52,6 +52,14 @@ PubHub tidak memaksa pengguna mengganti nama. Sebaliknya:
 
 File yang tidak bisa dikaitkan otomatis tetap terindeks dan dapat dicari berdasarkan nama atau isi teks. Pengguna dapat menautkan file ke proyek/buku secara manual melalui menu konteks: **"Tautkan ke Proyek..."**.
 
+#### 2.4. Strategi Google Drive Cloud Indexing (Multi-Akun)
+
+Sebagai penyesuaian utama untuk mendukung kerja kolaboratif jarak jauh, PubDesk mendukung pengindeksan direktori awan Google Drive dengan struktur multi-akun:
+- **Penyelarasan Tanpa Unduh Massal**: Aplikasi hanya mengunduh daftar metadata file (nama, mimeType, ukuran, id parent, email pemilik) dari Google Drive API, lalu menyimpannya ke tabel database `files` lokal.
+- **Virtual Folders**: Di antarmuka file manager, berkas disusun dalam folder virtual bertingkat berdasarkan akun (`ac_email`) -> kategori (`Drive Saya` dan `Shared with me`) -> folder internal Google Drive.
+- **Clean-up Metadata Otomatis**: Jika file dihapus dari Google Drive cloud, proses sinkronisasi berikutnya akan secara otomatis menghapus metadata file tersebut dari database lokal agar data tetap konsisten.
+- **Caching On-Demand**: File fisik biner (PDF, Gambar, dll.) hanya diunduh dan disimpan di cache lokal saat pengguna mengklik atau meminta pratinjau file tersebut menggunakan token OAuth yang sesuai.
+
 ---
 
 ### 3. Strategi untuk Data Transaksi Lama (Invoice Historis)
@@ -81,7 +89,10 @@ Saat mengimpor, jika nama pelanggan atau judul buku sudah ada di database, siste
 
 ---
 
-### 4. Proses Onboarding Pertama Kali (First Run Wizard)
+### 4. Proses Onboarding Pertama Kali (First Run Wizard - Fase 2 Direncanakan)
+
+> [!NOTE]
+> Wizard onboarding interaktif langkah-demi-langkah ini direncanakan untuk **Fase 2**. Saat ini, pengguna langsung masuk ke halaman utama aplikasi dan dapat mengonfigurasi integrasi Google Drive secara mandiri di tab Pengaturan Umum.
 
 Agar pengguna tidak bingung, aplikasi bisa menyajikan wizard sederhana saat pertama kali dijalankan:
 
@@ -116,7 +127,7 @@ Setelah itu, aplikasi langsung bisa digunakan untuk invoice baru sementara indek
 
 ---
 
-### 5. Klasifikasi File Lama Secara Otomatis (Heuristik)
+### 5. Klasifikasi File Lama Secara Otomatis (Heuristik - Fase 2 Direncanakan)
 
 Untuk membantu pengguna menata file lama tanpa memindahkan, PubHub menyediakan **klasifikasi otomatis** berdasarkan nama file:
 
@@ -146,13 +157,15 @@ Karena data lama tetap di tempatnya, satu-satunya yang "baru" di PubHub adalah f
 
 ### 7. Ringkasan: Tidak Ada yang Tersentuh, Semua Terlihat
 
-| Jenis Data | Penanganan |
-|------------|------------|
-| File naskah/aset lama | Dipindai, diindeks (path, meta, teks), tidak dipindahkan |
-| Nama file tidak terstruktur | Dikenali otomatis dengan pola, bisa ditag manual |
-| Invoice historis (file) | Diindeks sebagai file, bisa ditautkan ke proyek |
-| Transaksi lama (data) | Impor opsional via CSV |
-| Kontak lama | Otomatis terbentuk saat impor invoice atau saat invoice baru dibuat |
-| Struktur folder | Tetap utuh, aplikasi hanya "melihat" |
+| Jenis Data | Penanganan | Status Saat Ini |
+|------------|------------|-----------------|
+| Berkas Google Drive (Cloud) | Sinkronisasi metadata dinamis (multi-akun), folder virtual, download cache on-demand | **Aktif (Terimplementasi)** |
+| Berkas naskah/aset lokal | Dipindai, diindeks (path, meta, teks), tidak dipindahkan | **Fase 2 (Direncanakan)** |
+| Watcher folder lokal (`notify`) | Memantau perubahan file sistem lokal real-time | **Fase 2 (Direncanakan)** |
+| Nama file tidak terstruktur | Dikenali otomatis dengan pola regex dasar di frontend | **Aktif (Terimplementasi)** |
+| Invoice historis (file) | Diindeks sebagai file biasa di cloud/lokal | **Aktif (Terimplementasi)** |
+| Transaksi lama (data) | Impor opsional via CSV untuk Buku Besar | **Fase 2 (Direncanakan)** |
+| Kontak lama | Otomatis terbentuk saat invoice baru dibuat | **Aktif (Terimplementasi)** |
+| Struktur folder | Tetap utuh, aplikasi hanya "melihat" indeks | **Aktif (Terimplementasi)** |
 
 Dengan pendekatan ini, PubHub Desktop benar-benar menjadi "lensa pintar" yang langsung bisa dipakai pada ekosistem file yang sudah ada, tanpa ketakutan kehilangan data atau harus merapikan ulang.

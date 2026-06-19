@@ -335,13 +335,16 @@ sequenceDiagram
 
 ---
 
-### 5.3 Pre-Order Extractor (AI-Powered)
+### 5.3 Pre-Order Extractor (Fase 1: Parser Teks / Regex; Fase 2: AI-Powered Lokal)
 
 **Tujuan**: Mengubah chat WhatsApp yang tidak terstruktur menjadi data form yang siap pakai dalam hitungan detik.
 
 **Cara Kerja**:
+> [!NOTE]
+> Integrasi AI Model Lokal (llama.cpp/ONNX) direncanakan untuk **Fase 2**. Saat ini, ekstraksi data chat WhatsApp menggunakan **Parser Teks/Regex teroptimasi** di frontend.
+
 1. Admin menyalin seluruh chat WA (bisa berisi basa-basi, pemesanan, alamat) ke textarea khusus.
-2. Klik "Ekstrak Cerdas" → backend Rust menjalankan model AI lokal (NER/LLM kecil) untuk mengekstrak:
+2. Klik "Ekstrak" → sistem memproses teks dengan regex untuk mengekstrak:
    - Nama pelanggan
    - Nomor WA
    - Alamat pengiriman
@@ -391,64 +394,65 @@ flowchart TD
 
 ---
 
-### 5.4 Smart Folders – Arsip In-Place
+### 5.4 Smart Folders – Integrasi Google Drive & Arsip Cloud (Multi-Akun)
 
-**Tujuan**: Mengubah file system yang kacau menjadi perpustakaan digital yang terindeks, dapat dicari, dan memiliki metadata.
+**Tujuan**: Mengintegrasikan penyimpanan cloud Google Drive secara terpadu tanpa mengubah struktur file asli di cloud, mendukung multi-akun, serta menyediakan antarmuka navigasi virtual file manager.
 
 **Cara Kerja**:
-1. Admin mendaftarkan folder penerbitan (misal `D:\Penerbitan\Naskah`, `D:\Penerbitan\Aset`).
-2. Backend Rust memantau folder secara real-time dengan `notify`. Setiap file baru, perubahan, atau penghapusan dicatat ke database `files`.
-3. Panel tengah menampilkan daftar file dengan metadata: nama, tipe, ukuran, tanggal modifikasi, status (Draft/Revisi/Final/Arsip), dan tag.
-4. Klik file → panel kanan menampilkan preview (PDF, DOCX, gambar) tanpa membuka aplikasi eksternal.
-5. Klik kanan file → menu konteks: "Kunci sebagai Final" (set Read-Only), "Tandai Arsip", "Salin Path", "Buka Folder".
+1. **Pendaftaran Akun Baru**: Pengguna mendaftarkan akun Google Drive melalui menu pengaturan. Proses otorisasi berjalan otomatis menggunakan port lokal OAuth `50007`.
+2. **Virtual Folder per Akun**: File manager menampilkan folder root virtual Google Drive yang berisi daftar folder akun terhubung (misal: `gdrive://ac_akun1@gmail.com`, `gdrive://ac_akun2@gmail.com`).
+3. **Drive Saya & Shared With Me**: Di dalam setiap folder akun, terdapat subfolder virtual:
+   - `Drive Saya` (`md_email`): Menampilkan berkas pribadi milik pengguna di Drive.
+   - `Shared with me` (`swm_email`): Menampilkan berkas milik pengguna lain yang dibagikan ke akun tersebut.
+4. **Penyelarasan Metadata**: Tombol "Sinkronisasi Sekarang" mengambil data berkas dari Google Drive API secara massal (melalui pagination), mencatat metadata penting (nama file, tipe mime, ukuran, ID parent, tanda shared, email pemilik) ke dalam database SQLite lokal.
+5. **Download On-Demand**: Berkas yang diindeks tidak langsung diunduh secara fisik ke komputer pengguna. Ketika berkas dibuka/diklik, aplikasi mengunduh berkas secara otomatis ke direktori cache lokal dengan menggunakan token milik akun Google Drive terkait.
+6. **Local Folder Watcher (Fase 2)**: Fitur pemantauan folder lokal real-time menggunakan crate `notify` direncanakan pada pengembangan fase berikutnya.
 
-**Wireframe Smart Folders**:
+**Wireframe Smart Folders (Google Drive)**:
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                            SMART FOLDERS                                        │
+│                            SMART FOLDERS - CLOUD                                │
 ├────────────┬─────────────────────────────────────────┬──────────────────────────┤
 │  FOLDER    │  DAFTAR FILE                            │  PREVIEW                 │
 │  TREE      │                                         │                          │
-│            │  Path: D:\Penerbitan\Naskah\2026\       │  ┌────────────────────┐  │
-│  📁 Penerbit│  ┌───────────────────────────────────┐  │  │                    │  │
-│   📁 Naskah│  │ 🔍 Cari file...                    │  │  │   PREVIEW PDF      │  │
-│    📁 2025 │  │ Filter: [Semua ▼] [Final ▼]        │  │  │                    │  │
-│    📁 2026 │  ├───┬──────────────┬──────┬──────┬───┤  │  │   Naskah Buku A    │  │
-│   📁 Aset  │  │   │ Nama File    │ Tgl   │Status│Tag│  │  │   Bab 1-3          │  │
-│    📁 Promo│  │ ★ │BukuA_Rev3    │19 Jun │Revisi│   │  │  │                    │  │
-│    📁 Flyer│  │   │BukuA_Final   │18 Jun │Final │⭐ │  │  │   ...isi dokumen... │  │
-│            │  │   │BukuB_Draft   │17 Jun │Draft │   │  │  │                    │  │
-│  [+ Tambah]│  │   │Banner_Lebaran│15 Apr │Final │⭐ │  │  │                    │  │
+│            │  Path: Google Drive \                   │  ┌────────────────────┐  │
+│  ☁️ GDrive  │  ┌───────────────────────────────────┐  │  │                    │  │
+│   📁 ac_1  │  │ 🔍 Cari file...                    │  │  │   PREVIEW PDF      │  │
+│    📁 md_1 │  │ Filter: [Semua ▼]                  │  │  │                    │  │
+│    📁 swm_1│  ├───┬──────────────┬──────┬──────┬───┤  │  │   Naskah Buku A    │  │
+│   📁 ac_2  │  │   │ Nama File    │ Tgl   │Status│Tag│  │  │   Bab 1-3          │  │
+│    📁 md_2 │  │ ★ │BukuA_Rev3.pdf│19 Jun │Cloud │   │  │  │                    │  │
+│    📁 swm_2│  │   │BukuA_Cover   │18 Jun │Cloud │⭐ │  │  │   ...isi dokumen... │  │
+│            │  │   │BukuB_Draft   │17 Jun │Cloud │   │  │  │                    │  │
+│  [+ Hubung]│  │   │Banner_Lebaran│15 Apr │Cloud │⭐ │  │  │                    │  │
 │            │  └───┴──────────────┴──────┴──────┴───┘  │  └────────────────────┘  │
-│            │  [🔒 Kunci Final] [🏷️ Tag] [📋 Copy Path]│                          │
+│            │  [🔄 Sinkronisasi] [🗑️ Hapus Metadata]   │                          │
 └────────────┴─────────────────────────────────────────┴──────────────────────────┘
 ```
 
-**File Watcher Architecture**:
+**Cloud Sync & Download Architecture**:
 ```mermaid
-flowchart LR
-    subgraph OS [File System]
-        FS[Folder Penerbitan]
+flowchart TD
+    subgraph GD [Google Drive Cloud]
+        API[Google Drive API v3]
     end
 
-    subgraph Rust [Rust Backend]
-        Watcher[notify Watcher<br/>Debounce 500ms]
-        Channel[mpsc Channel]
-        Processor[Event Processor]
-        Indexer[Metadata Indexer]
+    subgraph App [PubDesk Application]
+        OAuth[OAuth 2.0 Loopback Server]
+        Sync[Sync Manager]
+        Cache[Cache Manager]
     end
 
-    subgraph DB [SQLite]
-        Files[(Files Table)]
-        FTS[Full-Text Search]
+    subgraph DB [SQLite Lokal]
+        Files[(Tabel Files)]
     end
 
-    FS -->|create/modify/delete| Watcher
-    Watcher -->|event| Channel
-    Channel -->|debounced event| Processor
-    Processor -->|extract metadata| Indexer
-    Indexer -->|INSERT/UPDATE| Files
-    Files -->|index| FTS
+    OAuth -->|Mendapatkan Token| API
+    Sync -->|Tarik Metadata File| API
+    Sync -->|Simpan Indeks Cloud| Files
+    Cache -->|Download On-Demand via Token Akun| API
+    Cache -->|Tulis Cache Berkas Fisik| LocalDisk[(Local Cache Disk)]
+end
 ```
 
 ---
@@ -526,9 +530,12 @@ sequenceDiagram
 
 ---
 
-### 5.7 Version Timeline
+### 5.7 Version Timeline (Fase 2 - Direncanakan)
 
 **Tujuan**: Melihat riwayat perubahan file naskah secara kronologis.
+
+> [!NOTE]
+> Fitur ini direncanakan untuk **Fase 2** dan akan melacak riwayat revisi berkas naskah lokal maupun cloud secara kronologis.
 
 **Wireframe Version Timeline**:
 ```
@@ -597,9 +604,12 @@ sequenceDiagram
 
 ---
 
-### 5.9 Quick Capture (Popup Cepat)
+### 5.9 Quick Capture (Fase 2 - Direncanakan)
 
 **Tujuan**: Membuat invoice tanpa membuka jendela utama.
+
+> [!NOTE]
+> Fitur window sekunder melayang dan shortcut global ini direncanakan untuk **Fase 2**.
 
 **Cara Kerja**:
 - `Ctrl+Shift+P` memunculkan popup kecil di atas semua jendela.
@@ -627,32 +637,47 @@ sequenceDiagram
 
 ---
 
-### 5.10 Pengaturan & Konfigurasi
+### 5.10 Pengaturan & Konfigurasi (Pengaturan Umum & Google Drive)
 
-**Wireframe Pengaturan**:
+**Wireframe Pengaturan Umum (Integrasi Google Drive)**:
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    PENGATURAN                                │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  Folder yang Dipantau:                                      │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ D:\Penerbitan\Naskah                         [×]    │   │
-│  │ D:\Penerbitan\Aset                           [×]    │   │
-│  └──────────────────────────────────────────────────────┘   │
-│  [+ Tambah Folder]                                          │
-│                                                              │
-│  Pola Penamaan Otomatis:                                    │
-│  [ [JudulBuku]_[Penulis]_Revisi[Nomor]_[Tanggal] ]          │
-│                                                              │
-│  Model AI (Opsional):                                       │
-│  Status: [✓] Terpasang (llama-3.2-3B-q4)                   │
-│  [ Unduh Model... ] [ Nonaktifkan ]                         │
-│                                                              │
-│  Ekspor Database:                                           │
-│  [ 📥 Backup SQLite ] [ 📤 Restore ]                        │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    PENGATURAN UMUM & GOOGLE DRIVE                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  👤 AKUN TERHUBUNG:                                                          │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │ Budi Santoso (budi@gmail.com)                            [ Disconnect ]│  │
+│  │ Ani Wijaya (ani@gmail.com)                               [ Disconnect ]│  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+│  [ ➕ Hubungkan Akun Google Baru (OAuth Browser) ]                            │
+│                                                                              │
+│  ☁️ INTEGRASI MANUAL / JANGKA PANJANG (Autosave State + Simpan manual):        │
+│  Google Drive OAuth2 Access Token:                                           │
+│  [ ********************************************************** ] [ Tampilkan ]│
+│                                                                              │
+│  Google Client ID:                                                           │
+│  [ 935478440552-k48b61cglp06gskchsc7qg6l2i1pkhn1.apps.google.com            ]│
+│                                                                              │
+│  Google Client Secret:                                                       │
+│  [ ****************************************** ] [👁]                          │
+│                                                                              │
+│  Google OAuth2 Refresh Token:                                                │
+│  [ ****************************************** ]                              │
+│                                                                              │
+│  ID Folder Induk (Opsional):                                                 │
+│  [ Kosongkan untuk menyinkronkan seluruh Drive                              ]│
+│                                                                              │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  [ 💾 Simpan Konfigurasi ]  [ 🔄 Sinkronisasi Sekarang ]                     │
+│                                                   [ 🗑️ Hapus Metadata Drive ]│
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Keterangan Aksi**:
+- **Simpan Konfigurasi**: Menyimpan isian token/kredensial ke `localStorage` lokal, menampilkan toast notifikasi sukses, dan memverifikasi koneksi.
+- **Sinkronisasi Sekarang**: Memulai penarikan berkas metadata secara serial dari semua akun terhubung.
+- **Hapus Metadata Drive**: Menghapus seluruh berkas metadata Google Drive lokal di database aplikasi tanpa memengaruhi cache berkas fisik.
 
 ---
 
