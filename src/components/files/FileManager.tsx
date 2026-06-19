@@ -1,9 +1,34 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
+import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
 
 export const FileManager: React.FC = () => {
   const { files, deleteFile, selectedFileId, setSelectedFileId, showToast, fileCategory } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Handler Buka Berkas Fisik
+  const handleOpenFile = async (e: React.MouseEvent, path: string) => {
+    e.stopPropagation();
+    try {
+      await openUrl(path);
+      showToast('Membuka berkas...', 'info');
+    } catch (error) {
+      console.error('Gagal membuka berkas:', error);
+      showToast('Gagal membuka berkas (pastikan file fisik ada)', 'error');
+    }
+  };
+
+  // Handler Buka Lokasi Berkas di File Manager Sistem
+  const handleOpenFileLocation = async (e: React.MouseEvent, path: string) => {
+    e.stopPropagation();
+    try {
+      await revealItemInDir(path);
+      showToast('Membuka lokasi berkas...', 'info');
+    } catch (error) {
+      console.error('Gagal membuka lokasi berkas:', error);
+      showToast('Gagal membuka lokasi berkas', 'error');
+    }
+  };
 
   // Handler Hapus Berkas
   const handleDelete = async (e: React.MouseEvent, id: number, filename: string) => {
@@ -156,7 +181,69 @@ export const FileManager: React.FC = () => {
                       </span>
                     </td>
                     <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        {/* Tombol Buka Berkas */}
+                        <button
+                          onClick={(e) => handleOpenFile(e, file.path)}
+                          title="Buka berkas"
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text-secondary)';
+                          }}
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                          </svg>
+                        </button>
+
+                        {/* Tombol Buka Lokasi Berkas */}
+                        <button
+                          onClick={(e) => handleOpenFileLocation(e, file.path)}
+                          title="Buka lokasi berkas"
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text-secondary)';
+                          }}
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                        </button>
+
                         {/* Tombol Hapus */}
                         <button
                           onClick={(e) => handleDelete(e, file.id!, file.filename)}
