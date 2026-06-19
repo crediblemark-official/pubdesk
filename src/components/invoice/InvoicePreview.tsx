@@ -53,6 +53,24 @@ const InvoicePreview: React.FC = () => {
   const subtotal = itemsTotal;
   const total = subtotal + shippingCost + adminFee;
 
+  // Fungsi helper untuk membagi teks nama pelanggan menjadi dua warna (Hitam & Biru)
+  const renderCustomerName = () => {
+    const fullName = customer.name || 'NAME HERE';
+    const words = fullName.trim().split(/\s+/);
+    if (words.length <= 1) {
+      return <span style={{ color: '#1e70cd' }}>{fullName}</span>;
+    }
+    const mid = Math.ceil(words.length / 2);
+    const firstPart = words.slice(0, mid).join(' ');
+    const secondPart = words.slice(mid).join(' ');
+    return (
+      <>
+        <span style={{ color: '#1f2937' }}>{firstPart} </span>
+        <span style={{ color: '#1e70cd' }}>{secondPart}</span>
+      </>
+    );
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#2d2720', overflow: 'auto', padding: '20px', alignItems: 'center', justifyContent: 'center' }}>
       {/* Mengimpor font Montserrat dan Playball dari Google Fonts */}
@@ -92,8 +110,8 @@ const InvoicePreview: React.FC = () => {
           }}>
           
           {/* Header Geometris */}
-          <div style={{ display: 'flex', position: 'relative', height: '90px', width: '100%', overflow: 'hidden', background: '#ffffff', flexShrink: 0 }}>
-            {/* Bagian Kiri (Biru) */}
+          <div style={{ display: 'flex', position: 'relative', height: '95px', width: '100%', overflow: 'hidden', background: '#ffffff', flexShrink: 0 }}>
+            {/* Bagian Kiri (Biru) - Kemiringan diagonal ke kiri (down-left) */}
             <div style={{ 
               background: '#1e70cd', 
               width: '100%',
@@ -101,7 +119,7 @@ const InvoicePreview: React.FC = () => {
               position: 'absolute',
               top: 0,
               left: 0,
-              clipPath: 'polygon(0 0, 190px 0, 250px 100%, 0 100%)',
+              clipPath: 'polygon(0 0, 240px 0, 180px 100%, 0 100%)',
               display: 'flex',
               alignItems: 'center',
               paddingLeft: '35px',
@@ -119,7 +137,7 @@ const InvoicePreview: React.FC = () => {
               </div>
             </div>
 
-            {/* Stripe Tengah (Biru) */}
+            {/* Stripe Tengah (Biru) - Paralel dengan kemiringan kiri */}
             <div style={{ 
               background: '#1e70cd', 
               width: '100%',
@@ -127,7 +145,7 @@ const InvoicePreview: React.FC = () => {
               position: 'absolute',
               top: 0,
               left: 0,
-              clipPath: 'polygon(200px 0, 225px 0, 285px 100%, 260px 100%)',
+              clipPath: 'polygon(250px 0, 275px 0, 215px 100%, 190px 100%)',
               zIndex: 2
             }} />
 
@@ -139,7 +157,7 @@ const InvoicePreview: React.FC = () => {
               position: 'absolute',
               top: 0,
               left: 0,
-              clipPath: 'polygon(235px 0, 100% 0, 100% 100%, 295px 100%)',
+              clipPath: 'polygon(285px 0, 100% 0, 100% 100%, 225px 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
@@ -154,31 +172,37 @@ const InvoicePreview: React.FC = () => {
           <div style={{ padding: '30px 35px 20px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0 }}>
             <div>
               <div style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Invoice To:</div>
-              <div style={{ fontSize: '26px', fontWeight: '900', color: '#1e70cd', marginBottom: '8px', lineHeight: '1.1', wordBreak: 'break-word' }}>{customer.name || 'NAME HERE'}</div>
-              <div style={{ fontSize: '11px', color: '#4b5563', marginBottom: '4px' }}>
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>Designation :</span> Managing Director
+              <div style={{ fontSize: '32px', fontWeight: '900', marginBottom: '8px', lineHeight: '1.1', wordBreak: 'break-word' }}>
+                {renderCustomerName()}
               </div>
-              <div style={{ fontSize: '11px', color: '#4b5563', marginBottom: '4px' }}>
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>Phone :</span> {customer.wa_number || '123-456-7890'}
+              <div style={{ fontSize: '11px', color: '#1f2937', marginBottom: '4px', fontWeight: '600' }}>
+                Designation : <span style={{ fontWeight: '500', color: '#4b5563' }}>Managing Director</span>
               </div>
-              <div style={{ fontSize: '11px', color: '#4b5563' }}>
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>Email :</span> infohere
+              <div style={{ fontSize: '11px', color: '#1f2937', marginBottom: '4px', fontWeight: '600' }}>
+                Phone : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.wa_number || '123-456-7890'}</span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#1f2937', fontWeight: '600' }}>
+                Email : <span style={{ fontWeight: '500', color: '#4b5563' }}>infohere</span>
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: '#1e70cd', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Payment Method</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '95px 12px 1fr', gap: '4px', fontSize: '11px', color: '#4b5563' }}>
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>Account No</span>
-                <span>:</span>
-                <span style={{ fontWeight: '600', color: '#4b5563' }}>1234-567-89</span>
-                
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>Account Name</span>
-                <span>:</span>
-                <span style={{ fontWeight: '600', color: '#4b5563' }}>namehere</span>
-                
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>Card holder</span>
-                <span>:</span>
-                <span style={{ fontWeight: '600', color: '#4b5563' }}>holderz</span>
+              <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <span style={{ color: '#1f2937' }}>Payment </span>
+                <span style={{ color: '#1e70cd' }}>Method</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px' }}>
+                  <span style={{ fontWeight: '600', color: '#1f2937' }}>Account No:</span>
+                  <span style={{ fontWeight: '500', color: '#1f2937' }}>1234-567-89</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px' }}>
+                  <span style={{ fontWeight: '600', color: '#1f2937' }}>Account Name:</span>
+                  <span style={{ fontWeight: '500', color: '#1f2937' }}>namehere</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px' }}>
+                  <span style={{ fontWeight: '600', color: '#1f2937' }}>Card holder:</span>
+                  <span style={{ fontWeight: '500', color: '#1f2937' }}>holderz</span>
+                </div>
               </div>
             </div>
           </div>
@@ -209,11 +233,11 @@ const InvoicePreview: React.FC = () => {
                       const rowBg = idx % 2 === 0 ? '#f2f5fa' : '#ffffff';
                       return (
                         <tr key={idx} style={{ background: rowBg }}>
-                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{idx + 1}.</td>
-                          <td style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{item.desc}</td>
-                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{item.price}</td>
-                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{item.qty}</td>
-                          <td style={{ padding: '9px 12px', textAlign: 'right', fontSize: '11px', color: '#1f2937', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>{item.total}</td>
+                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{idx + 1}.</td>
+                          <td style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.desc}</td>
+                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.price}</td>
+                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.qty}</td>
+                          <td style={{ padding: '9px 12px', textAlign: 'right', fontSize: '11px', color: '#1f2937', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>{item.total}</td>
                         </tr>
                       );
                     })}
@@ -223,11 +247,11 @@ const InvoicePreview: React.FC = () => {
                     const rowBg = index % 2 === 0 ? '#f2f5fa' : '#ffffff';
                     return (
                       <tr key={index} style={{ background: rowBg }}>
-                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{index + 1}.</td>
-                        <td style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{item.book_title}</td>
-                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(item.price)}</td>
-                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e2e8f0' }}>{item.quantity}</td>
-                        <td style={{ padding: '9px 12px', textAlign: 'right', fontSize: '11px', color: '#1f2937', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>{formatPrice(calculateItemTotal(item))}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{index + 1}.</td>
+                        <td style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.book_title}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{formatPrice(item.price)}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.quantity}</td>
+                        <td style={{ padding: '9px 12px', textAlign: 'right', fontSize: '11px', color: '#1f2937', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>{formatPrice(calculateItemTotal(item))}</td>
                       </tr>
                     );
                   })
@@ -351,7 +375,7 @@ const InvoicePreview: React.FC = () => {
               }}>
                 Signature
               </div>
-              <div style={{ width: '100%', height: '1px', background: '#9ca3af', margin: '2px 0 5px 0' }} />
+              <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: '2px 0 5px 0' }} />
               <div style={{ fontSize: '10px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Surename Signature
               </div>
@@ -368,7 +392,7 @@ const InvoicePreview: React.FC = () => {
               width: '100%', 
               height: '100%', 
               background: '#1e70cd', 
-              clipPath: 'polygon(250px 0, 275px 0, 287px 100%, 262px 100%)' 
+              clipPath: 'polygon(240px 0, 265px 0, 205px 100%, 180px 100%)' 
             }} />
             {/* Stripe 2 */}
             <div style={{ 
@@ -378,7 +402,7 @@ const InvoicePreview: React.FC = () => {
               width: '100%', 
               height: '100%', 
               background: '#1e70cd', 
-              clipPath: 'polygon(285px 0, 300px 0, 312px 100%, 297px 100%)' 
+              clipPath: 'polygon(275px 0, 290px 0, 230px 100%, 215px 100%)' 
             }} />
           </div>
 
