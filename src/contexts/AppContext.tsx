@@ -12,6 +12,12 @@ export interface GDriveAccount {
   clientSecret: string;
 }
 
+export interface WatchFolder {
+  id?: number;
+  path: string;
+  created_at: string;
+}
+
 export interface ConfirmOptions {
   title: string;
   message: string;
@@ -81,6 +87,10 @@ interface AppContextType {
   gdriveAccounts: GDriveAccount[];
   setGdriveAccounts: (accounts: GDriveAccount[]) => void;
   refreshAccountToken: (email: string) => Promise<string | null>;
+  watchFolders: WatchFolder[];
+  loadWatchFolders: () => Promise<void>;
+  addWatchFolder: (path: string) => Promise<string>;
+  removeWatchFolder: (id: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -110,6 +120,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [folderHistoryIndex, setFolderHistoryIndex] = useState<number>(0);
   const [fileLayoutMode, setFileLayoutMode] = useState<'list' | 'grid'>('list');
   const [connectedUser, setConnectedUser] = useState<{ name: string, email: string } | null>(null);
+  const [watchFolders, setWatchFolders] = useState<WatchFolder[]>([]);
   const [gdriveAccounts, setGdriveAccountsState] = useState<GDriveAccount[]>(() => {
     try {
       const saved = localStorage.getItem('gdrive_accounts');
@@ -422,6 +433,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
+    let unlistenLocal: (() => void) | undefined;
     const init = async () => {
       try {
         await invoke('init_database');
@@ -430,6 +442,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await loadInvoices();
         await loadFiles();
         await loadServices();
+        await loadWatchFolders();
       } catch (error) {
         console.error('Failed to initialize app:', error);
       }
@@ -444,6 +457,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             await exchangeCodeForToken(code);
           }
         });
+        unlistenLocal = await listen<void>('local-files-changed', async () => {
+          await loadFiles();
+        });
       } catch (err) {
         console.error('Gagal memasang event listener oauth:', err);
       }
@@ -452,6 +468,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     return () => {
       if (unlisten) unlisten();
+      if (unlistenLocal) unlistenLocal();
     };
   }, []);
 
@@ -583,6 +600,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const loadWatchFolders = async () => {
+    try {
+      const data = await invoke<WatchFolder[]>('get_watch_folders');
+      setWatchFolders(data);
+    } catch (error) {
+      console.error('Failed to load watch folders:', error);
+    }
+  };
+
+  const addWatchFolder = async (path: string) => {
+    const result = await invoke<string>('add_watch_folder', { path });
+    await loadWatchFolders();
+    await loadFiles();
+    return result;
+  };
+
+  const removeWatchFolder = async (id: number) => {
+    await invoke('remove_watch_folder', { id });
+    await loadWatchFolders();
+    await loadFiles();
+  };
+
   return (
     <AppContext.Provider value={{
       appState,
@@ -643,6 +682,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       gdriveAccounts,
       setGdriveAccounts,
       refreshAccountToken,
+      watchFolders,
+      loadWatchFolders,
+      addWatchFolder,
+      removeWatchFolder,
     }}>
       {children}
     </AppContext.Provider>

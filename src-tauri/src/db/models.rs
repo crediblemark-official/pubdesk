@@ -141,3 +141,11 @@ impl Default for Service {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WatchFolder {
+    pub id: Option<i64>,
+    pub path: String,
+    pub created_at: String,
+}
+

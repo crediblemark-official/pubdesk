@@ -288,4 +288,67 @@ impl Database {
         self.conn.execute("DELETE FROM services WHERE id = ?1", params![id])?;
         Ok(())
     }
+
+    // Watch Folders
+    pub fn add_watch_folder(&self, path: &str) -> Result<i64, DbError> {
+        let created_at = chrono::Local::now().to_rfc3339();
+        self.conn.execute(
+            "INSERT INTO watch_folders (path, created_at) VALUES (?1, ?2)",
+            params![path, created_at]
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    pub fn get_watch_folders(&self) -> Result<Vec<WatchFolder>, DbError> {
+        let mut stmt = self.conn.prepare("SELECT id, path, created_at FROM watch_folders")?;
+        let folders = stmt.query_map([], |row| {
+            Ok(WatchFolder {
+                id: row.get(0)?,
+                path: row.get(1)?,
+                created_at: row.get(2)?,
+            })
+        })?;
+        
+        let mut result = Vec::new();
+        for folder in folders {
+            result.push(folder?);
+        }
+        Ok(result)
+    }
+
+    pub fn delete_watch_folder(&self, id: i64) -> Result<(), DbError> {
+        self.conn.execute("DELETE FROM watch_folders WHERE id = ?1", params![id])?;
+        Ok(())
+    }
+
+    pub fn delete_files_by_prefix(&self, prefix: &str) -> Result<(), DbError> {
+        self.conn.execute("DELETE FROM files WHERE path LIKE ?1", params![format!("{}%", prefix)])?;
+        Ok(())
+    }
+
+    pub fn get_file_by_path(&self, path: &str) -> Result<Option<File>, DbError> {
+        let mut stmt = self.conn.prepare("SELECT id, path, filename, type, project_id, status, version_label, last_modified, modified_by, is_readonly FROM files WHERE path = ?1")?;
+        let mut rows = stmt.query(params![path])?;
+        if let Some(row) = rows.next()? {
+            Ok(Some(File {
+                id: row.get(0)?,
+                path: row.get(1)?,
+                filename: row.get(2)?,
+                r#type: row.get(3)?,
+                project_id: row.get(4)?,
+                status: row.get(5)?,
+                version_label: row.get(6)?,
+                last_modified: row.get(7)?,
+                modified_by: row.get(8)?,
+                is_readonly: row.get(9)?,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn delete_file_by_path(&self, path: &str) -> Result<(), DbError> {
+        self.conn.execute("DELETE FROM files WHERE path = ?1", params![path])?;
+        Ok(())
+    }
 }

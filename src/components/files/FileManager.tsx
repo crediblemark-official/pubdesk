@@ -369,7 +369,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
   const filteredFiles = allFiles.filter((file) => {
     const matchesCategory =
-      fileCategory === 'all' ||
+      (fileCategory === 'all' && file.type !== 'gdrive') ||
       (fileCategory === 'invoice' && file.type === 'invoice') ||
       (fileCategory === 'service' && file.type === 'service') ||
       (fileCategory === 'gdrive' && file.type === 'gdrive') ||

@@ -1,13 +1,19 @@
 mod db;
+mod watcher;
 
 use db::*;
+use watcher::WatcherManager;
 use std::sync::Mutex;
 use tauri::{State, Emitter};
 use std::net::TcpListener;
 use std::io::{Read, Write};
 
-struct AppState {
-    db: Mutex<Option<Database>>,
+pub struct AppState {
+    pub db: Mutex<Option<Database>>,
+}
+
+struct WatcherState {
+    manager: Mutex<Option<WatcherManager>>,
 }
 
 #[tauri::command]
@@ -84,13 +90,114 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-async fn init_database(app_handle: tauri::AppHandle, state: State<'_, AppState>) -> Result<(), String> {
+async fn init_database(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+    watcher_state: State<'_, WatcherState>,
+) -> Result<(), String> {
     let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
     init_db(&db_path).map_err(|e| e.to_string())?;
     
     let db = Database::new(&db_path).map_err(|e| e.to_string())?;
-    *state.db.lock().unwrap() = Some(db);
     
+    // Pemuatan watch folders dari SQLite
+    let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
+    let paths: Vec<std::path::PathBuf> = watch_folders
+        .iter()
+        .map(|f| std::path::PathBuf::from(&f.path))
+        .collect();
+
+    *state.db.lock().unwrap() = Some(db);
+
+    // Inisialisasi watcher manager
+    let manager = WatcherManager::new(app_handle.clone());
+    let mut manager_lock = watcher_state.manager.lock().unwrap();
+    *manager_lock = Some(manager);
+
+    // Mulai watcher
+    if let Some(manager) = manager_lock.as_mut() {
+        let _ = manager.start(paths);
+    }
+    
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_watch_folders(state: State<'_, AppState>) -> Result<Vec<WatchFolder>, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_watch_folders().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_watch_folder(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+    watcher_state: State<'_, WatcherState>,
+    path: String
+) -> Result<String, String> {
+    use tauri::Manager;
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    
+    let path_buf = std::path::PathBuf::from(&path);
+    if !path_buf.exists() || !path_buf.is_dir() {
+        return Err("Folder tidak ditemukan atau bukan merupakan direktori valid".to_string());
+    }
+
+    let path_abs = path_buf.canonicalize()
+        .map_err(|e| format!("Gagal memetakan path absolut: {}", e))?
+        .to_string_lossy().to_string();
+
+    db.add_watch_folder(&path_abs).map_err(|e| e.to_string())?;
+
+    let app_handle_clone = app_handle.clone();
+    let path_abs_clone = path_abs.clone();
+    
+    std::thread::spawn(move || {
+        let state = app_handle_clone.state::<AppState>();
+        let db_lock = state.db.lock().unwrap();
+        if let Some(db) = db_lock.as_ref() {
+            let _ = watcher::scan_directory_recursive(db, std::path::Path::new(&path_abs_clone));
+            let _ = app_handle_clone.emit("local-files-changed", ());
+        }
+    });
+
+    let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
+    let paths: Vec<std::path::PathBuf> = watch_folders.iter().map(|f| std::path::PathBuf::from(&f.path)).collect();
+    
+    let mut manager_lock = watcher_state.manager.lock().unwrap();
+    if let Some(manager) = manager_lock.as_mut() {
+        manager.start(paths)?;
+    }
+
+    Ok(format!("Folder {} berhasil didaftarkan dan dipantau", path_abs))
+}
+
+#[tauri::command]
+async fn remove_watch_folder(
+    state: State<'_, AppState>,
+    watcher_state: State<'_, WatcherState>,
+    id: i64
+) -> Result<(), String> {
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    
+    let folders = db.get_watch_folders().map_err(|e| e.to_string())?;
+    if let Some(target) = folders.iter().find(|f| f.id == Some(id)) {
+        let _ = db.delete_files_by_prefix(&target.path);
+    }
+
+    db.delete_watch_folder(id).map_err(|e| e.to_string())?;
+
+    let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
+    let paths: Vec<std::path::PathBuf> = watch_folders.iter().map(|f| std::path::PathBuf::from(&f.path)).collect();
+    
+    let mut manager_lock = watcher_state.manager.lock().unwrap();
+    if let Some(manager) = manager_lock.as_mut() {
+        manager.start(paths)?;
+    }
+
     Ok(())
 }
 
@@ -278,6 +385,9 @@ pub fn run() {
         .manage(AppState {
             db: Mutex::new(None),
         })
+        .manage(WatcherState {
+            manager: Mutex::new(None),
+        })
         .invoke_handler(tauri::generate_handler![
             greet,
             init_database,
@@ -300,7 +410,10 @@ pub fn run() {
             create_physical_file,
             open_file_physically,
             open_file_location_physically,
-            start_oauth_server
+            start_oauth_server,
+            get_watch_folders,
+            add_watch_folder,
+            remove_watch_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

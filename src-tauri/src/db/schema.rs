@@ -108,5 +108,15 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Watch folders table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS watch_folders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            path TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL
+        )",
+        [],
+    )?;
+
     Ok(())
 }
