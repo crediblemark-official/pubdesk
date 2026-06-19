@@ -1,0 +1,141 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AppState, Book, Contact, Invoice, File } from '../types';
+import { invoke } from '@tauri-apps/api/core';
+
+interface AppContextType {
+  appState: AppState;
+  setActiveModule: (module: AppState['activeModule']) => void;
+  books: Book[];
+  contacts: Contact[];
+  invoices: Invoice[];
+  files: File[];
+  loadBooks: () => Promise<void>;
+  loadContacts: () => Promise<void>;
+  loadInvoices: () => Promise<void>;
+  loadFiles: () => Promise<void>;
+  addBook: (book: Book) => Promise<number>;
+  addContact: (contact: Contact) => Promise<number>;
+  addInvoice: (invoice: Invoice) => Promise<number>;
+  addFile: (file: File) => Promise<number>;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [appState, setAppState] = useState<AppState>({
+    activeModule: 'invoice'
+  });
+
+  const [books, setBooks] = useState<Book[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await invoke('init_database');
+        await loadBooks();
+        await loadContacts();
+        await loadInvoices();
+        await loadFiles();
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+      }
+    };
+    init();
+  }, []);
+
+  const setActiveModule = (module: AppState['activeModule']) => {
+    setAppState(prev => ({ ...prev, activeModule: module }));
+  };
+
+  const loadBooks = async () => {
+    try {
+      const data = await invoke<Book[]>('get_books');
+      setBooks(data);
+    } catch (error) {
+      console.error('Failed to load books:', error);
+    }
+  };
+
+  const loadContacts = async () => {
+    try {
+      const data = await invoke<Contact[]>('get_contacts');
+      setContacts(data);
+    } catch (error) {
+      console.error('Failed to load contacts:', error);
+    }
+  };
+
+  const loadInvoices = async () => {
+    try {
+      const data = await invoke<Invoice[]>('get_invoices');
+      setInvoices(data);
+    } catch (error) {
+      console.error('Failed to load invoices:', error);
+    }
+  };
+
+  const loadFiles = async () => {
+    try {
+      const data = await invoke<File[]>('get_files');
+      setFiles(data);
+    } catch (error) {
+      console.error('Failed to load files:', error);
+    }
+  };
+
+  const addBook = async (book: Book) => {
+    const id = await invoke<number>('add_book', { book });
+    await loadBooks();
+    return id;
+  };
+
+  const addContact = async (contact: Contact) => {
+    const id = await invoke<number>('add_contact', { contact });
+    await loadContacts();
+    return id;
+  };
+
+  const addInvoice = async (invoice: Invoice) => {
+    const id = await invoke<number>('add_invoice', { invoice });
+    await loadInvoices();
+    return id;
+  };
+
+  const addFile = async (file: File) => {
+    const id = await invoke<number>('add_file', { file });
+    await loadFiles();
+    return id;
+  };
+
+  return (
+    <AppContext.Provider value={{
+      appState,
+      setActiveModule,
+      books,
+      contacts,
+      invoices,
+      files,
+      loadBooks,
+      loadContacts,
+      loadInvoices,
+      loadFiles,
+      addBook,
+      addContact,
+      addInvoice,
+      addFile,
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useAppContext must be used within AppProvider');
+  }
+  return context;
+};
