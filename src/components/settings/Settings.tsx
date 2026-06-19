@@ -12,7 +12,8 @@ const Settings: React.FC = () => {
     addFile, 
     updateFile, 
     deleteFile, 
-    showConfirm 
+    showConfirm,
+    setConnectedUser: setGlobalConnectedUser
   } = useAppContext();
 
   const [token, setToken] = useState(localStorage.getItem('gdrive_token') || '');
@@ -43,16 +44,22 @@ const Settings: React.FC = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        setConnectedUser({
+        const userObj = {
           name: data.user.displayName,
           email: data.user.emailAddress
-        });
+        };
+        setConnectedUser(userObj);
+        setGlobalConnectedUser(userObj);
         setConnectionStatus('success');
       } else {
+        setConnectedUser(null);
+        setGlobalConnectedUser(null);
         setConnectionStatus('error');
         setConnectionError('Token tidak valid atau telah kedaluwarsa. Silakan perbarui token Anda.');
       }
     } catch (err) {
+      setConnectedUser(null);
+      setGlobalConnectedUser(null);
       setConnectionStatus('error');
       setConnectionError('Gagal menghubungkan ke Google API. Periksa koneksi internet Anda.');
     } finally {
@@ -77,7 +84,7 @@ const Settings: React.FC = () => {
 
       do {
         setSyncProgress(`Mengambil daftar file Google Drive (Halaman ${page})...`);
-        let url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=nextPageToken,files(id,name,mimeType,modifiedTime,size,parents)&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+        let url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=nextPageToken,files(id,name,mimeType,modifiedTime,size,parents,shared)&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true`;
         if (nextPageToken) {
           url += `&pageToken=${nextPageToken}`;
         }
@@ -142,6 +149,7 @@ const Settings: React.FC = () => {
         const existing = existingGDriveFiles.find(f => f.path === path);
 
         const parentId = df.parents && df.parents.length > 0 ? df.parents[0] : 'root';
+        const isShared = df.shared ? '1' : '0';
         const fileData = {
           path,
           filename: df.name,
@@ -149,7 +157,7 @@ const Settings: React.FC = () => {
           status: existing ? existing.status : 'Cloud',
           version_label: df.mimeType,
           last_modified: df.modifiedTime,
-          modified_by: `${df.size ? df.size.toString() : '0'}|${parentId}`,
+          modified_by: `${df.size ? df.size.toString() : '0'}|${parentId}|${isShared}`,
           is_readonly: true
         };
 

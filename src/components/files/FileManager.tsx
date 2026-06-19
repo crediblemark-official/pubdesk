@@ -11,13 +11,58 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
 
-  const getParentId = (file: any) => {
-    if (file.type !== 'gdrive') return null;
-    const parts = file.modified_by?.split('|') || [];
-    return parts[1] || 'root';
+  const parseModifiedBy = (modifiedBy?: string) => {
+    if (!modifiedBy) return { size: '0', parentId: 'root', shared: '0' };
+    const parts = modifiedBy.split('|');
+    return {
+      size: parts[0] || '0',
+      parentId: parts[1] || 'root',
+      shared: parts[2] || '0'
+    };
   };
 
+  const getParentId = (file: any) => {
+    if (file.type !== 'gdrive') return null;
+    return parseModifiedBy(file.modified_by).parentId;
+  };
+
+  const getIsShared = (file: any) => {
+    if (file.type !== 'gdrive') return false;
+    return parseModifiedBy(file.modified_by).shared === '1';
+  };
+
+  // Dua folder virtual tingkat atas Google Drive
+  const virtualFolders = [
+    {
+      id: -100,
+      path: 'gdrive://my_drive',
+      filename: 'Drive Saya',
+      type: 'gdrive',
+      status: 'Cloud',
+      version_label: 'application/vnd.google-apps.folder',
+      last_modified: new Date().toISOString(),
+      modified_by: '0|root|0',
+      is_readonly: true
+    },
+    {
+      id: -101,
+      path: 'gdrive://shared_with_me',
+      filename: 'Shared with me',
+      type: 'gdrive',
+      status: 'Cloud',
+      version_label: 'application/vnd.google-apps.folder',
+      last_modified: new Date().toISOString(),
+      modified_by: '0|root|1',
+      is_readonly: true
+    }
+  ];
+
   const handleGoUp = () => {
+    if (currentFolderId === 'my_drive' || currentFolderId === 'shared_with_me') {
+      navigateFolder(rootFolderId);
+      setSelectedFileId(null);
+      return;
+    }
     const currentFolder = files.find(f => f.path === `gdrive://${currentFolderId}`);
     if (currentFolder) {
       const parentId = getParentId(currentFolder);
@@ -26,6 +71,53 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
       navigateFolder(rootFolderId);
     }
     setSelectedFileId(null);
+  };
+
+  const renderFileIcon = (file: any, size: 'large' | 'small' = 'large') => {
+    const isFolder = file.type === 'gdrive' && file.version_label === 'application/vnd.google-apps.folder';
+    
+    if (file.id === -100) {
+      const dim = size === 'large' ? 48 : 18;
+      return (
+        <svg width={dim} height={dim} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 10C4 7.79086 5.79086 6 8 6H18.5C19.7827 6 20.9781 6.61273 21.7222 7.65449L24.2778 11.2312C24.65 11.7521 25.2476 12.0583 25.8889 12.0583H40C42.2091 12.0583 44 13.8492 44 16.0583V38C44 40.2091 42.2091 42 40 42H8C5.79086 42 4 40.2091 4 38V10Z" fill="#FCE8B2" stroke="#F1C40F" strokeWidth="1.5" />
+          <path d="M4 17H44V38C44 40.2091 42.2091 42 40 42H8C5.79086 42 4 40.2091 4 38V17Z" fill="#FDD835" />
+          <path d="M24 23L17 29H21V35H27V29H31L24 23Z" fill="#F39C12" />
+        </svg>
+      );
+    }
+
+    if (file.id === -101) {
+      const dim = size === 'large' ? 48 : 18;
+      return (
+        <svg width={dim} height={dim} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 10C4 7.79086 5.79086 6 8 6H18.5C19.7827 6 20.9781 6.61273 21.7222 7.65449L24.2778 11.2312C24.65 11.7521 25.2476 12.0583 25.8889 12.0583H40C42.2091 12.0583 44 13.8492 44 16.0583V38C44 40.2091 42.2091 42 40 42H8C5.79086 42 4 40.2091 4 38V10Z" fill="#FCE8B2" stroke="#F1C40F" strokeWidth="1.5" />
+          <path d="M4 17H44V38C44 40.2091 42.2091 42 40 42H8C5.79086 42 4 40.2091 4 38V17Z" fill="#FDD835" />
+          <circle cx="24" cy="26" r="3.5" fill="#F39C12" />
+          <path d="M24 31C20.5 31 18 32.5 18 35V36H30V35C30 32.5 27.5 31 24 31Z" fill="#F39C12" />
+        </svg>
+      );
+    }
+
+    if (size === 'large') {
+      return (
+        <span style={{ fontSize: '36px', lineHeight: '1' }}>
+          {file.type === 'invoice' && '📄'}
+          {file.type === 'service' && '🛠️'}
+          {file.type === 'gdrive' && (isFolder ? '📁' : '☁️')}
+          {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
+        </span>
+      );
+    } else {
+      return (
+        <span style={{ fontSize: '16px' }}>
+          {file.type === 'invoice' && '📄'}
+          {file.type === 'service' && '🛠️'}
+          {file.type === 'gdrive' && (isFolder ? '📁' : '☁️')}
+          {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
+        </span>
+      );
+    }
   };
 
   // Handler Buka Berkas Fisik via Rust Backend
@@ -196,7 +288,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
       .map(f => f.path.replace('gdrive://', ''))
   );
 
-  const filteredFiles = files.filter((file) => {
+  // Jika di root Google Drive, gabungkan folder virtual
+  const allFiles = fileCategory === 'gdrive' && currentFolderId === rootFolderId
+    ? virtualFolders
+    : files;
+
+  const filteredFiles = allFiles.filter((file) => {
     const matchesCategory =
       fileCategory === 'all' ||
       (fileCategory === 'invoice' && file.type === 'invoice') ||
@@ -209,15 +306,34 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
     // Filter folder jika menjelajah gdrive secara normal (tanpa pencarian)
     const fileParentId = getParentId(file);
-    const matchesFolder = searchQuery || 
-      fileCategory !== 'gdrive' ||
-      fileParentId === currentFolderId ||
-      (currentFolderId === rootFolderId && (
-        fileParentId === 'root' || 
-        fileParentId === rootFolderId || 
-        !fileParentId || 
-        !gdriveIdSet.has(fileParentId)
-      ));
+    const isShared = getIsShared(file);
+    
+    let matchesFolder = true;
+    if (!searchQuery && fileCategory === 'gdrive') {
+      if (currentFolderId === rootFolderId) {
+        // Di root, hanya tampilkan folder virtual
+        matchesFolder = file.id === -100 || file.id === -101;
+      } else if (currentFolderId === 'my_drive') {
+        // Di Drive Saya, tampilkan file milik sendiri (isShared === false) yang berada di root
+        matchesFolder = !isShared && (
+          fileParentId === 'root' ||
+          fileParentId === rootFolderId ||
+          !fileParentId ||
+          !gdriveIdSet.has(fileParentId)
+        );
+      } else if (currentFolderId === 'shared_with_me') {
+        // Di Shared with me, tampilkan file shared (isShared === true) yang berada di root
+        matchesFolder = isShared && (
+          fileParentId === 'root' ||
+          fileParentId === rootFolderId ||
+          !fileParentId ||
+          !gdriveIdSet.has(fileParentId)
+        );
+      } else {
+        // Subfolder biasa
+        matchesFolder = fileParentId === currentFolderId;
+      }
+    }
 
     return matchesCategory && matchesSearch && matchesFolder;
   });
@@ -303,12 +419,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                   }}
                 >
                   {/* File Icon */}
-                  <span style={{ fontSize: '36px', lineHeight: '1' }}>
-                    {file.type === 'invoice' && '📄'}
-                    {file.type === 'service' && '🛠️'}
-                    {file.type === 'gdrive' && (file.version_label === 'application/vnd.google-apps.folder' ? '📁' : '☁️')}
-                    {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
-                  </span>
+                  {renderFileIcon(file, 'large')}
 
                   {/* File Name */}
                   <span 
@@ -412,12 +523,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                     }}
                   >
                     <td style={{ padding: '10px 12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '16px' }}>
-                        {file.type === 'invoice' && '📄'}
-                        {file.type === 'service' && '🛠️'}
-                        {file.type === 'gdrive' && (file.version_label === 'application/vnd.google-apps.folder' ? '📁' : '☁️')}
-                        {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
-                      </span>
+                      {renderFileIcon(file, 'small')}
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {file.filename}
                       </span>

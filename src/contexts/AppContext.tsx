@@ -64,6 +64,9 @@ interface AppContextType {
   navigateForward: () => void;
   canNavigateBack: boolean;
   canNavigateForward: boolean;
+  connectedUser: { name: string, email: string } | null;
+  setConnectedUser: (user: { name: string, email: string } | null) => void;
+  testConnection: (token: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -92,6 +95,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [folderHistory, setFolderHistory] = useState<string[]>([rootFolderId]);
   const [folderHistoryIndex, setFolderHistoryIndex] = useState<number>(0);
   const [fileLayoutMode, setFileLayoutMode] = useState<'list' | 'grid'>('list');
+  const [connectedUser, setConnectedUser] = useState<{ name: string, email: string } | null>(null);
+
+  const testConnection = async (currentToken: string) => {
+    if (!currentToken) {
+      setConnectedUser(null);
+      return;
+    }
+    try {
+      const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+        headers: {
+          'Authorization': `Bearer ${currentToken}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setConnectedUser({
+          name: data.user.displayName,
+          email: data.user.emailAddress
+        });
+      } else {
+        setConnectedUser(null);
+      }
+    } catch (err) {
+      console.error('Gagal menghubungkan Google API:', err);
+      setConnectedUser(null);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('gdrive_token');
+    if (token) {
+      testConnection(token);
+    }
+  }, []);
 
   useEffect(() => {
     const rootId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
@@ -332,6 +369,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       canNavigateForward,
       activeSettingsTab,
       setActiveSettingsTab,
+      connectedUser,
+      setConnectedUser,
+      testConnection,
     }}>
       {children}
     </AppContext.Provider>

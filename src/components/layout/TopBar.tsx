@@ -18,9 +18,14 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
     navigateBack,
     navigateForward,
     fileLayoutMode,
-    setFileLayoutMode
+    setFileLayoutMode,
+    connectedUser,
+    fileCategory,
+    currentFolderId,
+    files
   } = useAppContext();
   const [appWindow, setAppWindow] = useState<any>(null);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     // Cek apakah berjalan di lingkungan Tauri
@@ -134,38 +139,141 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
 
         {/* Path bar atau field cari berkas */}
         {activeModule === 'files' ? (
-          <div className="top-bar-gnome-pathbar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <span style={{ position: 'absolute', left: '10px', color: 'var(--text-secondary)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
-            <input
-              type="text"
-              placeholder="Cari berkas..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              style={{
-                width: '100%',
+          (!isSearchFocused && !searchQuery) ? (
+            <div 
+              className="top-bar-gnome-pathbar" 
+              onClick={() => setIsSearchFocused(true)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'text',
+                userSelect: 'none',
                 height: '100%',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--text-primary)',
-                fontSize: '13px',
-                paddingLeft: '30px',
-                paddingRight: '8px'
+                width: '100%',
+                padding: '0 8px'
               }}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => onSearchChange?.('')}
-                className="top-bar-path-clear"
-                aria-label="Hapus pencarian"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            )}
-          </div>
+            >
+              {fileCategory === 'gdrive' ? (
+                (() => {
+                  const emailText = connectedUser?.email || 'Google Drive';
+                  
+                  // Ikon database/server coklat keemasan/hijau
+                  const serverIcon = (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#855800" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                      <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+                      <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+                      <line x1="6" y1="6" x2="6.01" y2="6" />
+                      <line x1="6" y1="18" x2="6.01" y2="18" />
+                    </svg>
+                  );
+
+                  const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
+
+                  if (currentFolderId === 'root' || currentFolderId === rootFolderId) {
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {serverIcon}
+                        <span className="top-bar-path-text" style={{ fontWeight: '600', color: '#556B2F' }}>{emailText}</span>
+                      </div>
+                    );
+                  }
+
+                  const breadcrumbs = [];
+                  breadcrumbs.push({ id: 'root', name: emailText, icon: serverIcon });
+
+                  let tempId = currentFolderId;
+                  if (tempId === 'my_drive') {
+                    breadcrumbs.push({ id: 'my_drive', name: 'Drive Saya' });
+                  } else if (tempId === 'shared_with_me') {
+                    breadcrumbs.push({ id: 'shared_with_me', name: 'Shared with me' });
+                  } else {
+                    const pathList = [];
+                    let limit = 10;
+                    while (tempId && tempId !== 'root' && tempId !== 'my_drive' && tempId !== 'shared_with_me' && limit > 0) {
+                      const folder = files.find(f => f.path === `gdrive://${tempId}`);
+                      if (folder) {
+                        pathList.unshift({ id: tempId, name: folder.filename });
+                        const parts = folder.modified_by?.split('|') || [];
+                        tempId = parts[1] || 'root';
+                      } else {
+                        break;
+                      }
+                      limit--;
+                    }
+
+                    if (tempId === 'my_drive' || tempId === 'root') {
+                      breadcrumbs.push({ id: 'my_drive', name: 'Drive Saya' });
+                    } else if (tempId === 'shared_with_me') {
+                      breadcrumbs.push({ id: 'shared_with_me', name: 'Shared with me' });
+                    }
+
+                    breadcrumbs.push(...pathList);
+                  }
+
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {breadcrumbs.map((bc, idx) => (
+                        <React.Fragment key={bc.id}>
+                          {idx > 0 && <span style={{ color: 'var(--text-secondary)', fontSize: '11px', margin: '0 2px' }}>&gt;</span>}
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            {bc.icon}
+                            <span className="top-bar-path-text" style={{ 
+                              fontWeight: idx === breadcrumbs.length - 1 ? '600' : '400',
+                              color: idx === 0 ? '#556B2F' : 'var(--text-primary)'
+                            }}>{bc.name}</span>
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  );
+                })()
+              ) : (
+                <span className="top-bar-path-text">/home/rasyiqi</span>
+              )}
+            </div>
+          ) : (
+            <div className="top-bar-gnome-pathbar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <span style={{ position: 'absolute', left: '10px', color: 'var(--text-secondary)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Cari berkas..."
+                value={searchQuery}
+                autoFocus
+                onBlur={() => {
+                  if (!searchQuery) {
+                    setIsSearchFocused(false);
+                  }
+                }}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  fontSize: '13px',
+                  paddingLeft: '30px',
+                  paddingRight: '8px'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    onSearchChange?.('');
+                    setIsSearchFocused(false);
+                  }}
+                  className="top-bar-path-clear"
+                  aria-label="Hapus pencarian"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
+          )
         ) : (
           <div className="top-bar-gnome-pathbar">
             <span className="top-bar-path-text">/home/rasyiqi</span>
