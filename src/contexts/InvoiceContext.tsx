@@ -124,7 +124,7 @@ interface InvoiceContextType {
   items: InvoiceItem[];
   shippingCost: number;
   adminFee: number;
-  invoiceType: 'kbm_cetak' | 'kbm_creator' | 'spt_mitra';
+  invoiceType: string;
   invoiceNo: string;
   invoiceHal: string;
   invoiceLampiran: string;
@@ -141,7 +141,7 @@ interface InvoiceContextType {
   removeItem: (index: number) => void;
   setShippingCost: (cost: number) => void;
   setAdminFee: (fee: number) => void;
-  setInvoiceType: (type: 'kbm_cetak' | 'kbm_creator' | 'spt_mitra') => void;
+  setInvoiceType: (type: string) => void;
   setInvoiceNo: (no: string) => void;
   setInvoiceHal: (hal: string) => void;
   setInvoiceLampiran: (lampiran: string) => void;
@@ -182,9 +182,9 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   
   // Custom Invoice Profiles
   const [profiles, setProfilesState] = useState<InvoiceProfile[]>([]);
-  const [activeProfileId, setActiveProfileIdState] = useState<string>('kbm_cetak');
+  const [activeProfileId, setActiveProfileIdState] = useState<string>(defaultProfiles[0]?.id ?? '');
 
-  const [invoiceType, setInvoiceType] = useState<'kbm_cetak' | 'kbm_creator' | 'spt_mitra'>('kbm_cetak');
+  const [invoiceType, setInvoiceType] = useState<string>(defaultProfiles[0]?.id ?? '');
   const [invoiceNo, setInvoiceNo] = useState('');
   const [invoiceHal, setInvoiceHal] = useState('');
   const [invoiceLampiran, setInvoiceLampiran] = useState('-');
@@ -264,11 +264,11 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
     }
     
-    // Fallback to default profiles
+    // Fallback ke profil bawaan
     setProfilesState(defaultProfiles);
     localStorage.setItem('invoice_profiles', JSON.stringify(defaultProfiles));
-    setActiveProfileIdState('kbm_cetak');
-    localStorage.setItem('active_profile_id', 'kbm_cetak');
+    setActiveProfileIdState(defaultProfiles[0]?.id ?? '');
+    localStorage.setItem('active_profile_id', defaultProfiles[0]?.id ?? '');
   }, []);
 
   // Save profiles to localStorage when updated
@@ -326,8 +326,9 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const calculateTotalValue = useMemo(() => {
     const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    // If table type is KBM Cetak, shipping is calculated per item, else we use global shipping
-    const globalShip = (activeProfile?.tableType === 'kbm_cetak') ? 0 : shippingCost;
+    // Jika profil memiliki kolom ongkos kirim per item, abaikan ongkir global
+    const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
+    const globalShip = hasItemShipping ? 0 : shippingCost;
     return itemsTotal + globalShip + adminFee;
   }, [items, shippingCost, adminFee, activeProfile]);
 
@@ -393,8 +394,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const resetProfilesToDefault = () => {
     setProfilesState(defaultProfiles);
     localStorage.setItem('invoice_profiles', JSON.stringify(defaultProfiles));
-    setActiveProfileIdState('kbm_cetak');
-    localStorage.setItem('active_profile_id', 'kbm_cetak');
+    setActiveProfileIdState(defaultProfiles[0]?.id ?? '');
+    localStorage.setItem('active_profile_id', defaultProfiles[0]?.id ?? '');
   };
 
   return (

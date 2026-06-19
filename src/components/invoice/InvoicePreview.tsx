@@ -51,7 +51,7 @@ interface InvoicePreviewProps {
     items: InvoiceItem[];
     shippingCost: number;
     adminFee: number;
-    invoiceType: 'kbm_cetak' | 'kbm_creator' | 'spt_mitra';
+    invoiceType: string;
     invoiceNo: string;
     invoiceHal: string;
     invoiceLampiran: string;
@@ -123,7 +123,9 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
 
   const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
-  const globalShip = (profile?.tableType === 'kbm_cetak') ? 0 : shippingCost;
+  // Gunakan deteksi kolom dinamis agar tidak bergantung pada tableType spesifik
+  const hasItemShipping = profile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
+  const globalShip = hasItemShipping ? 0 : shippingCost;
   const total = subtotal + globalShip + adminFee;
 
   const getHalDefault = () => {

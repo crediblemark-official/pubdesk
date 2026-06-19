@@ -32,7 +32,7 @@ const InvoiceSettings: React.FC = () => {
   const [defaultLampiran, setDefaultLampiran] = useState('-');
   const [salamPembuka, setSalamPembuka] = useState('');
   const [actionLabel, setActionLabel] = useState('');
-  const [tableType, setTableType] = useState<'kbm_cetak' | 'kbm_creator' | 'spt_mitra'>('kbm_cetak');
+  const [tableType, setTableType] = useState<string>('');
   const [notes, setNotes] = useState<string[]>([]);
   const [newNoteText, setNewNoteText] = useState('');
   const [showSpesifikasi, setShowSpesifikasi] = useState(false);
@@ -66,7 +66,7 @@ const InvoiceSettings: React.FC = () => {
       setDefaultLampiran('-');
       setSalamPembuka('Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:');
       setActionLabel('transaksi');
-      setTableType('kbm_cetak');
+      setTableType('');
       setNotes([]);
       setShowSpesifikasi(false);
       setDefaultSpesifikasi('');
@@ -106,7 +106,7 @@ const InvoiceSettings: React.FC = () => {
         setDefaultLampiran(profile.defaultLampiran || '-');
         setSalamPembuka(profile.salamPembuka || '');
         setActionLabel(profile.actionLabel || '');
-        setTableType(profile.tableType || 'kbm_cetak');
+        setTableType(profile.tableType || '');
         setNotes(profile.notes || []);
         setShowSpesifikasi(profile.showSpesifikasi || false);
         setDefaultSpesifikasi(profile.defaultSpesifikasi || '');
@@ -185,36 +185,9 @@ const InvoiceSettings: React.FC = () => {
     alert('Profil invoice berhasil disimpan!');
   };
 
-  const handleTableTypeChange = (newType: 'kbm_cetak' | 'kbm_creator' | 'spt_mitra') => {
+  // Menyimpan nilai tableType generik tanpa mereset kolom secara otomatis
+  const handleTableTypeChange = (newType: string) => {
     setTableType(newType);
-    
-    // Reset kolom ke skema bawaan untuk tipe tabel tersebut
-    if (newType === 'kbm_cetak') {
-      setTableColumns([
-        { key: 'book_title', label: 'Judul', type: 'text', align: 'left' },
-        { key: 'pages', label: 'Hal', type: 'text', align: 'center', width: '90px' },
-        { key: 'paper_type', label: 'Jenis Naskah', type: 'text', align: 'center', width: '90px' },
-        { key: 'quantity', label: 'Jml. Cetak', type: 'number', align: 'center', width: '80px' },
-        { key: 'price', label: 'Cetak/pcs', type: 'currency', align: 'right', width: '100px' },
-        { key: 'item_shipping_cost', label: 'Ongkos Kirim', type: 'currency', align: 'right', width: '100px' },
-        { key: 'total', label: 'Total Biaya', type: 'formula', align: 'right', width: '110px', formula: '({price} * {quantity}) + {item_shipping_cost}' }
-      ]);
-    } else if (newType === 'kbm_creator') {
-      setTableColumns([
-        { key: 'book_title', label: 'Judul Karya', type: 'text', align: 'left' },
-        { key: 'copyright_holder', label: 'Pemegang Hak Cipta', type: 'text', align: 'center' },
-        { key: 'price', label: 'Total Biaya', type: 'currency', align: 'right', width: '110px' }
-      ]);
-    } else if (newType === 'spt_mitra') {
-      setTableColumns([
-        { key: 'book_title', label: 'Judul', type: 'text', align: 'left' },
-        { key: 'pages', label: 'Hal', type: 'text', align: 'center', width: '80px' },
-        { key: 'paper_type', label: 'Jenis Naskah', type: 'text', align: 'center', width: '90px' },
-        { key: 'qty_desc', label: 'Jml. Cetak', type: 'formula', align: 'center', width: '120px', formula: '{quantity} pcs ({package_name})' },
-        { key: 'price', label: 'Harga Paket', type: 'currency', align: 'right', width: '110px' },
-        { key: 'total', label: 'Total Biaya', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
-      ]);
-    }
   };
 
   const handleUpdateColumn = (index: number, updates: Partial<InvoiceTableColumn>) => {
@@ -249,33 +222,14 @@ const InvoiceSettings: React.FC = () => {
   };
 
   const handleResetColumns = () => {
-    if (confirm('Apakah Anda yakin ingin mereset kolom ke skema bawaan untuk tipe tabel ini?')) {
-      if (tableType === 'kbm_cetak') {
-        setTableColumns([
-          { key: 'book_title', label: 'Judul', type: 'text', align: 'left' },
-          { key: 'pages', label: 'Hal', type: 'text', align: 'center', width: '90px' },
-          { key: 'paper_type', label: 'Jenis Naskah', type: 'text', align: 'center', width: '90px' },
-          { key: 'quantity', label: 'Jml. Cetak', type: 'number', align: 'center', width: '80px' },
-          { key: 'price', label: 'Cetak/pcs', type: 'currency', align: 'right', width: '100px' },
-          { key: 'item_shipping_cost', label: 'Ongkos Kirim', type: 'currency', align: 'right', width: '100px' },
-          { key: 'total', label: 'Total Biaya', type: 'formula', align: 'right', width: '110px', formula: '({price} * {quantity}) + {item_shipping_cost}' }
-        ]);
-      } else if (tableType === 'kbm_creator') {
-        setTableColumns([
-          { key: 'book_title', label: 'Judul Karya', type: 'text', align: 'left' },
-          { key: 'copyright_holder', label: 'Pemegang Hak Cipta', type: 'text', align: 'center' },
-          { key: 'price', label: 'Total Biaya', type: 'currency', align: 'right', width: '110px' }
-        ]);
-      } else if (tableType === 'spt_mitra') {
-        setTableColumns([
-          { key: 'book_title', label: 'Judul', type: 'text', align: 'left' },
-          { key: 'pages', label: 'Hal', type: 'text', align: 'center', width: '80px' },
-          { key: 'paper_type', label: 'Jenis Naskah', type: 'text', align: 'center', width: '90px' },
-          { key: 'qty_desc', label: 'Jml. Cetak', type: 'formula', align: 'center', width: '120px', formula: '{quantity} pcs ({package_name})' },
-          { key: 'price', label: 'Harga Paket', type: 'currency', align: 'right', width: '110px' },
-          { key: 'total', label: 'Total Biaya', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
-        ]);
-      }
+    if (confirm('Apakah Anda yakin ingin mereset kolom ke skema bawaan minimal?')) {
+      // Reset ke kolom minimal generik (nama item, qty, harga)
+      setTableColumns([
+        { key: 'book_title', label: 'Nama Item', type: 'text', align: 'left' },
+        { key: 'quantity', label: 'Qty', type: 'number', align: 'center', width: '80px' },
+        { key: 'price', label: 'Harga', type: 'currency', align: 'right', width: '110px' },
+        { key: 'total', label: 'Total', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
+      ]);
     }
   };
 
@@ -472,17 +426,15 @@ const InvoiceSettings: React.FC = () => {
             </div>
 
             <div className="compact-form-group">
-              <label className="compact-label">Jenis Format Kolom Tabel</label>
-              <select
-                className="compact-select"
+              <label className="compact-label">Kode Tipe Tabel (bebas, untuk identifikasi)</label>
+              <input
+                type="text"
+                className="compact-input"
                 style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                 value={tableType}
-                onChange={(e) => handleTableTypeChange(e.target.value as any)}
-              >
-                <option value="kbm_cetak">KBM Cetak (Kolom: Judul, Hal, Naskah, Qty, Pcs, Ongkir, Total)</option>
-                <option value="kbm_creator">KBM Creator (Kolom: Judul Karya, Pemegang Hak Cipta, Total)</option>
-                <option value="spt_mitra">SPT Mitra (Kolom: Judul, Hal, Naskah, Qty Paket, Harga Paket)</option>
-              </select>
+                onChange={(e) => handleTableTypeChange(e.target.value)}
+                placeholder="Contoh: layanan_desain, cetak_buku, haki, dll."
+              />
             </div>
 
             <div className="compact-form-group">

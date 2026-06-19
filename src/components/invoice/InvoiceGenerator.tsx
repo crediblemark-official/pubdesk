@@ -42,20 +42,17 @@ const InvoiceGenerator: React.FC = () => {
       
       let defVal: any = '';
       if (col.key === 'quantity') {
-        const type = activeProfile.tableType;
-        defVal = type === 'kbm_cetak' ? 20 : (type === 'spt_mitra' ? 5 : 1);
+        defVal = 1;
       } else if (col.key === 'price') {
-        const type = activeProfile.tableType;
-        defVal = type === 'kbm_cetak' ? 20100 : (type === 'spt_mitra' ? 905250 : 350000);
+        defVal = 0;
       } else if (col.key === 'pages') {
-        const type = activeProfile.tableType;
-        defVal = type === 'kbm_cetak' ? '± 160 hal A5' : '± 144 hal A4';
+        defVal = '';
       } else if (col.key === 'paper_type') {
-        defVal = 'Cetak BW';
+        defVal = '';
       } else if (col.key === 'item_shipping_cost') {
-        defVal = 75000;
+        defVal = 0;
       } else if (col.key === 'package_name') {
-        defVal = 'Paket Gold';
+        defVal = '';
       } else if (col.key === 'copyright_holder') {
         defVal = customer.name || '';
       }
@@ -199,20 +196,17 @@ const InvoiceGenerator: React.FC = () => {
         
         let defVal: any = '';
         if (col.key === 'quantity') {
-          const type = activeProfile.tableType;
-          defVal = type === 'kbm_cetak' ? 20 : (type === 'spt_mitra' ? 5 : 1);
+          defVal = 1;
         } else if (col.key === 'price') {
-          const type = activeProfile.tableType;
-          defVal = type === 'kbm_cetak' ? 20100 : (type === 'spt_mitra' ? 905250 : 350000);
+          defVal = 0;
         } else if (col.key === 'pages') {
-          const type = activeProfile.tableType;
-          defVal = type === 'kbm_cetak' ? '± 160 hal A5' : '± 144 hal A4';
+          defVal = '';
         } else if (col.key === 'paper_type') {
-          defVal = 'Cetak BW';
+          defVal = '';
         } else if (col.key === 'item_shipping_cost') {
-          defVal = 75000;
+          defVal = 0;
         } else if (col.key === 'package_name') {
-          defVal = 'Paket Gold';
+          defVal = '';
         } else if (col.key === 'copyright_holder') {
           defVal = customer.name || '';
         }
@@ -233,7 +227,9 @@ const InvoiceGenerator: React.FC = () => {
     }
 
     const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    const globalShip = invoiceType === 'kbm_cetak' ? 0 : shippingCost;
+    // Deteksi ongkir per item secara dinamis agar tidak bergantung pada tableType tertentu
+    const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
+    const globalShip = hasItemShipping ? 0 : shippingCost;
     const total = itemsTotal + globalShip + adminFee;
 
     const metadata = {
@@ -537,9 +533,13 @@ const InvoiceGenerator: React.FC = () => {
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.book_title}"</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                  {invoiceType === 'kbm_cetak' && `Hal: ${item.pages} | Naskah: ${item.paper_type} | Qty: ${item.quantity} pcs | Cetak/pcs: Rp ${formatPrice(item.price)} | Ongkir: Rp ${formatPrice(item.item_shipping_cost || 0)}`}
-                  {invoiceType === 'kbm_creator' && `HAKI: ${item.copyright_holder || '-'} | Biaya: Rp ${formatPrice(item.price)}`}
-                  {invoiceType === 'spt_mitra' && `Hal: ${item.pages} | Naskah: ${item.paper_type} | Qty: ${item.quantity} pcs (${item.package_name}) | Paket: Rp ${formatPrice(item.price)}`}
+                  {/* Tampilkan ringkasan item berdasarkan kolom yang aktif secara dinamis */}
+                  {activeProfile?.tableColumns?.filter(col => col.type !== 'formula' && col.key !== 'book_title').map(col => {
+                    const val = item[col.key];
+                    if (val === undefined || val === null || val === '') return null;
+                    const displayVal = col.type === 'currency' ? `Rp ${formatPrice(Number(val))}` : String(val);
+                    return `${col.label}: ${displayVal}`;
+                  }).filter(Boolean).join(' | ')}
                 </div>
               </div>
               <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
@@ -553,8 +553,8 @@ const InvoiceGenerator: React.FC = () => {
         </div>
       </div>
 
-      {/* Biaya Tambahan (Global) */}
-      {invoiceType !== 'kbm_cetak' && (
+      {/* Biaya Tambahan (Global) — hanya tampil jika profil tidak menggunakan ongkir per item */}
+      {!activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost') && (
         <div style={{ marginBottom: '20px' }}>
           <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>💰 Biaya Tambahan (Global)</h2>
           <div style={{ marginBottom: '12px' }}>
