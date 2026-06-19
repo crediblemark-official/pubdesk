@@ -206,12 +206,17 @@ const InvoicePreview: React.FC = () => {
               )}
 
               {/* Judul invoice */}
-              <text x="389" y="116" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="54" fontWeight="700" letterSpacing="2">
+              <text x="389" y="98" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="44" fontWeight="700" letterSpacing="2">
                 {activeProfile?.invoiceTitleText || 'INVOICE'}
+              </text>
+
+              {/* Nomor invoice di bawah judul */}
+              <text x="391" y="118" fill="#dddddd" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="700" letterSpacing="1">
+                NO. {invoiceNo || 'RA.01/11/06/2026'}
               </text>
             </svg>
           </div>
-
+ 
           {/* Info Section */}
           <div style={{ padding: '20px 35px 12px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0, color: '#1f2937' }}>
             <div>
@@ -228,10 +233,6 @@ const InvoicePreview: React.FC = () => {
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '10px' }}>
-              <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
-                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>No. Invoice</span>
-                <span style={{ fontWeight: '500', color: '#4b5563' }}>: {invoiceNo || 'RA.01/11/06/2026'}</span>
-              </div>
               <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
                 <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Perihal</span>
                 <span style={{ fontWeight: '600', color: activeProfile?.accentColor || '#1e70cd' }}>: "{invoiceHal || getHalDefault()}"</span>
