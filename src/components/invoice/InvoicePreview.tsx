@@ -469,7 +469,7 @@ const InvoicePreview: React.FC = () => {
           {/* Footer SVG */}
           <div className="invoice-footer" style={{ flexShrink: 0 }}>
             <svg
-              viewBox="0 0 1045 71"
+              viewBox="0 0 1045 80"
               xmlns="http://www.w3.org/2000/svg"
               preserveAspectRatio="none"
               shapeRendering="geometricPrecision"
@@ -477,19 +477,35 @@ const InvoicePreview: React.FC = () => {
               style={{ display: 'block', width: '100%' }}
             >
               {/* Background */}
-              <rect width="1045" height="71" fill="#ffffff" />
+              <rect width="1045" height="80" fill="#ffffff" />
 
-              {/* Bidang hitam */}
-              <path d="M 0 20 H 462 L 499.5 70 H 0 Z" fill={headerBgColor} />
+              {/* Definisi filter drop-shadow untuk efek timbul */}
+              <defs>
+                <filter id="drop-shadow-footer" x="-10%" y="-10%" width="120%" height="130%">
+                  <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#000000" floodOpacity="0.3" />
+                </filter>
+                <filter id="drop-shadow-middle-footer" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#000000" floodOpacity="0.5" />
+                </filter>
+              </defs>
 
-              {/* Bidang merah kanan (Warna dinamis) */}
-              <path d="M 538.25 20 H 1045 V 70 H 575.75 Z" fill={headerPrimaryColor} />
+              {/* Grup shape background horizontal dengan efek timbul (drop shadow) */}
+              <g filter="url(#drop-shadow-footer)">
+                {/* Bidang hitam */}
+                <path d="M 0 20 H 462 L 499.5 70 H 0 Z" fill={headerBgColor} />
 
-              {/* Diagonal merah tengah (Warna dinamis) */}
-              <path d="M 470 5 H 509 L 557.75 70 H 518.75 Z" fill={headerSecondaryColor} />
+                {/* Bidang merah kanan (Warna dinamis) */}
+                <path d="M 538.25 20 H 1045 V 70 H 575.75 Z" fill={headerPrimaryColor} />
+              </g>
 
-              {/* Pemisah putih */}
-              <path d="M 509 5 H 527 L 575.75 70 H 557.75 Z" fill="#ffffff" />
+              {/* Grup shape miring tengah dengan efek timbul (drop shadow) di atas shape horizontal */}
+              <g filter="url(#drop-shadow-middle-footer)">
+                {/* Diagonal merah tengah (Warna dinamis) */}
+                <path d="M 470 5 H 509 L 557.75 70 H 518.75 Z" fill={headerSecondaryColor} />
+
+                {/* Pemisah putih */}
+                <path d="M 509 5 H 527 L 575.75 70 H 557.75 Z" fill="#ffffff" />
+              </g>
             </svg>
           </div>
 
