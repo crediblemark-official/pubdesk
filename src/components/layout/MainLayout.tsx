@@ -72,11 +72,11 @@ const MainLayout = () => {
 
   return (
     <div className="main-layout" style={{ flexDirection: 'column' }}>
-      <TopBar />
+      <TopBar onToggleSidebar={toggleSidebar} />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 48px)' }}>
         {/* Sidebar with collapse */}
         <div style={{ width: sidebarCollapsed ? '60px' : '260px', position: 'relative', height: '100%', transition: 'width 0.3s ease' }}>
-          <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+          <Sidebar collapsed={sidebarCollapsed} />
         </div>
 
         <div className="main-content">

@@ -3,10 +3,9 @@ import { useAppContext } from '../../contexts/AppContext';
 
 interface SidebarProps {
   collapsed: boolean;
-  onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const { appState, setActiveModule } = useAppContext();
 
   const menuItems = [
@@ -21,34 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   ];
 
   return (
-    <div style={{ height: '100vh', background: '#2d2720', color: '#a89880', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <div style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', padding: '0 12px' }}>
-        {!collapsed && (
-          <button style={{ background: 'transparent', border: 'none', color: '#a89880', cursor: 'pointer', fontSize: '18px', padding: '8px', borderRadius: '6px' }}>
-            🔍
-          </button>
-        )}
-        {!collapsed && (
-          <div style={{ fontSize: '14px', fontWeight: '700', color: '#f8f4e9' }}>
-            PubHub
-          </div>
-        )}
-        <button 
-          onClick={onToggle}
-          style={{ 
-            background: 'transparent', 
-            border: 'none', 
-            color: '#a89880', 
-            cursor: 'pointer', 
-            fontSize: '18px', 
-            padding: '8px',
-            borderRadius: '6px'
-          }}
-        >
-          {collapsed ? '→' : '☰'}
-        </button>
-      </div>
+    <div style={{ height: '100%', background: '#2d2720', color: '#a89880', display: 'flex', flexDirection: 'column' }}>
       
       {/* Menu */}
       <nav style={{ flex: 1, overflow: 'auto', padding: '8px' }}>
