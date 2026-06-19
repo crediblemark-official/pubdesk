@@ -212,12 +212,12 @@ const InvoicePreview: React.FC = () => {
               )}
 
               {/* Judul invoice */}
-              <text x="389" y="98" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="44" fontWeight="700" letterSpacing="2">
+              <text x="622" y="98" textAnchor="end" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="44" fontWeight="700" letterSpacing="2">
                 {activeProfile?.invoiceTitleText || 'INVOICE'}
               </text>
 
               {/* Nomor invoice di bawah judul */}
-              <text x="391" y="118" fill="#dddddd" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="700" letterSpacing="1">
+              <text x="622" y="118" textAnchor="end" fill="#dddddd" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="700" letterSpacing="1">
                 NO. {invoiceNo || 'RA.01/11/06/2026'}
               </text>
             </svg>
