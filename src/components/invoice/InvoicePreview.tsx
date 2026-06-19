@@ -160,14 +160,14 @@ const InvoicePreview: React.FC = () => {
           {/* Header SVG */}
           <div className="invoice-header" style={{ flexShrink: 0 }}>
             <svg
-              viewBox="0 0 657 150"
+              viewBox="0 0 657 139"
               xmlns="http://www.w3.org/2000/svg"
               aria-label="Invoice header"
               shapeRendering="geometricPrecision"
               style={{ display: 'block', width: '100%' }}
             >
               {/* Background putih */}
-              <rect x="0" y="0" width="657" height="150" fill="#ffffff" />
+              <rect x="0" y="0" width="657" height="139" fill="#ffffff" />
 
               {/* Garis abu-abu di bagian atas */}
               <rect x="0" y="0" width="657" height="2" fill="#dddddd" />
@@ -179,10 +179,10 @@ const InvoicePreview: React.FC = () => {
               <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
 
               {/* Pemisah putih agar warna hitam tidak menyelip - Diperpanjang membungkus */}
-              <polygon points="189.2,0 205.2,0 288.5,146 272.5,146" fill="#ffffff" />
+              <polygon points="189.2,0 205.2,0 284.5,139 268.5,139" fill="#ffffff" />
 
               {/* Aksen merah kedua (Warna dinamis) - Diperpanjang membungkus */}
-              <polygon points="205.2,0 239.5,0 324.7,146 288.5,146" fill={headerSecondaryColor} />
+              <polygon points="205.2,0 239.5,0 320.5,139 284.5,139" fill={headerSecondaryColor} />
 
               {/* Logo placeholder / Gambar Logo Kustom */}
               {activeProfile?.companyLogo ? (
