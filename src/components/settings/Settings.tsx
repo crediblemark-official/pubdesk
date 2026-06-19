@@ -426,244 +426,252 @@ const Settings: React.FC = () => {
         {activeSettingsTab === 'invoice' && <InvoiceSettings />}
         {activeSettingsTab === 'services' && <ServiceManager />}
         {activeSettingsTab === 'general' && (
-          <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Akun Google Drive Terhubung */}
-            <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', textAlign: 'left' }}>
-              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-                👤 Akun Google Drive Terhubung
-              </h2>
-              
-              {gdriveAccounts.length === 0 ? (
-                <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px dashed var(--border)', textAlign: 'center', marginBottom: '16px' }}>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>Belum ada akun Google Drive yang terhubung.</p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                  {gdriveAccounts.map(account => (
-                    <div key={account.email} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{account.name}</span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{account.email}</span>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn-danger compact-btn"
-                        onClick={() => handleRemoveAccount(account.email)}
-                        style={{ padding: '4px 8px', fontSize: '11px', height: '24px', cursor: 'pointer' }}
-                      >
-                        Disconnect
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button
-                type="button"
-                className="btn-primary compact-btn"
-                onClick={handleAddAccount}
-                disabled={testingConnection || syncing}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', fontSize: '13px', cursor: 'pointer' }}
-              >
-                ➕ Hubungkan Akun Google Baru
-              </button>
-            </div>
-
-            {/* Integrasi Google Drive Card */}
-            <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px' }}>
-              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-                ☁️ Integrasi Google Drive
-              </h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.4', textAlign: 'left' }}>
-                Hubungkan PubDesk dengan akun Google Drive Anda untuk menyinkronkan daftar naskah dan aset secara otomatis. File cloud dapat diunduh dan dibuka langsung seolah file lokal.
-              </p>
-
-              {/* Input fields */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
-                <div className="compact-form-group">
-                  <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Drive OAuth2 Access Token</label>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <input
-                      type={showToken ? 'text' : 'password'}
-                      className="compact-input"
-                      placeholder="Masukkan Access Token Anda (Bisa kosong jika Refresh Token diisi)..."
-                      value={token}
-                      onChange={(e) => {
-                        setToken(e.target.value);
-                        localStorage.setItem('gdrive_token', e.target.value);
-                      }}
-                      style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowToken(!showToken)}
-                      className="btn-secondary compact-btn"
-                      style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      {showToken ? '👁️ Sembunyikan' : '👁️ Tampilkan'}
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="compact-form-group">
-                    <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Client ID (Jangka Panjang)</label>
-                    <input
-                      type="text"
-                      className="compact-input"
-                      placeholder="Masukkan Client ID Google Cloud..."
-                      value={clientId}
-                      onChange={(e) => {
-                        setClientId(e.target.value);
-                        localStorage.setItem('gdrive_client_id', e.target.value);
-                      }}
-                      style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                    />
-                  </div>
-                  <div className="compact-form-group">
-                    <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Client Secret (Jangka Panjang)</label>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <input
-                        type={showSecret ? 'text' : 'password'}
-                        className="compact-input"
-                        placeholder="Masukkan Client Secret..."
-                        value={clientSecret}
-                        onChange={(e) => {
-                          setClientSecret(e.target.value);
-                          localStorage.setItem('gdrive_client_secret', e.target.value);
-                        }}
-                        style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowSecret(!showSecret)}
-                        className="btn-secondary compact-btn"
-                        style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        {showSecret ? '👁️' : '👁️'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="compact-form-group">
-                  <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google OAuth2 Refresh Token (Jangka Panjang)</label>
-                  <input
-                    type="password"
-                    className="compact-input"
-                    placeholder="Masukkan Refresh Token Anda..."
-                    value={refreshToken}
-                    onChange={(e) => {
-                      setRefreshToken(e.target.value);
-                      localStorage.setItem('gdrive_refresh_token', e.target.value);
-                    }}
-                    style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
-                    💡 Dapatkan Refresh Token dari OAuth Playground menggunakan Client ID Anda agar aplikasi tetap terhubung selamanya.
-                  </span>
-                </div>
-
-                <div className="compact-form-group">
-                  <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>ID Folder Induk (Opsional)</label>
-                  <input
-                    type="text"
-                    className="compact-input"
-                    placeholder="Kosongkan untuk menyinkronkan seluruh Drive..."
-                    value={parentFolderId}
-                    onChange={(e) => {
-                      setParentFolderId(e.target.value);
-                      localStorage.setItem('gdrive_parent_folder_id', e.target.value);
-                    }}
-                    style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
-                    Batasi pencarian file hanya dalam folder tertentu di Drive Anda dengan memasukkan ID foldernya (dari URL folder).
-                  </span>
-                </div>
-              </div>
-
-              {/* Connection status feedback */}
-              {connectionStatus !== 'idle' && (
-                <div style={{ 
-                  marginTop: '16px', 
-                  padding: '12px', 
-                  borderRadius: '8px', 
-                  fontSize: '13px',
-                  border: '1px solid',
-                  textAlign: 'left',
-                  background: connectionStatus === 'success' ? 'rgba(46, 194, 126, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  borderColor: connectionStatus === 'success' ? '#2ec27e' : '#ef4444',
-                  color: connectionStatus === 'success' ? '#2e7d32' : '#c62828'
-                }}>
-                  {connectionStatus === 'success' && connectedUser ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>✅</span>
-                      <span>
-                        <strong>Terhubung!</strong> Akun: <strong>{connectedUser.name}</strong> ({connectedUser.email})
-                      </span>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', alignItems: 'stretch' }}>
+              {/* Akun Google Drive Terhubung */}
+              <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+                    👤 Akun Google Drive Terhubung
+                  </h2>
+                  
+                  {gdriveAccounts.length === 0 ? (
+                    <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px dashed var(--border)', textAlign: 'center', marginBottom: '16px' }}>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>Belum ada akun Google Drive yang terhubung.</p>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>⚠️</span>
-                      <span>{connectionError}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                      {gdriveAccounts.map(account => (
+                        <div key={account.email} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{account.name}</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{account.email}</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn-danger compact-btn"
+                            onClick={() => handleRemoveAccount(account.email)}
+                            style={{ padding: '4px 8px', fontSize: '11px', height: '24px', cursor: 'pointer' }}
+                          >
+                            Disconnect
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* Action Button Row */}
-              <div style={{ display: 'flex', gap: '8px', marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  className="btn-secondary compact-btn"
-                  onClick={() => testConnection(token)}
-                  disabled={testingConnection || syncing}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  {testingConnection ? 'Memeriksa...' : '🔌 Hubungkan / Uji Koneksi'}
-                </button>
 
                 <button
                   type="button"
                   className="btn-primary compact-btn"
-                  onClick={handleSync}
-                  disabled={syncing || !token}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onClick={handleAddAccount}
+                  disabled={testingConnection || syncing}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', fontSize: '13px', cursor: 'pointer', marginTop: 'auto' }}
                 >
-                  {syncing ? '🔄 Menyinkronkan...' : '🔄 Sinkronisasi Sekarang'}
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-danger compact-btn"
-                  onClick={handleClearSync}
-                  disabled={syncing}
-                  style={{ marginLeft: 'auto' }}
-                >
-                  🗑️ Hapus Metadata Drive
+                  ➕ Hubungkan Akun Google Baru
                 </button>
               </div>
 
-              {/* Sync Progress log */}
-              {syncing && syncProgress && (
-                <div style={{ 
-                  marginTop: '12px', 
-                  padding: '10px 14px', 
-                  background: 'rgba(0,0,0,0.05)', 
-                  borderRadius: '6px', 
-                  fontSize: '12px', 
-                  color: 'var(--text-secondary)',
-                  fontFamily: 'monospace',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  textAlign: 'left'
-                }}>
-                  <span className="spinner" style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid var(--text-secondary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                  <span>{syncProgress}</span>
+              {/* Integrasi Google Drive Card */}
+              <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+                    ☁️ Integrasi Google Drive
+                  </h2>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.4', textAlign: 'left' }}>
+                    Hubungkan PubDesk dengan akun Google Drive Anda untuk menyinkronkan daftar naskah dan aset secara otomatis. File cloud dapat diunduh dan dibuka langsung seolah file lokal.
+                  </p>
+
+                  {/* Input fields */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                    <div className="compact-form-group">
+                      <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Drive OAuth2 Access Token</label>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type={showToken ? 'text' : 'password'}
+                          className="compact-input"
+                          placeholder="Masukkan Access Token Anda (Bisa kosong jika Refresh Token diisi)..."
+                          value={token}
+                          onChange={(e) => {
+                            setToken(e.target.value);
+                            localStorage.setItem('gdrive_token', e.target.value);
+                          }}
+                          style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowToken(!showToken)}
+                          className="btn-secondary compact-btn"
+                          style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          {showToken ? '👁️ Sembunyikan' : '👁️ Tampilkan'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div className="compact-form-group">
+                        <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Client ID (Jangka Panjang)</label>
+                        <input
+                          type="text"
+                          className="compact-input"
+                          placeholder="Masukkan Client ID Google Cloud..."
+                          value={clientId}
+                          onChange={(e) => {
+                            setClientId(e.target.value);
+                            localStorage.setItem('gdrive_client_id', e.target.value);
+                          }}
+                          style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                        />
+                      </div>
+                      <div className="compact-form-group">
+                        <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google Client Secret (Jangka Panjang)</label>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <input
+                            type={showSecret ? 'text' : 'password'}
+                            className="compact-input"
+                            placeholder="Masukkan Client Secret..."
+                            value={clientSecret}
+                            onChange={(e) => {
+                              setClientSecret(e.target.value);
+                              localStorage.setItem('gdrive_client_secret', e.target.value);
+                            }}
+                            style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowSecret(!showSecret)}
+                            className="btn-secondary compact-btn"
+                            style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            {showSecret ? '👁' : '👁'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="compact-form-group">
+                      <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Google OAuth2 Refresh Token (Jangka Panjang)</label>
+                      <input
+                        type="password"
+                        className="compact-input"
+                        placeholder="Masukkan Refresh Token Anda..."
+                        value={refreshToken}
+                        onChange={(e) => {
+                          setRefreshToken(e.target.value);
+                          localStorage.setItem('gdrive_refresh_token', e.target.value);
+                        }}
+                        style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                      />
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
+                        💡 Dapatkan Refresh Token dari OAuth Playground menggunakan Client ID Anda agar aplikasi tetap terhubung selamanya.
+                      </span>
+                    </div>
+
+                    <div className="compact-form-group">
+                      <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>ID Folder Induk (Opsional)</label>
+                      <input
+                        type="text"
+                        className="compact-input"
+                        placeholder="Kosongkan untuk menyinkronkan seluruh Drive..."
+                        value={parentFolderId}
+                        onChange={(e) => {
+                          setParentFolderId(e.target.value);
+                          localStorage.setItem('gdrive_parent_folder_id', e.target.value);
+                        }}
+                        style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                      />
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
+                        Batasi pencarian file hanya dalam folder tertentu di Drive Anda dengan memasukkan ID foldernya (dari URL folder).
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Connection status feedback */}
+                  {connectionStatus !== 'idle' && (
+                    <div style={{ 
+                      marginTop: '16px', 
+                      padding: '12px', 
+                      borderRadius: '8px', 
+                      fontSize: '13px',
+                      border: '1px solid',
+                      textAlign: 'left',
+                      background: connectionStatus === 'success' ? 'rgba(46, 194, 126, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                      borderColor: connectionStatus === 'success' ? '#2ec27e' : '#ef4444',
+                      color: connectionStatus === 'success' ? '#2e7d32' : '#c62828'
+                    }}>
+                      {connectionStatus === 'success' && connectedUser ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>✅</span>
+                          <span>
+                            <strong>Terhubung!</strong> Akun: <strong>{connectedUser.name}</strong> ({connectedUser.email})
+                          </span>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>⚠️</span>
+                          <span>{connectionError}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <div>
+                  {/* Action Button Row */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-secondary compact-btn"
+                      onClick={() => testConnection(token)}
+                      disabled={testingConnection || syncing}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                    >
+                      {testingConnection ? 'Memeriksa...' : '🔌 Hubungkan / Uji Koneksi'}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn-primary compact-btn"
+                      onClick={handleSync}
+                      disabled={syncing || !token}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                    >
+                      {syncing ? '🔄 Menyinkronkan...' : '🔄 Sinkronisasi Sekarang'}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn-danger compact-btn"
+                      onClick={handleClearSync}
+                      disabled={syncing}
+                      style={{ marginLeft: 'auto', cursor: 'pointer' }}
+                    >
+                      🗑️ Hapus Metadata Drive
+                    </button>
+                  </div>
+
+                  {/* Sync Progress log */}
+                  {syncing && syncProgress && (
+                    <div style={{ 
+                      marginTop: '12px', 
+                      padding: '10px 14px', 
+                      background: 'rgba(0,0,0,0.05)', 
+                      borderRadius: '6px', 
+                      fontSize: '12px', 
+                      color: 'var(--text-secondary)',
+                      fontFamily: 'monospace',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      textAlign: 'left'
+                    }}>
+                      <span className="spinner" style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid var(--text-secondary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                      <span>{syncProgress}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Guide Card */}
