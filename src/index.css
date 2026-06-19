@@ -73,22 +73,43 @@ body {
 }
 
 /* Top Bar */
-.top-bar {
+/* Top Bar Container */
+.top-bar-container {
   height: 48px;
-  background-color: #24201a;
+  display: flex;
+  user-select: none;
   border-bottom: 1px solid var(--border);
+}
+
+/* Sidebar Area (Left) */
+.top-bar-sidebar-area {
+  background-color: var(--bg-panel);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  gap: 16px;
-  user-select: none;
+  padding: 0 12px;
+  border-right: 1px solid var(--border);
+  height: 100%;
+  transition: width 0.3s ease;
 }
 
-.top-bar-nav {
+.top-bar-sidebar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Outfit', 'Inter', sans-serif;
+  letter-spacing: -0.2px;
+}
+
+/* Main Area (Right) */
+.top-bar-main-area {
+  flex: 1;
+  background-color: var(--bg-dark);
   display: flex;
   align-items: center;
-  gap: 6px;
+  padding: 0 16px;
+  gap: 12px;
+  height: 100%;
 }
 
 .top-bar-btn {
@@ -114,23 +135,29 @@ body {
   transform: scale(0.95);
 }
 
-.top-bar-pathbar {
+.top-bar-nav-arrows {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 4px 2px 12px;
-  height: 32px;
-  gap: 8px;
-  max-width: 450px;
-  width: 100%;
-  justify-content: space-between;
-  transition: border-color 0.2s ease;
+  gap: 4px;
 }
 
-.top-bar-pathbar:focus-within {
+.top-bar-gnome-pathbar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 8px 0 12px;
+  height: 32px;
+  max-width: 480px;
+  transition: all 0.15s ease;
+}
+
+.top-bar-gnome-pathbar:focus-within {
   border-color: var(--accent-dark);
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .top-bar-path-text {
@@ -143,26 +170,98 @@ body {
   white-space: nowrap;
 }
 
-.top-bar-path-action {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-}
-
-.top-bar-actions {
+.top-bar-path-clear {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
 }
 
-.top-bar-separator {
+.top-bar-path-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.top-bar-btn-close-path {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.top-bar-btn-close-path:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.top-bar-btn-close-path:active {
+  transform: scale(0.95);
+}
+
+.top-bar-gnome-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top-bar-dropdown-btn {
+  width: 24px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.top-bar-gnome-separator {
   width: 1px;
   height: 18px;
   background: var(--border);
   margin: 0 4px;
 }
 
-.top-bar-btn-close:hover {
+/* Window Controls (GNOME Style circular buttons) */
+.top-bar-gnome-windowcontrols {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar-window-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.top-bar-window-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.top-bar-window-btn:active {
+  transform: scale(0.9);
+}
+
+.top-bar-window-close-btn:hover {
   background: #c94a4a !important;
   color: #ffffff !important;
 }

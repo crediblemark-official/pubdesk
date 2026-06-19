@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 
 interface TopBarProps {
   onToggleSidebar?: () => void;
+  sidebarCollapsed?: boolean;
+  activeModule?: string;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar }) => {
+const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, activeModule }) => {
   const [appWindow, setAppWindow] = useState<any>(null);
 
   useEffect(() => {
@@ -44,82 +46,134 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar }) => {
     }
   };
 
+  const getModuleLabel = () => {
+    switch (activeModule) {
+      case 'invoice': return 'Invoice';
+      case 'extractor': return 'Extractor';
+      case 'files': return 'Files';
+      case 'ledger': return 'Buku Besar';
+      case 'settings': return 'Pengaturan';
+      default: return 'Files';
+    }
+  };
+
   return (
-    <div className="top-bar" data-tauri-drag-region>
-      {/* Navigasi kiri: back, forward */}
-      <div className="top-bar-nav">
-        {onToggleSidebar && (
-          <button className="top-bar-btn" onClick={onToggleSidebar} aria-label="Toggle sidebar" style={{ marginRight: '4px' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
+    <div className="top-bar-container" data-tauri-drag-region>
+      {/* Bagian Kiri: Di atas Sidebar */}
+      <div 
+        className="top-bar-sidebar-area" 
+        style={{ width: sidebarCollapsed ? '60px' : '260px' }}
+      >
+        {!sidebarCollapsed && (
+          <button className="top-bar-btn" aria-label="Search sidebar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </button>
         )}
-        <button className="top-bar-btn" aria-label="Back">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <button className="top-bar-btn" aria-label="Forward">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        
+        {!sidebarCollapsed && (
+          <span className="top-bar-sidebar-title">{getModuleLabel()}</span>
+        )}
+
+        <button className="top-bar-btn" onClick={onToggleSidebar} aria-label="Toggle sidebar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
       </div>
 
-      {/* Path bar tengah */}
-      <div className="top-bar-pathbar">
-        <span className="top-bar-path-text">/home/rasyiqi</span>
-        <button className="top-bar-btn top-bar-path-action" aria-label="Edit path">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <button className="top-bar-btn top-bar-path-action" aria-label="Clear">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
-        </button>
-      </div>
+      {/* Bagian Kanan: Di atas Main Content */}
+      <div className="top-bar-main-area">
+        {/* Navigasi kiri */}
+        <div className="top-bar-nav-arrows">
+          <button className="top-bar-btn" aria-label="Back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <button className="top-bar-btn" aria-label="Forward">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
 
-      {/* Aksi kanan: search, view, window controls */}
-      <div className="top-bar-actions">
-        <button className="top-bar-btn" aria-label="Search">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.6"/>
-            <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-          </svg>
-        </button>
-        <button className="top-bar-btn" aria-label="Grid view">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/>
-            <rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/>
-            <rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/>
-            <rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/>
+        {/* Path bar */}
+        <div className="top-bar-gnome-pathbar">
+          <span className="top-bar-path-text">/home/rasyiqi</span>
+          <button className="top-bar-path-clear" aria-label="Clear path">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        {/* Tombol silang kecil di luar pathbar */}
+        <button className="top-bar-btn-close-path" aria-label="Close path editing">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
 
-        {/* Separator antara aksi dan window controls */}
-        <div className="top-bar-separator" />
+        {/* Aksi tambahan */}
+        <div className="top-bar-gnome-actions">
+          <button className="top-bar-btn" aria-label="Search inside folder">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="3"></circle>
+              <line x1="16" y1="17" x2="14.5" y2="15.5"></line>
+            </svg>
+          </button>
+          
+          <button className="top-bar-btn" aria-label="Grid view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+
+          <button className="top-bar-btn top-bar-dropdown-btn" aria-label="Menu dropdown">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        {/* Separator vertikal */}
+        <div className="top-bar-gnome-separator" />
 
         {/* Window controls */}
-        <button className="top-bar-btn" onClick={handleMinimize} aria-label="Minimize">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M4 8h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
-        </button>
-        <button className="top-bar-btn" onClick={handleMaximize} aria-label="Maximize">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M5 2h7a2 2 0 012 2v7M11 14H4a2 2 0 01-2-2V5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <button className="top-bar-btn top-bar-btn-close" onClick={handleClose} aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
-        </button>
+        <div className="top-bar-gnome-windowcontrols">
+          <button className="top-bar-window-btn" onClick={handleMinimize} aria-label="Minimize">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <button className="top-bar-window-btn" onClick={handleMaximize} aria-label="Maximize">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+          </button>
+          <button className="top-bar-window-btn top-bar-window-close-btn" onClick={handleClose} aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
