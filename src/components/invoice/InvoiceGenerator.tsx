@@ -191,14 +191,8 @@ const InvoiceGenerator: React.FC = () => {
       const filename = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}-${Date.now()}.pdf`;
 
       // Buat file fisik kosong di folder data aplikasi
-      let physicalPath = '';
-      try {
-        const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
-        physicalPath = await tauriInvoke<string>('create_physical_file', { filename });
-      } catch (err) {
-        console.error('Failed to create physical file:', err);
-        physicalPath = `invoices/${filename}`; // fallback
-      }
+      const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+      const physicalPath = await tauriInvoke<string>('create_physical_file', { filename });
 
       // Simpan berkas ke tabel files untuk modul Smart Folders
       const fileData = {
