@@ -1,19 +1,19 @@
-pub mod schema;
-pub mod models;
 pub mod error;
+pub mod models;
+pub mod schema;
 
-use rusqlite::{Connection, params};
-use std::path::PathBuf;
-use tauri::Manager;
 pub use error::DbError;
 pub use models::*;
+use rusqlite::{params, Connection};
+use std::path::PathBuf;
+use tauri::Manager;
 
 pub fn get_db_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, DbError> {
     let app_data_dir = app_handle
         .path()
         .app_data_dir()
         .map_err(|_| DbError::PathError)?;
-    
+
     std::fs::create_dir_all(&app_data_dir)?;
     Ok(app_data_dir.join("pubhub.db"))
 }
@@ -50,7 +50,9 @@ impl Database {
     }
 
     pub fn get_contacts(&self) -> Result<Vec<Contact>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, name, wa_number, address, type, created_at FROM contacts")?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT id, name, wa_number, address, type, created_at FROM contacts")?;
         let contacts = stmt.query_map([], |row| {
             Ok(Contact {
                 id: row.get(0)?,
@@ -61,7 +63,7 @@ impl Database {
                 created_at: row.get(5)?,
             })
         })?;
-        
+
         let mut result = Vec::new();
         for contact in contacts {
             result.push(contact?);
@@ -100,7 +102,7 @@ impl Database {
                 cover_path: row.get(7)?,
             })
         })?;
-        
+
         let mut result = Vec::new();
         for book in books {
             result.push(book?);
@@ -109,7 +111,8 @@ impl Database {
     }
 
     pub fn delete_book(&self, id: i64) -> Result<(), DbError> {
-        self.conn.execute("DELETE FROM books WHERE id = ?1", params![id])?;
+        self.conn
+            .execute("DELETE FROM books WHERE id = ?1", params![id])?;
         Ok(())
     }
 
@@ -163,7 +166,7 @@ impl Database {
                 file_path: row.get(8)?,
             })
         })?;
-        
+
         let mut result = Vec::new();
         for invoice in invoices {
             result.push(invoice?);
@@ -206,7 +209,7 @@ impl Database {
                 is_readonly: row.get(9)?,
             })
         })?;
-        
+
         let mut result = Vec::new();
         for file in files {
             result.push(file?);
@@ -215,7 +218,8 @@ impl Database {
     }
 
     pub fn delete_file(&self, id: i64) -> Result<(), DbError> {
-        self.conn.execute("DELETE FROM files WHERE id = ?1", params![id])?;
+        self.conn
+            .execute("DELETE FROM files WHERE id = ?1", params![id])?;
         Ok(())
     }
 
@@ -246,13 +250,15 @@ impl Database {
                 service.price,
                 service.description,
                 service.category
-            ]
+            ],
         )?;
         Ok(self.conn.last_insert_rowid())
     }
 
     pub fn get_services(&self) -> Result<Vec<Service>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, name, price, description, category FROM services")?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT id, name, price, description, category FROM services")?;
         let services = stmt.query_map([], |row| {
             Ok(Service {
                 id: row.get(0)?,
@@ -262,7 +268,7 @@ impl Database {
                 category: row.get(4)?,
             })
         })?;
-        
+
         let mut result = Vec::new();
         for service in services {
             result.push(service?);
@@ -285,7 +291,8 @@ impl Database {
     }
 
     pub fn delete_service(&self, id: i64) -> Result<(), DbError> {
-        self.conn.execute("DELETE FROM services WHERE id = ?1", params![id])?;
+        self.conn
+            .execute("DELETE FROM services WHERE id = ?1", params![id])?;
         Ok(())
     }
 
@@ -295,14 +302,16 @@ impl Database {
         let created_at = chrono::Local::now().to_rfc3339();
         self.conn.execute(
             "INSERT INTO watch_folders (path, created_at) VALUES (?1, ?2)",
-            params![path, created_at]
+            params![path, created_at],
         )?;
         Ok(self.conn.last_insert_rowid())
     }
 
     #[allow(dead_code)]
     pub fn get_watch_folders(&self) -> Result<Vec<WatchFolder>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, path, created_at FROM watch_folders")?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT id, path, created_at FROM watch_folders")?;
         let folders = stmt.query_map([], |row| {
             Ok(WatchFolder {
                 id: row.get(0)?,
@@ -310,7 +319,7 @@ impl Database {
                 created_at: row.get(2)?,
             })
         })?;
-        
+
         let mut result = Vec::new();
         for folder in folders {
             result.push(folder?);
@@ -320,13 +329,17 @@ impl Database {
 
     #[allow(dead_code)]
     pub fn delete_watch_folder(&self, id: i64) -> Result<(), DbError> {
-        self.conn.execute("DELETE FROM watch_folders WHERE id = ?1", params![id])?;
+        self.conn
+            .execute("DELETE FROM watch_folders WHERE id = ?1", params![id])?;
         Ok(())
     }
 
     #[allow(dead_code)]
     pub fn delete_files_by_prefix(&self, prefix: &str) -> Result<(), DbError> {
-        self.conn.execute("DELETE FROM files WHERE path LIKE ?1", params![format!("{}%", prefix)])?;
+        self.conn.execute(
+            "DELETE FROM files WHERE path LIKE ?1",
+            params![format!("{}%", prefix)],
+        )?;
         Ok(())
     }
 
@@ -354,7 +367,8 @@ impl Database {
 
     #[allow(dead_code)]
     pub fn delete_file_by_path(&self, path: &str) -> Result<(), DbError> {
-        self.conn.execute("DELETE FROM files WHERE path = ?1", params![path])?;
+        self.conn
+            .execute("DELETE FROM files WHERE path = ?1", params![path])?;
         Ok(())
     }
 }
