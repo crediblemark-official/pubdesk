@@ -114,10 +114,10 @@ const InvoicePreview: React.FC = () => {
             {/* Garis vertikal biru di tepi paling kiri */}
             <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', background: '#1e70cd', zIndex: 3 }} />
             
-            {/* Garis horizontal biru di tepi kiri atas */}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '250px', height: '6px', background: '#1e70cd', zIndex: 3 }} />
+            {/* Garis horizontal biru di tepi kiri atas (berakhir tepat saat menyentuh stripe tengah) */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '187px', height: '6px', background: '#1e70cd', zIndex: 3 }} />
 
-            {/* Kartu Biru Utama (Floating dengan margin 15px atas/bawah) */}
+            {/* Kartu Biru Utama (Floating dengan margin 15px atas/bawah, logo digeser ke kiri) */}
             <div style={{ 
               background: '#1e70cd', 
               width: '100%',
@@ -128,13 +128,14 @@ const InvoicePreview: React.FC = () => {
               clipPath: 'polygon(21px 0, 190px 0, 245px 100%, 21px 100%)',
               display: 'flex',
               alignItems: 'center',
-              paddingLeft: '45px',
+              paddingLeft: '20px', // Digeser mendekat ke kiri agar persis seperti gambar
               zIndex: 2
             }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                {/* Hexagonal Shield Logo Icon */}
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '10px' }}>
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                {/* Hexagon Outline Logo Icon dengan cutout biru berbentuk jam pasir (hourglass) */}
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ marginRight: '10px' }}>
+                  <path d="M12 2L21 7v10l-9 5-9-5V7l9-5z" fill="white" />
+                  <path d="M9 8h6l-3 4 3 4H9l3-4-3-4z" fill="#1e70cd" />
                 </svg>
                 <div style={{ color: '#ffffff', fontFamily: '"Montserrat", "Segoe UI", sans-serif' }}>
                   <div style={{ fontSize: '16px', fontWeight: '800', letterSpacing: '1px', lineHeight: '1.1' }}>COMPANY</div>
