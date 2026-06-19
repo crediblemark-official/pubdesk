@@ -248,11 +248,11 @@ const InvoiceGenerator: React.FC = () => {
 
   return (
     <div className="invoice-generator" style={{ padding: '20px' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px', color: 'var(--text-primary)' }}>Pembuat Invoice</h1>
+      <h1 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-primary)' }}>Pembuat Invoice</h1>
 
       {/* Jenis & Metadata Invoice */}
-      <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>📄 Jenis & Metadata Invoice</h2>
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>📄 Jenis & Metadata Invoice</h2>
 
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Profil / Jenis Invoice</label>
@@ -344,8 +344,8 @@ const InvoiceGenerator: React.FC = () => {
       </div>
 
       {/* Data Pelanggan */}
-      <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>💬 Data Pelanggan</h2>
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>💬 Data Pelanggan</h2>
         <textarea
           style={{ width: '100%', minHeight: '80px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 14px', fontSize: '14px', color: 'var(--text-primary)', resize: 'vertical', marginBottom: '8px' }}
           placeholder="Tempel teks chat WhatsApp di sini..."
@@ -390,16 +390,16 @@ const InvoiceGenerator: React.FC = () => {
       </div>
 
       {/* Rincian Item */}
-      <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>📦 Rincian Item</h2>
-          <button className="btn-success" onClick={() => setShowBookModal(true)}>
-            ➕ Data Master Buku
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>📦 Rincian Item</h2>
+          <button className="btn-success" onClick={() => setShowBookModal(true)} style={{ padding: '4px 10px', fontSize: '12px' }}>
+            Data Master Buku
           </button>
         </div>
 
         {/* Input Form Item */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{ flex: 2, minWidth: '200px' }}>
               <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Pilih dari Buku Master</label>
@@ -612,8 +612,8 @@ const InvoiceGenerator: React.FC = () => {
 
       {/* Biaya Tambahan (Global) */}
       {invoiceType !== 'kbm_cetak' && (
-        <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>💰 Biaya Tambahan (Global)</h2>
+        <div style={{ marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>💰 Biaya Tambahan (Global)</h2>
           <div style={{ marginBottom: '12px' }}>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Ongkos Kirim</label>
             <input
