@@ -175,7 +175,7 @@ const InvoicePreview: React.FC = () => {
               {/* Definisi filter drop-shadow untuk efek timbul */}
               <defs>
                 <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="130%">
-                  <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#000000" floodOpacity="0.15" />
+                  <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#000000" floodOpacity="0.3" />
                 </filter>
               </defs>
 
