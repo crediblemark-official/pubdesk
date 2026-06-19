@@ -3,6 +3,14 @@ import { useSettingsForm } from './SettingsFormContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { InvoiceTableColumn } from '../../../types';
 
+const generateKeyFromLabel = (label: string, index: number): string => {
+  const clean = label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return clean || `kolom_${index + 1}`;
+};
+
 const ColumnsSection: React.FC = () => {
   const { tableColumns, setTableColumns } = useSettingsForm();
   const { showConfirm } = useAppContext();
@@ -13,7 +21,7 @@ const ColumnsSection: React.FC = () => {
 
   const handleAddColumn = () => {
     const newCol: InvoiceTableColumn = {
-      key: `custom_${Date.now()}`,
+      key: `kolom_${tableColumns.length + 1}`,
       label: 'Kolom Baru',
       type: 'text',
       align: 'left',
@@ -76,10 +84,40 @@ const ColumnsSection: React.FC = () => {
             Sesuaikan kolom tabel rincian item:
           </span>
           <div style={{ display: 'flex', gap: '6px' }}>
-            <button type="button" className="btn-secondary compact-btn" style={{ fontSize: '11px', height: '26px' }} onClick={handleResetColumns}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{
+                fontSize: '11px',
+                height: '28px',
+                padding: '0 10px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                boxSizing: 'border-box',
+                fontWeight: '500'
+              }}
+              onClick={handleResetColumns}
+            >
               🔄 Reset Bawaan
             </button>
-            <button type="button" className="btn-primary compact-btn" style={{ fontSize: '11px', height: '26px' }} onClick={handleAddColumn}>
+            <button
+              type="button"
+              className="btn-primary"
+              style={{
+                fontSize: '11px',
+                height: '28px',
+                padding: '0 10px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                boxSizing: 'border-box',
+                fontWeight: '500'
+              }}
+              onClick={handleAddColumn}
+            >
               ➕ Tambah Kolom
             </button>
           </div>
@@ -88,7 +126,7 @@ const ColumnsSection: React.FC = () => {
         {/* Header label kolom */}
         <div style={{ display: 'grid', gridTemplateColumns: '20px 1.8fr 1fr 0.8fr 1fr 32px 32px', gap: '6px', padding: '0 4px 4px', alignItems: 'center' }}>
           <span />
-          <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Label / Kunci</span>
+          <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Label</span>
           <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipe</span>
           <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rata</span>
           <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lebar / Formula</span>
@@ -118,12 +156,6 @@ const ColumnsSection: React.FC = () => {
                 boxSizing: 'border-box',
               };
               const selectBase: React.CSSProperties = { ...inputBase, cursor: 'pointer' };
-              const disabledStyle: React.CSSProperties = {
-                ...inputBase,
-                background: 'var(--bg-panel)',
-                color: 'var(--text-secondary)',
-                cursor: 'default',
-              };
 
               return (
                 <div
@@ -145,24 +177,21 @@ const ColumnsSection: React.FC = () => {
                     {idx + 1}
                   </span>
 
-                  {/* Label + Kunci */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <input
-                      type="text"
-                      style={{ ...inputBase, fontWeight: '600', fontSize: '12px' }}
-                      value={col.label}
-                      onChange={(e) => handleUpdateColumn(idx, { label: e.target.value })}
-                      placeholder="Label Kolom"
-                    />
-                    <input
-                      type="text"
-                      style={{ ...disabledStyle, fontSize: '10px', height: '22px', padding: '2px 8px', fontFamily: 'monospace' }}
-                      value={col.key}
-                      onChange={(e) => handleUpdateColumn(idx, { key: e.target.value })}
-                      disabled={isLocked}
-                      placeholder="key_field"
-                    />
-                  </div>
+                  {/* Label */}
+                  <input
+                    type="text"
+                    style={{ ...inputBase, fontWeight: '600', fontSize: '12px' }}
+                    value={col.label}
+                    onChange={(e) => {
+                      const newLabel = e.target.value;
+                      const updates: Partial<InvoiceTableColumn> = { label: newLabel };
+                      if (!isLocked) {
+                        updates.key = generateKeyFromLabel(newLabel, idx);
+                      }
+                      handleUpdateColumn(idx, updates);
+                    }}
+                    placeholder="Label Kolom"
+                  />
 
                   {/* Tipe */}
                   <select

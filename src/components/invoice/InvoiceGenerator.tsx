@@ -31,6 +31,7 @@ const InvoiceGenerator: React.FC = () => {
   // States for the add item form
   const [customTitle, setCustomTitle] = useState('');
   const [dynamicInputs, setDynamicInputs] = useState<Record<string, any>>({});
+  const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
   // Dynamically set default values when activeProfile changes
   useEffect(() => {
@@ -299,289 +300,326 @@ const InvoiceGenerator: React.FC = () => {
     }
   };
 
-
-
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('id-ID').format(amount);
   };
+
+  const renderAccordionSection = (index: number, title: string, component: React.ReactNode) => {
+    const isOpen = expandedSection === index;
+    return (
+      <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)', marginBottom: '4px' }}>
+        <button
+          type="button"
+          onClick={() => setExpandedSection(isOpen ? null : index)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            background: isOpen ? 'var(--bg-panel)' : 'transparent',
+            border: 'none',
+            color: isOpen ? 'var(--accent)' : 'var(--text-primary)',
+            fontSize: '12px',
+            fontWeight: '700',
+            textAlign: 'left',
+            cursor: 'pointer',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            outline: 'none'
+          }}
+        >
+          <span>{title}</span>
+          <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{isOpen ? '▲' : '▼'}</span>
+        </button>
+        {isOpen && (
+          <div style={{ padding: '16px', borderTop: '1px solid var(--border)' }}>
+            {component}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const showGlobalAdditions = !activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
 
   return (
     <div className="invoice-generator" style={{ padding: '20px' }}>
       <h1 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-primary)' }}>Pembuat Invoice</h1>
 
-      {/* Jenis & Metadata Invoice */}
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>📄 Jenis & Metadata Invoice</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '20px' }}>
+        {/* Section 1: Jenis & Metadata Invoice */}
+        {renderAccordionSection(1, '📄 Jenis & Metadata Invoice', (
+          <>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Profil / Jenis Invoice</label>
+              <select
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
+                value={activeProfileId}
+                onChange={(e) => setActiveProfileId(e.target.value)}
+              >
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Profil / Jenis Invoice</label>
-          <select
-            style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
-            value={activeProfileId}
-            onChange={(e) => setActiveProfileId(e.target.value)}
-          >
-            {profiles.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>No. Invoice</label>
+                <input
+                  type="text"
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  value={invoiceNo}
+                  onChange={(e) => setInvoiceNo(e.target.value)}
+                  placeholder="Contoh: RA.01/11/06/2026"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Tanggal Invoice</label>
+                <input
+                  type="text"
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  value={invoiceDate}
+                  onChange={(e) => setInvoiceDate(e.target.value)}
+                  placeholder="Contoh: 11 Juni 2026"
+                />
+              </div>
+            </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>No. Invoice</label>
-            <input
-              type="text"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={invoiceNo}
-              onChange={(e) => setInvoiceNo(e.target.value)}
-              placeholder="Contoh: RA.01/11/06/2026"
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Tanggal Invoice</label>
-            <input
-              type="text"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={invoiceDate}
-              onChange={(e) => setInvoiceDate(e.target.value)}
-              placeholder="Contoh: 11 Juni 2026"
-            />
-          </div>
-        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Hal (Perihal)</label>
+                <input
+                  type="text"
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  value={invoiceHal}
+                  onChange={(e) => setInvoiceHal(e.target.value)}
+                  placeholder="Perihal Invoice"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Lampiran</label>
+                <input
+                  type="text"
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  value={invoiceLampiran}
+                  onChange={(e) => setInvoiceLampiran(e.target.value)}
+                  placeholder="-"
+                />
+              </div>
+            </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Hal (Perihal)</label>
-            <input
-              type="text"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={invoiceHal}
-              onChange={(e) => setInvoiceHal(e.target.value)}
-              placeholder="Perihal Invoice"
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Lampiran</label>
-            <input
-              type="text"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={invoiceLampiran}
-              onChange={(e) => setInvoiceLampiran(e.target.value)}
-              placeholder="-"
-            />
-          </div>
-        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Status Akhir Pembayaran</label>
+                <select
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
+                  value={paymentStatus}
+                  onChange={(e) => setPaymentStatus(e.target.value)}
+                >
+                  <option value="LUNAS">LUNAS</option>
+                  <option value="BELUM LUNAS">BELUM LUNAS</option>
+                  <option value="PENDING">PENDING</option>
+                </select>
+              </div>
+              {activeProfile?.showSpesifikasi && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Spesifikasi & Fasilitas</label>
+                  <input
+                    type="text"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                    value={spesifikasiFasilitas}
+                    onChange={(e) => setSpesifikasiFasilitas(e.target.value)}
+                    placeholder="Sesuai poster paket yang diambil"
+                  />
+                </div>
+              )}
+            </div>
+          </>
+        ))}
 
-        <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Status Akhir Pembayaran</label>
-            <select
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value)}
-            >
-              <option value="LUNAS">LUNAS</option>
-              <option value="BELUM LUNAS">BELUM LUNAS</option>
-              <option value="PENDING">PENDING</option>
-            </select>
-          </div>
-          {activeProfile?.showSpesifikasi && (
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Spesifikasi & Fasilitas</label>
+        {/* Section 2: Data Pelanggan */}
+        {renderAccordionSection(2, '💬 Data Pelanggan', (
+          <>
+            <textarea
+              style={{ width: '100%', minHeight: '80px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 14px', fontSize: '14px', color: 'var(--text-primary)', resize: 'vertical', marginBottom: '8px' }}
+              placeholder="Tempel teks chat WhatsApp di sini..."
+              value={waInput}
+              onChange={(e) => setWaInput(e.target.value)}
+              rows={3}
+            />
+            <button className="btn-secondary" onClick={handleParseWA} style={{ marginBottom: '16px' }}>
+              ✨ Parse Otomatis
+            </button>
+
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama</label>
               <input
                 type="text"
                 style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                value={spesifikasiFasilitas}
-                onChange={(e) => setSpesifikasiFasilitas(e.target.value)}
-                placeholder="Sesuai poster paket yang diambil"
+                value={customer.name || ''}
+                onChange={(e) => setCustomer(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Nama Pelanggan"
               />
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Data Pelanggan */}
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>💬 Data Pelanggan</h2>
-        <textarea
-          style={{ width: '100%', minHeight: '80px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 14px', fontSize: '14px', color: 'var(--text-primary)', resize: 'vertical', marginBottom: '8px' }}
-          placeholder="Tempel teks chat WhatsApp di sini..."
-          value={waInput}
-          onChange={(e) => setWaInput(e.target.value)}
-          rows={3}
-        />
-        <button className="btn-secondary" onClick={handleParseWA} style={{ marginBottom: '16px' }}>
-          ✨ Parse Otomatis
-        </button>
-
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama</label>
-          <input
-            type="text"
-            style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={customer.name || ''}
-            onChange={(e) => setCustomer(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Nama Pelanggan"
-          />
-        </div>
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>No. WhatsApp</label>
-          <input
-            type="text"
-            style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={customer.wa_number || ''}
-            onChange={(e) => setCustomer(prev => ({ ...prev, wa_number: e.target.value }))}
-            placeholder="08123456789"
-          />
-        </div>
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Alamat</label>
-          <input
-            type="text"
-            style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={customer.address || ''}
-            onChange={(e) => setCustomer(prev => ({ ...prev, address: e.target.value }))}
-            placeholder="Alamat Pengiriman"
-          />
-        </div>
-      </div>
-
-      {/* Rincian Item */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>📦 Rincian Item</h2>
-        </div>
-
-        {/* Input Form Item */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '250px' }}>
-              <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama Layanan / Karya</label>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>No. WhatsApp</label>
               <input
-                list="services-datalist"
                 type="text"
-                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
-                value={customTitle}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setCustomTitle(val);
-                  
-                  // Periksa jika input cocok dengan salah satu layanan master
-                  const matchedService = services.find(s => s.name === val);
-                  if (matchedService) {
-                    setSelectedServiceIdState(String(matchedService.id));
-                    setDynamicInputs(prev => ({
-                      ...prev,
-                      price: matchedService.price
-                    }));
-                  } else {
-                    setSelectedServiceIdState('');
-                  }
-                }}
-                placeholder="Ketik nama layanan / karya atau pilih dari Master Layanan..."
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={customer.wa_number || ''}
+                onChange={(e) => setCustomer(prev => ({ ...prev, wa_number: e.target.value }))}
+                placeholder="08123456789"
               />
-              <datalist id="services-datalist">
-                {services.map((service) => (
-                  <option key={service.id} value={service.name}>
-                    Tarif: Rp {new Intl.NumberFormat('id-ID').format(service.price)}
-                  </option>
-                ))}
-              </datalist>
             </div>
-          </div>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Alamat</label>
+              <input
+                type="text"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={customer.address || ''}
+                onChange={(e) => setCustomer(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Alamat Pengiriman"
+              />
+            </div>
+          </>
+        ))}
 
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-            {getRequiredFields().map((field) => {
-              if (field.key === 'item_title') return null;
-
-              return (
-                <div key={field.key} style={{ flex: field.key === 'copyright_holder' ? 2 : 1, minWidth: '110px' }}>
-                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
+        {/* Section 3: Rincian Item */}
+        {renderAccordionSection(3, '📦 Rincian Item', (
+          <>
+            {/* Input Form Item */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '250px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama Layanan / Karya</label>
                   <input
-                    type={field.type === 'number' || field.type === 'currency' ? 'number' : 'text'}
+                    list="services-datalist"
+                    type="text"
                     style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
-                    value={dynamicInputs[field.key] !== undefined ? dynamicInputs[field.key] : ''}
+                    value={customTitle}
                     onChange={(e) => {
                       const val = e.target.value;
-                      setDynamicInputs(prev => ({
-                        ...prev,
-                        [field.key]: field.type === 'number' || field.type === 'currency' ? (parseFloat(val) || 0) : val
-                      }));
+                      setCustomTitle(val);
+                      
+                      // Periksa jika input cocok dengan salah satu layanan master
+                      const matchedService = services.find(s => s.name === val);
+                      if (matchedService) {
+                        setSelectedServiceIdState(String(matchedService.id));
+                        setDynamicInputs(prev => ({
+                          ...prev,
+                          price: matchedService.price
+                        }));
+                      } else {
+                        setSelectedServiceIdState('');
+                      }
                     }}
-                    placeholder={`Masukkan ${field.label.toLowerCase()}...`}
-                    min={field.key === 'quantity' ? "1" : undefined}
+                    placeholder="Ketik nama layanan / karya atau pilih dari Master Layanan..."
                   />
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Tombol Tambah — full width di bawah form */}
-          <button
-            className="btn-primary"
-            onClick={handleAddItem}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', marginTop: '4px' }}
-          >
-            + Tambah Item
-          </button>
-        </div>
-
-        {/* List Item */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {items.map((item, index) => (
-            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
-              <span style={{ fontWeight: '600', width: '20px', color: 'var(--text-secondary)' }}>{index + 1}.</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.item_title}"</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                  {/* Tampilkan ringkasan item berdasarkan kolom yang aktif secara dinamis */}
-                  {activeProfile?.tableColumns?.filter(col => col.type !== 'formula' && col.key !== 'item_title').map(col => {
-                    const val = item[col.key];
-                    if (val === undefined || val === null || val === '') return null;
-                    const displayVal = col.type === 'currency' ? `Rp ${formatPrice(Number(val))}` : String(val);
-                    return `${col.label}: ${displayVal}`;
-                  }).filter(Boolean).join(' | ')}
+                  <datalist id="services-datalist">
+                    {services.map((service) => (
+                      <option key={service.id} value={service.name}>
+                        Tarif: Rp {new Intl.NumberFormat('id-ID').format(service.price)}
+                      </option>
+                    ))}
+                  </datalist>
                 </div>
               </div>
-              <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
-                Rp {formatPrice(calculateItemTotal(item))}
-              </span>
-              <button className="btn-danger" onClick={() => removeItem(index)} style={{ padding: '6px 10px', borderRadius: '6px' }}>
-                🗑️
+
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                {getRequiredFields().map((field) => {
+                  if (field.key === 'item_title') return null;
+
+                  return (
+                    <div key={field.key} style={{ flex: field.key === 'copyright_holder' ? 2 : 1, minWidth: '110px' }}>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
+                      <input
+                        type={field.type === 'number' || field.type === 'currency' ? 'number' : 'text'}
+                        style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                        value={dynamicInputs[field.key] !== undefined ? dynamicInputs[field.key] : ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDynamicInputs(prev => ({
+                            ...prev,
+                            [field.key]: field.type === 'number' || field.type === 'currency' ? (parseFloat(val) || 0) : val
+                          }));
+                        }}
+                        placeholder={`Masukkan ${field.label.toLowerCase()}...`}
+                        min={field.key === 'quantity' ? "1" : undefined}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Tombol Tambah — full width di bawah form */}
+              <button
+                className="btn-primary"
+                onClick={handleAddItem}
+                style={{ width: '100%', padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', marginTop: '4px' }}
+              >
+                + Tambah Item
               </button>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Biaya Tambahan (Global) — hanya tampil jika profil tidak menggunakan ongkir per item */}
-      {!activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost') && (
-        <div style={{ marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>💰 Biaya Tambahan (Global)</h2>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Ongkos Kirim</label>
-            <input
-              type="number"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={shippingCost}
-              onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
-              placeholder="0"
-            />
-          </div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Biaya Admin</label>
-            <input
-              type="number"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={adminFee}
-              onChange={(e) => setAdminFee(parseFloat(e.target.value) || 0)}
-              placeholder="0"
-            />
-          </div>
-        </div>
-      )}
+            {/* List Item */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {items.map((item, index) => (
+                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
+                  <span style={{ fontWeight: '600', width: '20px', color: 'var(--text-secondary)' }}>{index + 1}.</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.item_title}"</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      {/* Tampilkan ringkasan item berdasarkan kolom yang aktif secara dinamis */}
+                      {activeProfile?.tableColumns?.filter(col => col.type !== 'formula' && col.key !== 'item_title').map(col => {
+                        const val = item[col.key];
+                        if (val === undefined || val === null || val === '') return null;
+                        const displayVal = col.type === 'currency' ? `Rp ${formatPrice(Number(val))}` : String(val);
+                        return `${col.label}: ${displayVal}`;
+                      }).filter(Boolean).join(' | ')}
+                    </div>
+                  </div>
+                  <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
+                    Rp {formatPrice(calculateItemTotal(item))}
+                  </span>
+                  <button className="btn-danger" onClick={() => removeItem(index)} style={{ padding: '6px 10px', borderRadius: '6px' }}>
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        ))}
+
+        {/* Section 4: Biaya Tambahan (Global) */}
+        {showGlobalAdditions && renderAccordionSection(4, '💰 Biaya Tambahan (Global)', (
+          <>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Ongkos Kirim</label>
+              <input
+                type="number"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={shippingCost}
+                onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+              />
+            </div>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Biaya Admin</label>
+              <input
+                type="number"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={adminFee}
+                onChange={(e) => setAdminFee(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+              />
+            </div>
+          </>
+        ))}
+      </div>
 
       {/* Aksi Utama */}
       <div style={{ display: 'flex', gap: '12px' }}>
@@ -592,8 +630,6 @@ const InvoiceGenerator: React.FC = () => {
           🔄 Reset
         </button>
       </div>
-
-
     </div>
   );
 };
