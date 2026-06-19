@@ -107,7 +107,7 @@ fn delete_file(state: State<'_, AppState>, id: i64) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn create_physical_file(app_handle: tauri::AppHandle, filename: String, bytes: Vec<u8>) -> Result<String, String> {
+fn create_physical_file(app_handle: tauri::AppHandle, filename: String, bytes: Vec<u8>, folder: String) -> Result<String, String> {
     use tauri::Manager;
     use std::fs::File as StdFile;
     use std::io::Write;
@@ -117,10 +117,10 @@ fn create_physical_file(app_handle: tauri::AppHandle, filename: String, bytes: V
         .app_data_dir()
         .map_err(|e| e.to_string())?;
     
-    let invoices_dir = app_data_dir.join("invoices");
-    std::fs::create_dir_all(&invoices_dir).map_err(|e| e.to_string())?;
+    let target_dir = app_data_dir.join(&folder);
+    std::fs::create_dir_all(&target_dir).map_err(|e| e.to_string())?;
     
-    let file_path = invoices_dir.join(&filename);
+    let file_path = target_dir.join(&filename);
     
     let mut file = StdFile::create(&file_path).map_err(|e| e.to_string())?;
     file.write_all(&bytes).map_err(|e| e.to_string())?;

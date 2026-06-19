@@ -73,6 +73,77 @@ const PanelKanan: React.FC = () => {
 
             return <InvoicePreview overrideInvoice={overrideInvoice} />;
           }
+        } else if (file.type === 'book') {
+          const bookId = file.version_label ? parseInt(file.version_label) : null;
+          const book = books.find(b => b.id === bookId);
+          if (book) {
+            const formatPrice = (amount: number) => {
+              return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+            };
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', padding: '30px', overflow: 'auto', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', marginBottom: '24px' }}>Detail Visual Buku</h3>
+                
+                {/* Visual Cover Buku */}
+                <div style={{
+                  width: '180px',
+                  height: '240px',
+                  borderRadius: '12px',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 12px 28px rgba(0,0,0,0.25)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '24px',
+                  transform: 'perspective(600px) rotateY(-5deg)',
+                  transformOrigin: 'left center',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'perspective(600px) rotateY(0deg) scale(1.02)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'perspective(600px) rotateY(-5deg)'}
+                >
+                  {book.cover_path ? (
+                    <img src={book.cover_path} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      <span style={{ fontSize: '64px', display: 'block', marginBottom: '8px' }}>📖</span>
+                      <span style={{ fontSize: '12px', fontWeight: '500' }}>Tidak ada cover</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Rincian Teks */}
+                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <h4 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', margin: '0 0 6px 0', lineHeight: '1.3' }}>{book.title}</h4>
+                    {book.isbn && <span style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-card)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border)' }}>ISBN: {book.isbn}</span>}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', fontSize: '13px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Harga PO</span>
+                      <strong style={{ color: 'var(--accent)', fontSize: '14px' }}>{formatPrice(book.po_price)}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Harga Reguler</span>
+                      <strong style={{ color: 'var(--text-primary)' }}>{formatPrice(book.regular_price)}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Berat Estimasi</span>
+                      <strong style={{ color: 'var(--text-primary)' }}>{book.weight_grams} gram</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', fontStyle: 'italic', marginTop: '12px' }}>
+                    Data master ini siap digunakan secara otomatis dalam pembuatan invoice cetak.
+                  </div>
+                </div>
+              </div>
+            );
+          }
         }
 
         return (

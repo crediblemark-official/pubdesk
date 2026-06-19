@@ -3,7 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { Book } from '../../types';
 
 const BookManager: React.FC = () => {
-  const { books, addBook, updateBook, deleteBook, showToast, selectedBookId, setSelectedBookId } = useAppContext();
+  const { books, addBook, updateBook, deleteBook, showToast, selectedBookId, setSelectedBookId, addFile, files } = useAppContext();
 
   // State untuk form input tambah / edit
   const [isEditing, setIsEditing] = useState(false);
@@ -79,13 +79,46 @@ const BookManager: React.FC = () => {
     };
 
     try {
+      let bookId = currentBookId;
       if (isEditing && currentBookId !== null) {
         await updateBook(bookData);
         showToast('Buku berhasil diperbarui!', 'success');
       } else {
-        await addBook(bookData);
+        const newId = await addBook(bookData);
+        bookId = newId;
         showToast('Buku baru berhasil ditambahkan!', 'success');
       }
+
+      // Tulis file fisik JSON berisi data buku master dan daftarkan ke files untuk Smart Folder
+      if (bookId) {
+        const filename = `Book-${bookId}.json`;
+        const bookJsonString = JSON.stringify({ ...bookData, id: bookId });
+        const bytes = new TextEncoder().encode(bookJsonString);
+        
+        const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+        const physicalPath = await tauriInvoke<string>('create_physical_file', { 
+          filename, 
+          bytes: Array.from(bytes),
+          folder: 'books'
+        });
+
+        // Daftarkan ke Smart Folder (tabel files) jika belum terdaftar
+        const alreadyExists = files.some(f => f.filename === filename && f.type === 'book');
+        if (!alreadyExists) {
+          const fileData = {
+            filename,
+            path: physicalPath,
+            type: 'book',
+            project_id: undefined,
+            version_label: String(bookId),
+            status: 'Tersimpan',
+            last_modified: new Date().toISOString(),
+            is_readonly: false
+          };
+          await addFile(fileData);
+        }
+      }
+
       resetForm();
     } catch (err) {
       console.error(err);

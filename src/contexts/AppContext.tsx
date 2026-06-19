@@ -13,8 +13,8 @@ interface AppContextType {
   selectedFileId: number | null;
   setSelectedFileId: (id: number | null) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
-  fileCategory: 'all' | 'invoice' | 'other';
-  setFileCategory: (category: 'all' | 'invoice' | 'other') => void;
+  fileCategory: 'all' | 'invoice' | 'book' | 'other';
+  setFileCategory: (category: 'all' | 'invoice' | 'book' | 'other') => void;
   loadBooks: () => Promise<void>;
   loadContacts: () => Promise<void>;
   loadInvoices: () => Promise<void>;
@@ -45,7 +45,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [files, setFiles] = useState<File[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
-  const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'other'>('all');
+  const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'book' | 'other'>('all');
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
 

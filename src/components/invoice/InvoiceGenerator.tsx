@@ -204,7 +204,8 @@ const InvoiceGenerator: React.FC = () => {
       const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
       const physicalPath = await tauriInvoke<string>('create_physical_file', { 
         filename,
-        bytes: pdfBytes 
+        bytes: pdfBytes,
+        folder: 'invoices'
       });
 
       // Simpan berkas ke tabel files untuk modul Smart Folders
