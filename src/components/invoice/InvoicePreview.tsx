@@ -254,18 +254,21 @@ const InvoicePreview: React.FC = () => {
               </div>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '10px' }}>
-              <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
-                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Perihal</span>
-                <span style={{ fontWeight: '600', color: activeProfile?.accentColor || '#1e70cd' }}>: "{invoiceHal || getHalDefault()}"</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: '#4b5563' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: '700', color: '#1f2937', width: '70px', flexShrink: 0 }}>Perihal</span>
+                <span style={{ marginRight: '6px', color: '#4b5563', fontWeight: '700' }}>:</span>
+                <span style={{ fontWeight: '600', color: activeProfile?.accentColor || '#1e70cd', wordBreak: 'break-word' }}>"{invoiceHal || getHalDefault()}"</span>
               </div>
-              <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
-                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Lampiran</span>
-                <span style={{ fontWeight: '500', color: '#4b5563' }}>: {invoiceLampiran || '-'}</span>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: '700', color: '#1f2937', width: '70px', flexShrink: 0 }}>Lampiran</span>
+                <span style={{ marginRight: '6px', color: '#4b5563', fontWeight: '700' }}>:</span>
+                <span style={{ fontWeight: '500' }}>{invoiceLampiran || '-'}</span>
               </div>
-              <div style={{ display: 'flex' }}>
-                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Tanggal</span>
-                <span style={{ fontWeight: '500', color: '#4b5563' }}>: {invoiceDate}</span>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: '700', color: '#1f2937', width: '70px', flexShrink: 0 }}>Tanggal</span>
+                <span style={{ marginRight: '6px', color: '#4b5563', fontWeight: '700' }}>:</span>
+                <span style={{ fontWeight: '500' }}>{invoiceDate}</span>
               </div>
             </div>
           </div>
