@@ -114,6 +114,43 @@ fn create_physical_file(app_handle: tauri::AppHandle, filename: String) -> Resul
     Ok(file_path.to_string_lossy().to_string())
 }
 
+#[tauri::command]
+fn open_file_physically(path: String) -> Result<(), String> {
+    use std::process::Command;
+    
+    Command::new("xdg-open")
+        .arg(&path)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+        
+    Ok(())
+}
+
+#[tauri::command]
+fn open_file_location_physically(path: String) -> Result<(), String> {
+    use std::process::Command;
+    use std::path::Path;
+    
+    let path_ref = Path::new(&path);
+    let parent = path_ref.parent().ok_or("No parent directory")?;
+    
+    // Coba buka dengan nautilus --select agar menyorot file terpilih (khusus Linux GNOME)
+    let nautilus_status = Command::new("nautilus")
+        .arg("--select")
+        .arg(&path)
+        .spawn();
+        
+    if nautilus_status.is_err() {
+        // Fallback membuka folder induk menggunakan xdg-open
+        Command::new("xdg-open")
+            .arg(parent)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -133,7 +170,9 @@ pub fn run() {
             get_files,
             add_file,
             delete_file,
-            create_physical_file
+            create_physical_file,
+            open_file_physically,
+            open_file_location_physically
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

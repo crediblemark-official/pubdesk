@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
-import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
+import { invoke } from '@tauri-apps/api/core';
 
 export const FileManager: React.FC = () => {
   const { files, deleteFile, selectedFileId, setSelectedFileId, showToast, fileCategory } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Handler Buka Berkas Fisik
+  // Handler Buka Berkas Fisik via Rust Backend
   const handleOpenFile = async (e: React.MouseEvent, path: string) => {
     e.stopPropagation();
     try {
-      await openUrl(path);
+      await invoke('open_file_physically', { path });
       showToast('Membuka berkas...', 'info');
     } catch (error) {
       console.error('Gagal membuka berkas:', error);
@@ -18,11 +18,11 @@ export const FileManager: React.FC = () => {
     }
   };
 
-  // Handler Buka Lokasi Berkas di File Manager Sistem
+  // Handler Buka Lokasi Berkas di File Manager Sistem via Rust Backend
   const handleOpenFileLocation = async (e: React.MouseEvent, path: string) => {
     e.stopPropagation();
     try {
-      await revealItemInDir(path);
+      await invoke('open_file_location_physically', { path });
       showToast('Membuka lokasi berkas...', 'info');
     } catch (error) {
       console.error('Gagal membuka lokasi berkas:', error);
