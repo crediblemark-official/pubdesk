@@ -4,7 +4,7 @@ import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { Book, InvoiceItem } from '../../types';
 
 const InvoiceGenerator: React.FC = () => {
-  const { books, addBook, addInvoice } = useAppContext();
+  const { books, addBook, addInvoice, addFile, showToast } = useAppContext();
   const {
     customer, setCustomer,
     items, addItem, removeItem,
@@ -151,11 +151,11 @@ const InvoiceGenerator: React.FC = () => {
 
   const handleSaveInvoice = async () => {
     if (!customer.name) {
-      alert('Nama pelanggan harus diisi!');
+      showToast('Nama pelanggan harus diisi!', 'error');
       return;
     }
     if (items.length === 0) {
-      alert('Item pesanan tidak boleh kosong!');
+      showToast('Item pesanan tidak boleh kosong!', 'error');
       return;
     }
 
@@ -163,22 +163,50 @@ const InvoiceGenerator: React.FC = () => {
     const globalShip = invoiceType === 'kbm_cetak' ? 0 : shippingCost;
     const total = itemsTotal + globalShip + adminFee;
 
+    const metadata = {
+      invoiceNo,
+      invoiceDate,
+      invoiceHal,
+      invoiceLampiran,
+      paymentStatus,
+      spesifikasiFasilitas,
+      invoiceType,
+      customerName: customer.name || '',
+      customerWa: customer.wa_number || '',
+      customerAddress: customer.address || ''
+    };
+
     const invoiceData = {
       items_json: JSON.stringify(items),
       shipping_cost: shippingCost,
       admin_fee: adminFee,
       total,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      export_format: invoiceType,
+      file_path: JSON.stringify(metadata)
     };
 
     try {
-      await addInvoice(invoiceData);
-      alert('Invoice berhasil disimpan dan dicatat!');
+      const invoiceId = await addInvoice(invoiceData);
+
+      // Simpan berkas ke tabel files untuk modul Smart Folders
+      const fileData = {
+        filename: `Invoice-${invoiceNo || 'DRAF'}.pdf`,
+        path: `invoices/Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : Date.now()}.pdf`,
+        type: 'invoice',
+        project_id: invoiceId,
+        status: 'Tersimpan',
+        last_modified: new Date().toISOString(),
+        is_readonly: false
+      };
+
+      await addFile(fileData);
+      showToast('Invoice berhasil disimpan dan dicatat ke Smart Folders!', 'success');
       resetInvoice();
       setWaInput('');
     } catch (error) {
       console.error(error);
-      alert('Gagal menyimpan invoice.');
+      showToast('Gagal menyimpan invoice.', 'error');
     }
   };
 

@@ -1,29 +1,47 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
-import { InvoiceProfile } from '../../types';
+import { InvoiceProfile, InvoiceItem } from '../../types';
 
 interface InvoicePreviewProps {
   previewProfile?: InvoiceProfile;
+  overrideInvoice?: {
+    customerName: string;
+    waNumber?: string;
+    address?: string;
+    items: InvoiceItem[];
+    shippingCost: number;
+    adminFee: number;
+    invoiceType: 'kbm_cetak' | 'kbm_creator' | 'spt_mitra';
+    invoiceNo: string;
+    invoiceHal: string;
+    invoiceLampiran: string;
+    invoiceDate: string;
+    paymentStatus?: string;
+    spesifikasiFasilitas?: string;
+  };
 }
 
-const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile }) => {
-  const { 
-    customer, 
-    items, 
-    shippingCost, 
-    adminFee, 
-    invoiceType,
-    invoiceNo,
-    invoiceHal,
-    invoiceLampiran,
-    invoiceDate,
-    paymentStatus,
-    spesifikasiFasilitas,
-    activeProfile,
-    calculateItemTotal 
-  } = useInvoiceContext();
+const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrideInvoice }) => {
+  const contextData = useInvoiceContext();
+  
+  const customer = overrideInvoice 
+    ? { name: overrideInvoice.customerName, wa_number: overrideInvoice.waNumber, address: overrideInvoice.address } 
+    : contextData.customer;
+  const items = overrideInvoice ? overrideInvoice.items : contextData.items;
+  const shippingCost = overrideInvoice ? overrideInvoice.shippingCost : contextData.shippingCost;
+  const adminFee = overrideInvoice ? overrideInvoice.adminFee : contextData.adminFee;
+  const invoiceType = overrideInvoice ? overrideInvoice.invoiceType : contextData.invoiceType;
+  const invoiceNo = overrideInvoice ? overrideInvoice.invoiceNo : contextData.invoiceNo;
+  const invoiceHal = overrideInvoice ? overrideInvoice.invoiceHal : contextData.invoiceHal;
+  const invoiceLampiran = overrideInvoice ? overrideInvoice.invoiceLampiran : contextData.invoiceLampiran;
+  const invoiceDate = overrideInvoice ? overrideInvoice.invoiceDate : contextData.invoiceDate;
+  const paymentStatus = overrideInvoice ? overrideInvoice.paymentStatus : contextData.paymentStatus;
+  const spesifikasiFasilitas = overrideInvoice ? overrideInvoice.spesifikasiFasilitas : contextData.spesifikasiFasilitas;
+  const calculateItemTotal = contextData.calculateItemTotal;
+  const profiles = contextData.profiles;
 
-  const profile = previewProfile || activeProfile;
+  const profile = previewProfile || (overrideInvoice ? profiles.find(p => p.id === invoiceType) : contextData.activeProfile) || profiles[0];
+  const activeProfile = profile;
   
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);

@@ -9,6 +9,10 @@ interface AppContextType {
   contacts: Contact[];
   invoices: Invoice[];
   files: File[];
+  toast: { message: string; type: 'success' | 'error' | 'info' } | null;
+  selectedFileId: number | null;
+  setSelectedFileId: (id: number | null) => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   loadBooks: () => Promise<void>;
   loadContacts: () => Promise<void>;
   loadInvoices: () => Promise<void>;
@@ -17,6 +21,7 @@ interface AppContextType {
   addContact: (contact: Contact) => Promise<number>;
   addInvoice: (invoice: Invoice) => Promise<number>;
   addFile: (file: File) => Promise<number>;
+  deleteFile: (id: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -30,6 +35,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -46,8 +53,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     init();
   }, []);
 
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   const setActiveModule = (module: AppState['activeModule']) => {
     setAppState(prev => ({ ...prev, activeModule: module }));
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
   };
 
   const loadBooks = async () => {
@@ -110,6 +130,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return id;
   };
 
+  const deleteFile = async (id: number) => {
+    await invoke('delete_file', { id });
+    await loadFiles();
+    if (selectedFileId === id) {
+      setSelectedFileId(null);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       appState,
@@ -118,6 +146,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       contacts,
       invoices,
       files,
+      toast,
+      selectedFileId,
+      setSelectedFileId,
+      showToast,
       loadBooks,
       loadContacts,
       loadInvoices,
@@ -126,6 +158,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addContact,
       addInvoice,
       addFile,
+      deleteFile,
     }}>
       {children}
     </AppContext.Provider>

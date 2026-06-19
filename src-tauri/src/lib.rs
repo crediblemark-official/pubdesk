@@ -84,6 +84,13 @@ fn add_file(state: State<'_, AppState>, file: File) -> Result<i64, String> {
     db.add_file(&file).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn delete_file(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database not initialized")?;
+    db.delete_file(id).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -101,7 +108,8 @@ pub fn run() {
             get_invoices,
             add_invoice,
             get_files,
-            add_file
+            add_file,
+            delete_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

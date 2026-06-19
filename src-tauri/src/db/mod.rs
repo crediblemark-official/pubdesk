@@ -189,4 +189,9 @@ impl Database {
         }
         Ok(result)
     }
+
+    pub fn delete_file(&self, id: i64) -> Result<(), DbError> {
+        self.conn.execute("DELETE FROM files WHERE id = ?1", params![id])?;
+        Ok(())
+    }
 }
