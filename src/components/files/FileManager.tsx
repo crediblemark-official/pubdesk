@@ -65,9 +65,8 @@ export const FileManager: React.FC = () => {
     const matchesCategory =
       fileCategory === 'all' ||
       (fileCategory === 'invoice' && file.type === 'invoice') ||
-      (fileCategory === 'book' && file.type === 'book') ||
       (fileCategory === 'service' && file.type === 'service') ||
-      (fileCategory === 'other' && file.type !== 'invoice' && file.type !== 'book' && file.type !== 'service');
+      (fileCategory === 'other' && file.type !== 'invoice' && file.type !== 'service');
 
     const matchesSearch = file.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
       file.path.toLowerCase().includes(searchQuery.toLowerCase());
@@ -158,9 +157,8 @@ export const FileManager: React.FC = () => {
                     <td style={{ padding: '10px 12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '16px' }}>
                         {file.type === 'invoice' && '📄'}
-                        {file.type === 'book' && '📚'}
                         {file.type === 'service' && '🛠️'}
-                        {file.type !== 'invoice' && file.type !== 'book' && file.type !== 'service' && '📁'}
+                        {file.type !== 'invoice' && file.type !== 'service' && '📁'}
                       </span>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {file.filename}

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
-import { Book, InvoiceItem } from '../../types';
+import { Service, InvoiceItem } from '../../types';
 
 const InvoiceGenerator: React.FC = () => {
-  const { books, addBook, addInvoice, addFile, showToast } = useAppContext();
+  const { services, addService, addInvoice, addFile, showToast } = useAppContext();
   const {
     customer, setCustomer,
     items, addItem, removeItem,
@@ -26,7 +26,7 @@ const InvoiceGenerator: React.FC = () => {
   } = useInvoiceContext();
 
   const [waInput, setWaInput] = useState('');
-  const [selectedBookId, setSelectedBookId] = useState('');
+  const [selectedServiceIdState, setSelectedServiceIdState] = useState('');
 
   // States for the add item form
   const [customTitle, setCustomTitle] = useState('');
@@ -38,12 +38,12 @@ const InvoiceGenerator: React.FC = () => {
   const [itemShippingCostInput, setItemShippingCostInput] = useState(75000);
   const [packageNameInput, setPackageNameInput] = useState('Paket Gold');
 
-  const [showBookModal, setShowBookModal] = useState(false);
-  const [newBook, setNewBook] = useState<Partial<Book>>({
-    title: '',
-    regular_price: 0,
-    po_price: 0,
-    weight_grams: 0
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [newService, setNewService] = useState<Partial<Service>>({
+    name: '',
+    price: 0,
+    category: 'penerbitan',
+    description: ''
   });
 
   // Dynamically set default values when activeProfile changes
@@ -104,23 +104,23 @@ const InvoiceGenerator: React.FC = () => {
     let finalTitle = customTitle.trim();
     let finalPrice = itemPrice;
 
-    if (selectedBookId) {
-      const book = books.find((b) => b.id === parseInt(selectedBookId));
-      if (book) {
-        if (!finalTitle) finalTitle = book.title;
+    if (selectedServiceIdState) {
+      const service = services.find((s) => s.id === parseInt(selectedServiceIdState));
+      if (service) {
+        if (!finalTitle) finalTitle = service.name;
         if (finalPrice === 0) {
-          finalPrice = book.po_price || book.regular_price || 0;
+          finalPrice = service.price;
         }
       }
     }
 
     if (!finalTitle) {
-      alert('Judul buku atau karya harus diisi!');
+      alert('Nama layanan atau karya harus diisi!');
       return;
     }
 
     const newItem: InvoiceItem = {
-      book_id: selectedBookId ? parseInt(selectedBookId) : 0,
+      book_id: selectedServiceIdState ? parseInt(selectedServiceIdState) : 0,
       book_title: finalTitle,
       quantity: itemQty,
       price: finalPrice,
@@ -136,7 +136,7 @@ const InvoiceGenerator: React.FC = () => {
 
     // Reset form item (keep default based on type)
     setCustomTitle('');
-    setSelectedBookId('');
+    setSelectedServiceIdState('');
     if (invoiceType === 'kbm_cetak') {
       setItemQty(20);
       setItemPrice(20100);
@@ -230,16 +230,16 @@ const InvoiceGenerator: React.FC = () => {
     }
   };
 
-  const handleAddBook = async () => {
-    if (!newBook.title || !newBook.regular_price || !newBook.po_price) return;
+  const handleAddService = async () => {
+    if (!newService.name || !newService.price) return;
 
-    await addBook(newBook as Book);
-    setShowBookModal(false);
-    setNewBook({
-      title: '',
-      regular_price: 0,
-      po_price: 0,
-      weight_grams: 0
+    await addService(newService as Service);
+    setShowServiceModal(false);
+    setNewService({
+      name: '',
+      price: 0,
+      category: 'penerbitan',
+      description: ''
     });
   };
 
@@ -394,8 +394,8 @@ const InvoiceGenerator: React.FC = () => {
       <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>📦 Rincian Item</h2>
-          <button className="btn-success" onClick={() => setShowBookModal(true)} style={{ padding: '4px 10px', fontSize: '12px' }}>
-            Data Master Buku
+          <button className="btn-success" onClick={() => setShowServiceModal(true)} style={{ padding: '4px 10px', fontSize: '12px' }}>
+            Data Master Layanan
           </button>
         </div>
 
@@ -403,42 +403,38 @@ const InvoiceGenerator: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{ flex: 2, minWidth: '200px' }}>
-              <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Pilih dari Buku Master</label>
+              <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Pilih dari Layanan Master</label>
               <select
                 style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-panel)', color: 'var(--text-primary)', fontSize: '14px' }}
-                value={selectedBookId}
+                value={selectedServiceIdState}
                 onChange={(e) => {
-                  setSelectedBookId(e.target.value);
+                  setSelectedServiceIdState(e.target.value);
                   if (e.target.value) {
-                    const book = books.find(b => b.id === parseInt(e.target.value));
-                    if (book) {
-                      setCustomTitle(book.title);
-                      if (invoiceType === 'kbm_cetak') {
-                        setItemPrice(book.po_price || book.regular_price || 20100);
-                      } else {
-                        setItemPrice(book.po_price || book.regular_price || 0);
-                      }
+                    const service = services.find(s => s.id === parseInt(e.target.value));
+                    if (service) {
+                      setCustomTitle(service.name);
+                      setItemPrice(service.price);
                     }
                   }
                 }}
               >
                 <option value="">-- Kustom / Ketik Sendiri --</option>
-                {books.map((book) => (
-                  <option key={book.id} value={book.id}>
-                    {book.title} (PO: {new Intl.NumberFormat('id-ID').format(book.po_price)})
+                {services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name} (Tarif: {new Intl.NumberFormat('id-ID').format(service.price)})
                   </option>
                 ))}
               </select>
             </div>
 
             <div style={{ flex: 3, minWidth: '250px' }}>
-              <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Judul Buku / Karya</label>
+              <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama Layanan / Karya</label>
               <input
                 type="text"
                 style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
                 value={customTitle}
                 onChange={(e) => setCustomTitle(e.target.value)}
-                placeholder="Ketik judul buku atau karya di sini..."
+                placeholder="Ketik nama layanan atau karya di sini..."
               />
             </div>
           </div>
@@ -648,65 +644,53 @@ const InvoiceGenerator: React.FC = () => {
         </button>
       </div>
 
-      {showBookModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowBookModal(false)}>
+      {showServiceModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowServiceModal(false)}>
           <div style={{ background: 'var(--bg-panel)', borderRadius: '12px', padding: '24px', minWidth: '400px', border: '1px solid var(--border)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ color: 'var(--text-primary)' }}>Tambah Buku Master</h2>
-              <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '24px', cursor: 'pointer' }} onClick={() => setShowBookModal(false)}>✕</button>
+              <h2 style={{ color: 'var(--text-primary)' }}>Tambah Layanan Master</h2>
+              <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '24px', cursor: 'pointer' }} onClick={() => setShowServiceModal(false)}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group">
-                <label>Judul Buku</label>
+                <label>Nama Layanan</label>
                 <input
                   type="text"
-                  value={newBook.title}
-                  onChange={(e) => setNewBook((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Judul Buku"
+                  value={newService.name || ''}
+                  onChange={(e) => setNewService((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Nama Layanan"
                 />
               </div>
               <div className="form-group">
-                <label>ISBN</label>
-                <input
-                  type="text"
-                  value={newBook.isbn || ''}
-                  onChange={(e) => setNewBook((prev) => ({ ...prev, isbn: e.target.value }))}
-                  placeholder="978-602-8567-12-3"
-                />
+                <label>Kategori Layanan</label>
+                <select
+                  value={newService.category || 'penerbitan'}
+                  onChange={(e) => setNewService((prev) => ({ ...prev, category: e.target.value }))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                >
+                  <option value="penerbitan">Layanan Penerbitan</option>
+                  <option value="desain_layout">Desain & Layout</option>
+                  <option value="haki">Pendaftaran HAKI</option>
+                  <option value="isbn">Pengajuan ISBN</option>
+                  <option value="mitra">Layanan Mitra</option>
+                  <option value="other">Lainnya</option>
+                </select>
               </div>
               <div className="form-group">
-                <label>Harga Reguler</label>
-                <input
-                  type="number"
-                  value={newBook.regular_price}
-                  onChange={(e) => setNewBook((prev) => ({ ...prev, regular_price: parseFloat(e.target.value) || 0 }))}
-                  placeholder="50000"
-                />
-              </div>
-              <div className="form-group">
-                <label>Harga PO</label>
+                <label>Tarif / Harga (Rp)</label>
                 <input
                   type="number"
-                  value={newBook.po_price}
-                  onChange={(e) => setNewBook((prev) => ({ ...prev, po_price: parseFloat(e.target.value) || 0 }))}
-                  placeholder="35000"
-                />
-              </div>
-              <div className="form-group">
-                <label>Berat (gram)</label>
-                <input
-                  type="number"
-                  value={newBook.weight_grams}
-                  onChange={(e) => setNewBook((prev) => ({ ...prev, weight_grams: parseInt(e.target.value) || 0 }))}
-                  placeholder="200"
+                  value={newService.price || 0}
+                  onChange={(e) => setNewService((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  placeholder="Tarif Layanan"
                 />
               </div>
             </div>
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button className="btn-primary" style={{ flex: 1 }} onClick={handleAddBook}>
+              <button className="btn-primary" style={{ flex: 1 }} onClick={handleAddService}>
                 Simpan
               </button>
-              <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowBookModal(false)}>
+              <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowServiceModal(false)}>
                 Batal
               </button>
             </div>

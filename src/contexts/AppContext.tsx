@@ -14,8 +14,8 @@ interface AppContextType {
   selectedFileId: number | null;
   setSelectedFileId: (id: number | null) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
-  fileCategory: 'all' | 'invoice' | 'book' | 'service' | 'other';
-  setFileCategory: (category: 'all' | 'invoice' | 'book' | 'service' | 'other') => void;
+  fileCategory: 'all' | 'invoice' | 'service' | 'other';
+  setFileCategory: (category: 'all' | 'invoice' | 'service' | 'other') => void;
   loadBooks: () => Promise<void>;
   loadContacts: () => Promise<void>;
   loadInvoices: () => Promise<void>;
@@ -37,8 +37,8 @@ interface AppContextType {
   setSelectedBookId: (id: number | null) => void;
   selectedServiceId: number | null;
   setSelectedServiceId: (id: number | null) => void;
-  activeSettingsTab: 'invoice' | 'books' | 'services' | 'general';
-  setActiveSettingsTab: (tab: 'invoice' | 'books' | 'services' | 'general') => void;
+  activeSettingsTab: 'invoice' | 'services' | 'general';
+  setActiveSettingsTab: (tab: 'invoice' | 'services' | 'general') => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -55,11 +55,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [services, setServices] = useState<Service[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
-  const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'book' | 'service' | 'other'>('all');
+  const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'service' | 'other'>('all');
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'books' | 'services' | 'general'>('invoice');
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'services' | 'general'>('invoice');
 
   useEffect(() => {
     const init = async () => {
