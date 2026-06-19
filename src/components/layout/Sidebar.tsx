@@ -6,7 +6,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
-  const { appState, setActiveModule, fileCategory, setFileCategory } = useAppContext();
+  const { appState, setActiveModule, fileCategory, setFileCategory, connectedUser } = useAppContext();
 
   const menuItems = [
     { id: 'invoice' as const, label: 'Invoice Generator', icon: '🧾' },
@@ -118,7 +118,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                       >
                         <span style={{ fontSize: '14px' }}>{sub.icon}</span>
-                        <span>{sub.label}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textAlign: 'left' }}>
+                          <span>{sub.label}</span>
+                          {sub.cat === 'gdrive' && connectedUser && (
+                            <span style={{ fontSize: '9px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }} title={connectedUser.email}>
+                              {connectedUser.email}
+                            </span>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
