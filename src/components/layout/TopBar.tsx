@@ -63,6 +63,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
       <div 
         className="top-bar-sidebar-area" 
         style={{ width: sidebarCollapsed ? '60px' : '260px' }}
+        data-tauri-drag-region
       >
         {!sidebarCollapsed && (
           <button className="top-bar-btn" aria-label="Search sidebar">
@@ -87,7 +88,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
       </div>
 
       {/* Bagian Kanan: Di atas Main Content */}
-      <div className="top-bar-main-area">
+      <div className="top-bar-main-area" data-tauri-drag-region>
         {/* Navigasi kiri */}
         <div className="top-bar-nav-arrows">
           <button className="top-bar-btn" aria-label="Back">
