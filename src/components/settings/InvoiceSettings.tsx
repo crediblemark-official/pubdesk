@@ -943,7 +943,18 @@ const InvoiceSettings: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '360px', overflowY: 'auto', paddingRight: '2px' }}>
+            {/* Header label kolom */}
+            <div style={{ display: 'grid', gridTemplateColumns: '20px 1.8fr 1fr 0.8fr 1fr 32px 32px', gap: '6px', padding: '0 4px 4px', alignItems: 'center' }}>
+              <span />
+              <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Label / Kunci</span>
+              <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipe</span>
+              <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rata</span>
+              <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lebar / Formula</span>
+              <span />
+              <span />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '380px', overflowY: 'auto', paddingRight: '2px' }}>
               {tableColumns.length === 0 ? (
                 <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-secondary)', padding: '16px', fontStyle: 'italic' }}>
                   Belum ada kolom tabel yang didefinisikan.
@@ -951,159 +962,146 @@ const InvoiceSettings: React.FC = () => {
               ) : (
                 tableColumns.map((col, idx) => {
                   const isLocked = col.key === 'book_title' || col.key === 'quantity' || col.key === 'price';
-                  const typeBadge: Record<string, { label: string; color: string }> = {
-                    text:     { label: 'Teks',    color: '#6b7280' },
-                    number:   { label: 'Angka',   color: '#1d4ed8' },
-                    currency: { label: 'Rp',      color: '#0d9488' },
-                    formula:  { label: 'Formula', color: '#7c3aed' },
+
+                  const inputBase: React.CSSProperties = {
+                    width: '100%',
+                    fontSize: '12px',
+                    padding: '5px 8px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    height: '30px',
+                    boxSizing: 'border-box',
                   };
-                  const badge = typeBadge[col.type] ?? typeBadge.text;
+                  const selectBase: React.CSSProperties = { ...inputBase, cursor: 'pointer' };
+                  const disabledStyle: React.CSSProperties = {
+                    ...inputBase,
+                    background: 'var(--bg-panel)',
+                    color: 'var(--text-secondary)',
+                    cursor: 'default',
+                  };
 
                   return (
                     <div
                       key={col.key}
                       style={{
-                        background: 'var(--bg-panel)',
+                        display: 'grid',
+                        gridTemplateColumns: '20px 1.8fr 1fr 0.8fr 1fr 32px 32px',
+                        gap: '6px',
+                        alignItems: 'center',
+                        background: 'var(--bg-card)',
                         border: '1px solid var(--border)',
                         borderRadius: '8px',
-                        overflow: 'hidden',
+                        padding: '8px',
+                        opacity: isLocked ? 0.85 : 1,
                       }}
                     >
-                      {/* Header baris */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: isLocked ? 'rgba(0,0,0,0.04)' : 'transparent', borderBottom: '1px solid var(--border)' }}>
-                        {/* Nomor urut */}
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', width: '16px', textAlign: 'center', flexShrink: 0 }}>
-                          {idx + 1}
-                        </span>
+                      {/* Nomor */}
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'center' }}>
+                        {idx + 1}
+                      </span>
 
-                        {/* Input label (nama kolom) */}
+                      {/* Label + Kunci */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                         <input
                           type="text"
-                          style={{ flex: 1, fontSize: '12px', fontWeight: '600', padding: '2px 6px', border: '1px solid transparent', borderRadius: '4px', background: 'transparent', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
+                          style={{ ...inputBase, fontWeight: '600', fontSize: '12px' }}
                           value={col.label}
                           onChange={(e) => handleUpdateColumn(idx, { label: e.target.value })}
                           placeholder="Label Kolom"
-                          onFocus={(e) => e.target.style.borderColor = 'var(--border)'}
-                          onBlur={(e) => e.target.style.borderColor = 'transparent'}
                         />
+                        <input
+                          type="text"
+                          style={{ ...disabledStyle, fontSize: '10px', height: '22px', padding: '2px 8px', fontFamily: 'monospace' }}
+                          value={col.key}
+                          onChange={(e) => handleUpdateColumn(idx, { key: e.target.value })}
+                          disabled={isLocked}
+                          placeholder="key_field"
+                        />
+                      </div>
 
-                        {/* Badge tipe */}
-                        <span style={{ fontSize: '10px', fontWeight: '700', padding: '1px 7px', borderRadius: '12px', background: badge.color + '22', color: badge.color, flexShrink: 0 }}>
-                          {badge.label}
-                        </span>
+                      {/* Tipe */}
+                      <select
+                        style={isLocked ? { ...selectBase, background: 'var(--bg-panel)', color: 'var(--text-secondary)' } : selectBase}
+                        value={col.type}
+                        onChange={(e) => handleUpdateColumn(idx, { type: e.target.value as any })}
+                        disabled={isLocked}
+                      >
+                        <option value="text">Teks</option>
+                        <option value="number">Angka</option>
+                        <option value="currency">Mata Uang (Rp)</option>
+                        <option value="formula">Formula</option>
+                      </select>
 
-                        {/* Tombol naik/turun */}
-                        <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveColumn(idx, 'up')}
-                            disabled={idx === 0}
-                            title="Pindah ke atas"
-                            style={{ background: 'transparent', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', padding: '2px 4px', borderRadius: '3px', color: idx === 0 ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: '10px', opacity: idx === 0 ? 0.3 : 1 }}
-                          >▲</button>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveColumn(idx, 'down')}
-                            disabled={idx === tableColumns.length - 1}
-                            title="Pindah ke bawah"
-                            style={{ background: 'transparent', border: 'none', cursor: idx === tableColumns.length - 1 ? 'default' : 'pointer', padding: '2px 4px', borderRadius: '3px', color: idx === tableColumns.length - 1 ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: '10px', opacity: idx === tableColumns.length - 1 ? 0.3 : 1 }}
-                          >▼</button>
-                        </div>
+                      {/* Rata */}
+                      <select
+                        style={selectBase}
+                        value={col.align || 'left'}
+                        onChange={(e) => handleUpdateColumn(idx, { align: e.target.value as any })}
+                      >
+                        <option value="left">Kiri</option>
+                        <option value="center">Tengah</option>
+                        <option value="right">Kanan</option>
+                      </select>
 
-                        {/* Tombol hapus */}
+                      {/* Lebar atau Formula */}
+                      {col.type === 'formula' ? (
+                        <input
+                          type="text"
+                          style={{ ...inputBase, fontFamily: 'monospace', fontSize: '11px', color: '#7c3aed', borderColor: '#7c3aed44', background: '#f5f3ff' }}
+                          value={col.formula || ''}
+                          onChange={(e) => handleUpdateColumn(idx, { formula: e.target.value })}
+                          placeholder="{price}*{qty}"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          style={inputBase}
+                          value={col.width || 'auto'}
+                          onChange={(e) => handleUpdateColumn(idx, { width: e.target.value })}
+                          placeholder="auto / 90px"
+                        />
+                      )}
+
+                      {/* Naik / Turun */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
                         <button
                           type="button"
-                          onClick={() => handleRemoveColumn(idx)}
-                          disabled={isLocked}
-                          title={isLocked ? 'Kolom wajib tidak dapat dihapus' : 'Hapus kolom'}
-                          style={{ background: isLocked ? 'transparent' : '#dc262611', border: 'none', cursor: isLocked ? 'default' : 'pointer', padding: '3px 6px', borderRadius: '4px', color: isLocked ? 'var(--text-secondary)' : '#dc2626', fontSize: '13px', opacity: isLocked ? 0.25 : 1, flexShrink: 0 }}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6l-1 14H6L5 6"></path>
-                            <path d="M10 11v6M14 11v6"></path>
-                          </svg>
-                        </button>
+                          onClick={() => handleMoveColumn(idx, 'up')}
+                          disabled={idx === 0}
+                          style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', padding: '1px', fontSize: '11px', color: 'var(--text-secondary)', opacity: idx === 0 ? 0.3 : 0.7, lineHeight: 1 }}
+                        >▲</button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveColumn(idx, 'down')}
+                          disabled={idx === tableColumns.length - 1}
+                          style={{ background: 'none', border: 'none', cursor: idx === tableColumns.length - 1 ? 'default' : 'pointer', padding: '1px', fontSize: '11px', color: 'var(--text-secondary)', opacity: idx === tableColumns.length - 1 ? 0.3 : 0.7, lineHeight: 1 }}
+                        >▼</button>
                       </div>
 
-                      {/* Detail baris */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.5fr', gap: '8px', padding: '10px 10px', alignItems: 'start', background: 'var(--bg-card)' }}>
-                        {/* Kunci */}
-                        <div>
-                          <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Kunci</div>
-                          <input
-                            type="text"
-                            style={{ width: '100%', fontSize: '11px', padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-panel)', color: 'var(--text-secondary)', outline: 'none', boxSizing: 'border-box' }}
-                            value={col.key}
-                            onChange={(e) => handleUpdateColumn(idx, { key: e.target.value })}
-                            disabled={isLocked}
-                            placeholder="key_kolom"
-                          />
-                        </div>
-
-                        {/* Tipe */}
-                        <div>
-                          <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Tipe</div>
-                          <select
-                            style={{ width: '100%', fontSize: '11px', padding: '4px 6px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-panel)', color: 'var(--text-primary)', outline: 'none', height: '28px', boxSizing: 'border-box' }}
-                            value={col.type}
-                            onChange={(e) => handleUpdateColumn(idx, { type: e.target.value as any })}
-                            disabled={isLocked}
-                          >
-                            <option value="text">Teks</option>
-                            <option value="number">Angka</option>
-                            <option value="currency">Mata Uang (Rp)</option>
-                            <option value="formula">Formula</option>
-                          </select>
-                        </div>
-
-                        {/* Align */}
-                        <div>
-                          <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Rata</div>
-                          <select
-                            style={{ width: '100%', fontSize: '11px', padding: '4px 6px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-panel)', color: 'var(--text-primary)', outline: 'none', height: '28px', boxSizing: 'border-box' }}
-                            value={col.align || 'left'}
-                            onChange={(e) => handleUpdateColumn(idx, { align: e.target.value as any })}
-                          >
-                            <option value="left">Kiri</option>
-                            <option value="center">Tengah</option>
-                            <option value="right">Kanan</option>
-                          </select>
-                        </div>
-
-                        {/* Width atau Formula */}
-                        <div>
-                          {col.type === 'formula' ? (
-                            <>
-                              <div style={{ fontSize: '9px', color: '#a78bfa', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Formula</div>
-                              <input
-                                type="text"
-                                style={{ width: '100%', fontSize: '11px', padding: '4px 8px', border: '1px solid #7c3aed66', borderRadius: '4px', background: '#2d1b6922', color: '#c4b5fd', outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box' }}
-                                value={col.formula || ''}
-                                onChange={(e) => handleUpdateColumn(idx, { formula: e.target.value })}
-                                placeholder="{price}*{quantity}"
-                              />
-                            </>
-                          ) : (
-                            <>
-                              <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Lebar</div>
-                              <input
-                                type="text"
-                                style={{ width: '100%', fontSize: '11px', padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-panel)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
-                                value={col.width || 'auto'}
-                                onChange={(e) => handleUpdateColumn(idx, { width: e.target.value })}
-                                placeholder="auto / 90px"
-                              />
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      {/* Hapus */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveColumn(idx)}
+                        disabled={isLocked}
+                        title={isLocked ? 'Kolom wajib' : 'Hapus kolom'}
+                        style={{ background: isLocked ? 'transparent' : '#fef2f2', border: isLocked ? 'none' : '1px solid #fecaca', borderRadius: '6px', cursor: isLocked ? 'default' : 'pointer', padding: '4px', color: '#dc2626', opacity: isLocked ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '30px', width: '30px' }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6l-1 14H6L5 6"></path>
+                          <path d="M10 11v6M14 11v6"></path>
+                        </svg>
+                      </button>
                     </div>
                   );
                 })
               )}
             </div>
           </div>
+
 
 
           {/* Tombol Simpan Terakhir */}
