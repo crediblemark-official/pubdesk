@@ -1,7 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
+import { InvoiceProfile } from '../../types';
 
-const InvoicePreview: React.FC = () => {
+interface InvoicePreviewProps {
+  previewProfile?: InvoiceProfile;
+}
+
+const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile }) => {
   const { 
     customer, 
     items, 
@@ -17,6 +22,8 @@ const InvoicePreview: React.FC = () => {
     activeProfile,
     calculateItemTotal 
   } = useInvoiceContext();
+
+  const profile = previewProfile || activeProfile;
   
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -58,38 +65,38 @@ const InvoicePreview: React.FC = () => {
 
   const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
-  const globalShip = (activeProfile?.tableType === 'kbm_cetak') ? 0 : shippingCost;
+  const globalShip = (profile?.tableType === 'kbm_cetak') ? 0 : shippingCost;
   const total = subtotal + globalShip + adminFee;
 
   const getHalDefault = () => {
-    return activeProfile?.defaultHal || 'Biaya Cetak Buku';
+    return profile?.defaultHal || 'Biaya Cetak Buku';
   };
 
   const getSalamPembuka = () => {
-    return activeProfile?.salamPembuka || 'Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:';
+    return profile?.salamPembuka || 'Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:';
   };
 
   const getInvoiceTypeActionLabel = () => {
-    return activeProfile?.actionLabel || 'cetak buku';
+    return profile?.actionLabel || 'cetak buku';
   };
 
   const getSignatureOfficeLabel = () => {
-    return activeProfile?.signatureOffice || 'KBM Kreator Yogyakarta';
+    return profile?.signatureOffice || 'KBM Kreator Yogyakarta';
   };
 
   const getSignatureLocationDateLabel = () => {
-    if (activeProfile?.signatureLocation) {
-      return `${activeProfile.signatureLocation}, ${invoiceDate}`;
+    if (profile?.signatureLocation) {
+      return `${profile.signatureLocation}, ${invoiceDate}`;
     }
     return invoiceDate;
   };
 
   const getSignatureRoleLabel = () => {
-    return activeProfile?.signatureRole || '';
+    return profile?.signatureRole || '';
   };
 
   const getSignatureNameLabel = () => {
-    return activeProfile?.signatureName || 'MOHAMMAD IMAM JUNAIDI, M.H.';
+    return profile?.signatureName || 'MOHAMMAD IMAM JUNAIDI, M.H.';
   };
 
   // Fungsi helper untuk membagi teks nama pelanggan menjadi dua warna (Hitam & Biru)
@@ -97,7 +104,7 @@ const InvoicePreview: React.FC = () => {
     const fullName = customer.name || 'NAMA PELANGGAN';
     const words = fullName.trim().split(/\s+/);
     if (words.length <= 1) {
-      return <span style={{ color: activeProfile?.accentColor || '#1e70cd' }}>{fullName}</span>;
+      return <span style={{ color: profile?.accentColor || '#1e70cd' }}>{fullName}</span>;
     }
     const mid = Math.ceil(words.length / 2);
     const firstPart = words.slice(0, mid).join(' ');
@@ -105,16 +112,16 @@ const InvoicePreview: React.FC = () => {
     return (
       <>
         <span style={{ color: '#1f2937' }}>{firstPart} </span>
-        <span style={{ color: activeProfile?.accentColor || '#1e70cd' }}>{secondPart}</span>
+        <span style={{ color: profile?.accentColor || '#1e70cd' }}>{secondPart}</span>
       </>
     );
   };
 
-  const accentColor = activeProfile?.accentColor || '#c01c1c';
-  const accentColorDark = activeProfile?.accentColorDark || '#991b1b';
-  const headerBgColor = activeProfile?.headerBgColor || '#222933';
-  const headerPrimaryColor = activeProfile?.headerPrimaryColor || (activeProfile as any)?.headerColor || activeProfile?.accentColor || '#c01c1c';
-  const headerSecondaryColor = activeProfile?.headerSecondaryColor || (activeProfile as any)?.headerColor || activeProfile?.accentColor || '#c01c1c';
+  const accentColor = profile?.accentColor || '#c01c1c';
+  const accentColorDark = profile?.accentColorDark || '#991b1b';
+  const headerBgColor = profile?.headerBgColor || '#222933';
+  const headerPrimaryColor = profile?.headerPrimaryColor || (profile as any)?.headerColor || profile?.accentColor || '#c01c1c';
+  const headerSecondaryColor = profile?.headerSecondaryColor || (profile as any)?.headerColor || profile?.accentColor || '#c01c1c';
 
 
 
@@ -201,9 +208,9 @@ const InvoicePreview: React.FC = () => {
               </g>
 
               {/* Logo placeholder / Gambar Logo Kustom */}
-              {activeProfile?.companyLogo ? (
+              {profile?.companyLogo ? (
                 <image
-                  href={activeProfile.companyLogo}
+                  href={profile.companyLogo}
                   x="35"
                   y="62"
                   width="180"
@@ -219,17 +226,17 @@ const InvoicePreview: React.FC = () => {
 
                   {/* Nama perusahaan */}
                   <text x="88" y="82" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">
-                    {activeProfile?.companyName || 'CV KBM'}
+                    {profile?.companyName || 'CV KBM'}
                   </text>
                   <text x="89" y="96" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">
-                    {activeProfile?.companyTagline || 'KARYA BAKTI MAKMUR'}
+                    {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                   </text>
                 </>
               )}
 
               {/* Judul invoice */}
               <text x="622" y="98" textAnchor="end" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="44" fontWeight="700" letterSpacing="2">
-                {activeProfile?.invoiceTitleText || 'INVOICE'}
+                {profile?.invoiceTitleText || 'INVOICE'}
               </text>
 
               {/* Nomor invoice di bawah judul */}
