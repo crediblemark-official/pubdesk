@@ -106,6 +106,27 @@ impl Database {
         Ok(result)
     }
 
+    pub fn delete_book(&self, id: i64) -> Result<(), DbError> {
+        self.conn.execute("DELETE FROM books WHERE id = ?1", params![id])?;
+        Ok(())
+    }
+
+    pub fn update_book(&self, book: &Book) -> Result<(), DbError> {
+        self.conn.execute(
+            "UPDATE books SET title = ?1, isbn = ?2, regular_price = ?3, po_price = ?4, weight_grams = ?5, author_id = ?6 WHERE id = ?7",
+            params![
+                book.title,
+                book.isbn,
+                book.regular_price,
+                book.po_price,
+                book.weight_grams,
+                book.author_id,
+                book.id
+            ]
+        )?;
+        Ok(())
+    }
+
     // Invoices
     pub fn add_invoice(&self, invoice: &Invoice) -> Result<i64, DbError> {
         self.conn.execute(

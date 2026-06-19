@@ -81,6 +81,14 @@ const PanelKanan: React.FC = () => {
           </div>
         );
       }
+      case 'books':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+            <span style={{ fontSize: '48px', marginBottom: '16px' }}>📚</span>
+            <p style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: '600', marginBottom: '6px', textAlign: 'center' }}>Master Manajemen Buku</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'center', maxWidth: '280px', lineHeight: '1.4' }}>Daftar buku ini digunakan sebagai referensi data master saat membuat invoice baru secara dinamis.</p>
+          </div>
+        );
       case 'ledger':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>

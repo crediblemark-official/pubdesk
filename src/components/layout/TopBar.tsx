@@ -53,6 +53,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
       case 'invoice': return 'Invoice';
       case 'extractor': return 'Extractor';
       case 'files': return 'Files';
+      case 'books': return 'Master Buku';
       case 'ledger': return 'Buku Besar';
       case 'settings': return 'Pengaturan';
       default: return 'Files';

@@ -7,6 +7,7 @@ import TopBar from './TopBar';
 import Settings from '../settings/Settings';
 import Toast from '../shared/Toast';
 import FileManager from '../files/FileManager';
+import BookManager from '../books/BookManager';
 
 
 const MainLayout = () => {
@@ -65,6 +66,8 @@ const MainLayout = () => {
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Pre-Order Extractor</h2><p>Fitur akan segera tersedia</p></div>;
       case 'files':
         return <FileManager />;
+      case 'books':
+        return <BookManager />;
       case 'ledger':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':

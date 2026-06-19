@@ -69,7 +69,7 @@ export interface Invoice {
 }
 
 export interface AppState {
-  activeModule: 'invoice' | 'extractor' | 'files' | 'ledger' | 'settings';
+  activeModule: 'invoice' | 'extractor' | 'files' | 'ledger' | 'settings' | 'books';
 }
 
 export interface InvoiceProfile {

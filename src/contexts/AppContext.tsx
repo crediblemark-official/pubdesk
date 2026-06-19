@@ -20,6 +20,8 @@ interface AppContextType {
   loadInvoices: () => Promise<void>;
   loadFiles: () => Promise<void>;
   addBook: (book: Book) => Promise<number>;
+  deleteBook: (id: number) => Promise<void>;
+  updateBook: (book: Book) => Promise<void>;
   addContact: (contact: Contact) => Promise<number>;
   addInvoice: (invoice: Invoice) => Promise<number>;
   addFile: (file: File) => Promise<number>;
@@ -118,6 +120,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return id;
   };
 
+  const deleteBook = async (id: number) => {
+    await invoke('delete_book', { id });
+    await loadBooks();
+  };
+
+  const updateBook = async (book: Book) => {
+    await invoke('update_book', { book });
+    await loadBooks();
+  };
+
   const addContact = async (contact: Contact) => {
     const id = await invoke<number>('add_contact', { contact });
     await loadContacts();
@@ -163,6 +175,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       loadInvoices,
       loadFiles,
       addBook,
+      deleteBook,
+      updateBook,
       addContact,
       addInvoice,
       addFile,
