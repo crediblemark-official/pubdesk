@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { invoke } from '@tauri-apps/api/core';
 
-export const FileManager: React.FC = () => {
+interface FileManagerProps {
+  searchQuery: string;
+}
+
+export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const { files, deleteFile, selectedFileId, setSelectedFileId, showToast, fileCategory } = useAppContext();
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Handler Buka Berkas Fisik via Rust Backend
   const handleOpenFile = async (e: React.MouseEvent, path: string) => {
@@ -76,45 +79,6 @@ export const FileManager: React.FC = () => {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
-      {/* Top Header Filter & Search */}
-      <div
-        style={{
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: 'var(--bg-dark)'
-        }}
-      >
-        <div style={{ position: 'relative', width: '300px' }}>
-          <input
-            type="text"
-            placeholder="Cari berkas..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '6px 12px 6px 28px',
-              fontSize: '13px',
-              border: '1px solid var(--border)',
-              borderRadius: '6px',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              outline: 'none',
-              height: '30px'
-            }}
-          />
-          <span style={{ position: 'absolute', left: '8px', top: '7px', color: 'var(--text-secondary)', fontSize: '14px', pointerEvents: 'none' }}>
-            🔍
-          </span>
-        </div>
-
-        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500' }}>
-          Menampilkan {filteredFiles.length} berkas
-        </div>
-      </div>
-
       {/* Daftar Berkas (Tabel Compact) */}
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
         {filteredFiles.length === 0 ? (

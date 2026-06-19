@@ -5,9 +5,11 @@ interface TopBarProps {
   onToggleSidebar?: () => void;
   sidebarCollapsed?: boolean;
   activeModule?: string;
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, activeModule }) => {
+const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, activeModule, searchQuery = '', onSearchChange }) => {
   const { rightPanelVisible, setRightPanelVisible } = useAppContext();
   const [appWindow, setAppWindow] = useState<any>(null);
 
@@ -109,16 +111,51 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
           </button>
         </div>
 
-        {/* Path bar */}
-        <div className="top-bar-gnome-pathbar">
-          <span className="top-bar-path-text">/home/rasyiqi</span>
-          <button className="top-bar-path-clear" aria-label="Clear path">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
+        {/* Path bar atau field cari berkas */}
+        {activeModule === 'files' ? (
+          <div className="top-bar-gnome-pathbar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <span style={{ position: 'absolute', left: '10px', color: 'var(--text-secondary)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Cari berkas..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              style={{
+                width: '100%',
+                height: '100%',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: 'var(--text-primary)',
+                fontSize: '13px',
+                paddingLeft: '30px',
+                paddingRight: '8px'
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange?.('')}
+                className="top-bar-path-clear"
+                aria-label="Hapus pencarian"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="top-bar-gnome-pathbar">
+            <span className="top-bar-path-text">/home/rasyiqi</span>
+            <button className="top-bar-path-clear" aria-label="Clear path">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Tombol silang kecil di luar pathbar */}
         <button className="top-bar-btn-close-path" aria-label="Close path editing">

@@ -16,6 +16,7 @@ const MainLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [rightPanelWidth, setRightPanelWidth] = useState(450);
   const [isDragging, setIsDragging] = useState(false);
+  const [fileSearchQuery, setFileSearchQuery] = useState('');
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
 
@@ -66,7 +67,7 @@ const MainLayout = () => {
       case 'extractor':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Pre-Order Extractor</h2><p>Fitur akan segera tersedia</p></div>;
       case 'files':
-        return <FileManager />;
+        return <FileManager searchQuery={fileSearchQuery} />;
       case 'books':
         return <BookManager />;
       case 'services':
@@ -85,7 +86,9 @@ const MainLayout = () => {
       <TopBar 
         onToggleSidebar={toggleSidebar} 
         sidebarCollapsed={sidebarCollapsed} 
-        activeModule={appState.activeModule} 
+        activeModule={appState.activeModule}
+        searchQuery={fileSearchQuery}
+        onSearchChange={setFileSearchQuery}
       />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 48px)' }}>
         {/* Sidebar with collapse */}
