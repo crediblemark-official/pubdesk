@@ -179,10 +179,10 @@ const InvoicePreview: React.FC = () => {
               <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
 
               {/* Pemisah putih agar warna hitam tidak menyelip - Diperpanjang membungkus */}
-              <polygon points="212,40 228,40 288.5,146 272.5,146" fill="#ffffff" />
+              <polygon points="189.2,0 205.2,0 288.5,146 272.5,146" fill="#ffffff" />
 
               {/* Aksen merah kedua (Warna dinamis) - Diperpanjang membungkus */}
-              <polygon points="228,40 262.8,40 324.7,146 288.5,146" fill={headerSecondaryColor} />
+              <polygon points="205.2,0 239.5,0 324.7,146 288.5,146" fill={headerSecondaryColor} />
 
               {/* Logo placeholder / Gambar Logo Kustom */}
               {activeProfile?.companyLogo ? (
@@ -227,7 +227,7 @@ const InvoicePreview: React.FC = () => {
           <div style={{ padding: '20px 35px 12px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0, color: '#1f2937' }}>
             <div>
               <div style={{ fontSize: '10px', fontWeight: '700', color: '#6b7280', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kepada Yth.</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', marginBottom: '8px', lineHeight: '1.1', wordBreak: 'break-word' }}>
+              <div style={{ fontSize: '16px', fontWeight: '800', marginBottom: '8px', lineHeight: '1.1', wordBreak: 'break-word' }}>
                 {renderCustomerName()}
               </div>
               <div style={{ fontSize: '10px', color: '#1f2937', marginBottom: '4px', fontWeight: '600' }}>
