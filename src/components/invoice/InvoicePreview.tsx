@@ -109,70 +109,46 @@ const InvoicePreview: React.FC = () => {
             fontFamily: '"Montserrat", "Segoe UI", sans-serif'
           }}>
           
-          {/* Header Geometris - Semua elemen full-size absolute di koordinat space yang sama (595×95px) */}
-          <div style={{ position: 'relative', height: '95px', width: '100%', overflow: 'hidden', background: '#ffffff', flexShrink: 0 }}>
-            {/* Garis vertikal biru di tepi paling kiri */}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', background: '#1e70cd', zIndex: 3 }} />
-            
-            {/* Garis horizontal biru di tepi kiri atas (berakhir di titik awal stripe) */}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '245px', height: '6px', background: '#1e70cd', zIndex: 3 }} />
+          {/* Header SVG */}
+          <div className="invoice-header" style={{ flexShrink: 0 }}>
+            <svg
+              viewBox="0 0 657 139"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-label="Invoice header"
+              shapeRendering="geometricPrecision"
+              style={{ display: 'block', width: '100%' }}
+            >
+              {/* Background putih */}
+              <rect x="0" y="0" width="657" height="139" fill="#ffffff" />
 
-            {/* Kartu Biru Utama - Floating (15px gap atas/bawah), diagonal menyempit ke kiri bawah */}
-            <div style={{ 
-              background: '#1e70cd', 
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              clipPath: 'polygon(21px 15px, 230px 15px, 192px 80px, 21px 80px)',
-              display: 'flex',
-              alignItems: 'center',
-              paddingLeft: '30px',
-              zIndex: 2
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginTop: '15px' }}>
-                {/* Hexagonal Logo Icon */}
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ marginRight: '10px' }}>
-                  <path d="M12 2L21 7v10l-9 5-9-5V7l9-5z" fill="white" />
-                  <path d="M9 8h6l-3 4 3 4H9l3-4-3-4z" fill="#1e70cd" />
-                </svg>
-                <div style={{ color: '#ffffff', fontFamily: '"Montserrat", "Segoe UI", sans-serif' }}>
-                  <div style={{ fontSize: '16px', fontWeight: '800', letterSpacing: '1px', lineHeight: '1.1' }}>COMPANY</div>
-                  <div style={{ fontSize: '8px', fontWeight: '500', letterSpacing: '2px', opacity: 0.9, marginTop: '2px' }}>TAGLINE HERE</div>
-                </div>
-              </div>
-            </div>
+              {/* Garis abu-abu di bagian atas */}
+              <rect x="0" y="0" width="657" height="2" fill="#dddddd" />
 
-            {/* Stripe Tengah Biru - Full height, diagonal menyempit ke kiri bawah */}
-            <div style={{ 
-              background: '#1e70cd', 
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              clipPath: 'polygon(245px 0px, 268px 0px, 213px 95px, 190px 95px)',
-              zIndex: 2
-            }} />
+              {/* Panel hitam di belakang seluruh shape */}
+              <rect x="267" y="54" width="390" height="78" fill="#222933" />
 
-            {/* Kartu Abu-abu Gelap INVOICE - Floating, diagonal menyempit ke kiri bawah */}
-            <div style={{ 
-              background: '#23252a', 
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              clipPath: 'polygon(278px 15px, 580px 15px, 580px 80px, 240px 80px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              paddingRight: '30px',
-              zIndex: 1
-            }}>
-              <div style={{ color: '#ffffff', fontFamily: '"Montserrat", "Segoe UI", sans-serif', fontSize: '36px', fontWeight: '900', letterSpacing: '5px', lineHeight: '1', marginTop: '15px' }}>INVOICE</div>
-            </div>
+              {/* Bidang biru utama */}
+              <polygon points="0,27 204,27 268,138 0,138" fill="#2b71c6" />
+
+              {/* Pemisah putih agar warna hitam tidak menyelip */}
+              <polygon points="204,27 220,27 284,138 268,138" fill="#ffffff" />
+
+              {/* Aksen biru kedua */}
+              <polygon points="232,49 268,49 320,138 284,138" fill="#2b71c6" />
+
+              {/* Logo placeholder */}
+              <g transform="translate(40 61)">
+                <path d="M20 0 L38 10 L38 33 L20 44 L2 33 L2 10 Z" fill="#ffffff" />
+                <path d="M20 11 L29 16 L29 28 L20 33 L11 28 L11 16 Z" fill="#2b71c6" />
+              </g>
+
+              {/* Nama perusahaan */}
+              <text x="88" y="82" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">COMPANY</text>
+              <text x="89" y="96" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">TAGLINE HERE</text>
+
+              {/* Judul invoice */}
+              <text x="389" y="116" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="54" fontWeight="700" letterSpacing="2">INVOICE</text>
+            </svg>
           </div>
 
           {/* Info Section */}
