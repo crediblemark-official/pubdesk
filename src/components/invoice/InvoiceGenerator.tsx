@@ -170,7 +170,7 @@ const InvoiceGenerator: React.FC = () => {
     }
 
     if (!finalTitle) {
-      alert('Nama layanan atau karya harus diisi!');
+      showToast('Nama layanan atau karya harus diisi!', 'error');
       return;
     }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
+import { useAppContext } from '../../contexts/AppContext';
 import { InvoiceProfile, InvoiceTableColumn } from '../../types';
 import { invoiceTemplates } from '../../data/invoiceTemplates';
 import InvoicePreview from '../invoice/InvoicePreview';
@@ -14,6 +15,7 @@ const InvoiceSettings: React.FC = () => {
     resetProfilesToDefault,
     setProfiles
   } = useInvoiceContext();
+  const { showToast } = useAppContext();
 
   const [selectedProfileId, setSelectedProfileId] = useState<string>(activeProfileId);
   const [isEditingNew, setIsEditingNew] = useState<boolean>(false);
@@ -170,7 +172,7 @@ const InvoiceSettings: React.FC = () => {
 
   const handleSave = () => {
     if (!profileName.trim()) {
-      alert('Nama Profil tidak boleh kosong!');
+      showToast('Nama Profil tidak boleh kosong!', 'error');
       return;
     }
 
@@ -183,7 +185,7 @@ const InvoiceSettings: React.FC = () => {
     setIsEditingNew(false);
     setSelectedProfileId(savedProfile.id);
     setActiveProfileId(savedProfile.id);
-    alert('Profil invoice berhasil disimpan!');
+    showToast('Profil invoice berhasil disimpan!', 'success');
   };
 
   // Menyimpan nilai tableType generik tanpa mereset kolom secara otomatis
@@ -282,12 +284,12 @@ const InvoiceSettings: React.FC = () => {
 
   const handleDelete = () => {
     if (profiles.length <= 1) {
-      alert('Tidak dapat menghapus satu-satunya profil yang tersisa!');
+      showToast('Tidak dapat menghapus satu-satunya profil yang tersisa!', 'error');
       return;
     }
     if (confirm(`Apakah Anda yakin ingin menghapus profil "${profileName}"?`)) {
       deleteProfile(selectedProfileId);
-      alert('Profil berhasil dihapus.');
+      showToast('Profil berhasil dihapus.', 'success');
       const remaining = profiles.filter((p) => p.id !== selectedProfileId);
       if (remaining.length > 0) {
         setSelectedProfileId(remaining[0].id);
@@ -330,16 +332,16 @@ const InvoiceSettings: React.FC = () => {
               setProfiles(parsed);
               setSelectedProfileId(parsed[0].id);
               setActiveProfileId(parsed[0].id);
-              alert('Backup profil berhasil di-import!');
+              showToast('Backup profil berhasil di-import!', 'success');
             } else {
-              alert('Format berkas backup JSON tidak valid!');
+              showToast('Format berkas backup JSON tidak valid!', 'error');
             }
           } else {
-            alert('Berkas backup JSON kosong atau tidak valid!');
+            showToast('Berkas backup JSON kosong atau tidak valid!', 'error');
           }
         } catch (error) {
           console.error(error);
-          alert('Gagal mengurai berkas JSON backup.');
+          showToast('Gagal mengurai berkas JSON backup.', 'error');
         }
       };
     }
@@ -352,7 +354,7 @@ const InvoiceSettings: React.FC = () => {
       )
     ) {
       resetProfilesToDefault();
-      alert('Pengaturan profil berhasil di-reset ke bawaan.');
+      showToast('Pengaturan profil berhasil di-reset ke bawaan.', 'info');
     }
   };
 
@@ -621,7 +623,7 @@ const InvoiceSettings: React.FC = () => {
                       const file = e.target.files?.[0];
                       if (file) {
                         if (file.size > 1024 * 1024) {
-                          alert('Ukuran berkas logo terlalu besar (maksimal 1MB)!');
+                          showToast('Ukuran berkas logo terlalu besar (maksimal 1MB)!', 'error');
                           return;
                         }
                         const reader = new FileReader();
@@ -846,7 +848,7 @@ const InvoiceSettings: React.FC = () => {
                       const file = e.target.files?.[0];
                       if (file) {
                         if (file.size > 1024 * 1024) {
-                          alert('Ukuran berkas tanda tangan terlalu besar (maksimal 1MB)!');
+                          showToast('Ukuran berkas tanda tangan terlalu besar (maksimal 1MB)!', 'error');
                           return;
                         }
                         const reader = new FileReader();
