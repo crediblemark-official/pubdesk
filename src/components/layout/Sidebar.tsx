@@ -138,21 +138,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       
       {/* Bottom Section */}
       <div style={{ padding: '8px', borderTop: '1px solid var(--border)' }}>
-        {!collapsed && (
-          <div style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '18px' }}>🧑‍💻</span>
-            <span>info.rasyiq@gmail.com</span>
-          </div>
-        )}
-        {!collapsed && (
-          <div style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '18px' }}>📂</span>
-              <span>PROJECT</span>
-            </div>
-            <span style={{ fontSize: '14px' }}>▴</span>
-          </div>
-        )}
         {bottomItems.map((item) => (
           <button
             key={item.id}
