@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
+import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { Book, InvoiceItem } from '../../types';
 
 const InvoiceGenerator: React.FC = () => {
   const { books, addBook, addInvoice } = useAppContext();
+  const {
+    customer, setCustomer,
+    items, addItem, removeItem,
+    shippingCost, setShippingCost,
+    adminFee, setAdminFee,
+    invoiceType, setInvoiceType,
+    invoiceNo, setInvoiceNo,
+    invoiceHal, setInvoiceHal,
+    invoiceLampiran, setInvoiceLampiran,
+    invoiceDate, setInvoiceDate,
+    paymentStatus, setPaymentStatus,
+    spesifikasiFasilitas, setSpesifikasiFasilitas,
+    calculateItemTotal,
+    resetInvoice
+  } = useInvoiceContext();
+
   const [waInput, setWaInput] = useState('');
-  const [customer, setCustomer] = useState<{ name?: string; wa_number?: string; address?: string }>({});
-  const [items, setItems] = useState<InvoiceItem[]>([]);
   const [selectedBookId, setSelectedBookId] = useState('');
+
+  // States for the add item form
+  const [customTitle, setCustomTitle] = useState('');
+  const [itemPrice, setItemPrice] = useState(0);
   const [itemQty, setItemQty] = useState(1);
-  const [itemDiscount, setItemDiscount] = useState(0);
-  const [shippingCost, setShippingCost] = useState(0);
-  const [adminFee, setAdminFee] = useState(0);
+  const [pagesInput, setPagesInput] = useState('± 160 hal A5');
+  const [paperTypeInput, setPaperTypeInput] = useState('Cetak BW');
+  const [copyrightHolderInput, setCopyrightHolderInput] = useState('');
+  const [itemShippingCostInput, setItemShippingCostInput] = useState(75000);
+  const [packageNameInput, setPackageNameInput] = useState('Paket Gold');
+
   const [showBookModal, setShowBookModal] = useState(false);
   const [newBook, setNewBook] = useState<Partial<Book>>({
     title: '',
@@ -19,6 +41,39 @@ const InvoiceGenerator: React.FC = () => {
     po_price: 0,
     weight_grams: 0
   });
+
+  // Dynamically set default values when invoiceType changes
+  useEffect(() => {
+    if (invoiceType === 'kbm_cetak') {
+      setPagesInput('± 160 hal A5');
+      setPaperTypeInput('Cetak BW');
+      setInvoiceHal('Biaya Cetak Buku');
+      setInvoiceLampiran('-');
+      setItemQty(20);
+      setItemPrice(20100);
+      setItemShippingCostInput(75000);
+    } else if (invoiceType === 'kbm_creator') {
+      setInvoiceHal('HAKI: Manajemen Beban Kerja: Strategi Komprehensif di Era Digital');
+      setInvoiceLampiran('-');
+      setCopyrightHolderInput(customer.name || '');
+      setItemPrice(350000);
+    } else if (invoiceType === 'spt_mitra') {
+      setPagesInput('± 144 hal A4');
+      setPaperTypeInput('Cetak BW');
+      setInvoiceHal('ALAT PERAGA PEMBELAJARAN IPA');
+      setInvoiceLampiran('-');
+      setItemQty(5);
+      setPackageNameInput('Paket Gold');
+      setItemPrice(905250);
+    }
+  }, [invoiceType]);
+
+  // Sync copyright holder input with customer name if empty
+  useEffect(() => {
+    if (invoiceType === 'kbm_creator' && !copyrightHolderInput && customer.name) {
+      setCopyrightHolderInput(customer.name);
+    }
+  }, [customer.name, invoiceType]);
 
   const handleParseWA = () => {
     const lines = waInput.split('\n');
@@ -36,57 +91,61 @@ const InvoiceGenerator: React.FC = () => {
       }
     });
 
-    if (name) setCustomer((prev) => ({ ...prev, name }));
-    if (wa_number) setCustomer((prev) => ({ ...prev, wa_number }));
-    if (address) setCustomer((prev) => ({ ...prev, address }));
+    setCustomer((prev) => ({
+      ...prev,
+      name: name || prev.name || '',
+      wa_number: wa_number || prev.wa_number || '',
+      address: address || prev.address || ''
+    }));
   };
 
   const handleAddItem = () => {
-    if (!selectedBookId) return;
-    const book = books.find((b) => b.id === parseInt(selectedBookId));
-    if (!book) return;
+    let finalTitle = customTitle.trim();
+    let finalPrice = itemPrice;
 
-    const basePrice = book.po_price || book.regular_price || 0;
-    const priceAfterDiscount = Math.max(0, basePrice - itemDiscount);
+    if (selectedBookId) {
+      const book = books.find((b) => b.id === parseInt(selectedBookId));
+      if (book) {
+        if (!finalTitle) finalTitle = book.title;
+        if (finalPrice === 0) {
+          finalPrice = book.po_price || book.regular_price || 0;
+        }
+      }
+    }
+
+    if (!finalTitle) {
+      alert('Judul buku atau karya harus diisi!');
+      return;
+    }
 
     const newItem: InvoiceItem = {
-      book_id: book.id || 0,
-      book_title: book.title,
+      book_id: selectedBookId ? parseInt(selectedBookId) : 0,
+      book_title: finalTitle,
       quantity: itemQty,
-      price: priceAfterDiscount,
-      discount: itemDiscount
+      price: finalPrice,
+      discount: 0,
+      pages: invoiceType !== 'kbm_creator' ? pagesInput : undefined,
+      paper_type: invoiceType !== 'kbm_creator' ? paperTypeInput : undefined,
+      copyright_holder: invoiceType === 'kbm_creator' ? copyrightHolderInput || customer.name || '' : undefined,
+      item_shipping_cost: invoiceType === 'kbm_cetak' ? itemShippingCostInput : undefined,
+      package_name: invoiceType === 'spt_mitra' ? packageNameInput : undefined
     };
 
-    setItems((prev) => [...prev, newItem]);
+    addItem(newItem);
+
+    // Reset form item (keep default based on type)
+    setCustomTitle('');
     setSelectedBookId('');
-    setItemQty(1);
-    setItemDiscount(0);
-  };
-
-  const updateItem = (index: number, updated: Partial<InvoiceItem>) => {
-    setItems((prev) =>
-      prev.map((item, i) => {
-        if (i === index) {
-          return {
-            ...item,
-            ...updated
-          };
-        }
-        return item;
-      })
-    );
-  };
-
-  const removeItem = (index: number) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const resetInvoice = () => {
-    setCustomer({});
-    setItems([]);
-    setShippingCost(0);
-    setAdminFee(0);
-    setWaInput('');
+    if (invoiceType === 'kbm_cetak') {
+      setItemQty(20);
+      setItemPrice(20100);
+      setItemShippingCostInput(75000);
+    } else if (invoiceType === 'kbm_creator') {
+      setItemPrice(350000);
+    } else if (invoiceType === 'spt_mitra') {
+      setItemQty(5);
+      setItemPrice(905250);
+    }
   };
 
   const handleSaveInvoice = async () => {
@@ -99,8 +158,9 @@ const InvoiceGenerator: React.FC = () => {
       return;
     }
 
-    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const total = subtotal + shippingCost + adminFee;
+    const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+    const globalShip = invoiceType === 'kbm_cetak' ? 0 : shippingCost;
+    const total = itemsTotal + globalShip + adminFee;
 
     const invoiceData = {
       items_json: JSON.stringify(items),
@@ -114,6 +174,7 @@ const InvoiceGenerator: React.FC = () => {
       await addInvoice(invoiceData);
       alert('Invoice berhasil disimpan dan dicatat!');
       resetInvoice();
+      setWaInput('');
     } catch (error) {
       console.error(error);
       alert('Gagal menyimpan invoice.');
@@ -122,7 +183,7 @@ const InvoiceGenerator: React.FC = () => {
 
   const handleAddBook = async () => {
     if (!newBook.title || !newBook.regular_price || !newBook.po_price) return;
-    
+
     await addBook(newBook as Book);
     setShowBookModal(false);
     setNewBook({
@@ -133,15 +194,111 @@ const InvoiceGenerator: React.FC = () => {
     });
   };
 
+  const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('id-ID').format(amount);
+  };
+
   return (
     <div className="invoice-generator" style={{ padding: '20px' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px', color: 'var(--text-primary)' }}>Invoice Generator</h1>
-      
-      <div style={{ marginBottom: '24px' }}>
+      <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px', color: 'var(--text-primary)' }}>Pembuat Invoice</h1>
+
+      {/* Jenis & Metadata Invoice */}
+      <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>📄 Jenis & Metadata Invoice</h2>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Jenis Invoice</label>
+          <select
+            style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
+            value={invoiceType}
+            onChange={(e) => setInvoiceType(e.target.value as any)}
+          >
+            <option value="kbm_cetak">KBM Cetak (Biaya Cetak Buku)</option>
+            <option value="kbm_creator">KBM Creator (Pengajuan HAKI)</option>
+            <option value="spt_mitra">SPT (Mitra - Undiksha Press)</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>No. Invoice</label>
+            <input
+              type="text"
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              value={invoiceNo}
+              onChange={(e) => setInvoiceNo(e.target.value)}
+              placeholder="Contoh: RA.01/11/06/2026"
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Tanggal Invoice</label>
+            <input
+              type="text"
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              value={invoiceDate}
+              onChange={(e) => setInvoiceDate(e.target.value)}
+              placeholder="Contoh: 11 Juni 2026"
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Hal (Perihal)</label>
+            <input
+              type="text"
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              value={invoiceHal}
+              onChange={(e) => setInvoiceHal(e.target.value)}
+              placeholder="Perihal Invoice"
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Lampiran</label>
+            <input
+              type="text"
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              value={invoiceLampiran}
+              onChange={(e) => setInvoiceLampiran(e.target.value)}
+              placeholder="-"
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Status Akhir Pembayaran</label>
+            <select
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value)}
+            >
+              <option value="LUNAS">LUNAS</option>
+              <option value="BELUM LUNAS">BELUM LUNAS</option>
+              <option value="PENDING">PENDING</option>
+            </select>
+          </div>
+          {invoiceType === 'spt_mitra' && (
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Spesifikasi & Fasilitas</label>
+              <input
+                type="text"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={spesifikasiFasilitas}
+                onChange={(e) => setSpesifikasiFasilitas(e.target.value)}
+                placeholder="Sesuai poster paket yang diambil"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Data Pelanggan */}
+      <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
         <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>💬 Data Pelanggan</h2>
         <textarea
           style={{ width: '100%', minHeight: '80px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 14px', fontSize: '14px', color: 'var(--text-primary)', resize: 'vertical', marginBottom: '8px' }}
-          placeholder="Tempel chat WhatsApp di sini..."
+          placeholder="Tempel teks chat WhatsApp di sini..."
           value={waInput}
           onChange={(e) => setWaInput(e.target.value)}
           rows={3}
@@ -182,61 +339,220 @@ const InvoiceGenerator: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
+      {/* Rincian Item */}
+      <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>📦 Item Pesanan</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>📦 Rincian Item</h2>
           <button className="btn-success" onClick={() => setShowBookModal(true)}>
-            ➕ Tambah Buku
+            ➕ Data Master Buku
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <select
-            style={{ flex: 1, minWidth: '200px', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
-            value={selectedBookId}
-            onChange={(e) => setSelectedBookId(e.target.value)}
-          >
-            <option value="">Pilih Buku</option>
-            {books.map((book) => (
-              <option key={book.id} value={book.id}>
-                {book.title} (PO: {new Intl.NumberFormat('id-ID').format(book.po_price)})
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            style={{ width: '100px', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
-            placeholder="Qty"
-            value={itemQty}
-            onChange={(e) => setItemQty(parseInt(e.target.value) || 1)}
-            min="1"
-          />
-          <input
-            type="number"
-            style={{ width: '100px', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
-            placeholder="Diskon"
-            value={itemDiscount}
-            onChange={(e) => setItemDiscount(parseInt(e.target.value) || 0)}
-            min="0"
-          />
-          <button className="btn-primary" onClick={handleAddItem}>
-            + Tambah
-          </button>
+        {/* Input Form Item */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 2, minWidth: '200px' }}>
+              <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Pilih dari Buku Master</label>
+              <select
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-panel)', color: 'var(--text-primary)', fontSize: '14px' }}
+                value={selectedBookId}
+                onChange={(e) => {
+                  setSelectedBookId(e.target.value);
+                  if (e.target.value) {
+                    const book = books.find(b => b.id === parseInt(e.target.value));
+                    if (book) {
+                      setCustomTitle(book.title);
+                      if (invoiceType === 'kbm_cetak') {
+                        setItemPrice(book.po_price || book.regular_price || 20100);
+                      } else {
+                        setItemPrice(book.po_price || book.regular_price || 0);
+                      }
+                    }
+                  }
+                }}
+              >
+                <option value="">-- Kustom / Ketik Sendiri --</option>
+                {books.map((book) => (
+                  <option key={book.id} value={book.id}>
+                    {book.title} (PO: {new Intl.NumberFormat('id-ID').format(book.po_price)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ flex: 3, minWidth: '250px' }}>
+              <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Judul Buku / Karya</label>
+              <input
+                type="text"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                value={customTitle}
+                onChange={(e) => setCustomTitle(e.target.value)}
+                placeholder="Ketik judul buku atau karya di sini..."
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {invoiceType === 'kbm_cetak' && (
+              <>
+                <div style={{ flex: 1, minWidth: '100px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Halaman</label>
+                  <input
+                    type="text"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={pagesInput}
+                    onChange={(e) => setPagesInput(e.target.value)}
+                    placeholder="Contoh: ± 160 hal A5"
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: '100px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Jenis Naskah</label>
+                  <input
+                    type="text"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={paperTypeInput}
+                    onChange={(e) => setPaperTypeInput(e.target.value)}
+                    placeholder="Contoh: Cetak BW"
+                  />
+                </div>
+                <div style={{ width: '90px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Jml. Cetak</label>
+                  <input
+                    type="number"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={itemQty}
+                    onChange={(e) => setItemQty(parseInt(e.target.value) || 1)}
+                    min="1"
+                  />
+                </div>
+                <div style={{ flex: 1.2, minWidth: '120px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Cetak/pcs (Rp)</label>
+                  <input
+                    type="number"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={itemPrice}
+                    onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
+                    placeholder="Harga pcs"
+                  />
+                </div>
+                <div style={{ flex: 1.2, minWidth: '120px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Ongkir Item (Rp)</label>
+                  <input
+                    type="number"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={itemShippingCostInput}
+                    onChange={(e) => setItemShippingCostInput(parseFloat(e.target.value) || 0)}
+                    placeholder="Ongkir"
+                  />
+                </div>
+              </>
+            )}
+
+            {invoiceType === 'kbm_creator' && (
+              <>
+                <div style={{ flex: 2, minWidth: '180px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Pemegang Hak Cipta</label>
+                  <input
+                    type="text"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={copyrightHolderInput}
+                    onChange={(e) => setCopyrightHolderInput(e.target.value)}
+                    placeholder="Nama Pemegang Hak Cipta"
+                  />
+                </div>
+                <div style={{ flex: 1.5, minWidth: '130px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Total Biaya (Rp)</label>
+                  <input
+                    type="number"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={itemPrice}
+                    onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
+                    placeholder="Total Biaya"
+                  />
+                </div>
+              </>
+            )}
+
+            {invoiceType === 'spt_mitra' && (
+              <>
+                <div style={{ flex: 1, minWidth: '90px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Halaman</label>
+                  <input
+                    type="text"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={pagesInput}
+                    onChange={(e) => setPagesInput(e.target.value)}
+                    placeholder="Contoh: ± 144 hal A4"
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: '95px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Jenis Naskah</label>
+                  <input
+                    type="text"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={paperTypeInput}
+                    onChange={(e) => setPaperTypeInput(e.target.value)}
+                    placeholder="Contoh: Cetak BW"
+                  />
+                </div>
+                <div style={{ width: '80px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Jml (Pcs)</label>
+                  <input
+                    type="number"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={itemQty}
+                    onChange={(e) => setItemQty(parseInt(e.target.value) || 1)}
+                    min="1"
+                  />
+                </div>
+                <div style={{ flex: 1.2, minWidth: '110px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama Paket</label>
+                  <input
+                    type="text"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={packageNameInput}
+                    onChange={(e) => setPackageNameInput(e.target.value)}
+                    placeholder="Contoh: Paket Gold"
+                  />
+                </div>
+                <div style={{ flex: 1.5, minWidth: '120px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Harga Paket (Rp)</label>
+                  <input
+                    type="number"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                    value={itemPrice}
+                    onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
+                    placeholder="Harga Paket"
+                  />
+                </div>
+              </>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button className="btn-primary" onClick={handleAddItem} style={{ height: '42px' }}>
+                + Tambah
+              </button>
+            </div>
+          </div>
         </div>
 
+        {/* List Item */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {items.map((item, index) => (
-            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-              <span style={{ flex: 1 }}>{item.book_title}</span>
-              <input
-                type="number"
-                style={{ width: '80px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-panel)', color: 'var(--text-primary)', fontSize: '14px' }}
-                value={item.quantity}
-                onChange={(e) => updateItem(index, { quantity: parseInt(e.target.value) || 1 })}
-              />
-              <span>x</span>
-              <span style={{ minWidth: '100px', textAlign: 'right' }}>{new Intl.NumberFormat('id-ID').format(item.price)}</span>
-              <button className="btn-danger" onClick={() => removeItem(index)} style={{ padding: '6px 12px' }}>
+            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
+              <span style={{ fontWeight: '600', width: '20px', color: 'var(--text-secondary)' }}>{index + 1}.</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.book_title}"</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  {invoiceType === 'kbm_cetak' && `Hal: ${item.pages} | Naskah: ${item.paper_type} | Qty: ${item.quantity} pcs | Cetak/pcs: Rp ${formatPrice(item.price)} | Ongkir: Rp ${formatPrice(item.item_shipping_cost || 0)}`}
+                  {invoiceType === 'kbm_creator' && `HAKI: ${item.copyright_holder || '-'} | Biaya: Rp ${formatPrice(item.price)}`}
+                  {invoiceType === 'spt_mitra' && `Hal: ${item.pages} | Naskah: ${item.paper_type} | Qty: ${item.quantity} pcs (${item.package_name}) | Paket: Rp ${formatPrice(item.price)}`}
+                </div>
+              </div>
+              <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
+                Rp {formatPrice(calculateItemTotal(item))}
+              </span>
+              <button className="btn-danger" onClick={() => removeItem(index)} style={{ padding: '6px 10px', borderRadius: '6px' }}>
                 🗑️
               </button>
             </div>
@@ -244,35 +560,39 @@ const InvoiceGenerator: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>💰 Biaya Tambahan</h2>
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Ongkos Kirim</label>
-          <input
-            type="number"
-            style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={shippingCost}
-            onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
-            placeholder="0"
-          />
+      {/* Biaya Tambahan (Global) */}
+      {invoiceType !== 'kbm_cetak' && (
+        <div style={{ marginBottom: '24px', background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>💰 Biaya Tambahan (Global)</h2>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Ongkos Kirim</label>
+            <input
+              type="number"
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              value={shippingCost}
+              onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
+              placeholder="0"
+            />
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Biaya Admin</label>
+            <input
+              type="number"
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              value={adminFee}
+              onChange={(e) => setAdminFee(parseFloat(e.target.value) || 0)}
+              placeholder="0"
+            />
+          </div>
         </div>
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Biaya Admin</label>
-          <input
-            type="number"
-            style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={adminFee}
-            onChange={(e) => setAdminFee(parseFloat(e.target.value) || 0)}
-            placeholder="0"
-          />
-        </div>
-      </div>
+      )}
 
+      {/* Aksi Utama */}
       <div style={{ display: 'flex', gap: '12px' }}>
         <button className="btn-primary" style={{ flex: 1 }} onClick={handleSaveInvoice}>
           💾 Simpan & Catat
         </button>
-        <button className="btn-secondary" style={{ flex: 1 }} onClick={resetInvoice}>
+        <button className="btn-secondary" style={{ flex: 1 }} onClick={() => { resetInvoice(); setWaInput(''); }}>
           🔄 Reset
         </button>
       </div>
@@ -281,7 +601,7 @@ const InvoiceGenerator: React.FC = () => {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowBookModal(false)}>
           <div style={{ background: 'var(--bg-panel)', borderRadius: '12px', padding: '24px', minWidth: '400px', border: '1px solid var(--border)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ color: 'var(--text-primary)' }}>Tambah Buku</h2>
+              <h2 style={{ color: 'var(--text-primary)' }}>Tambah Buku Master</h2>
               <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '24px', cursor: 'pointer' }} onClick={() => setShowBookModal(false)}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

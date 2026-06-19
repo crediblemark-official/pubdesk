@@ -2,7 +2,20 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
 
 const InvoicePreview: React.FC = () => {
-  const { customer, items, shippingCost, adminFee, calculateItemTotal } = useInvoiceContext();
+  const { 
+    customer, 
+    items, 
+    shippingCost, 
+    adminFee, 
+    invoiceType,
+    invoiceNo,
+    invoiceHal,
+    invoiceLampiran,
+    invoiceDate,
+    paymentStatus,
+    spesifikasiFasilitas,
+    calculateItemTotal 
+  } = useInvoiceContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -34,13 +47,6 @@ const InvoicePreview: React.FC = () => {
     return () => resizeObserver.disconnect();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -51,11 +57,73 @@ const InvoicePreview: React.FC = () => {
 
   const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
-  const total = subtotal + shippingCost + adminFee;
+  const globalShip = invoiceType === 'kbm_cetak' ? 0 : shippingCost;
+  const total = subtotal + globalShip + adminFee;
+
+  const getHalDefault = () => {
+    switch (invoiceType) {
+      case 'kbm_cetak': return 'Biaya Cetak Buku';
+      case 'kbm_creator': return 'HAKI: Manajemen Beban Kerja';
+      case 'spt_mitra': return 'ALAT PERAGA PEMBELAJARAN IPA';
+      default: return 'Biaya Cetak Buku';
+    }
+  };
+
+  const getSalamPembuka = () => {
+    switch (invoiceType) {
+      case 'kbm_cetak':
+        return 'Bersama surat ini kami memberikan gambaran rincian biaya Cetak Buku dengan ketentuan sebagai berikut:';
+      case 'kbm_creator':
+        return 'Penulis Penerbit KBM Indonesia, bersama surat ini kami memberikan gambaran rincian biaya Pengajuan HAKI dengan ketentuan sebagai berikut:';
+      case 'spt_mitra':
+        return 'Penulis Penerbit Undiksha Press, bersama surat ini kami memberikan gambaran rincian biaya Penerbitan Buku dengan ketentuan sebagai berikut:';
+      default:
+        return 'Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:';
+    }
+  };
+
+  const getInvoiceTypeActionLabel = () => {
+    switch (invoiceType) {
+      case 'kbm_cetak': return 'cetak buku';
+      case 'kbm_creator': return 'pengajuan HAKI';
+      case 'spt_mitra': return 'penerbitan buku';
+      default: return 'cetak buku';
+    }
+  };
+
+  const getSignatureOfficeLabel = () => {
+    switch (invoiceType) {
+      case 'kbm_cetak': return 'KBM Kreator Yogyakarta';
+      case 'kbm_creator': return 'Kantor Penerbit KBM Indonesia';
+      case 'spt_mitra': return 'Bali';
+      default: return 'KBM Kreator Yogyakarta';
+    }
+  };
+
+  const getSignatureLocationDateLabel = () => {
+    if (invoiceType === 'spt_mitra') {
+      return invoiceDate || '07 Mei 2026';
+    }
+    return `Yogyakarta, ${invoiceDate || '11 Juni 2026'}`;
+  };
+
+  const getSignatureRoleLabel = () => {
+    if (invoiceType === 'spt_mitra') {
+      return '';
+    }
+    return 'CEO CV Karya Bakti Makmur';
+  };
+
+  const getSignatureNameLabel = () => {
+    if (invoiceType === 'spt_mitra') {
+      return 'Manajemen Undiksha Press';
+    }
+    return 'MOHAMMAD IMAM JUNAIDI, M.H.';
+  };
 
   // Fungsi helper untuk membagi teks nama pelanggan menjadi dua warna (Hitam & Biru)
   const renderCustomerName = () => {
-    const fullName = customer.name || 'NAME HERE';
+    const fullName = customer.name || 'NAMA PELANGGAN';
     const words = fullName.trim().split(/\s+/);
     if (words.length <= 1) {
       return <span style={{ color: '#1e70cd' }}>{fullName}</span>;
@@ -143,8 +211,8 @@ const InvoicePreview: React.FC = () => {
               </g>
 
               {/* Nama perusahaan */}
-              <text x="88" y="82" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">COMPANY</text>
-              <text x="89" y="96" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">TAGLINE HERE</text>
+              <text x="88" y="82" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">CV KBM</text>
+              <text x="89" y="96" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">KARYA BAKTI MAKMUR</text>
 
               {/* Judul invoice */}
               <text x="389" y="116" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="54" fontWeight="700" letterSpacing="2">INVOICE</text>
@@ -152,42 +220,44 @@ const InvoicePreview: React.FC = () => {
           </div>
 
           {/* Info Section */}
-          <div style={{ padding: '30px 35px 20px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0 }}>
+          <div style={{ padding: '20px 35px 12px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0, color: '#1f2937' }}>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Invoice To:</div>
-              <div style={{ fontSize: '32px', fontWeight: '900', marginBottom: '8px', lineHeight: '1.1', wordBreak: 'break-word' }}>
+              <div style={{ fontSize: '10px', fontWeight: '700', color: '#6b7280', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kepada Yth.</div>
+              <div style={{ fontSize: '24px', fontWeight: '900', marginBottom: '8px', lineHeight: '1.1', wordBreak: 'break-word' }}>
                 {renderCustomerName()}
               </div>
-              <div style={{ fontSize: '11px', color: '#1f2937', marginBottom: '4px', fontWeight: '600' }}>
-                Designation : <span style={{ fontWeight: '500', color: '#4b5563' }}>Managing Director</span>
+              <div style={{ fontSize: '10px', color: '#1f2937', marginBottom: '4px', fontWeight: '600' }}>
+                Alamat : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.address || 'Di Tempat'}</span>
               </div>
-              <div style={{ fontSize: '11px', color: '#1f2937', marginBottom: '4px', fontWeight: '600' }}>
-                Phone : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.wa_number || '123-456-7890'}</span>
-              </div>
-              <div style={{ fontSize: '11px', color: '#1f2937', fontWeight: '600' }}>
-                Email : <span style={{ fontWeight: '500', color: '#4b5563' }}>infohere</span>
+              <div style={{ fontSize: '10px', color: '#1f2937', fontWeight: '600' }}>
+                No. WA : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.wa_number || '-'}</span>
               </div>
             </div>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                <span style={{ color: '#1f2937' }}>Payment </span>
-                <span style={{ color: '#d93838' }}>Method</span>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '10px' }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
+                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>No. Invoice</span>
+                <span style={{ fontWeight: '500', color: '#4b5563' }}>: {invoiceNo || 'RA.01/11/06/2026'}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px' }}>
-                  <span style={{ fontWeight: '600', color: '#1f2937' }}>Account No:</span>
-                  <span style={{ fontWeight: '500', color: '#1f2937' }}>1234-567-89</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px' }}>
-                  <span style={{ fontWeight: '600', color: '#1f2937' }}>Account Name:</span>
-                  <span style={{ fontWeight: '500', color: '#1f2937' }}>namehere</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px' }}>
-                  <span style={{ fontWeight: '600', color: '#1f2937' }}>Card holder:</span>
-                  <span style={{ fontWeight: '500', color: '#1f2937' }}>holderz</span>
-                </div>
+              <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
+                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Perihal</span>
+                <span style={{ fontWeight: '600', color: '#1e70cd' }}>: "{invoiceHal || getHalDefault()}"</span>
+              </div>
+              <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
+                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Lampiran</span>
+                <span style={{ fontWeight: '500', color: '#4b5563' }}>: {invoiceLampiran || '-'}</span>
+              </div>
+              <div style={{ display: 'flex' }}>
+                <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Tanggal</span>
+                <span style={{ fontWeight: '500', color: '#4b5563' }}>: {invoiceDate}</span>
               </div>
             </div>
+          </div>
+
+          {/* Salam Hormat */}
+          <div style={{ padding: '10px 35px 8px', fontSize: '10px', color: '#4b5563', fontFamily: '"Montserrat", "Segoe UI", sans-serif', lineHeight: '1.4' }}>
+            <strong>Salam hormat,</strong><br />
+            {getSalamPembuka()}
           </div>
 
           {/* Tabel Pesanan */}
@@ -195,174 +265,196 @@ const InvoicePreview: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: '"Montserrat", "Segoe UI", sans-serif' }}>
               <thead>
                 <tr style={{ color: '#ffffff' }}>
-                  <th style={{ background: '#991b1b', width: '45px', textAlign: 'center', padding: '10px 10px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
-                  <th style={{ background: '#d93838', textAlign: 'left', padding: '10px 12px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Description</th>
-                  <th style={{ background: '#d93838', textAlign: 'center', padding: '10px 10px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', width: '85px', border: 'none' }}>PRICE.</th>
-                  <th style={{ background: '#d93838', textAlign: 'center', padding: '10px 10px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', width: '60px', border: 'none' }}>QTY.</th>
-                  <th style={{ background: '#d93838', textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', width: '100px', border: 'none' }}>TOTAL.</th>
+                  <th style={{ background: '#991b1b', width: '35px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
+                  {invoiceType === 'kbm_cetak' && (
+                    <>
+                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '70px', border: 'none' }}>Hal</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Naskah</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '60px', border: 'none' }}>Jml. Cetak</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Cetak/pcs</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Ongkir</th>
+                      <th style={{ background: '#d93838', textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '85px', border: 'none' }}>Total Biaya</th>
+                    </>
+                  )}
+                  {invoiceType === 'kbm_creator' && (
+                    <>
+                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul Karya</th>
+                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '220px', border: 'none' }}>Pemegang Hak Cipta</th>
+                      <th style={{ background: '#d93838', textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '120px', border: 'none' }}>Total Biaya</th>
+                    </>
+                  )}
+                  {invoiceType === 'spt_mitra' && (
+                    <>
+                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '80px', border: 'none' }}>Hal</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '85px', border: 'none' }}>Naskah</th>
+                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '110px', border: 'none' }}>Jml. Cetak</th>
+                      <th style={{ background: '#d93838', textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '100px', border: 'none' }}>Harga Paket</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 ? (
-                  <>
-                    {[
-                      { desc: 'Product Description Here', price: 300, qty: 1, total: '300.00' },
-                      { desc: 'Product Description Here', price: 600, qty: 3, total: '1800.00' },
-                      { desc: 'Product Description Here', price: 812, qty: 2, total: '1624.00' },
-                      { desc: 'Product Description Here', price: 744, qty: 1, total: '744.00' },
-                      { desc: 'Product Description Here', price: 150, qty: 2, total: '300.00' },
-                      { desc: 'Product Description Here', price: 200, qty: 2, total: '400.00' }
-                    ].map((item, idx) => {
-                      const rowBg = idx % 2 === 0 ? '#fdf2f2' : '#ffffff';
-                      return (
-                        <tr key={idx} style={{ background: rowBg }}>
-                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{idx + 1}.</td>
-                          <td style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.desc}</td>
-                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.price}</td>
-                          <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.qty}</td>
-                          <td style={{ padding: '9px 12px', textAlign: 'right', fontSize: '11px', color: '#1f2937', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>{item.total}</td>
-                        </tr>
-                      );
-                    })}
-                  </>
+                  <tr>
+                    <td colSpan={invoiceType === 'kbm_cetak' ? 8 : invoiceType === 'kbm_creator' ? 3 : 5} style={{ padding: '20px', textAlign: 'center', fontSize: '11px', color: '#6b7280', fontStyle: 'italic', borderBottom: '1px solid #e5e7eb' }}>
+                      Belum ada rincian item. Silakan tambahkan di menu generator.
+                    </td>
+                  </tr>
                 ) : (
                   items.map((item, index) => {
                     const rowBg = index % 2 === 0 ? '#fdf2f2' : '#ffffff';
                     return (
                       <tr key={index} style={{ background: rowBg }}>
-                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{index + 1}.</td>
-                        <td style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.book_title}</td>
-                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{formatPrice(item.price)}</td>
-                        <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '11px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{item.quantity}</td>
-                        <td style={{ padding: '9px 12px', textAlign: 'right', fontSize: '11px', color: '#1f2937', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>{formatPrice(calculateItemTotal(item))}</td>
+                        <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb' }}>{index + 1}.</td>
+                        <td style={{ padding: '8px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '600', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word' }}>
+                          "{item.book_title}"
+                        </td>
+                        {invoiceType === 'kbm_cetak' && (
+                          <>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>{item.pages || '± 160 hal A5'}</td>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>{item.paper_type || 'Cetak BW'}</td>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>{item.quantity} pcs</td>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Rp {formatPrice(item.price)}</td>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Rp {formatPrice(item.item_shipping_cost || 0)}</td>
+                            <td style={{ padding: '8px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb' }}>Rp {formatPrice(calculateItemTotal(item))}</td>
+                          </>
+                        )}
+                        {invoiceType === 'kbm_creator' && (
+                          <>
+                            <td style={{ padding: '8px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>{item.copyright_holder || customer.name || '-'}</td>
+                            <td style={{ padding: '8px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb' }}>Rp {formatPrice(calculateItemTotal(item))}</td>
+                          </>
+                        )}
+                        {invoiceType === 'spt_mitra' && (
+                          <>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>{item.pages || '± 144 hal A4'}</td>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>{item.paper_type || 'Cetak BW'}</td>
+                            <td style={{ padding: '8px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>
+                              {item.quantity} pcs {item.package_name ? `(${item.package_name})` : ''}
+                            </td>
+                            <td style={{ padding: '8px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb' }}>Rp {formatPrice(calculateItemTotal(item))}</td>
+                          </>
+                        )}
                       </tr>
                     );
                   })
                 )}
               </tbody>
             </table>
-          </div>
 
-          {/* Middle Section (Contact & Totals) */}
-          <div style={{ padding: '20px 35px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0 }}>
-            {/* Kontak Kami (Kiri) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: '#1f2937', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
-                If You Face Any Problem Contact us
+            {/* Status Akhir Pembayaran Box */}
+            <div style={{ marginTop: '8px', display: 'flex', width: '100%', border: '1px solid #e5e7eb', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ flex: 1, background: '#fdf2f2', padding: '6px 12px', fontSize: '9.5px', fontWeight: '700', color: '#1f2937', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                STATUS AKHIR PEMBAYARAN
               </div>
-              
-              {/* Telepon */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#d93838', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px', flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                  </svg>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '9px', fontWeight: '600', color: '#1f2937', lineHeight: '1.2' }}>+000 0000 00000</span>
-                  <span style={{ fontSize: '8px', color: '#6b7280', lineHeight: '1.2' }}>+000 0000 00000</span>
-                </div>
-              </div>
-
-              {/* Email / Web */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#d93838', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px', flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                  </svg>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '9px', fontWeight: '600', color: '#1f2937', lineHeight: '1.2' }}>your company name</span>
-                  <span style={{ fontSize: '8px', color: '#6b7280', lineHeight: '1.2' }}>company info here</span>
-                </div>
-              </div>
-
-              {/* Lokasi */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#d93838', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px', flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                    <circle cx="12" cy="10" r="3"/>
-                  </svg>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '9px', fontWeight: '600', color: '#1f2937', lineHeight: '1.2' }}>Company Name,</span>
-                  <span style={{ fontSize: '8px', color: '#6b7280', lineHeight: '1.2' }}>Office Street, City,</span>
-                </div>
+              <div style={{ width: '150px', background: '#ffffff', padding: '6px 12px', fontSize: '10px', fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', textAlign: 'right', borderLeft: '1px solid #e5e7eb' }}>
+                {paymentStatus || 'LUNAS'}
               </div>
             </div>
 
-            {/* Total Ringkasan (Kanan) */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px', color: '#4b5563', borderBottom: '1px dashed #e2e8f0', paddingBottom: '3px' }}>
-                <span style={{ fontWeight: '500' }}>VAT:</span>
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>0%</span>
+            {/* Spesifikasi & Fasilitas (SPT) */}
+            {invoiceType === 'spt_mitra' && (
+              <div style={{ marginTop: '10px', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ background: '#f59e0b', color: '#ffffff', padding: '4px 10px', fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', textAlign: 'center' }}>
+                  SPESIFIKASI & FASILITAS
+                </div>
+                <div style={{ border: '1px solid #f59e0b', borderTop: 'none', padding: '6px 10px', fontSize: '8.5px', color: '#4b5563', background: '#fef3c7', textAlign: 'center', fontWeight: '600' }}>
+                  {spesifikasiFasilitas || 'Sesuai poster paket yang diambil'}
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px', color: '#4b5563', borderBottom: '1px dashed #e2e8f0', paddingBottom: '3px' }}>
-                <span style={{ fontWeight: '500' }}>Subtotal:</span>
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>{items.length === 0 ? '00,0' : formatCurrency(subtotal)}</span>
+            )}
+
+            {/* Catatan / Note (KBM) */}
+            {invoiceType !== 'spt_mitra' && (
+              <div style={{ marginTop: '10px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
+                <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
+                1. Jika terkait pajak maka pajak ditanggung penulis atau pemesan<br />
+                2. Fasilitas sesuai paket yang diambil.
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '180px', fontSize: '11px', color: '#4b5563', paddingBottom: '3px' }}>
-                <span style={{ fontWeight: '500' }}>Discount:</span>
-                <span style={{ fontWeight: '600', color: '#1f2937' }}>{items.length === 0 ? '000' : 'Rp 0'}</span>
+            )}
+
+            {/* Penutup */}
+            <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4' }}>
+              Demikian rincian biaya {getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.
+            </div>
+          </div>
+
+          {/* Middle Section (Contact & Totals) */}
+          <div style={{ padding: '10px 35px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0 }}>
+            {/* Tanda Tangan (Kiri) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#1f2937' }}>
+              <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '2px' }}>{getSignatureOfficeLabel()}</div>
+              <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '6px' }}>{getSignatureLocationDateLabel()}</div>
+              <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#6b7280' }}>{getSignatureRoleLabel()}</div>
+              
+              {/* Tanda Tangan Visual Placeholder */}
+              <div style={{ 
+                fontFamily: '"Playball", cursive', 
+                fontSize: '22px', 
+                color: '#1e70cd', 
+                height: '30px', 
+                display: 'flex', 
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '3px 0'
+              }}>
+                {getSignatureNameLabel().split(',')[0]}
               </div>
+              <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: '2px 0' }} />
+              <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {getSignatureNameLabel()}
+              </div>
+            </div>
+
+            {/* Total / Bank Info Box (Kanan) */}
+            {invoiceType !== 'spt_mitra' ? (
+              <div style={{ 
+                width: '220px', 
+                border: '1px solid #e5e7eb', 
+                borderRadius: '4px', 
+                padding: '8px 10px', 
+                fontSize: '8.5px', 
+                color: '#1f2937', 
+                background: '#f9fafb',
+                lineHeight: '1.4'
+              }}>
+                <strong style={{ color: '#991b1b' }}>INFORMASI PEMBAYARAN:</strong>
+                <div style={{ marginTop: '4px' }}>
+                  Transfer melalui rekening bank:<br />
+                  {invoiceType === 'kbm_cetak' ? (
+                    <>
+                      <strong>Bank Nasional Indonesia (BNI)</strong><br />
+                      No. Rekening: <strong>0876830659</strong><br />
+                      A.n. <strong>Mohammad Imam Junaidi</strong>
+                    </>
+                  ) : (
+                    <>
+                      <strong>Bank Syariah Indonesia (BSI)</strong><br />
+                      No. Rekening: <strong>7145671967</strong><br />
+                      A.n. <strong>Sutrisno</strong>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // For SPT, display a minimal total box
               <div style={{ 
                 background: '#d93838', 
                 color: '#ffffff', 
-                padding: '7px 12px', 
-                fontSize: '13px', 
+                padding: '6px 12px', 
+                fontSize: '11px', 
                 fontWeight: '700',
                 display: 'flex',
                 justifyContent: 'space-between',
                 width: '180px',
-                borderRadius: '2px',
-                marginTop: '5px'
+                borderRadius: '4px'
               }}>
                 <span>Total:</span>
-                <span>{items.length === 0 ? '00000000' : formatCurrency(total)}</span>
+                <span>Rp {formatPrice(total)}</span>
               </div>
-            </div>
-          </div>
-
-          {/* Footer (Thank You & Tanda Tangan) */}
-          <div style={{ 
-            padding: '10px 35px 20px', 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'flex-end', 
-            fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-            marginTop: 'auto',
-            flexShrink: 0
-          }}>
-            {/* Thank You */}
-            <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '280px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937', marginBottom: '4px' }}>Thank You For Business</div>
-              <div style={{ fontSize: '8px', color: '#6b7280', lineHeight: '1.4' }}>
-                Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna
-              </div>
-            </div>
-
-            {/* Signature */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '180px' }}>
-              <div style={{ 
-                fontFamily: '"Playball", "Caveat", "Brush Script MT", cursive', 
-                fontSize: '24px', 
-                color: '#1f2937', 
-                height: '35px', 
-                display: 'flex', 
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '2px'
-              }}>
-                Signature
-              </div>
-              <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: '2px 0 5px 0' }} />
-              <div style={{ fontSize: '10px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Surename Signature
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Footer SVG */}

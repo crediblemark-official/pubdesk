@@ -49,6 +49,11 @@ export interface InvoiceItem {
   quantity: number;
   price: number;
   discount: number;
+  pages?: string;
+  paper_type?: string;
+  copyright_holder?: string;
+  item_shipping_cost?: number;
+  package_name?: string;
 }
 
 export interface Invoice {
