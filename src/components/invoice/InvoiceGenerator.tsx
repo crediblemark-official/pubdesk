@@ -10,7 +10,7 @@ const InvoiceGenerator: React.FC = () => {
     items, addItem, removeItem,
     shippingCost, setShippingCost,
     adminFee, setAdminFee,
-    invoiceType, setInvoiceType,
+    invoiceType,
     invoiceNo, setInvoiceNo,
     invoiceHal, setInvoiceHal,
     invoiceLampiran, setInvoiceLampiran,
@@ -18,7 +18,11 @@ const InvoiceGenerator: React.FC = () => {
     paymentStatus, setPaymentStatus,
     spesifikasiFasilitas, setSpesifikasiFasilitas,
     calculateItemTotal,
-    resetInvoice
+    resetInvoice,
+    profiles,
+    activeProfileId,
+    setActiveProfileId,
+    activeProfile
   } = useInvoiceContext();
 
   const [waInput, setWaInput] = useState('');
@@ -42,31 +46,28 @@ const InvoiceGenerator: React.FC = () => {
     weight_grams: 0
   });
 
-  // Dynamically set default values when invoiceType changes
+  // Dynamically set default values when activeProfile changes
   useEffect(() => {
-    if (invoiceType === 'kbm_cetak') {
+    if (!activeProfile) return;
+    
+    const type = activeProfile.tableType;
+    if (type === 'kbm_cetak') {
       setPagesInput('± 160 hal A5');
       setPaperTypeInput('Cetak BW');
-      setInvoiceHal('Biaya Cetak Buku');
-      setInvoiceLampiran('-');
       setItemQty(20);
       setItemPrice(20100);
       setItemShippingCostInput(75000);
-    } else if (invoiceType === 'kbm_creator') {
-      setInvoiceHal('HAKI: Manajemen Beban Kerja: Strategi Komprehensif di Era Digital');
-      setInvoiceLampiran('-');
+    } else if (type === 'kbm_creator') {
       setCopyrightHolderInput(customer.name || '');
       setItemPrice(350000);
-    } else if (invoiceType === 'spt_mitra') {
+    } else if (type === 'spt_mitra') {
       setPagesInput('± 144 hal A4');
       setPaperTypeInput('Cetak BW');
-      setInvoiceHal('ALAT PERAGA PEMBELAJARAN IPA');
-      setInvoiceLampiran('-');
       setItemQty(5);
       setPackageNameInput('Paket Gold');
       setItemPrice(905250);
     }
-  }, [invoiceType]);
+  }, [activeProfile]);
 
   // Sync copyright holder input with customer name if empty
   useEffect(() => {
@@ -207,15 +208,17 @@ const InvoiceGenerator: React.FC = () => {
         <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>📄 Jenis & Metadata Invoice</h2>
 
         <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Jenis Invoice</label>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Profil / Jenis Invoice</label>
           <select
             style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
-            value={invoiceType}
-            onChange={(e) => setInvoiceType(e.target.value as any)}
+            value={activeProfileId}
+            onChange={(e) => setActiveProfileId(e.target.value)}
           >
-            <option value="kbm_cetak">KBM Cetak (Biaya Cetak Buku)</option>
-            <option value="kbm_creator">KBM Creator (Pengajuan HAKI)</option>
-            <option value="spt_mitra">SPT (Mitra - Undiksha Press)</option>
+            {profiles.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
           </select>
         </div>
 

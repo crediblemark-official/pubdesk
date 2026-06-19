@@ -4,6 +4,8 @@ import PanelKanan from './PanelKanan';
 import InvoiceGenerator from '../invoice/InvoiceGenerator';
 import { useAppContext } from '../../contexts/AppContext';
 import TopBar from './TopBar';
+import Settings from '../settings/Settings';
+
 
 const MainLayout = () => {
   const { appState } = useAppContext();
@@ -64,7 +66,7 @@ const MainLayout = () => {
       case 'ledger':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':
-        return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Pengaturan</h2><p>Fitur akan segera tersedia</p></div>;
+        return <Settings />;
       default:
         return <InvoiceGenerator />;
     }

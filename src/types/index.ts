@@ -71,3 +71,29 @@ export interface Invoice {
 export interface AppState {
   activeModule: 'invoice' | 'extractor' | 'files' | 'ledger' | 'settings';
 }
+
+export interface InvoiceProfile {
+  id: string;
+  name: string;
+  companyName: string;
+  companyTagline: string;
+  invoiceTitleText: string;
+  accentColor: string;
+  accentColorDark: string;
+  defaultHal: string;
+  defaultLampiran: string;
+  salamPembuka: string;
+  actionLabel: string;
+  tableType: 'kbm_cetak' | 'kbm_creator' | 'spt_mitra';
+  notes: string[];
+  showSpesifikasi: boolean;
+  defaultSpesifikasi: string;
+  signatureOffice: string;
+  signatureLocation: string;
+  signatureRole: string;
+  signatureName: string;
+  showBankInfo: boolean;
+  bankName: string;
+  bankAccountNo: string;
+  bankAccountOwner: string;
+}

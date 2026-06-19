@@ -14,8 +14,10 @@ const InvoicePreview: React.FC = () => {
     invoiceDate,
     paymentStatus,
     spesifikasiFasilitas,
+    activeProfile,
     calculateItemTotal 
   } = useInvoiceContext();
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -47,7 +49,6 @@ const InvoicePreview: React.FC = () => {
     return () => resizeObserver.disconnect();
   }, []);
 
-
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       minimumFractionDigits: 0,
@@ -57,68 +58,38 @@ const InvoicePreview: React.FC = () => {
 
   const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
-  const globalShip = invoiceType === 'kbm_cetak' ? 0 : shippingCost;
+  const globalShip = (activeProfile?.tableType === 'kbm_cetak') ? 0 : shippingCost;
   const total = subtotal + globalShip + adminFee;
 
   const getHalDefault = () => {
-    switch (invoiceType) {
-      case 'kbm_cetak': return 'Biaya Cetak Buku';
-      case 'kbm_creator': return 'HAKI: Manajemen Beban Kerja';
-      case 'spt_mitra': return 'ALAT PERAGA PEMBELAJARAN IPA';
-      default: return 'Biaya Cetak Buku';
-    }
+    return activeProfile?.defaultHal || 'Biaya Cetak Buku';
   };
 
   const getSalamPembuka = () => {
-    switch (invoiceType) {
-      case 'kbm_cetak':
-        return 'Bersama surat ini kami memberikan gambaran rincian biaya Cetak Buku dengan ketentuan sebagai berikut:';
-      case 'kbm_creator':
-        return 'Penulis Penerbit KBM Indonesia, bersama surat ini kami memberikan gambaran rincian biaya Pengajuan HAKI dengan ketentuan sebagai berikut:';
-      case 'spt_mitra':
-        return 'Penulis Penerbit Undiksha Press, bersama surat ini kami memberikan gambaran rincian biaya Penerbitan Buku dengan ketentuan sebagai berikut:';
-      default:
-        return 'Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:';
-    }
+    return activeProfile?.salamPembuka || 'Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:';
   };
 
   const getInvoiceTypeActionLabel = () => {
-    switch (invoiceType) {
-      case 'kbm_cetak': return 'cetak buku';
-      case 'kbm_creator': return 'pengajuan HAKI';
-      case 'spt_mitra': return 'penerbitan buku';
-      default: return 'cetak buku';
-    }
+    return activeProfile?.actionLabel || 'cetak buku';
   };
 
   const getSignatureOfficeLabel = () => {
-    switch (invoiceType) {
-      case 'kbm_cetak': return 'KBM Kreator Yogyakarta';
-      case 'kbm_creator': return 'Kantor Penerbit KBM Indonesia';
-      case 'spt_mitra': return 'Bali';
-      default: return 'KBM Kreator Yogyakarta';
-    }
+    return activeProfile?.signatureOffice || 'KBM Kreator Yogyakarta';
   };
 
   const getSignatureLocationDateLabel = () => {
-    if (invoiceType === 'spt_mitra') {
-      return invoiceDate || '07 Mei 2026';
+    if (activeProfile?.signatureLocation) {
+      return `${activeProfile.signatureLocation}, ${invoiceDate}`;
     }
-    return `Yogyakarta, ${invoiceDate || '11 Juni 2026'}`;
+    return invoiceDate;
   };
 
   const getSignatureRoleLabel = () => {
-    if (invoiceType === 'spt_mitra') {
-      return '';
-    }
-    return 'CEO CV Karya Bakti Makmur';
+    return activeProfile?.signatureRole || '';
   };
 
   const getSignatureNameLabel = () => {
-    if (invoiceType === 'spt_mitra') {
-      return 'Manajemen Undiksha Press';
-    }
-    return 'MOHAMMAD IMAM JUNAIDI, M.H.';
+    return activeProfile?.signatureName || 'MOHAMMAD IMAM JUNAIDI, M.H.';
   };
 
   // Fungsi helper untuk membagi teks nama pelanggan menjadi dua warna (Hitam & Biru)
@@ -126,7 +97,7 @@ const InvoicePreview: React.FC = () => {
     const fullName = customer.name || 'NAMA PELANGGAN';
     const words = fullName.trim().split(/\s+/);
     if (words.length <= 1) {
-      return <span style={{ color: '#1e70cd' }}>{fullName}</span>;
+      return <span style={{ color: activeProfile?.accentColor || '#1e70cd' }}>{fullName}</span>;
     }
     const mid = Math.ceil(words.length / 2);
     const firstPart = words.slice(0, mid).join(' ');
@@ -134,10 +105,13 @@ const InvoicePreview: React.FC = () => {
     return (
       <>
         <span style={{ color: '#1f2937' }}>{firstPart} </span>
-        <span style={{ color: '#1e70cd' }}>{secondPart}</span>
+        <span style={{ color: activeProfile?.accentColor || '#1e70cd' }}>{secondPart}</span>
       </>
     );
   };
+
+  const accentColor = activeProfile?.accentColor || '#c01c1c';
+  const accentColorDark = activeProfile?.accentColorDark || '#991b1b';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', overflow: 'auto', padding: '20px', alignItems: 'center', justifyContent: 'center' }}>
@@ -195,27 +169,33 @@ const InvoicePreview: React.FC = () => {
               {/* Panel hitam di belakang seluruh shape */}
               <rect x="267" y="54" width="390" height="78" fill="#222933" />
 
-              {/* Bidang merah utama */}
-              <polygon points="0,27 204,27 268,138 0,138" fill="#c01c1c" />
+              {/* Bidang merah utama (Warna dinamis) */}
+              <polygon points="0,27 204,27 268,138 0,138" fill={accentColor} />
 
               {/* Pemisah putih agar warna hitam tidak menyelip */}
               <polygon points="204,27 220,27 284,138 268,138" fill="#ffffff" />
 
-              {/* Aksen merah kedua */}
-              <polygon points="232,49 268,49 320,138 284,138" fill="#c01c1c" />
+              {/* Aksen merah kedua (Warna dinamis) */}
+              <polygon points="232,49 268,49 320,138 284,138" fill={accentColor} />
 
               {/* Logo placeholder */}
               <g transform="translate(40 61)">
                 <path d="M20 0 L38 10 L38 33 L20 44 L2 33 L2 10 Z" fill="#ffffff" />
-                <path d="M20 11 L29 16 L29 28 L20 33 L11 28 L11 16 Z" fill="#c01c1c" />
+                <path d="M20 11 L29 16 L29 28 L20 33 L11 28 L11 16 Z" fill={accentColor} />
               </g>
 
               {/* Nama perusahaan */}
-              <text x="88" y="82" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">CV KBM</text>
-              <text x="89" y="96" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">KARYA BAKTI MAKMUR</text>
+              <text x="88" y="82" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">
+                {activeProfile?.companyName || 'CV KBM'}
+              </text>
+              <text x="89" y="96" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">
+                {activeProfile?.companyTagline || 'KARYA BAKTI MAKMUR'}
+              </text>
 
               {/* Judul invoice */}
-              <text x="389" y="116" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="54" fontWeight="700" letterSpacing="2">INVOICE</text>
+              <text x="389" y="116" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="54" fontWeight="700" letterSpacing="2">
+                {activeProfile?.invoiceTitleText || 'INVOICE'}
+              </text>
             </svg>
           </div>
 
@@ -241,7 +221,7 @@ const InvoicePreview: React.FC = () => {
               </div>
               <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
                 <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Perihal</span>
-                <span style={{ fontWeight: '600', color: '#1e70cd' }}>: "{invoiceHal || getHalDefault()}"</span>
+                <span style={{ fontWeight: '600', color: activeProfile?.accentColor || '#1e70cd' }}>: "{invoiceHal || getHalDefault()}"</span>
               </div>
               <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', paddingBottom: '3px' }}>
                 <span style={{ fontWeight: '700', color: '#1f2937', width: '80px', flexShrink: 0 }}>Lampiran</span>
@@ -265,32 +245,32 @@ const InvoicePreview: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: '"Montserrat", "Segoe UI", sans-serif' }}>
               <thead>
                 <tr style={{ color: '#ffffff' }}>
-                  <th style={{ background: '#991b1b', width: '35px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
+                  <th style={{ background: accentColorDark, width: '35px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
                   {invoiceType === 'kbm_cetak' && (
                     <>
-                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '70px', border: 'none' }}>Hal</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Naskah</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '60px', border: 'none' }}>Jml. Cetak</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Cetak/pcs</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Ongkir</th>
-                      <th style={{ background: '#d93838', textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '85px', border: 'none' }}>Total Biaya</th>
+                      <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '70px', border: 'none' }}>Hal</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Naskah</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '60px', border: 'none' }}>Jml. Cetak</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Cetak/pcs</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '75px', border: 'none' }}>Ongkir</th>
+                      <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '85px', border: 'none' }}>Total Biaya</th>
                     </>
                   )}
                   {invoiceType === 'kbm_creator' && (
                     <>
-                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul Karya</th>
-                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '220px', border: 'none' }}>Pemegang Hak Cipta</th>
-                      <th style={{ background: '#d93838', textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '120px', border: 'none' }}>Total Biaya</th>
+                      <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul Karya</th>
+                      <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '220px', border: 'none' }}>Pemegang Hak Cipta</th>
+                      <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '120px', border: 'none' }}>Total Biaya</th>
                     </>
                   )}
                   {invoiceType === 'spt_mitra' && (
                     <>
-                      <th style={{ background: '#d93838', textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '80px', border: 'none' }}>Hal</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '85px', border: 'none' }}>Naskah</th>
-                      <th style={{ background: '#d93838', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '110px', border: 'none' }}>Jml. Cetak</th>
-                      <th style={{ background: '#d93838', textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '100px', border: 'none' }}>Harga Paket</th>
+                      <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '80px', border: 'none' }}>Hal</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '85px', border: 'none' }}>Naskah</th>
+                      <th style={{ background: accentColor, textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '110px', border: 'none' }}>Jml. Cetak</th>
+                      <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', width: '100px', border: 'none' }}>Harga Paket</th>
                     </>
                   )}
                 </tr>
@@ -355,23 +335,26 @@ const InvoicePreview: React.FC = () => {
             </div>
 
             {/* Spesifikasi & Fasilitas (SPT) */}
-            {invoiceType === 'spt_mitra' && (
+            {activeProfile?.showSpesifikasi && (
               <div style={{ marginTop: '10px', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ background: '#f59e0b', color: '#ffffff', padding: '4px 10px', fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', textAlign: 'center' }}>
+                <div style={{ background: accentColor, color: '#ffffff', padding: '4px 10px', fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', textAlign: 'center' }}>
                   SPESIFIKASI & FASILITAS
                 </div>
-                <div style={{ border: '1px solid #f59e0b', borderTop: 'none', padding: '6px 10px', fontSize: '8.5px', color: '#4b5563', background: '#fef3c7', textAlign: 'center', fontWeight: '600' }}>
-                  {spesifikasiFasilitas || 'Sesuai poster paket yang diambil'}
+                <div style={{ border: `1px solid ${accentColor}`, borderTop: 'none', padding: '6px 10px', fontSize: '8.5px', color: '#4b5563', background: '#fef3c7', textAlign: 'center', fontWeight: '600' }}>
+                  {spesifikasiFasilitas || activeProfile.defaultSpesifikasi}
                 </div>
               </div>
             )}
 
             {/* Catatan / Note (KBM) */}
-            {invoiceType !== 'spt_mitra' && (
+            {activeProfile?.notes && activeProfile.notes.length > 0 && (
               <div style={{ marginTop: '10px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
                 <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
-                1. Jika terkait pajak maka pajak ditanggung penulis atau pemesan<br />
-                2. Fasilitas sesuai paket yang diambil.
+                {activeProfile.notes.map((note, idx) => (
+                  <React.Fragment key={idx}>
+                    {idx + 1}. {note}<br />
+                  </React.Fragment>
+                ))}
               </div>
             )}
 
@@ -393,7 +376,7 @@ const InvoicePreview: React.FC = () => {
               <div style={{ 
                 fontFamily: '"Playball", cursive', 
                 fontSize: '22px', 
-                color: '#1e70cd', 
+                color: accentColor, 
                 height: '30px', 
                 display: 'flex', 
                 alignItems: 'center',
@@ -409,7 +392,7 @@ const InvoicePreview: React.FC = () => {
             </div>
 
             {/* Total / Bank Info Box (Kanan) */}
-            {invoiceType !== 'spt_mitra' ? (
+            {activeProfile?.showBankInfo ? (
               <div style={{ 
                 width: '220px', 
                 border: '1px solid #e5e7eb', 
@@ -420,28 +403,18 @@ const InvoicePreview: React.FC = () => {
                 background: '#f9fafb',
                 lineHeight: '1.4'
               }}>
-                <strong style={{ color: '#991b1b' }}>INFORMASI PEMBAYARAN:</strong>
+                <strong style={{ color: accentColorDark }}>INFORMASI PEMBAYARAN:</strong>
                 <div style={{ marginTop: '4px' }}>
                   Transfer melalui rekening bank:<br />
-                  {invoiceType === 'kbm_cetak' ? (
-                    <>
-                      <strong>Bank Nasional Indonesia (BNI)</strong><br />
-                      No. Rekening: <strong>0876830659</strong><br />
-                      A.n. <strong>Mohammad Imam Junaidi</strong>
-                    </>
-                  ) : (
-                    <>
-                      <strong>Bank Syariah Indonesia (BSI)</strong><br />
-                      No. Rekening: <strong>7145671967</strong><br />
-                      A.n. <strong>Sutrisno</strong>
-                    </>
-                  )}
+                  <strong>{activeProfile.bankName}</strong><br />
+                  No. Rekening: <strong>{activeProfile.bankAccountNo}</strong><br />
+                  A.n. <strong>{activeProfile.bankAccountOwner}</strong>
                 </div>
               </div>
             ) : (
               // For SPT, display a minimal total box
               <div style={{ 
-                background: '#d93838', 
+                background: accentColor, 
                 color: '#ffffff', 
                 padding: '6px 12px', 
                 fontSize: '11px', 
@@ -473,11 +446,11 @@ const InvoicePreview: React.FC = () => {
               {/* Bidang hitam */}
               <path d="M 0 20 H 462 L 499.5 70 H 0 Z" fill="#222933" />
 
-              {/* Bidang merah kanan */}
-              <path d="M 538.25 20 H 1045 V 70 H 575.75 Z" fill="#c01c1c" />
+              {/* Bidang merah kanan (Warna dinamis) */}
+              <path d="M 538.25 20 H 1045 V 70 H 575.75 Z" fill={accentColor} />
 
-              {/* Diagonal merah tengah */}
-              <path d="M 470 5 H 509 L 557.75 70 H 518.75 Z" fill="#c01c1c" />
+              {/* Diagonal merah tengah (Warna dinamis) */}
+              <path d="M 470 5 H 509 L 557.75 70 H 518.75 Z" fill={accentColor} />
 
               {/* Pemisah putih */}
               <path d="M 509 5 H 527 L 575.75 70 H 557.75 Z" fill="#ffffff" />
