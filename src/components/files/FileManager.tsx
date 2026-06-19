@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -7,15 +7,9 @@ interface FileManagerProps {
 }
 
 export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
-  const { files, deleteFile, updateFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm } = useAppContext();
+  const { files, deleteFile, updateFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm, fileLayoutMode, currentFolderId, navigateFolder } = useAppContext();
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
-  const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
-
-  // Reset folder view saat kategori berkas berubah
-  useEffect(() => {
-    setCurrentFolderId(rootFolderId);
-  }, [fileCategory]);
 
   const getParentId = (file: any) => {
     if (file.type !== 'gdrive') return null;
@@ -27,9 +21,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     const currentFolder = files.find(f => f.path === `gdrive://${currentFolderId}`);
     if (currentFolder) {
       const parentId = getParentId(currentFolder);
-      setCurrentFolderId(parentId || rootFolderId);
+      navigateFolder(parentId || rootFolderId);
     } else {
-      setCurrentFolderId(rootFolderId);
+      navigateFolder(rootFolderId);
     }
     setSelectedFileId(null);
   };
@@ -41,7 +35,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     
     // Navigasi masuk folder Google Drive
     if (file.type === 'gdrive' && file.version_label === 'application/vnd.google-apps.folder') {
-      setCurrentFolderId(file.path.replace('gdrive://', ''));
+      navigateFolder(file.path.replace('gdrive://', ''));
       setSelectedFileId(null);
       return;
     }
@@ -217,14 +211,135 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
-      {/* Daftar Berkas (Tabel Compact) */}
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
+      {/* Daftar Berkas */}
+      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)', padding: fileLayoutMode === 'grid' ? '16px' : '0' }}>
         {filteredFiles.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', alignItems: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
             <span style={{ fontSize: '32px', marginBottom: '8px' }}>📂</span>
             <p style={{ fontSize: '13px', fontWeight: '500' }}>Tidak ada berkas yang ditemukan</p>
           </div>
+        ) : fileLayoutMode === 'grid' ? (
+          // Grid View Layout
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+            gap: '12px',
+            alignContent: 'start'
+          }}>
+            {/* Folder Induk back item (Grid style) */}
+            {fileCategory === 'gdrive' && !searchQuery && currentFolderId !== rootFolderId && (
+              <div
+                onDoubleClick={handleGoUp}
+                onClick={() => setSelectedFileId(null)}
+                title="Klik dua kali untuk naik ke folder induk"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '12px 8px',
+                  borderRadius: '10px',
+                  border: '1px dashed var(--border)',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  textAlign: 'center',
+                  gap: '6px',
+                  height: '110px',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.03)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: '36px' }}>📁</span>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)' }}>.. (Ke Atas)</span>
+              </div>
+            )}
+
+            {filteredFiles.map((file) => {
+              const isSelected = selectedFileId === file.id;
+              
+              return (
+                <div
+                  key={file.id}
+                  onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
+                  onDoubleClick={(e) => handleOpenFile(e, file)}
+                  title="Klik dua kali untuk membuka"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    padding: '12px 8px',
+                    borderRadius: '10px',
+                    border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border)',
+                    background: isSelected ? 'rgba(192, 28, 28, 0.05)' : 'var(--bg-panel)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'center',
+                    gap: '6px',
+                    position: 'relative',
+                    userSelect: 'none',
+                    height: '110px',
+                    justifyContent: 'center',
+                    boxShadow: isSelected ? '0 4px 10px rgba(192, 28, 28, 0.1)' : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = 'var(--bg-dark)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = 'var(--bg-panel)';
+                  }}
+                >
+                  {/* File Icon */}
+                  <span style={{ fontSize: '36px', lineHeight: '1' }}>
+                    {file.type === 'invoice' && '📄'}
+                    {file.type === 'service' && '🛠️'}
+                    {file.type === 'gdrive' && (file.version_label === 'application/vnd.google-apps.folder' ? '📁' : '☁️')}
+                    {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
+                  </span>
+
+                  {/* File Name */}
+                  <span 
+                    style={{ 
+                      fontSize: '11px', 
+                      fontWeight: '500', 
+                      color: 'var(--text-primary)', 
+                      wordBreak: 'break-word',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      lineHeight: '1.2',
+                      maxHeight: '28px',
+                      padding: '0 4px'
+                    }}
+                    title={file.filename}
+                  >
+                    {file.filename}
+                  </span>
+
+                  {/* Cache Status Badge */}
+                  {file.status === 'Tersimpan' && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      fontSize: '8px',
+                      background: 'rgba(46, 194, 126, 0.2)',
+                      color: '#2ec27e',
+                      padding: '0px 3px',
+                      borderRadius: '3px',
+                      fontWeight: '700'
+                    }}>
+                      LOKAL
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         ) : (
+          // List View Layout (Tabel)
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>

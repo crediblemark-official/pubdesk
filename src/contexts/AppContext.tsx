@@ -53,6 +53,17 @@ interface AppContextType {
   confirmOptions: ConfirmOptions | null;
   showConfirm: (options: ConfirmOptions) => void;
   hideConfirm: () => void;
+  currentFolderId: string;
+  setCurrentFolderId: (id: string) => void;
+  folderHistory: string[];
+  folderHistoryIndex: number;
+  fileLayoutMode: 'list' | 'grid';
+  setFileLayoutMode: (mode: 'list' | 'grid') => void;
+  navigateFolder: (folderId: string) => void;
+  navigateBack: () => void;
+  navigateForward: () => void;
+  canNavigateBack: boolean;
+  canNavigateForward: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -73,8 +84,48 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'services' | 'general'>('invoice');
   const [confirmOptions, setConfirmOptions] = useState<ConfirmOptions | null>(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'services' | 'general'>('invoice');
+
+  const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
+  const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
+  const [folderHistory, setFolderHistory] = useState<string[]>([rootFolderId]);
+  const [folderHistoryIndex, setFolderHistoryIndex] = useState<number>(0);
+  const [fileLayoutMode, setFileLayoutMode] = useState<'list' | 'grid'>('list');
+
+  useEffect(() => {
+    const rootId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
+    setCurrentFolderId(rootId);
+    setFolderHistory([rootId]);
+    setFolderHistoryIndex(0);
+  }, [fileCategory]);
+
+  const navigateFolder = (folderId: string) => {
+    const newHistory = folderHistory.slice(0, folderHistoryIndex + 1);
+    newHistory.push(folderId);
+    setFolderHistory(newHistory);
+    setFolderHistoryIndex(newHistory.length - 1);
+    setCurrentFolderId(folderId);
+  };
+
+  const navigateBack = () => {
+    if (folderHistoryIndex > 0) {
+      const newIndex = folderHistoryIndex - 1;
+      setFolderHistoryIndex(newIndex);
+      setCurrentFolderId(folderHistory[newIndex]);
+    }
+  };
+
+  const navigateForward = () => {
+    if (folderHistoryIndex < folderHistory.length - 1) {
+      const newIndex = folderHistoryIndex + 1;
+      setFolderHistoryIndex(newIndex);
+      setCurrentFolderId(folderHistory[newIndex]);
+    }
+  };
+
+  const canNavigateBack = folderHistoryIndex > 0;
+  const canNavigateForward = folderHistoryIndex < folderHistory.length - 1;
 
   const showConfirm = (options: ConfirmOptions) => {
     setConfirmOptions(options);
@@ -265,11 +316,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSelectedBookId,
       selectedServiceId,
       setSelectedServiceId,
-      activeSettingsTab,
-      setActiveSettingsTab,
       confirmOptions,
       showConfirm,
       hideConfirm,
+      currentFolderId,
+      setCurrentFolderId,
+      folderHistory,
+      folderHistoryIndex,
+      fileLayoutMode,
+      setFileLayoutMode,
+      navigateFolder,
+      navigateBack,
+      navigateForward,
+      canNavigateBack,
+      canNavigateForward,
+      activeSettingsTab,
+      setActiveSettingsTab,
     }}>
       {children}
     </AppContext.Provider>

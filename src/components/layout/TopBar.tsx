@@ -10,7 +10,16 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, activeModule, searchQuery = '', onSearchChange }) => {
-  const { rightPanelVisible, setRightPanelVisible } = useAppContext();
+  const { 
+    rightPanelVisible, 
+    setRightPanelVisible,
+    canNavigateBack,
+    canNavigateForward,
+    navigateBack,
+    navigateForward,
+    fileLayoutMode,
+    setFileLayoutMode
+  } = useAppContext();
   const [appWindow, setAppWindow] = useState<any>(null);
 
   useEffect(() => {
@@ -97,13 +106,25 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
       <div className="top-bar-main-area" data-tauri-drag-region>
         {/* Navigasi kiri */}
         <div className="top-bar-nav-arrows">
-          <button className="top-bar-btn" aria-label="Back">
+          <button 
+            className="top-bar-btn" 
+            onClick={navigateBack} 
+            disabled={!canNavigateBack} 
+            style={{ opacity: canNavigateBack ? 1 : 0.4, cursor: canNavigateBack ? 'pointer' : 'not-allowed' }}
+            aria-label="Back"
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
           </button>
-          <button className="top-bar-btn" aria-label="Forward">
+          <button 
+            className="top-bar-btn" 
+            onClick={navigateForward} 
+            disabled={!canNavigateForward} 
+            style={{ opacity: canNavigateForward ? 1 : 0.4, cursor: canNavigateForward ? 'pointer' : 'not-allowed' }}
+            aria-label="Forward"
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -182,14 +203,36 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
             </svg>
           </button>
           
-          <button className="top-bar-btn" aria-label="Grid view">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-          </button>
+          {activeModule === 'files' && (
+            <button 
+              className={`top-bar-btn ${fileLayoutMode === 'grid' ? 'active' : ''}`} 
+              onClick={() => setFileLayoutMode(fileLayoutMode === 'list' ? 'grid' : 'list')}
+              title={fileLayoutMode === 'grid' ? 'Tampilan List' : 'Tampilan Grid'}
+              style={{
+                color: fileLayoutMode === 'grid' ? 'var(--accent)' : 'var(--text-secondary)',
+                background: fileLayoutMode === 'grid' ? 'var(--bg-card)' : 'transparent',
+              }}
+              aria-label="Toggle grid/list view"
+            >
+              {fileLayoutMode === 'grid' ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              )}
+            </button>
+          )}
 
           <button className="top-bar-btn top-bar-dropdown-btn" aria-label="Menu dropdown">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
