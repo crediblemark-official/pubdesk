@@ -24,7 +24,9 @@ const Settings: React.FC = () => {
   const [invoiceTitleText, setInvoiceTitleText] = useState('INVOICE');
   const [accentColor, setAccentColor] = useState('#1e70cd');
   const [accentColorDark, setAccentColorDark] = useState('#1e3a8a');
-  const [headerColor, setHeaderColor] = useState('#d93838');
+  const [headerBgColor, setHeaderBgColor] = useState('#222933');
+  const [headerPrimaryColor, setHeaderPrimaryColor] = useState('#d93838');
+  const [headerSecondaryColor, setHeaderSecondaryColor] = useState('#d93838');
   const [defaultHal, setDefaultHal] = useState('');
   const [defaultLampiran, setDefaultLampiran] = useState('-');
   const [salamPembuka, setSalamPembuka] = useState('');
@@ -54,7 +56,9 @@ const Settings: React.FC = () => {
       setInvoiceTitleText('INVOICE');
       setAccentColor('#1e70cd');
       setAccentColorDark('#1e3a8a');
-      setHeaderColor('#d93838');
+      setHeaderBgColor('#222933');
+      setHeaderPrimaryColor('#d93838');
+      setHeaderSecondaryColor('#d93838');
       setDefaultHal('Perihal Invoice');
       setDefaultLampiran('-');
       setSalamPembuka('Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:');
@@ -81,7 +85,9 @@ const Settings: React.FC = () => {
         setInvoiceTitleText(profile.invoiceTitleText || 'INVOICE');
         setAccentColor(profile.accentColor || '#1e70cd');
         setAccentColorDark(profile.accentColorDark || '#1e3a8a');
-        setHeaderColor(profile.headerColor || profile.accentColor || '#d93838');
+        setHeaderBgColor(profile.headerBgColor || '#222933');
+        setHeaderPrimaryColor(profile.headerPrimaryColor || (profile as any).headerColor || profile.accentColor || '#d93838');
+        setHeaderSecondaryColor(profile.headerSecondaryColor || (profile as any).headerColor || profile.accentColor || '#d93838');
         setDefaultHal(profile.defaultHal || '');
         setDefaultLampiran(profile.defaultLampiran || '-');
         setSalamPembuka(profile.salamPembuka || '');
@@ -124,7 +130,9 @@ const Settings: React.FC = () => {
       invoiceTitleText,
       accentColor,
       accentColorDark,
-      headerColor,
+      headerBgColor,
+      headerPrimaryColor,
+      headerSecondaryColor,
       defaultHal,
       defaultLampiran,
       salamPembuka,
@@ -388,20 +396,58 @@ const Settings: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Warna Header & Footer SVG</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Warna Utama Header SVG (Kiri)</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="color"
                 style={{ width: '42px', height: '42px', padding: '2px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', cursor: 'pointer' }}
-                value={headerColor}
-                onChange={(e) => setHeaderColor(e.target.value)}
+                value={headerPrimaryColor}
+                onChange={(e) => setHeaderPrimaryColor(e.target.value)}
               />
               <input
                 type="text"
                 style={{ flex: 1, padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                value={headerColor}
-                onChange={(e) => setHeaderColor(e.target.value)}
+                value={headerPrimaryColor}
+                onChange={(e) => setHeaderPrimaryColor(e.target.value)}
                 placeholder="#d93838"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Warna Aksen Header SVG (Tengah)</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="color"
+                style={{ width: '42px', height: '42px', padding: '2px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', cursor: 'pointer' }}
+                value={headerSecondaryColor}
+                onChange={(e) => setHeaderSecondaryColor(e.target.value)}
+              />
+              <input
+                type="text"
+                style={{ flex: 1, padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={headerSecondaryColor}
+                onChange={(e) => setHeaderSecondaryColor(e.target.value)}
+                placeholder="#d93838"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Warna Latar Header SVG (Kanan)</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="color"
+                style={{ width: '42px', height: '42px', padding: '2px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', cursor: 'pointer' }}
+                value={headerBgColor}
+                onChange={(e) => setHeaderBgColor(e.target.value)}
+              />
+              <input
+                type="text"
+                style={{ flex: 1, padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={headerBgColor}
+                onChange={(e) => setHeaderBgColor(e.target.value)}
+                placeholder="#222933"
               />
             </div>
           </div>
