@@ -413,40 +413,58 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile }) => {
           {/* Middle Section (Contact & Totals) */}
           <div style={{ padding: '10px 35px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0 }}>
             {/* Tanda Tangan (Kiri) */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#1f2937' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#1f2937', position: 'relative' }}>
               <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '2px' }}>{getSignatureOfficeLabel()}</div>
               <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '6px' }}>{getSignatureLocationDateLabel()}</div>
-              <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#6b7280' }}>{getSignatureRoleLabel()}</div>
+              <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px' }}>{getSignatureRoleLabel()}</div>
               
-              {/* Tanda Tangan Visual */}
-              <div style={{ 
-                height: '32px', 
-                display: 'flex', 
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '3px 0',
-                width: '100%',
-                overflow: 'hidden'
-              }}>
+              {/* Tanda Tangan Visual & Nama Wrapper */}
+              <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 {profile?.signatureImg ? (
-                  <img 
-                    src={profile.signatureImg} 
-                    alt="Tanda Tangan" 
-                    style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
-                  />
+                  // Tanda Tangan Gambar yang Besar dan Menimpa Nama
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '-20px', 
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    height: '55px', 
+                    width: '130px', 
+                    pointerEvents: 'none', 
+                    zIndex: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <img 
+                      src={profile.signatureImg} 
+                      alt="Tanda Tangan" 
+                      style={{ height: '100%', width: '100%', objectFit: 'contain' }} 
+                    />
+                  </div>
                 ) : (
-                  <span style={{ 
+                  // Fallback Tanda Tangan Teks Cursive
+                  <div style={{ 
                     fontFamily: '"Playball", cursive', 
                     fontSize: '22px', 
-                    color: accentColor 
+                    color: accentColor, 
+                    height: '32px', 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '3px 0',
+                    zIndex: 1
                   }}>
                     {getSignatureNameLabel().split(',')[0]}
-                  </span>
+                  </div>
                 )}
-              </div>
-              <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: '2px 0' }} />
-              <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {getSignatureNameLabel()}
+                
+                {/* Garis Pembatas (selalu di bawah tapi di-overlay oleh gambar tanda tangan) */}
+                <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: profile?.signatureImg ? '25px 0 4px 0' : '2px 0 4px 0', zIndex: 1 }} />
+                
+                {/* Nama Penandatangan */}
+                <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', zIndex: 1 }}>
+                  {getSignatureNameLabel()}
+                </div>
               </div>
             </div>
 
