@@ -92,40 +92,42 @@ const MainLayout = () => {
             </div>
 
             {/* Right panel with resizable width */}
-            <div style={{ 
-              width: `${rightPanelWidth}px`, 
-              display: 'flex', 
-              flexDirection: 'column', 
-              background: 'var(--bg-panel)', 
-              position: 'relative',
-              height: '100%'
-            }}>
-              <div 
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: '6px',
-                  cursor: 'col-resize',
-                  background: isDragging ? 'var(--accent)' : 'transparent',
-                  zIndex: 10,
-                  transition: 'background 0.15s ease'
-                }}
-                onMouseDown={handleMouseDown}
-                onMouseOver={(e) => {
-                  if (!isDragging) {
-                    e.currentTarget.style.background = 'var(--border)';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (!isDragging) {
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-              />
-              <PanelKanan />
-            </div>
+            {appState.activeModule !== 'settings' && (
+              <div style={{ 
+                width: `${rightPanelWidth}px`, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                background: 'var(--bg-panel)', 
+                position: 'relative',
+                height: '100%'
+              }}>
+                <div 
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '6px',
+                    cursor: 'col-resize',
+                    background: isDragging ? 'var(--accent)' : 'transparent',
+                    zIndex: 10,
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseDown={handleMouseDown}
+                  onMouseOver={(e) => {
+                    if (!isDragging) {
+                      e.currentTarget.style.background = 'var(--border)';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!isDragging) {
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                />
+                <PanelKanan />
+              </div>
+            )}
           </div>
         </div>
       </div>
