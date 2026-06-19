@@ -172,17 +172,27 @@ const InvoicePreview: React.FC = () => {
               {/* Garis abu-abu di bagian atas */}
               <rect x="0" y="0" width="657" height="2" fill="#dddddd" />
 
-               {/* Panel hitam di belakang seluruh shape */}
-              <rect x="267" y="54" width="390" height="78" fill={headerBgColor} />
+              {/* Definisi filter drop-shadow untuk efek timbul */}
+              <defs>
+                <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="130%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#000000" floodOpacity="0.15" />
+                </filter>
+              </defs>
 
-              {/* Bidang merah utama (Warna dinamis) - Sejajar dengan panel hitam y=54 ke y=132 */}
-              <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
+              {/* Grup shape background dengan efek timbul (drop shadow) */}
+              <g filter="url(#drop-shadow)">
+                {/* Panel hitam di belakang seluruh shape */}
+                <rect x="267" y="54" width="390" height="78" fill={headerBgColor} />
 
-              {/* Pemisah putih agar warna hitam tidak menyelip - Diperpanjang membungkus */}
-              <polygon points="214.3,44 230.3,44 284.5,139 268.5,139" fill="#ffffff" />
+                {/* Bidang merah utama (Warna dinamis) - Sejajar dengan panel hitam y=54 ke y=132 */}
+                <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
 
-              {/* Aksen merah kedua (Warna dinamis) - Diperpanjang membungkus */}
-              <polygon points="230.3,44 265.2,44 320.6,139 284.5,139" fill={headerSecondaryColor} />
+                {/* Pemisah putih agar warna hitam tidak menyelip - Diperpanjang membungkus */}
+                <polygon points="214.3,44 230.3,44 284.5,139 268.5,139" fill="#ffffff" />
+
+                {/* Aksen merah kedua (Warna dinamis) - Diperpanjang membungkus */}
+                <polygon points="230.3,44 265.2,44 320.6,139 284.5,139" fill={headerSecondaryColor} />
+              </g>
 
               {/* Logo placeholder / Gambar Logo Kustom */}
               {activeProfile?.companyLogo ? (
