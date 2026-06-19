@@ -943,138 +943,168 @@ const InvoiceSettings: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '360px', overflowY: 'auto', paddingRight: '2px' }}>
               {tableColumns.length === 0 ? (
-                <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-secondary)', padding: '12px', fontStyle: 'italic' }}>
+                <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-secondary)', padding: '16px', fontStyle: 'italic' }}>
                   Belum ada kolom tabel yang didefinisikan.
                 </div>
               ) : (
-                tableColumns.map((col, idx) => (
-                  <div 
-                    key={col.key} 
-                    style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: '1.2fr 1fr 1fr 1.2fr 45px 45px', 
-                      gap: '8px', 
-                      alignItems: 'center', 
-                      background: 'var(--bg-panel)', 
-                      padding: '8px', 
-                      borderRadius: '6px', 
-                      border: '1px solid var(--border)' 
-                    }}
-                  >
-                    {/* Label & Kunci */}
-                    <div>
-                      <input 
-                        type="text" 
-                        className="compact-input" 
-                        style={{ width: '100%', fontSize: '12px', padding: '4px 8px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                        value={col.label} 
-                        onChange={(e) => handleUpdateColumn(idx, { label: e.target.value })} 
-                        placeholder="Label Kolom"
-                      />
-                      <input 
-                        type="text" 
-                        className="compact-input" 
-                        style={{ width: '100%', fontSize: '10px', padding: '2px 8px', marginTop: '4px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-secondary)' }}
-                        value={col.key} 
-                        onChange={(e) => handleUpdateColumn(idx, { key: e.target.value })} 
-                        placeholder="Kunci (e.g. pages)"
-                        disabled={col.key === 'book_title' || col.key === 'quantity' || col.key === 'price'}
-                      />
-                    </div>
+                tableColumns.map((col, idx) => {
+                  const isLocked = col.key === 'book_title' || col.key === 'quantity' || col.key === 'price';
+                  const typeBadge: Record<string, { label: string; color: string }> = {
+                    text:     { label: 'Teks',    color: '#6b7280' },
+                    number:   { label: 'Angka',   color: '#1d4ed8' },
+                    currency: { label: 'Rp',      color: '#0d9488' },
+                    formula:  { label: 'Formula', color: '#7c3aed' },
+                  };
+                  const badge = typeBadge[col.type] ?? typeBadge.text;
 
-                    {/* Tipe Kolom */}
-                    <div>
-                      <select
-                        className="compact-select"
-                        style={{ width: '100%', fontSize: '11px', padding: '4px 6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', height: '28px' }}
-                        value={col.type}
-                        onChange={(e) => handleUpdateColumn(idx, { type: e.target.value as any })}
-                        disabled={col.key === 'book_title' || col.key === 'quantity' || col.key === 'price'}
-                      >
-                        <option value="text">Teks</option>
-                        <option value="number">Angka</option>
-                        <option value="currency">Mata Uang (Rp)</option>
-                        <option value="formula">Formula (Rumus)</option>
-                      </select>
-                    </div>
+                  return (
+                    <div
+                      key={col.key}
+                      style={{
+                        background: 'var(--bg-panel)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {/* Header baris */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: isLocked ? 'rgba(0,0,0,0.04)' : 'transparent', borderBottom: '1px solid var(--border)' }}>
+                        {/* Nomor urut */}
+                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', width: '16px', textAlign: 'center', flexShrink: 0 }}>
+                          {idx + 1}
+                        </span>
 
-                    {/* Align & Width */}
-                    <div>
-                      <select
-                        className="compact-select"
-                        style={{ width: '100%', fontSize: '11px', padding: '4px 6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', height: '28px' }}
-                        value={col.align || 'left'}
-                        onChange={(e) => handleUpdateColumn(idx, { align: e.target.value as any })}
-                      >
-                        <option value="left">Kiri</option>
-                        <option value="center">Tengah</option>
-                        <option value="right">Kanan</option>
-                      </select>
-                      <input 
-                        type="text" 
-                        className="compact-input" 
-                        style={{ width: '100%', fontSize: '10px', padding: '2px 8px', marginTop: '4px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                        value={col.width || 'auto'} 
-                        onChange={(e) => handleUpdateColumn(idx, { width: e.target.value })} 
-                        placeholder="Lebar (e.g. 90px)"
-                      />
-                    </div>
-
-                    {/* Formula Editor */}
-                    <div>
-                      {col.type === 'formula' ? (
-                        <input 
-                          type="text" 
-                          className="compact-input" 
-                          style={{ width: '100%', fontSize: '11px', padding: '4px 8px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                          value={col.formula || ''} 
-                          onChange={(e) => handleUpdateColumn(idx, { formula: e.target.value })} 
-                          placeholder="e.g. {price}*{quantity}"
+                        {/* Input label (nama kolom) */}
+                        <input
+                          type="text"
+                          style={{ flex: 1, fontSize: '12px', fontWeight: '600', padding: '2px 6px', border: '1px solid transparent', borderRadius: '4px', background: 'transparent', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
+                          value={col.label}
+                          onChange={(e) => handleUpdateColumn(idx, { label: e.target.value })}
+                          placeholder="Label Kolom"
+                          onFocus={(e) => e.target.style.borderColor = 'var(--border)'}
+                          onBlur={(e) => e.target.style.borderColor = 'transparent'}
                         />
-                      ) : (
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Bukan Formula</span>
-                      )}
-                    </div>
 
-                    {/* Navigasi Urutan */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-                      <button 
-                        type="button" 
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', fontSize: '10px', color: idx === 0 ? 'var(--text-secondary)' : 'var(--text-primary)' }}
-                        onClick={() => handleMoveColumn(idx, 'up')}
-                        disabled={idx === 0}
-                      >
-                        ▲
-                      </button>
-                      <button 
-                        type="button" 
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', fontSize: '10px', color: idx === tableColumns.length - 1 ? 'var(--text-secondary)' : 'var(--text-primary)' }}
-                        onClick={() => handleMoveColumn(idx, 'down')}
-                        disabled={idx === tableColumns.length - 1}
-                      >
-                        ▼
-                      </button>
-                    </div>
+                        {/* Badge tipe */}
+                        <span style={{ fontSize: '10px', fontWeight: '700', padding: '1px 7px', borderRadius: '12px', background: badge.color + '22', color: badge.color, flexShrink: 0 }}>
+                          {badge.label}
+                        </span>
 
-                    {/* Hapus */}
-                    <div style={{ textAlign: 'center' }}>
-                      <button 
-                        type="button"
-                        className="btn-danger" 
-                        style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
-                        onClick={() => handleRemoveColumn(idx)}
-                        disabled={col.key === 'book_title' || col.key === 'quantity' || col.key === 'price'}
-                      >
-                        🗑️
-                      </button>
+                        {/* Tombol naik/turun */}
+                        <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveColumn(idx, 'up')}
+                            disabled={idx === 0}
+                            title="Pindah ke atas"
+                            style={{ background: 'transparent', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', padding: '2px 4px', borderRadius: '3px', color: idx === 0 ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: '10px', opacity: idx === 0 ? 0.3 : 1 }}
+                          >▲</button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveColumn(idx, 'down')}
+                            disabled={idx === tableColumns.length - 1}
+                            title="Pindah ke bawah"
+                            style={{ background: 'transparent', border: 'none', cursor: idx === tableColumns.length - 1 ? 'default' : 'pointer', padding: '2px 4px', borderRadius: '3px', color: idx === tableColumns.length - 1 ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: '10px', opacity: idx === tableColumns.length - 1 ? 0.3 : 1 }}
+                          >▼</button>
+                        </div>
+
+                        {/* Tombol hapus */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveColumn(idx)}
+                          disabled={isLocked}
+                          title={isLocked ? 'Kolom wajib tidak dapat dihapus' : 'Hapus kolom'}
+                          style={{ background: isLocked ? 'transparent' : '#dc262611', border: 'none', cursor: isLocked ? 'default' : 'pointer', padding: '3px 6px', borderRadius: '4px', color: isLocked ? 'var(--text-secondary)' : '#dc2626', fontSize: '13px', opacity: isLocked ? 0.25 : 1, flexShrink: 0 }}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14H6L5 6"></path>
+                            <path d="M10 11v6M14 11v6"></path>
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Detail baris */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.5fr', gap: '8px', padding: '8px 10px', alignItems: 'center' }}>
+                        {/* Kunci */}
+                        <div>
+                          <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '0.3px' }}>Kunci</div>
+                          <input
+                            type="text"
+                            style={{ width: '100%', fontSize: '11px', padding: '3px 7px', border: '1px solid var(--border)', borderRadius: '4px', background: isLocked ? 'var(--bg-dark)' : 'var(--bg-card)', color: 'var(--text-secondary)', outline: 'none' }}
+                            value={col.key}
+                            onChange={(e) => handleUpdateColumn(idx, { key: e.target.value })}
+                            disabled={isLocked}
+                            placeholder="key_kolom"
+                          />
+                        </div>
+
+                        {/* Tipe */}
+                        <div>
+                          <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '0.3px' }}>Tipe</div>
+                          <select
+                            style={{ width: '100%', fontSize: '11px', padding: '3px 6px', border: '1px solid var(--border)', borderRadius: '4px', background: isLocked ? 'var(--bg-dark)' : 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none', height: '26px' }}
+                            value={col.type}
+                            onChange={(e) => handleUpdateColumn(idx, { type: e.target.value as any })}
+                            disabled={isLocked}
+                          >
+                            <option value="text">Teks</option>
+                            <option value="number">Angka</option>
+                            <option value="currency">Mata Uang (Rp)</option>
+                            <option value="formula">Formula</option>
+                          </select>
+                        </div>
+
+                        {/* Align */}
+                        <div>
+                          <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '0.3px' }}>Rata</div>
+                          <select
+                            style={{ width: '100%', fontSize: '11px', padding: '3px 6px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none', height: '26px' }}
+                            value={col.align || 'left'}
+                            onChange={(e) => handleUpdateColumn(idx, { align: e.target.value as any })}
+                          >
+                            <option value="left">Kiri</option>
+                            <option value="center">Tengah</option>
+                            <option value="right">Kanan</option>
+                          </select>
+                        </div>
+
+                        {/* Width atau Formula */}
+                        <div>
+                          {col.type === 'formula' ? (
+                            <>
+                              <div style={{ fontSize: '9px', color: '#7c3aed', fontWeight: '600', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '0.3px' }}>Formula</div>
+                              <input
+                                type="text"
+                                style={{ width: '100%', fontSize: '11px', padding: '3px 7px', border: '1px solid #7c3aed55', borderRadius: '4px', background: '#7c3aed0a', color: '#7c3aed', outline: 'none', fontFamily: 'monospace' }}
+                                value={col.formula || ''}
+                                onChange={(e) => handleUpdateColumn(idx, { formula: e.target.value })}
+                                placeholder="{price}*{quantity}"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '0.3px' }}>Lebar</div>
+                              <input
+                                type="text"
+                                style={{ width: '100%', fontSize: '11px', padding: '3px 7px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
+                                value={col.width || 'auto'}
+                                onChange={(e) => handleUpdateColumn(idx, { width: e.target.value })}
+                                placeholder="auto / 90px"
+                              />
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
+
 
           {/* Tombol Simpan Terakhir */}
           <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '12px' }}>
