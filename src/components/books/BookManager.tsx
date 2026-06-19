@@ -3,7 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { Book } from '../../types';
 
 const BookManager: React.FC = () => {
-  const { books, addBook, updateBook, deleteBook, showToast, selectedBookId, setSelectedBookId, addFile, files } = useAppContext();
+  const { books, addBook, updateBook, deleteBook, showToast, selectedBookId, setSelectedBookId, addFile, files, showConfirm } = useAppContext();
 
   // State untuk form input tambah / edit
   const [isEditing, setIsEditing] = useState(false);
@@ -127,20 +127,26 @@ const BookManager: React.FC = () => {
   };
 
   // Hapus buku
-  const handleDeleteBook = async (id: number, e: React.MouseEvent) => {
+  const handleDeleteBook = (id: number, e: React.MouseEvent) => {
     e.stopPropagation(); // Mencegah bentrok dengan klik row
-    if (window.confirm('Apakah Anda yakin ingin menghapus buku ini?')) {
-      try {
-        await deleteBook(id);
-        showToast('Buku berhasil dihapus!', 'success');
-        if (selectedBookId === id) {
-          setSelectedBookId(null);
+    showConfirm({
+      title: 'Hapus Buku',
+      message: 'Apakah Anda yakin ingin menghapus buku ini?',
+      confirmText: 'Hapus',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteBook(id);
+          showToast('Buku berhasil dihapus!', 'success');
+          if (selectedBookId === id) {
+            setSelectedBookId(null);
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal menghapus buku!', 'error');
         }
-      } catch (err) {
-        console.error(err);
-        showToast('Gagal menghapus buku!', 'error');
       }
-    }
+    });
   };
 
   const formatPrice = (amount: number) => {

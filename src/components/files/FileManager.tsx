@@ -7,7 +7,7 @@ interface FileManagerProps {
 }
 
 export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
-  const { files, deleteFile, selectedFileId, setSelectedFileId, showToast, fileCategory } = useAppContext();
+  const { files, deleteFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm } = useAppContext();
 
   // Handler Buka Berkas Fisik via Rust Backend
   const handleOpenFile = async (e: React.MouseEvent, path: string) => {
@@ -34,17 +34,23 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   };
 
   // Handler Hapus Berkas
-  const handleDelete = async (e: React.MouseEvent, id: number, filename: string) => {
+  const handleDelete = (e: React.MouseEvent, id: number, filename: string) => {
     e.stopPropagation();
-    if (confirm(`Apakah Anda yakin ingin menghapus berkas "${filename}"?`)) {
-      try {
-        await deleteFile(id);
-        showToast(`Berkas "${filename}" berhasil dihapus`, 'success');
-      } catch (error) {
-        console.error('Gagal menghapus berkas:', error);
-        showToast('Gagal menghapus berkas', 'error');
+    showConfirm({
+      title: 'Hapus Berkas',
+      message: `Apakah Anda yakin ingin menghapus berkas "${filename}"?`,
+      confirmText: 'Hapus',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteFile(id);
+          showToast(`Berkas "${filename}" berhasil dihapus`, 'success');
+        } catch (error) {
+          console.error('Gagal menghapus berkas:', error);
+          showToast('Gagal menghapus berkas', 'error');
+        }
       }
-    }
+    });
   };
 
   // Format tanggal modifikasi agar ramah dibaca

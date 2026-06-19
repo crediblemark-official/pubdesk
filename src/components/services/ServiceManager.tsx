@@ -3,7 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { Service } from '../../types';
 
 const ServiceManager: React.FC = () => {
-  const { services, addService, updateService, deleteService, showToast, selectedServiceId, setSelectedServiceId, addFile, files } = useAppContext();
+  const { services, addService, updateService, deleteService, showToast, selectedServiceId, setSelectedServiceId, addFile, files, showConfirm } = useAppContext();
 
   // State untuk form input tambah / edit
   const [isEditing, setIsEditing] = useState(false);
@@ -103,20 +103,26 @@ const ServiceManager: React.FC = () => {
   };
 
   // Hapus layanan
-  const handleDeleteService = async (id: number, e: React.MouseEvent) => {
+  const handleDeleteService = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('Apakah Anda yakin ingin menghapus layanan ini?')) {
-      try {
-        await deleteService(id);
-        showToast('Layanan berhasil dihapus!', 'success');
-        if (selectedServiceId === id) {
-          setSelectedServiceId(null);
+    showConfirm({
+      title: 'Hapus Layanan',
+      message: 'Apakah Anda yakin ingin menghapus layanan ini?',
+      confirmText: 'Hapus',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteService(id);
+          showToast('Layanan berhasil dihapus!', 'success');
+          if (selectedServiceId === id) {
+            setSelectedServiceId(null);
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal menghapus layanan!', 'error');
         }
-      } catch (err) {
-        console.error(err);
-        showToast('Gagal menghapus layanan!', 'error');
       }
-    }
+    });
   };
 
   const formatPrice = (amount: number) => {

@@ -2,6 +2,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { AppState, Book, Contact, Invoice, File, Service } from '../types';
 import { invoke } from '@tauri-apps/api/core';
 
+export interface ConfirmOptions {
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'primary' | 'danger' | 'warning';
+  onConfirm: () => void | Promise<void>;
+  onCancel?: () => void;
+}
+
 interface AppContextType {
   appState: AppState;
   setActiveModule: (module: AppState['activeModule']) => void;
@@ -39,6 +49,9 @@ interface AppContextType {
   setSelectedServiceId: (id: number | null) => void;
   activeSettingsTab: 'invoice' | 'services' | 'general';
   setActiveSettingsTab: (tab: 'invoice' | 'services' | 'general') => void;
+  confirmOptions: ConfirmOptions | null;
+  showConfirm: (options: ConfirmOptions) => void;
+  hideConfirm: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -60,6 +73,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'services' | 'general'>('invoice');
+  const [confirmOptions, setConfirmOptions] = useState<ConfirmOptions | null>(null);
+
+  const showConfirm = (options: ConfirmOptions) => {
+    setConfirmOptions(options);
+  };
+
+  const hideConfirm = () => {
+    setConfirmOptions(null);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -238,6 +260,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSelectedServiceId,
       activeSettingsTab,
       setActiveSettingsTab,
+      confirmOptions,
+      showConfirm,
+      hideConfirm,
     }}>
       {children}
     </AppContext.Provider>

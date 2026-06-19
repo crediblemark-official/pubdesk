@@ -15,7 +15,7 @@ const InvoiceSettings: React.FC = () => {
     resetProfilesToDefault,
     setProfiles
   } = useInvoiceContext();
-  const { showToast } = useAppContext();
+  const { showToast, showConfirm } = useAppContext();
 
   const [selectedProfileId, setSelectedProfileId] = useState<string>(activeProfileId);
   const [isEditingNew, setIsEditingNew] = useState<boolean>(false);
@@ -225,15 +225,20 @@ const InvoiceSettings: React.FC = () => {
   };
 
   const handleResetColumns = () => {
-    if (confirm('Apakah Anda yakin ingin mereset kolom ke skema bawaan minimal?')) {
-      // Reset ke kolom minimal generik (nama item, qty, harga)
-      setTableColumns([
-        { key: 'item_title', label: 'Nama Item', type: 'text', align: 'left' },
-        { key: 'quantity', label: 'Qty', type: 'number', align: 'center', width: '80px' },
-        { key: 'price', label: 'Harga', type: 'currency', align: 'right', width: '110px' },
-        { key: 'total', label: 'Total', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
-      ]);
-    }
+    showConfirm({
+      title: 'Reset Kolom',
+      message: 'Apakah Anda yakin ingin mereset kolom ke skema bawaan minimal?',
+      confirmText: 'Reset',
+      type: 'danger',
+      onConfirm: () => {
+        setTableColumns([
+          { key: 'item_title', label: 'Nama Item', type: 'text', align: 'left' },
+          { key: 'quantity', label: 'Qty', type: 'number', align: 'center', width: '80px' },
+          { key: 'price', label: 'Harga', type: 'currency', align: 'right', width: '110px' },
+          { key: 'total', label: 'Total', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
+        ]);
+      }
+    });
   };
 
   const handleCreateNew = () => {
@@ -287,14 +292,20 @@ const InvoiceSettings: React.FC = () => {
       showToast('Tidak dapat menghapus satu-satunya profil yang tersisa!', 'error');
       return;
     }
-    if (confirm(`Apakah Anda yakin ingin menghapus profil "${profileName}"?`)) {
-      deleteProfile(selectedProfileId);
-      showToast('Profil berhasil dihapus.', 'success');
-      const remaining = profiles.filter((p) => p.id !== selectedProfileId);
-      if (remaining.length > 0) {
-        setSelectedProfileId(remaining[0].id);
+    showConfirm({
+      title: 'Hapus Profil',
+      message: `Apakah Anda yakin ingin menghapus profil "${profileName}"?`,
+      confirmText: 'Hapus',
+      type: 'danger',
+      onConfirm: () => {
+        deleteProfile(selectedProfileId);
+        showToast('Profil berhasil dihapus.', 'success');
+        const remaining = profiles.filter((p) => p.id !== selectedProfileId);
+        if (remaining.length > 0) {
+          setSelectedProfileId(remaining[0].id);
+        }
       }
-    }
+    });
   };
 
   const handleAddNote = () => {
@@ -348,14 +359,16 @@ const InvoiceSettings: React.FC = () => {
   };
 
   const handleResetToDefault = () => {
-    if (
-      confirm(
-        'Apakah Anda yakin ingin me-reset profil ke pengaturan bawaan (dummy)? Seluruh perubahan kustom Anda akan terhapus.'
-      )
-    ) {
-      resetProfilesToDefault();
-      showToast('Pengaturan profil berhasil di-reset ke bawaan.', 'info');
-    }
+    showConfirm({
+      title: 'Reset Pengaturan Bawaan',
+      message: 'Apakah Anda yakin ingin me-reset profil ke pengaturan bawaan (dummy)? Seluruh perubahan kustom Anda akan terhapus.',
+      confirmText: 'Reset',
+      type: 'danger',
+      onConfirm: () => {
+        resetProfilesToDefault();
+        showToast('Pengaturan profil berhasil di-reset ke bawaan.', 'info');
+      }
+    });
   };
 
   return (

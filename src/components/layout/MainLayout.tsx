@@ -6,6 +6,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import TopBar from './TopBar';
 import Settings from '../settings/Settings';
 import Toast from '../shared/Toast';
+import ConfirmDialog from '../shared/ConfirmDialog';
 import FileManager from '../files/FileManager';
 import BookManager from '../books/BookManager';
 import ServiceManager from '../services/ServiceManager';
@@ -143,6 +144,7 @@ const MainLayout = () => {
         </div>
       </div>
       <Toast />
+      <ConfirmDialog />
     </div>
   );
 };
