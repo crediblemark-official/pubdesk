@@ -3,6 +3,7 @@ import Sidebar from './Sidebar';
 import PanelKanan from './PanelKanan';
 import InvoiceGenerator from '../invoice/InvoiceGenerator';
 import { useAppContext } from '../../contexts/AppContext';
+import TopBar from './TopBar';
 
 const MainLayout = () => {
   const { appState } = useAppContext();
@@ -70,52 +71,55 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="main-layout">
-      {/* Sidebar with collapse */}
-      <div style={{ width: sidebarCollapsed ? '60px' : '260px', position: 'relative', height: '100vh', transition: 'width 0.3s ease' }}>
-        <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-      </div>
+    <div className="main-layout" style={{ flexDirection: 'column' }}>
+      <TopBar />
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 48px)' }}>
+        {/* Sidebar with collapse */}
+        <div style={{ width: sidebarCollapsed ? '60px' : '260px', position: 'relative', height: '100%', transition: 'width 0.3s ease' }}>
+          <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+        </div>
 
-      <div className="main-content">
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', height: '100vh' }}>
-          <div className="module-area">
-            {renderModule()}
-          </div>
+        <div className="main-content">
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', height: '100%' }}>
+            <div className="module-area">
+              {renderModule()}
+            </div>
 
-          {/* Right panel with resizable width */}
-          <div style={{ 
-            width: `${rightPanelWidth}px`, 
-            display: 'flex', 
-            flexDirection: 'column', 
-            background: '#2d2720', 
-            position: 'relative',
-            height: '100%'
-          }}>
-            <div 
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: '6px',
-                cursor: 'col-resize',
-                background: isDragging ? '#f0e0b5' : 'transparent',
-                zIndex: 10,
-                transition: 'background 0.15s ease'
-              }}
-              onMouseDown={handleMouseDown}
-              onMouseOver={(e) => {
-                if (!isDragging) {
-                  e.currentTarget.style.background = '#42382d';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!isDragging) {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
-            />
-            <PanelKanan />
+            {/* Right panel with resizable width */}
+            <div style={{ 
+              width: `${rightPanelWidth}px`, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              background: '#2d2720', 
+              position: 'relative',
+              height: '100%'
+            }}>
+              <div 
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: '6px',
+                  cursor: 'col-resize',
+                  background: isDragging ? '#f0e0b5' : 'transparent',
+                  zIndex: 10,
+                  transition: 'background 0.15s ease'
+                }}
+                onMouseDown={handleMouseDown}
+                onMouseOver={(e) => {
+                  if (!isDragging) {
+                    e.currentTarget.style.background = '#42382d';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isDragging) {
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              />
+              <PanelKanan />
+            </div>
           </div>
         </div>
       </div>
