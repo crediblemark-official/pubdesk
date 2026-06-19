@@ -5,14 +5,14 @@ import { useAppContext } from '../../contexts/AppContext';
 import { invoke } from '@tauri-apps/api/core';
 
 const Settings: React.FC = () => {
-  const { 
-    activeSettingsTab, 
-    setActiveSettingsTab, 
-    showToast, 
-    files, 
-    addFile, 
-    updateFile, 
-    deleteFile, 
+  const {
+    activeSettingsTab,
+    setActiveSettingsTab,
+    showToast,
+    files,
+    addFile,
+    updateFile,
+    deleteFile,
     showConfirm,
     setConnectedUser: setGlobalConnectedUser,
     gdriveAccounts,
@@ -88,12 +88,12 @@ const Settings: React.FC = () => {
         'https://www.googleapis.com/auth/userinfo.profile ' +
         'https://www.googleapis.com/auth/userinfo.email'
       );
-      
+
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=${scopes}&prompt=select_account`;
-      
+
       const { openUrl } = await import('@tauri-apps/plugin-opener');
       await openUrl(authUrl);
-      
+
       showToast('Browser terbuka. Silakan lakukan proses login Google.', 'info');
     } catch (err: any) {
       console.error('OAuth start server error:', err);
@@ -112,7 +112,7 @@ const Settings: React.FC = () => {
       onConfirm: () => {
         const updatedAccounts = gdriveAccounts.filter(acc => acc.email !== email);
         setGdriveAccounts(updatedAccounts);
-        
+
         if (connectedUser?.email === email) {
           if (updatedAccounts.length > 0) {
             const nextAcc = updatedAccounts[0];
@@ -166,7 +166,7 @@ const Settings: React.FC = () => {
     try {
       for (const account of targetAccounts) {
         setSyncProgress(`Menghubungkan ke Google Drive untuk ${account.email}...`);
-        
+
         let activeToken = account.token;
         if (!activeToken && account.refreshToken && account.clientId && account.clientSecret) {
           setSyncProgress(`Memperbarui token untuk ${account.email}...`);
@@ -264,7 +264,7 @@ const Settings: React.FC = () => {
 
           const parentId = df.parents && df.parents.length > 0 ? df.parents[0] : 'root';
           const isShared = df.shared ? '1' : '0';
-          
+
           const modifiedByValue = `${df.size ? df.size.toString() : '0'}|${parentId}|${isShared}|${account.email}`;
 
           const fileData = {
@@ -334,6 +334,18 @@ const Settings: React.FC = () => {
     });
   };
 
+  const handleSaveConfig = () => {
+    localStorage.setItem('gdrive_token', token);
+    localStorage.setItem('gdrive_client_id', clientId);
+    localStorage.setItem('gdrive_client_secret', clientSecret);
+    localStorage.setItem('gdrive_refresh_token', refreshToken);
+    localStorage.setItem('gdrive_parent_folder_id', parentFolderId);
+    showToast('Konfigurasi Google Drive berhasil disimpan!', 'success');
+    if (token) {
+      testConnection(token);
+    }
+  };
+
   return (
     <div className="settings-module" style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)', color: 'var(--text-primary)' }}>
       {/* Header & Tab Menu di Bagian Atas */}
@@ -349,7 +361,7 @@ const Settings: React.FC = () => {
         <h1 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
           ⚙️ Pengaturan
         </h1>
-        
+
         <div style={{ display: 'flex', gap: '4px' }}>
           <button
             onClick={() => setActiveSettingsTab('invoice')}
@@ -434,7 +446,7 @@ const Settings: React.FC = () => {
                   <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
                     👤 Akun Google Drive Terhubung
                   </h2>
-                  
+
                   {gdriveAccounts.length === 0 ? (
                     <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px dashed var(--border)', textAlign: 'center', marginBottom: '16px' }}>
                       <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>Belum ada akun Google Drive yang terhubung.</p>
@@ -492,10 +504,7 @@ const Settings: React.FC = () => {
                           className="compact-input"
                           placeholder="Masukkan Access Token Anda (Bisa kosong jika Refresh Token diisi)..."
                           value={token}
-                          onChange={(e) => {
-                            setToken(e.target.value);
-                            localStorage.setItem('gdrive_token', e.target.value);
-                          }}
+                          onChange={(e) => setToken(e.target.value)}
                           style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                         />
                         <button
@@ -517,10 +526,7 @@ const Settings: React.FC = () => {
                           className="compact-input"
                           placeholder="Masukkan Client ID Google Cloud..."
                           value={clientId}
-                          onChange={(e) => {
-                            setClientId(e.target.value);
-                            localStorage.setItem('gdrive_client_id', e.target.value);
-                          }}
+                          onChange={(e) => setClientId(e.target.value)}
                           style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                         />
                       </div>
@@ -532,10 +538,7 @@ const Settings: React.FC = () => {
                             className="compact-input"
                             placeholder="Masukkan Client Secret..."
                             value={clientSecret}
-                            onChange={(e) => {
-                              setClientSecret(e.target.value);
-                              localStorage.setItem('gdrive_client_secret', e.target.value);
-                            }}
+                            onChange={(e) => setClientSecret(e.target.value)}
                             style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                           />
                           <button
@@ -557,10 +560,7 @@ const Settings: React.FC = () => {
                         className="compact-input"
                         placeholder="Masukkan Refresh Token Anda..."
                         value={refreshToken}
-                        onChange={(e) => {
-                          setRefreshToken(e.target.value);
-                          localStorage.setItem('gdrive_refresh_token', e.target.value);
-                        }}
+                        onChange={(e) => setRefreshToken(e.target.value)}
                         style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                       />
                       <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
@@ -575,10 +575,7 @@ const Settings: React.FC = () => {
                         className="compact-input"
                         placeholder="Kosongkan untuk menyinkronkan seluruh Drive..."
                         value={parentFolderId}
-                        onChange={(e) => {
-                          setParentFolderId(e.target.value);
-                          localStorage.setItem('gdrive_parent_folder_id', e.target.value);
-                        }}
+                        onChange={(e) => setParentFolderId(e.target.value)}
                         style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                       />
                       <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
@@ -589,10 +586,10 @@ const Settings: React.FC = () => {
 
                   {/* Connection status feedback */}
                   {connectionStatus !== 'idle' && (
-                    <div style={{ 
-                      marginTop: '16px', 
-                      padding: '12px', 
-                      borderRadius: '8px', 
+                    <div style={{
+                      marginTop: '16px',
+                      padding: '12px',
+                      borderRadius: '8px',
                       fontSize: '13px',
                       border: '1px solid',
                       textAlign: 'left',
@@ -615,12 +612,21 @@ const Settings: React.FC = () => {
                       )}
                     </div>
                   )}
-
                   {/* Action Button Row */}
                   <div style={{ display: 'flex', gap: '8px', marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       className="btn-primary compact-btn"
+                      onClick={handleSaveConfig}
+                      disabled={syncing}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                    >
+                      💾 Simpan Konfigurasi
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn-secondary compact-btn"
                       onClick={handleSync}
                       disabled={syncing || (gdriveAccounts.length === 0 && !token)}
                       style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
@@ -641,12 +647,12 @@ const Settings: React.FC = () => {
 
                   {/* Sync Progress log */}
                   {syncing && syncProgress && (
-                    <div style={{ 
-                      marginTop: '12px', 
-                      padding: '10px 14px', 
-                      background: 'rgba(0,0,0,0.05)', 
-                      borderRadius: '6px', 
-                      fontSize: '12px', 
+                    <div style={{
+                      marginTop: '12px',
+                      padding: '10px 14px',
+                      background: 'rgba(0,0,0,0.05)',
+                      borderRadius: '6px',
+                      fontSize: '12px',
                       color: 'var(--text-secondary)',
                       fontFamily: 'monospace',
                       display: 'flex',
@@ -680,7 +686,7 @@ const Settings: React.FC = () => {
                     <li>Pilih Application Type: <strong>Desktop app</strong>, beri nama bebas, lalu klik <strong>Create</strong>.</li>
                     <li>Salin nilai <strong>Client ID</strong> dan <strong>Client Secret</strong> yang didapatkan ke kolom input di atas.</li>
                   </ol>
-                  
+
                   <p style={{ fontWeight: '600', color: 'var(--text-primary)', marginTop: '10px', marginBottom: '4px' }}>
                     B. Mendapatkan Refresh Token melalui OAuth Playground:
                   </p>
