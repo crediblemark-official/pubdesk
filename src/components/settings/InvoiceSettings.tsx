@@ -406,7 +406,7 @@ const InvoiceSettings: React.FC = () => {
               </select>
             </div>
 
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {!isEditingNew ? (
                 <>
                   <button className="btn-primary compact-btn" style={{ height: '32px' }} onClick={handleCreateNew}>➕ Buat Baru</button>
@@ -423,16 +423,24 @@ const InvoiceSettings: React.FC = () => {
                   <button className="btn-secondary compact-btn" style={{ height: '32px' }} onClick={handleCancelNew}>Batal</button>
                 </>
               )}
+              <button 
+                type="button"
+                className="btn-secondary compact-btn" 
+                style={{ height: '32px', width: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} 
+                onClick={handleExportBackup}
+                title="Ekspor Backup JSON"
+              >
+                📥
+              </button>
+              <label 
+                className="btn-secondary compact-btn" 
+                style={{ cursor: 'pointer', height: '32px', width: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, margin: 0 }}
+                title="Impor Backup JSON"
+              >
+                📤
+                <input type="file" accept=".json" onChange={handleImportBackup} style={{ display: 'none' }} />
+              </label>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '12px' }}>
-            <button className="btn-secondary compact-btn" style={{ height: '32px' }} onClick={handleExportBackup}>📥 Ekspor Backup JSON</button>
-            
-            <label className="btn-secondary compact-btn" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', height: '32px' }}>
-              📤 Impor Backup JSON
-              <input type="file" accept=".json" onChange={handleImportBackup} style={{ display: 'none' }} />
-            </label>
           </div>
         </div>
 
