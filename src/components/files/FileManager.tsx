@@ -141,6 +141,27 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     }
   };
 
+  // Mendapatkan label tipe berkas yang ramah dibaca
+  const getDisplayType = (file: any) => {
+    if (file.type === 'invoice') return 'Invoice';
+    if (file.type === 'service') return 'Layanan';
+    
+    const parts = file.filename.split('.');
+    if (parts.length > 1) {
+      const ext = parts[parts.length - 1].toUpperCase();
+      if (file.type === 'gdrive' && file.version_label?.includes('google-apps')) {
+        if (file.version_label.endsWith('document')) return 'Google Doc (DOCX)';
+        if (file.version_label.endsWith('spreadsheet')) return 'Google Sheet (XLSX)';
+        if (file.version_label.endsWith('presentation')) return 'Google Slide (PPTX)';
+        return `Google ${ext}`;
+      }
+      return `${ext} File`;
+    }
+    
+    if (file.type === 'gdrive') return 'Cloud File';
+    return 'Berkas';
+  };
+
   const filteredFiles = files.filter((file) => {
     const matchesCategory =
       fileCategory === 'all' ||
@@ -182,6 +203,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                   <tr
                     key={file.id}
                     onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
+                    onDoubleClick={(e) => handleOpenFile(e, file)}
+                    title="Klik dua kali untuk membuka berkas secara native"
                     style={{
                       borderBottom: '1px solid var(--border)',
                       background: isSelected ? 'rgba(192, 28, 28, 0.08)' : 'transparent',
@@ -208,7 +231,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                       </span>
                     </td>
                     <td style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
-                      {file.type}
+                      {getDisplayType(file)}
                     </td>
                     <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                       {formatDateTime(file.last_modified)}
