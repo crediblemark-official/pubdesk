@@ -12,7 +12,7 @@ import ServiceManager from '../services/ServiceManager';
 
 
 const MainLayout = () => {
-  const { appState, rightPanelVisible } = useAppContext();
+  const { appState, rightPanelVisible, activeSettingsTab } = useAppContext();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [rightPanelWidth, setRightPanelWidth] = useState(450);
   const [isDragging, setIsDragging] = useState(false);
@@ -100,7 +100,7 @@ const MainLayout = () => {
             </div>
 
             {/* Right panel with resizable width */}
-            {appState.activeModule !== 'settings' && rightPanelVisible && (
+            {(appState.activeModule !== 'settings' || activeSettingsTab === 'books' || activeSettingsTab === 'services') && rightPanelVisible && (
               <div style={{ 
                 width: `${rightPanelWidth}px`, 
                 display: 'flex', 

@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import InvoiceSettings from './InvoiceSettings';
+import BookManager from '../books/BookManager';
+import ServiceManager from '../services/ServiceManager';
+import { useAppContext } from '../../contexts/AppContext';
 
 const Settings: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'invoice' | 'general'>('invoice');
+  const { activeSettingsTab, setActiveSettingsTab } = useAppContext();
 
   return (
     <div className="settings-module" style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)', color: 'var(--text-primary)' }}>
@@ -22,7 +25,7 @@ const Settings: React.FC = () => {
         
         <div style={{ display: 'flex', gap: '4px' }}>
           <button
-            onClick={() => setActiveTab('invoice')}
+            onClick={() => setActiveSettingsTab('invoice')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -30,8 +33,8 @@ const Settings: React.FC = () => {
               padding: '8px 12px',
               border: 'none',
               background: 'transparent',
-              borderBottom: activeTab === 'invoice' ? '2px solid var(--accent)' : '2px solid transparent',
-              color: activeTab === 'invoice' ? 'var(--text-primary)' : 'var(--text-secondary)',
+              borderBottom: activeSettingsTab === 'invoice' ? '2px solid var(--accent)' : '2px solid transparent',
+              color: activeSettingsTab === 'invoice' ? 'var(--text-primary)' : 'var(--text-secondary)',
               fontSize: '13px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -44,7 +47,7 @@ const Settings: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('general')}
+            onClick={() => setActiveSettingsTab('books')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -52,8 +55,52 @@ const Settings: React.FC = () => {
               padding: '8px 12px',
               border: 'none',
               background: 'transparent',
-              borderBottom: activeTab === 'general' ? '2px solid var(--accent)' : '2px solid transparent',
-              color: activeTab === 'general' ? 'var(--text-primary)' : 'var(--text-secondary)',
+              borderBottom: activeSettingsTab === 'books' ? '2px solid var(--accent)' : '2px solid transparent',
+              color: activeSettingsTab === 'books' ? 'var(--text-primary)' : 'var(--text-secondary)',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              outline: 'none',
+              marginBottom: '-1px'
+            }}
+          >
+            📚 Master Buku
+          </button>
+
+          <button
+            onClick={() => setActiveSettingsTab('services')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeSettingsTab === 'services' ? '2px solid var(--accent)' : '2px solid transparent',
+              color: activeSettingsTab === 'services' ? 'var(--text-primary)' : 'var(--text-secondary)',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              outline: 'none',
+              marginBottom: '-1px'
+            }}
+          >
+            🛠️ Master Layanan
+          </button>
+
+          <button
+            onClick={() => setActiveSettingsTab('general')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeSettingsTab === 'general' ? '2px solid var(--accent)' : '2px solid transparent',
+              color: activeSettingsTab === 'general' ? 'var(--text-primary)' : 'var(--text-secondary)',
               fontSize: '13px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -69,9 +116,10 @@ const Settings: React.FC = () => {
 
       {/* Area Konten Utama */}
       <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-        {activeTab === 'invoice' ? (
-          <InvoiceSettings />
-        ) : (
+        {activeSettingsTab === 'invoice' && <InvoiceSettings />}
+        {activeSettingsTab === 'books' && <BookManager />}
+        {activeSettingsTab === 'services' && <ServiceManager />}
+        {activeSettingsTab === 'general' && (
           <div style={{
             display: 'flex',
             flexDirection: 'column',

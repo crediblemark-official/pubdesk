@@ -37,6 +37,8 @@ interface AppContextType {
   setSelectedBookId: (id: number | null) => void;
   selectedServiceId: number | null;
   setSelectedServiceId: (id: number | null) => void;
+  activeSettingsTab: 'invoice' | 'books' | 'services' | 'general';
+  setActiveSettingsTab: (tab: 'invoice' | 'books' | 'services' | 'general') => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -57,6 +59,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'books' | 'services' | 'general'>('invoice');
 
   useEffect(() => {
     const init = async () => {
@@ -233,6 +236,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSelectedBookId,
       selectedServiceId,
       setSelectedServiceId,
+      activeSettingsTab,
+      setActiveSettingsTab,
     }}>
       {children}
     </AppContext.Provider>
