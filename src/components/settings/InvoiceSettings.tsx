@@ -392,8 +392,8 @@ const InvoiceSettings: React.FC = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         
         {/* Panel Kelola Profil */}
-        <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>📁 Kelola Profil Invoice</h2>
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>📁 Kelola Profil Invoice</h2>
           
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '12px' }}>
             <div style={{ flex: 1, minWidth: '180px' }}>
@@ -451,8 +451,8 @@ const InvoiceSettings: React.FC = () => {
         </div>
 
         {/* Form Editor Profil */}
-        <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', padding: '16px 20px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '14px', color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: '700', paddingBottom: '6px', borderBottom: '1px solid var(--border)', marginBottom: '16px', color: 'var(--text-primary)' }}>
             ✏️ {isEditingNew ? 'Buat Profil Invoice Baru' : `Edit Profil: ${profileName}`}
           </h2>
 
@@ -956,7 +956,7 @@ const InvoiceSettings: React.FC = () => {
 
           {/* Bagian 7: Pengaturan Kolom Tabel Invoice */}
           <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>7. Kolom Tabel Rincian Invoice</h3>
-          <div style={{ marginBottom: '16px', border: '1px solid var(--border)', borderRadius: '8px', padding: '12px', background: 'var(--bg-card)' }}>
+          <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500' }}>Sesuaikan kolom tabel rincian item:</span>
               <div style={{ display: 'flex', gap: '6px' }}>
