@@ -491,7 +491,7 @@ const PanelKanan: React.FC = () => {
                   color: 'var(--accent)',
                   textTransform: 'uppercase'
                 }}>
-                  {fileMetadata.r#type}
+                  {fileMetadata.type}
                 </span>
                 <span style={{
                   padding: '2px 8px',

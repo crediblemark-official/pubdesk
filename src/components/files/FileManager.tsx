@@ -10,7 +10,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const { files, deleteFile, updateFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm, fileLayoutMode, currentFolderId, navigateFolder, refreshAccessToken, gdriveAccounts, refreshAccountToken } = useAppContext();
 
   const [searchResults, setSearchResults] = React.useState<any[]>([]);
-  const [isSearching, setIsSearching] = React.useState(false);
 
   React.useEffect(() => {
     const performSearch = async () => {
@@ -18,7 +17,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
         setSearchResults([]);
         return;
       }
-      setIsSearching(true);
       try {
         const results = await invoke<any[]>('global_semantic_search', { query: searchQuery });
         const mapped = results.map(res => ({
@@ -35,8 +33,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
         setSearchResults(mapped);
       } catch (err) {
         console.error("Gagal melakukan pencarian semantik:", err);
-      } finally {
-        setIsSearching(false);
       }
     };
 
