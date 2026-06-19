@@ -163,10 +163,15 @@ fn process_created_file(db: &Database, path: &Path) -> Result<bool, String> {
         })
         .unwrap_or_else(|_| chrono::Local::now().to_rfc3339());
 
-    let file_type = if extension == "pdf" || extension == "docx" || extension == "doc" {
-        "invoice"
-    } else if extension == "png" || extension == "jpg" || extension == "jpeg" {
-        "service"
+    let filename_lower = filename.to_lowercase();
+    let file_type = if filename_lower.contains("bab") || filename_lower.contains("chapter") {
+        "naskah"
+    } else if filename_lower.contains("perjanjian") || filename_lower.contains("pasal") || filename_lower.contains("kontrak") {
+        "kontrak"
+    } else if (extension == "png" || extension == "jpg" || extension == "jpeg")
+        && (filename_lower.contains("cover") || filename_lower.contains("banner") || filename_lower.contains("sampul"))
+    {
+        "aset"
     } else {
         "other"
     };
