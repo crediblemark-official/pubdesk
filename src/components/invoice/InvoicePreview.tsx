@@ -576,7 +576,12 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
               </div>
             )}
 
-            {/* Informasi Kontak & Rekening Bank (Centered di bawah Note) */}
+            {/* Penutup */}
+            <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4' }}>
+              Demikian rincian biaya {getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.
+            </div>
+
+            {/* Informasi Kontak & Rekening Bank (Centered di bawah Penutup) */}
             {(activeProfile?.showCompanyContact || activeProfile?.showBankInfo) && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '8px auto 4px', width: '100%', gap: '6px' }}>
                 {activeProfile?.showCompanyContact && (
@@ -628,11 +633,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
                 )}
               </div>
             )}
-
-            {/* Penutup */}
-            <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4' }}>
-              Demikian rincian biaya {getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.
-            </div>
           </div>
 
           {/* Middle Section (Contact & Totals) */}
