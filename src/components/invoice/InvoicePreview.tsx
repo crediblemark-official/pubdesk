@@ -651,29 +651,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
                   No. Rekening: <strong>{activeProfile.bankAccountNo}</strong><br />
                   A.n. <strong>{activeProfile.bankAccountOwner}</strong>
                 </div>
-                {/* Total tagihan agar pembeli tahu jumlah yang harus ditransfer */}
-                <div style={{ marginTop: '8px', borderTop: '1px solid #e5e7eb', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', fontWeight: '700' }}>
-                  <span>Total Tagihan:</span>
-                  <span style={{ color: accentColorDark }}>Rp {formatPrice(total)}</span>
-                </div>
               </div>
-            ) : (
-              // For SPT, display a minimal total box
-              <div style={{ 
-                background: accentColor, 
-                color: '#ffffff', 
-                padding: '6px 12px', 
-                fontSize: '11px', 
-                fontWeight: '700',
-                display: 'flex',
-                justifyContent: 'space-between',
-                width: '180px',
-                borderRadius: '4px'
-              }}>
-                <span>Total:</span>
-                <span>Rp {formatPrice(total)}</span>
-              </div>
-            )}
+            ) : null}
           </div>
 
           {/* Footer SVG */}
