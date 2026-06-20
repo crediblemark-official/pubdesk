@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useAppContext } from '../../../contexts/AppContext';
 import { useCrmContext } from '../../../contexts/CrmContext';
 import { Badge } from '../../../ui/atoms/Badge';
 
@@ -15,24 +14,12 @@ const statusVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'info'
 };
 
 const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => {
-  const { showToast } = useAppContext();
-  const { naskahOrders, penulis, penerbit, layouters } = useCrmContext();
+  const { naskahOrders, penulis, penerbit } = useCrmContext();
 
   const naskahData = useMemo(() => {
     if (!naskahId) return null;
     return naskahOrders.find((n) => n.id === naskahId) || null;
   }, [naskahOrders, naskahId]);
-
-  // Parse anggota tim yang ditugaskan
-  const assignedTeam = useMemo(() => {
-    if (!naskahData?.assigned_team_ids) return [];
-    try {
-      const ids: number[] = JSON.parse(naskahData.assigned_team_ids);
-      return ids.map((id) => layouters.find((l) => l.id === id)).filter(Boolean) as typeof layouters;
-    } catch {
-      return [];
-    }
-  }, [naskahData, layouters]);
 
   const penulisData = useMemo(() => {
     if (!naskahData?.penulis_id) return null;
@@ -43,11 +30,6 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
     if (!naskahData?.penerbit_id) return null;
     return penerbit.find((p) => p.id === naskahData.penerbit_id) || null;
   }, [naskahData, penerbit]);
-
-  const handleCopyText = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    showToast(`${label} berhasil disalin!`, 'success');
-  };
 
   if (!naskahId || !naskahData) {
     return (
@@ -198,102 +180,7 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
           </div>
         </div>
 
-        {/* ⭐ PIHAK PENANGGUNG JAWAB (Tim) */}
-        <div>
-          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-            👥 Pihak Penanggung Jawab
-          </h5>
-          {assignedTeam.length === 0 ? (
-            <div style={{
-              padding: '12px 14px',
-              background: 'var(--bg-card)',
-              borderRadius: '8px',
-              border: '1px dashed var(--border)',
-              fontSize: '12px',
-              color: 'var(--text-secondary)',
-              fontStyle: 'italic'
-            }}>
-              Belum ada anggota tim yang ditugaskan pada naskah ini.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {assignedTeam.map((member) => (
-                <div
-                  key={member.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    background: 'var(--bg-card)',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    border: '1px solid var(--border)'
-                  }}
-                >
-                  {/* Avatar */}
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    flexShrink: 0
-                  }}>
-                    {member.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                      {member.name}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      {member.role}
-                      {member.department && <span style={{ marginLeft: '6px', opacity: 0.7 }}>· {member.department}</span>}
-                    </div>
-                  </div>
-                  <Badge
-                    label={member.is_active === 1 ? 'Aktif' : 'Nonaktif'}
-                    variant={member.is_active === 1 ? 'success' : 'neutral'}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Catatan Desain */}
-        {naskahData.initial_request && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', margin: 0 }}>Permintaan Desain</h5>
-              <button
-                onClick={() => handleCopyText(naskahData.initial_request!, 'Permintaan desain')}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px', opacity: 0.6 }}
-                title="Salin catatan"
-              >
-                📋 Salin
-              </button>
-            </div>
-            <div style={{
-              fontSize: '13px',
-              color: 'var(--text-primary)',
-              whiteSpace: 'pre-line',
-              lineHeight: '1.5',
-              background: 'rgba(0,0,0,0.05)',
-              padding: '10px 12px',
-              borderRadius: '8px',
-              border: '1px solid var(--border)'
-            }}>
-              {naskahData.initial_request}
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '4px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>
             <span>Tipe: <strong>Database Naskah</strong></span>

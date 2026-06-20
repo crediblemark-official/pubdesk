@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NaskahOrder } from '../../types/crm.types';
 import { useCrmContext } from '../../contexts/CrmContext';
 import { useAppContext } from '../../contexts/AppContext';
@@ -14,7 +14,7 @@ interface NaskahFormProps {
 }
 
 const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onCancel }) => {
-  const { penulis, penerbit, layouters } = useCrmContext();
+  const { penulis, penerbit } = useCrmContext();
   const { showToast } = useAppContext();
 
   // Field identitas naskah
@@ -34,24 +34,7 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
   const [bookSize, setBookSize] = useState('14x20');
   const [legalType, setLegalType] = useState('ISBN');
 
-  // Field tim & pengiriman
-  const [assignedTeamIds, setAssignedTeamIds] = useState<number[]>([]);
-  const [initialRequest, setInitialRequest] = useState('');
-  const [revisedRequest, setRevisedRequest] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
-
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
-
-  // Parse assigned_team_ids dari JSON string ke array number
-  const parseTeamIds = (raw?: string): number[] => {
-    if (!raw) return [];
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.map(Number).filter(Boolean) : [];
-    } catch {
-      return [];
-    }
-  };
 
   useEffect(() => {
     if (initialData) {
@@ -68,10 +51,6 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
       setCopies(initialData.copies || 0);
       setBookSize(initialData.book_size || '14x20');
       setLegalType(initialData.legal_type || 'ISBN');
-      setAssignedTeamIds(parseTeamIds(initialData.assigned_team_ids));
-      setInitialRequest(initialData.initial_request || '');
-      setRevisedRequest(initialData.revised_request || '');
-      setShippingAddress(initialData.shipping_address || '');
     } else {
       setNaskahIdCode('');
       setTitle('');
@@ -86,10 +65,6 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
       setCopies(0);
       setBookSize('14x20');
       setLegalType('ISBN');
-      setAssignedTeamIds([]);
-      setInitialRequest('');
-      setRevisedRequest('');
-      setShippingAddress('');
     }
   }, [initialData]);
 
@@ -115,25 +90,8 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
       copies,
       book_size: bookSize,
       legal_type: legalType,
-      assigned_team_ids: assignedTeamIds.length > 0 ? JSON.stringify(assignedTeamIds) : undefined,
-      initial_request: initialRequest.trim() || undefined,
-      revised_request: revisedRequest.trim() || undefined,
-      shipping_address: shippingAddress.trim() || undefined,
     });
   };
-
-  // Toggle pilihan anggota tim
-  const toggleTeamMember = (id: number) => {
-    setAssignedTeamIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  // Anggota aktif saja
-  const activeMembers = useMemo(
-    () => layouters.filter((l) => l.is_active === 1),
-    [layouters]
-  );
 
   const penulisOptions = [
     { value: '', label: '-- Pilih Penulis --' },
@@ -333,96 +291,6 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
                 onChange={(e) => setLegalType(e.target.value)}
                 fullWidth
               />
-            </div>
-          </AccordionSection>
-
-          {/* Accordion 3: Tim & Pengiriman */}
-          <AccordionSection index={3} title="👥 Tim & Pengiriman" expandedSection={expandedSection} onToggle={setExpandedSection}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Multi-select anggota tim */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Pihak Penanggung Jawab (Tim)
-                </label>
-                {activeMembers.length === 0 ? (
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', padding: '8px 0' }}>
-                    Belum ada anggota tim aktif. Tambahkan terlebih dahulu di modul Tim.
-                  </div>
-                ) : (
-                  <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    padding: '10px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    background: 'var(--bg-card)'
-                  }}>
-                    {activeMembers.map((member) => {
-                      const isSelected = assignedTeamIds.includes(member.id!);
-                      return (
-                        <button
-                          key={member.id}
-                          type="button"
-                          onClick={() => toggleTeamMember(member.id!)}
-                          style={{
-                            padding: '4px 10px',
-                            borderRadius: '20px',
-                            fontSize: '12px',
-                            fontWeight: '500',
-                            border: `1px solid ${isSelected ? '#6366f1' : 'var(--border)'}`,
-                            background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                            color: isSelected ? '#818cf8' : 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          {isSelected ? '✓ ' : ''}{member.name}
-                          <span style={{ opacity: 0.7, fontSize: '10px', marginLeft: '4px' }}>({member.role})</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Permintaan Awal Layout/Desain
-                </label>
-                <textarea
-                  style={{ ...textareaStyle, height: '80px' }}
-                  value={initialRequest}
-                  onChange={(e) => setInitialRequest(e.target.value)}
-                  placeholder="Catatan tata letak, warna cover, dsb..."
-                />
-              </div>
-
-              {initialData && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                    Catatan Revisi / Masukan Penulis
-                  </label>
-                  <textarea
-                    style={{ ...textareaStyle, height: '80px' }}
-                    value={revisedRequest}
-                    onChange={(e) => setRevisedRequest(e.target.value)}
-                    placeholder="Detail revisi yang diajukan..."
-                  />
-                </div>
-              )}
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Alamat Pengiriman Hasil Cetak
-                </label>
-                <textarea
-                  style={{ ...textareaStyle, height: '80px' }}
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Alamat lengkap penerima cetak buku..."
-                />
-              </div>
             </div>
           </AccordionSection>
         </Accordion>

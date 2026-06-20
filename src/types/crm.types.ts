@@ -54,11 +54,6 @@ export interface NaskahOrder {
   copies?: number;
   book_size?: string;
   legal_type?: string;
-  // Tim & pengiriman
-  assigned_team_ids?: string; // JSON array ID anggota tim, misal "[1,3]"
-  initial_request?: string;
-  revised_request?: string;
-  shipping_address?: string;
   status: string;
   created_at: string;
 }
