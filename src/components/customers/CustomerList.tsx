@@ -22,7 +22,10 @@ const CustomerList: React.FC = () => {
     showToast,
     showConfirm,
     setEditingCustomer,
-    setActiveModule
+    setActiveModule,
+    selectedCustomerId,
+    setSelectedCustomerId,
+    setRightPanelVisible
   } = useAppContext();
 
   const { penulis } = useCrmContext();
@@ -151,15 +154,29 @@ const CustomerList: React.FC = () => {
                 return (
                   <tr
                     key={customer.id}
+                    onClick={() => {
+                      if (customer.id) {
+                        setSelectedCustomerId(customer.id);
+                        setRightPanelVisible(true);
+                      }
+                    }}
                     style={{
                       borderBottom: '1px solid var(--border)',
-                      background: 'transparent',
+                      background: selectedCustomerId === customer.id ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
                       cursor: 'pointer',
                       transition: 'background 0.1s ease',
                       color: 'var(--text-primary)'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    onMouseEnter={(e) => {
+                      if (selectedCustomerId !== customer.id) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedCustomerId !== customer.id) {
+                        e.currentTarget.style.background = 'transparent';
+                      }
+                    }}
                   >
                     <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '16px' }}>
                       👤

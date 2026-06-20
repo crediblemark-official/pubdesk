@@ -5,6 +5,8 @@ import InvoicePreview from '../invoice/InvoicePreview';
 import FilePreviewPanel from './PanelKanan/FilePreviewPanel';
 import ServicePreviewPanel from './PanelKanan/ServicePreviewPanel';
 import InsightPanel from './PanelKanan/InsightPanel';
+import CustomerPreviewPanel from './PanelKanan/CustomerPreviewPanel';
+import PenulisPreviewPanel from './PanelKanan/PenulisPreviewPanel';
 
 /**
  * PanelKanan — orchestrator panel pratinjau di sisi kanan layar.
@@ -13,6 +15,8 @@ import InsightPanel from './PanelKanan/InsightPanel';
  *   - FilePreviewPanel   → Smart Folders & Manajemen Invoice
  *   - ServicePreviewPanel → Layanan / Settings > Services
  *   - InsightPanel        → Invoice Insight
+ *   - CustomerPreviewPanel → Pelanggan
+ *   - PenulisPreviewPanel  → Lead Penulis (CRM)
  */
 const PanelKanan: React.FC = () => {
   const {
@@ -23,6 +27,8 @@ const PanelKanan: React.FC = () => {
     selectedInsightMetric,
     invoices,
     setActiveModule,
+    selectedCustomerId,
+    selectedPenulisId,
   } = useAppContext();
 
   const { files, selectedFileId, setSelectedFileId, setRightPanelVisible } = useFileState();
@@ -58,6 +64,14 @@ const PanelKanan: React.FC = () => {
     // Modul layanan — preview layanan terpilih
     case 'services':
       return <ServicePreviewPanel serviceId={selectedServiceId} services={services} />;
+
+    // Modul Pelanggan — preview pelanggan terpilih
+    case 'customer-manager':
+      return <CustomerPreviewPanel customerId={selectedCustomerId} />;
+
+    // Modul Lead Penulis (CRM) — preview penulis terpilih
+    case 'crm-penulis':
+      return <PenulisPreviewPanel penulisId={selectedPenulisId} />;
 
     // Settings — tampilkan preview layanan jika tab services aktif
     case 'settings':

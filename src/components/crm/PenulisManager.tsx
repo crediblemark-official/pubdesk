@@ -29,7 +29,7 @@ const followupVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'inf
 
 const PenulisManager: React.FC = () => {
   const { penulis, addPenulis, updatePenulis, deletePenulis } = useCrmContext();
-  const { showConfirm, showToast, contacts, addContact, updateContact } = useAppContext();
+  const { showConfirm, showToast, contacts, addContact, updateContact, selectedPenulisId, setSelectedPenulisId, setRightPanelVisible } = useAppContext();
   
   const [isEditing, setIsEditing] = useState(false);
   const [currentPenulis, setCurrentPenulis] = useState<Penulis | null>(null);
@@ -472,15 +472,29 @@ const PenulisManager: React.FC = () => {
               filteredPenulis.map((p) => (
                 <tr
                   key={p.id}
+                  onClick={() => {
+                    if (p.id !== undefined) {
+                      setSelectedPenulisId(p.id);
+                      setRightPanelVisible(true);
+                    }
+                  }}
                   style={{
                     borderBottom: '1px solid var(--border)',
-                    background: 'transparent',
+                    background: selectedPenulisId === p.id ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
                     cursor: 'pointer',
                     transition: 'background 0.1s ease',
                     color: 'var(--text-primary)'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  onMouseEnter={(e) => {
+                    if (selectedPenulisId !== p.id) {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedPenulisId !== p.id) {
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
                 >
                   <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-primary)' }}>
                     <div>{p.name}</div>
