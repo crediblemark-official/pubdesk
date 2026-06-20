@@ -225,22 +225,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
 
 
 
-      {/* Filter Section */}
-      <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-panel)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '16px', alignItems: 'center', justifyContent: 'flex-end', flexShrink: 0 }}>
-        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Status Pembayaran:</span>
-        <div>
-          <select
-            value={statusFilter}
-            onChange={(e: any) => setStatusFilter(e.target.value)}
-            style={{ padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-card)', color: 'var(--text-primary)', cursor: 'pointer', outline: 'none' }}
-          >
-            <option value="ALL">Semua Status</option>
-            <option value="LUNAS">LUNAS</option>
-            <option value="BELUM LUNAS">BELUM LUNAS</option>
-            <option value="PENDING">PENDING</option>
-          </select>
-        </div>
-      </div>
+
 
       {/* Invoice Table Container */}
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
@@ -251,7 +236,30 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
               <th style={{ padding: '12px 16px', fontWeight: '600', width: '20%' }}>No. Invoice</th>
               <th style={{ padding: '12px 16px', fontWeight: '600', width: '25%' }}>Pelanggan</th>
               <th style={{ padding: '12px 16px', fontWeight: '600', width: '15%', textAlign: 'right' }}>Total</th>
-              <th style={{ padding: '12px 16px', fontWeight: '600', width: '12%', textAlign: 'center' }}>Status</th>
+              <th style={{ padding: '6px 12px', fontWeight: '600', width: '12%', textAlign: 'center' }}>
+                <select
+                  value={statusFilter}
+                  onChange={(e: any) => setStatusFilter(e.target.value)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    fontWeight: '600',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    textAlign: 'center',
+                    textAlignLast: 'center',
+                    width: '100%',
+                    padding: '6px 0'
+                  }}
+                >
+                  <option value="ALL" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>Status (Semua)</option>
+                  <option value="LUNAS" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>LUNAS</option>
+                  <option value="BELUM LUNAS" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>BELUM LUNAS</option>
+                  <option value="PENDING" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>PENDING</option>
+                </select>
+              </th>
               <th style={{ padding: '12px 16px', fontWeight: '600', width: '13%', textAlign: 'center' }}>Aksi</th>
             </tr>
           </thead>
