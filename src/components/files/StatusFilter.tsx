@@ -7,61 +7,41 @@ interface StatusFilterProps {
 
 export const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatus, setSelectedStatus }) => {
   const statuses = [
-    { value: 'draft', label: 'Draft', color: 'var(--text-secondary)' },
-    { value: 'review', label: 'Review', color: '#ffc107' },
-    { value: 'approved', label: 'Approved', color: '#1e90ff' },
-    { value: 'final', label: 'Final', color: '#2ec27e' },
-    { value: 'Tersimpan', label: 'Tersimpan Lokal', color: '#2ec27e' },
-    { value: 'Cloud', label: 'Tersedia di Cloud', color: 'var(--text-secondary)' }
+    { value: 'draft', label: 'Draft' },
+    { value: 'review', label: 'Review' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'final', label: 'Final' },
+    { value: 'Tersimpan', label: 'Tersimpan Lokal' },
+    { value: 'Cloud', label: 'Tersedia di Cloud' }
   ];
 
   return (
-    <div style={{
-      display: 'flex',
-      gap: '8px',
-      alignItems: 'center',
-      flexShrink: 0
-    }}>
-      <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '4px', whiteSpace: 'nowrap' }}>
-        🚦 Filter Status:
+    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+      <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+        🚦 Status:
       </span>
-      <button
-        onClick={() => setSelectedStatus(null)}
+      <select
+        value={selectedStatus || ''}
+        onChange={(e) => setSelectedStatus(e.target.value || null)}
         style={{
-          padding: '4px 10px',
-          borderRadius: '20px',
-          border: 'none',
+          padding: '6px 10px',
+          borderRadius: '6px',
+          border: '1px solid var(--border)',
+          background: 'var(--bg-card)',
+          color: 'var(--text-primary)',
           fontSize: '12px',
           fontWeight: '600',
           cursor: 'pointer',
-          background: selectedStatus === null ? 'var(--accent)' : 'var(--bg-card)',
-          color: selectedStatus === null ? '#ffffff' : 'var(--text-secondary)',
-          transition: 'all 0.15s ease',
-          whiteSpace: 'nowrap'
+          outline: 'none',
+          minWidth: '130px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
         }}
       >
-        Semua
-      </button>
-      {statuses.map((status) => (
-        <button
-          key={status.value}
-          onClick={() => setSelectedStatus(selectedStatus === status.value ? null : status.value)}
-          style={{
-            padding: '4px 10px',
-            borderRadius: '20px',
-            fontSize: '12px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            background: selectedStatus === status.value ? 'var(--accent)' : 'var(--bg-card)',
-            color: selectedStatus === status.value ? '#ffffff' : status.color,
-            transition: 'all 0.15s ease',
-            whiteSpace: 'nowrap',
-            border: selectedStatus === status.value ? 'none' : '1px solid rgba(255,255,255,0.05)'
-          }}
-        >
-          {status.label}
-        </button>
-      ))}
+        <option value="">Semua Status</option>
+        {statuses.map(st => (
+          <option key={st.value} value={st.value}>{st.label}</option>
+        ))}
+      </select>
     </div>
   );
 };

@@ -566,8 +566,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
         borderBottom: '1px solid var(--border)',
         background: 'var(--bg-panel)',
         alignItems: 'center',
-        flexWrap: 'nowrap',
-        overflowX: 'auto',
+        flexWrap: 'wrap',
         flexShrink: 0
       }}>
         <StatusFilter

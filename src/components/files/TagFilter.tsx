@@ -10,52 +10,32 @@ export const TagFilter: React.FC<TagFilterProps> = ({ allTags, selectedTag, setS
   if (allTags.length === 0) return null;
 
   return (
-    <div style={{
-      display: 'flex',
-      gap: '8px',
-      alignItems: 'center',
-      flexShrink: 0
-    }}>
-      <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '4px', whiteSpace: 'nowrap' }}>
-        🏷️ Filter Tag:
+    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+      <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+        🏷️ Tag:
       </span>
-      <button
-        onClick={() => setSelectedTag(null)}
+      <select
+        value={selectedTag || ''}
+        onChange={(e) => setSelectedTag(e.target.value || null)}
         style={{
-          padding: '4px 10px',
-          borderRadius: '20px',
-          border: 'none',
+          padding: '6px 10px',
+          borderRadius: '6px',
+          border: '1px solid var(--border)',
+          background: 'var(--bg-card)',
+          color: 'var(--text-primary)',
           fontSize: '12px',
           fontWeight: '600',
           cursor: 'pointer',
-          background: selectedTag === null ? 'var(--accent)' : 'var(--bg-card)',
-          color: selectedTag === null ? '#ffffff' : 'var(--text-secondary)',
-          transition: 'all 0.15s ease',
-          whiteSpace: 'nowrap'
+          outline: 'none',
+          minWidth: '130px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
         }}
       >
-        Semua
-      </button>
-      {allTags.map((tag) => (
-        <button
-          key={tag}
-          onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-          style={{
-            padding: '4px 10px',
-            borderRadius: '20px',
-            border: 'none',
-            fontSize: '12px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            background: selectedTag === tag ? 'var(--accent)' : 'var(--bg-card)',
-            color: selectedTag === tag ? '#ffffff' : 'var(--text-secondary)',
-            transition: 'all 0.15s ease',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {tag}
-        </button>
-      ))}
+        <option value="">Semua Tag</option>
+        {allTags.map(tag => (
+          <option key={tag} value={tag}>{tag}</option>
+        ))}
+      </select>
     </div>
   );
 };
