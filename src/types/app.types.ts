@@ -14,6 +14,8 @@ export type AppModule =
   | 'services'
   | 'crm-penulis'
   | 'crm-penerbit'
+  | 'crm-naskah'
+  | 'crm-tim'
   | 'naskah-orders'
   | 'layouters';
 

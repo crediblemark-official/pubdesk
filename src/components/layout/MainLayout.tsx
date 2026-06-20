@@ -93,8 +93,10 @@ const MainLayout = () => {
         return <PenulisManager searchQuery={fileSearchQuery} />;
       case 'crm-penerbit':
         return <PenerbitManager searchQuery={fileSearchQuery} />;
+      case 'crm-naskah':
       case 'naskah-orders':
         return <NaskahOrdersManager />;
+      case 'crm-tim':
       case 'layouters':
         return <LayouterManager />;
       case 'ledger':

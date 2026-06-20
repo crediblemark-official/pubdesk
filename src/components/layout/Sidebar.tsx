@@ -34,6 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             ? (
                 appState.activeModule === 'crm-penulis' ||
                 appState.activeModule === 'crm-penerbit' ||
+                appState.activeModule === 'crm-naskah' ||
+                appState.activeModule === 'crm-tim' ||
                 appState.activeModule === 'naskah-orders' ||
                 appState.activeModule === 'layouters'
               )
@@ -71,6 +73,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     const isAnySubActive = [
                       'crm-penulis',
                       'crm-penerbit',
+                      'crm-naskah',
+                      'crm-tim',
                       'naskah-orders',
                       'layouters'
                     ].includes(appState.activeModule);
@@ -158,8 +162,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                   {[
                     { module: 'crm-penulis' as const, label: 'Lead Penulis', icon: '👤' },
                     { module: 'crm-penerbit' as const, label: 'CRM Penerbit', icon: '🏢' },
-                    { module: 'naskah-orders' as const, label: 'Naskah & Orders', icon: '📚' },
-                    { module: 'layouters' as const, label: 'Tim Layouter', icon: '🎨' },
+                    { module: 'crm-naskah' as const, label: 'Database Naskah', icon: '📚' },
+                    { module: 'crm-tim' as const, label: 'Tim', icon: '👥' },
                   ].map((sub) => {
                     const isSubActive = appState.activeModule === sub.module;
                     return (

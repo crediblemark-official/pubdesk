@@ -276,6 +276,15 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Migrasi ad-hoc untuk tabel Tim (layouters) — tambah kolom departemen
+    let _ = conn.execute("ALTER TABLE layouters ADD COLUMN department TEXT", []);
+
+    // Migrasi ad-hoc untuk Database Naskah — tambah kolom informasi naskah lengkap
+    let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN genre TEXT", []);
+    let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN total_pages INTEGER", []);
+    let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN synopsis TEXT", []);
+    let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN assigned_team_ids TEXT", []);
+
     Ok(())
 }
 

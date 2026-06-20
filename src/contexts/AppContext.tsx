@@ -115,6 +115,8 @@ interface AppContextType {
   setSelectedPenulisId: (id: number | null) => void;
   selectedPenerbitId: number | null;
   setSelectedPenerbitId: (id: number | null) => void;
+  selectedNaskahId: number | null;
+  setSelectedNaskahId: (id: number | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -142,6 +144,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [selectedPenulisId, setSelectedPenulisId] = useState<number | null>(null);
   const [selectedPenerbitId, setSelectedPenerbitId] = useState<number | null>(null);
+  const [selectedNaskahId, setSelectedNaskahId] = useState<number | null>(null);
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
   const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
@@ -847,6 +850,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSelectedPenulisId,
       selectedPenerbitId,
       setSelectedPenerbitId,
+      selectedNaskahId,
+      setSelectedNaskahId,
       addInvoice,
       updateInvoice,
       deleteInvoice,

@@ -29,7 +29,7 @@ const getWhatsAppLink = (phone: string) => {
 
 const PenulisPreviewPanel: React.FC<PenulisPreviewPanelProps> = ({ penulisId }) => {
   const { contacts, addContact, showToast, showConfirm } = useAppContext();
-  const { penulis } = useCrmContext();
+  const { penulis, naskahOrders } = useCrmContext();
 
   // Cari data penulis terpilih (penulisId bisa negatif jika dari database pelanggan murni)
   const penulisData = useMemo(() => {
@@ -79,6 +79,12 @@ const PenulisPreviewPanel: React.FC<PenulisPreviewPanelProps> = ({ penulisId }) 
       is_customer: isCustomer
     };
   }, [penulis, contacts, penulisId]);
+
+  // Naskah milik penulis ini
+  const relatedNaskah = useMemo(() => {
+    if (!penulisId || penulisId < 0) return [];
+    return naskahOrders.filter((n) => n.penulis_id === penulisId);
+  }, [naskahOrders, penulisId]);
 
   const handleCopyText = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -321,6 +327,41 @@ const PenulisPreviewPanel: React.FC<PenulisPreviewPanelProps> = ({ penulisId }) 
             {penulisData.notes || 'Tidak ada catatan tambahan untuk lead penulis ini.'}
           </div>
         </div>
+
+        {/* Naskah Terkait */}
+        {relatedNaskah.length > 0 && (
+          <div>
+            <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+              📚 Naskah Terkait ({relatedNaskah.length})
+            </h5>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {relatedNaskah.map((n) => (
+                <div
+                  key={n.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    background: 'var(--bg-card)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    fontSize: '12px'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{n.title}</div>
+                    {n.genre && <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '2px' }}>{n.genre}</div>}
+                  </div>
+                  <Badge
+                    label={n.status}
+                    variant={n.status === 'Selesai' ? 'success' : n.status === 'Sedang Dikerjakan' ? 'warning' : n.status === 'Batal' ? 'danger' : 'neutral'}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Informasi Sistem & Aksi */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>

@@ -44,13 +44,20 @@ export interface NaskahOrder {
   title: string;
   penulis_id?: number;
   penerbit_id?: number;
+  // Informasi naskah
+  genre?: string;
+  total_pages?: number;
+  synopsis?: string;
+  // Detail penerbitan
   package_type?: string;
   order_type?: string;
   copies?: number;
   book_size?: string;
+  legal_type?: string;
+  // Tim & pengiriman
+  assigned_team_ids?: string; // JSON array ID anggota tim, misal "[1,3]"
   initial_request?: string;
   revised_request?: string;
-  legal_type?: string;
   shipping_address?: string;
   status: string;
   created_at: string;
@@ -60,6 +67,7 @@ export interface Layouter {
   id?: number;
   name: string;
   role: string;
+  department?: string; // Divisi/departemen: Produksi, Editorial, Desain, dst.
   is_active: number;
   weekly_target: number;
   notes?: string;
@@ -76,3 +84,4 @@ export interface WorkflowEvent {
   proof_path_or_link?: string;
   status: string;
 }
+

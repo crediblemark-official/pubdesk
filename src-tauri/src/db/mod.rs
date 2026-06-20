@@ -707,19 +707,23 @@ impl Database {
     // NaskahOrder CRUD
     pub fn add_naskah_order(&self, n: &NaskahOrder) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO naskah_orders (naskah_id_code, title, penulis_id, penerbit_id, package_type, order_type, copies, book_size, initial_request, revised_request, legal_type, shipping_address, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+            "INSERT INTO naskah_orders (naskah_id_code, title, penulis_id, penerbit_id, genre, total_pages, synopsis, package_type, order_type, copies, book_size, legal_type, assigned_team_ids, initial_request, revised_request, shipping_address, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
             params![
                 n.naskah_id_code,
                 n.title,
                 n.penulis_id,
                 n.penerbit_id,
+                n.genre,
+                n.total_pages,
+                n.synopsis,
                 n.package_type,
                 n.order_type,
                 n.copies,
                 n.book_size,
+                n.legal_type,
+                n.assigned_team_ids,
                 n.initial_request,
                 n.revised_request,
-                n.legal_type,
                 n.shipping_address,
                 n.status,
                 n.created_at
@@ -729,7 +733,9 @@ impl Database {
     }
 
     pub fn get_naskah_orders(&self) -> Result<Vec<NaskahOrder>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, naskah_id_code, title, penulis_id, penerbit_id, package_type, order_type, copies, book_size, initial_request, revised_request, legal_type, shipping_address, status, created_at FROM naskah_orders ORDER BY created_at DESC")?;
+        let mut stmt = self.conn.prepare(
+            "SELECT id, naskah_id_code, title, penulis_id, penerbit_id, genre, total_pages, synopsis, package_type, order_type, copies, book_size, legal_type, assigned_team_ids, initial_request, revised_request, shipping_address, status, created_at FROM naskah_orders ORDER BY created_at DESC"
+        )?;
         let rows = stmt.query_map([], |row| {
             Ok(NaskahOrder {
                 id: row.get(0)?,
@@ -737,16 +743,20 @@ impl Database {
                 title: row.get(2)?,
                 penulis_id: row.get(3)?,
                 penerbit_id: row.get(4)?,
-                package_type: row.get(5)?,
-                order_type: row.get(6)?,
-                copies: row.get(7)?,
-                book_size: row.get(8)?,
-                initial_request: row.get(9)?,
-                revised_request: row.get(10)?,
-                legal_type: row.get(11)?,
-                shipping_address: row.get(12)?,
-                status: row.get(13)?,
-                created_at: row.get(14)?,
+                genre: row.get(5)?,
+                total_pages: row.get(6)?,
+                synopsis: row.get(7)?,
+                package_type: row.get(8)?,
+                order_type: row.get(9)?,
+                copies: row.get(10)?,
+                book_size: row.get(11)?,
+                legal_type: row.get(12)?,
+                assigned_team_ids: row.get(13)?,
+                initial_request: row.get(14)?,
+                revised_request: row.get(15)?,
+                shipping_address: row.get(16)?,
+                status: row.get(17)?,
+                created_at: row.get(18)?,
             })
         })?;
         let mut res = Vec::new();
@@ -758,19 +768,23 @@ impl Database {
 
     pub fn update_naskah_order(&self, n: &NaskahOrder) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE naskah_orders SET naskah_id_code = ?1, title = ?2, penulis_id = ?3, penerbit_id = ?4, package_type = ?5, order_type = ?6, copies = ?7, book_size = ?8, initial_request = ?9, revised_request = ?10, legal_type = ?11, shipping_address = ?12, status = ?13 WHERE id = ?14",
+            "UPDATE naskah_orders SET naskah_id_code = ?1, title = ?2, penulis_id = ?3, penerbit_id = ?4, genre = ?5, total_pages = ?6, synopsis = ?7, package_type = ?8, order_type = ?9, copies = ?10, book_size = ?11, legal_type = ?12, assigned_team_ids = ?13, initial_request = ?14, revised_request = ?15, shipping_address = ?16, status = ?17 WHERE id = ?18",
             params![
                 n.naskah_id_code,
                 n.title,
                 n.penulis_id,
                 n.penerbit_id,
+                n.genre,
+                n.total_pages,
+                n.synopsis,
                 n.package_type,
                 n.order_type,
                 n.copies,
                 n.book_size,
+                n.legal_type,
+                n.assigned_team_ids,
                 n.initial_request,
                 n.revised_request,
-                n.legal_type,
                 n.shipping_address,
                 n.status,
                 n.id
@@ -785,13 +799,14 @@ impl Database {
         Ok(())
     }
 
-    // Layouters CRUD
+    // Layouters (Tim) CRUD
     pub fn add_layouter(&self, l: &Layouter) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO layouters (name, role, is_active, weekly_target, notes, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO layouters (name, role, department, is_active, weekly_target, notes, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![
                 l.name,
                 l.role,
+                l.department,
                 l.is_active,
                 l.weekly_target,
                 l.notes,
@@ -802,16 +817,17 @@ impl Database {
     }
 
     pub fn get_layouters(&self) -> Result<Vec<Layouter>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, name, role, is_active, weekly_target, notes, created_at FROM layouters ORDER BY name ASC")?;
+        let mut stmt = self.conn.prepare("SELECT id, name, role, department, is_active, weekly_target, notes, created_at FROM layouters ORDER BY name ASC")?;
         let rows = stmt.query_map([], |row| {
             Ok(Layouter {
                 id: row.get(0)?,
                 name: row.get(1)?,
                 role: row.get(2)?,
-                is_active: row.get(3)?,
-                weekly_target: row.get(4)?,
-                notes: row.get(5)?,
-                created_at: row.get(6)?,
+                department: row.get(3)?,
+                is_active: row.get(4)?,
+                weekly_target: row.get(5)?,
+                notes: row.get(6)?,
+                created_at: row.get(7)?,
             })
         })?;
         let mut res = Vec::new();
@@ -823,10 +839,11 @@ impl Database {
 
     pub fn update_layouter(&self, l: &Layouter) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE layouters SET name = ?1, role = ?2, is_active = ?3, weekly_target = ?4, notes = ?5 WHERE id = ?6",
+            "UPDATE layouters SET name = ?1, role = ?2, department = ?3, is_active = ?4, weekly_target = ?5, notes = ?6 WHERE id = ?7",
             params![
                 l.name,
                 l.role,
+                l.department,
                 l.is_active,
                 l.weekly_target,
                 l.notes,
