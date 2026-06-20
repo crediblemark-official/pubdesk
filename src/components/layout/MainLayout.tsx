@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import PanelKanan from './PanelKanan';
 import InvoiceGenerator from '../invoice/InvoiceGenerator';
+import InvoiceManager from '../invoice/InvoiceManager';
 import { useAppContext } from '../../contexts/AppContext';
 import TopBar from './TopBar';
 import Settings from '../settings/Settings';
@@ -65,6 +66,8 @@ const MainLayout = () => {
     switch (appState.activeModule) {
       case 'invoice':
         return <InvoiceGenerator />;
+      case 'invoice-manager':
+        return <InvoiceManager />;
       case 'extractor':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Pre-Order Extractor</h2><p>Fitur akan segera tersedia</p></div>;
       case 'files':

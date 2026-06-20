@@ -206,6 +206,11 @@ impl Database {
         Ok(())
     }
 
+    pub fn delete_invoice(&self, id: i64) -> Result<(), DbError> {
+        self.conn.execute("DELETE FROM invoices WHERE id = ?1", params![id])?;
+        Ok(())
+    }
+
     // Files
     pub fn add_file(&self, file: &File) -> Result<i64, DbError> {
         self.conn.execute(

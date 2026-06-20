@@ -77,6 +77,8 @@ export interface Invoice {
   total: number;
   export_format?: string;
   file_path?: string;
+  sync_status?: string;
+  cloud_file_url?: string;
 }
 
 export interface Service {
@@ -88,7 +90,7 @@ export interface Service {
 }
 
 export interface AppState {
-  activeModule: 'invoice' | 'extractor' | 'files' | 'ledger' | 'settings' | 'books' | 'services';
+  activeModule: 'invoice' | 'invoice-manager' | 'extractor' | 'files' | 'ledger' | 'settings' | 'books' | 'services';
 }
 
 export interface InvoiceProfile {

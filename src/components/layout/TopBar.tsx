@@ -65,7 +65,8 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
 
   const getModuleLabel = () => {
     switch (activeModule) {
-      case 'invoice': return 'Invoice';
+      case 'invoice': return 'Invoice Generator';
+      case 'invoice-manager': return 'Manajemen Invoice';
       case 'extractor': return 'Extractor';
       case 'files': return 'Files';
       case 'books': return 'Master Buku';

@@ -351,6 +351,13 @@ fn update_invoice(state: State<'_, AppState>, invoice: Invoice) -> Result<(), St
 }
 
 #[tauri::command]
+fn delete_invoice(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database not initialized")?;
+    db.delete_invoice(id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn update_invoice_sync_status(
     state: State<'_, AppState>,
     id: i64,
@@ -551,6 +558,7 @@ pub fn run() {
             get_invoices,
             add_invoice,
             update_invoice,
+            delete_invoice,
             update_invoice_sync_status,
             get_files,
             add_file,
