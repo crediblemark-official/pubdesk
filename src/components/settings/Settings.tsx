@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import InvoiceSettings from './InvoiceSettings';
 import ServiceManager from '../services/ServiceManager';
+import GASCloudSettings from './GASCloudSettings';
 import { useAppContext } from '../../contexts/AppContext';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -509,6 +510,28 @@ const Settings: React.FC = () => {
           >
             ☁️ Google Drive
           </button>
+
+          <button
+            onClick={() => setActiveSettingsTab('google-apps-script')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeSettingsTab === 'google-apps-script' ? '2px solid var(--accent)' : '2px solid transparent',
+              color: activeSettingsTab === 'google-apps-script' ? 'var(--text-primary)' : 'var(--text-secondary)',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              outline: 'none',
+              marginBottom: '-1px'
+            }}
+          >
+            ☁️ Google Apps Script (Sheets & Drive)
+          </button>
         </div>
       </div>
 
@@ -516,6 +539,7 @@ const Settings: React.FC = () => {
       <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
         {activeSettingsTab === 'invoice' && <InvoiceSettings />}
         {activeSettingsTab === 'services' && <ServiceManager />}
+        {activeSettingsTab === 'google-apps-script' && <GASCloudSettings showToast={showToast} />}
         
         {/* TAB: Folder Lokal Dipantau */}
         {activeSettingsTab === 'local-folders' && (
