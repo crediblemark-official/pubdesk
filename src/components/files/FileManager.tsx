@@ -572,9 +572,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
         flexShrink: 0
       }}>
         {/* Dropdown Jenis Filter Utama */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
           <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-            🔍 Filter Berdasarkan:
+            🔍 Filter:
           </span>
           <select
             value={filterType}
@@ -585,8 +585,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
               setSelectedTag(null);
             }}
             style={{
-              padding: '6px 10px',
-              borderRadius: '6px',
+              padding: '2px 4px',
+              borderRadius: '4px',
               border: '1px solid var(--border)',
               background: 'var(--bg-card)',
               color: 'var(--text-primary)',
@@ -594,11 +594,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
               fontWeight: '600',
               cursor: 'pointer',
               outline: 'none',
-              minWidth: '120px',
+              minWidth: '90px',
+              height: '24px',
               boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
           >
-            <option value="none">Tanpa Filter</option>
+            <option value="none">Semua</option>
             <option value="status">Status</option>
             <option value="tag">Tag</option>
           </select>
