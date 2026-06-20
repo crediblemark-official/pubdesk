@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import PanelKanan from './PanelKanan';
 import InvoiceGenerator from '../invoice/InvoiceGenerator';
+import InvoiceManager from '../invoice/InvoiceManager';
 import InvoiceInsight from '../invoice/InvoiceInsight';
 import { useAppContext } from '../../contexts/AppContext';
 import TopBar from './TopBar';
@@ -72,7 +73,7 @@ const MainLayout = () => {
       case 'invoice':
         return <InvoiceGenerator />;
       case 'invoice-manager':
-        return <FileManager searchQuery={fileSearchQuery} />;
+        return <InvoiceManager searchQuery={fileSearchQuery} />;
       case 'invoice-insight':
         return <InvoiceInsight />;
       case 'extractor':

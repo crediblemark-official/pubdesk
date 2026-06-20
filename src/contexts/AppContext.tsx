@@ -493,10 +493,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const setActiveModule = (module: AppState['activeModule']) => {
     setAppState(prev => ({ ...prev, activeModule: module }));
-    if (module === 'invoice-manager') {
-      setFileCategory('invoice');
-    }
   };
+
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type });
