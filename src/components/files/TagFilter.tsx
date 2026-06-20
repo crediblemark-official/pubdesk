@@ -13,8 +13,8 @@ export const TagFilter: React.FC<TagFilterProps> = ({ allTags, selectedTag, setS
     <div style={{
       display: 'flex',
       gap: '8px',
-      overflowX: 'auto',
-      alignItems: 'center'
+      alignItems: 'center',
+      flexShrink: 0
     }}>
       <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '4px', whiteSpace: 'nowrap' }}>
         🏷️ Filter Tag:
