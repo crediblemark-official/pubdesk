@@ -47,6 +47,17 @@ const CustomerForm: React.FC = () => {
     setActiveModule('customer-manager');
   };
 
+  const formatWhatsAppNumber = (phone: string): string => {
+    let cleaned = phone.replace(/\D/g, '');
+    if (!cleaned) return '';
+    if (cleaned.startsWith('08')) {
+      cleaned = '62' + cleaned.substring(1);
+    } else if (cleaned.startsWith('8')) {
+      cleaned = '62' + cleaned;
+    }
+    return cleaned;
+  };
+
   // Simpan data (Tambah/Edit)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +69,7 @@ const CustomerForm: React.FC = () => {
     const customerData: Contact = {
       id: editingCustomer?.id || undefined,
       name: name.trim(),
-      wa_number: waNumber.trim() || undefined,
+      wa_number: waNumber.trim() ? formatWhatsAppNumber(waNumber.trim()) : undefined,
       email: email.trim() || undefined,
       address: address.trim() || undefined,
       type: 'customer',

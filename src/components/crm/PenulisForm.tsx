@@ -57,6 +57,17 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
     }
   }, [initialData]);
 
+  const formatWhatsAppNumber = (phone: string): string => {
+    let cleaned = phone.replace(/\D/g, '');
+    if (!cleaned) return '';
+    if (cleaned.startsWith('08')) {
+      cleaned = '62' + cleaned.substring(1);
+    } else if (cleaned.startsWith('8')) {
+      cleaned = '62' + cleaned;
+    }
+    return cleaned;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -68,7 +79,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
       id: initialData?.id,
       name: name.trim(),
       email: email.trim() || undefined,
-      wa_number: waNumber.trim() || undefined,
+      wa_number: waNumber.trim() ? formatWhatsAppNumber(waNumber.trim()) : undefined,
       address: address.trim() || undefined,
       province: initialData?.province, // tetapkan data lama jika ada
       city: initialData?.city,

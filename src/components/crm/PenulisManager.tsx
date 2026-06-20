@@ -29,7 +29,7 @@ const followupVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'inf
 
 const PenulisManager: React.FC = () => {
   const { penulis, addPenulis, updatePenulis, deletePenulis } = useCrmContext();
-  const { showConfirm, showToast, contacts, addContact } = useAppContext();
+  const { showConfirm, showToast, contacts, addContact, setEditingCustomer, setActiveModule } = useAppContext();
   
   const [isEditing, setIsEditing] = useState(false);
   const [currentPenulis, setCurrentPenulis] = useState<Penulis | null>(null);
@@ -224,8 +224,19 @@ const PenulisManager: React.FC = () => {
 
   const handleEdit = (p: Penulis, e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentPenulis(p);
-    setIsEditing(true);
+    if (p.is_customer_only) {
+      const contact = contacts.find(c => c.id === -p.id!);
+      if (contact) {
+        setEditingCustomer(contact);
+        setActiveModule('customer-form');
+        showToast('Mengarahkan ke form edit Pelanggan', 'info');
+      } else {
+        showToast('Data kontak pelanggan tidak ditemukan!', 'error');
+      }
+    } else {
+      setCurrentPenulis(p);
+      setIsEditing(true);
+    }
   };
 
   const handleDelete = (id: number, name: string, e: React.MouseEvent) => {
@@ -437,17 +448,18 @@ const PenulisManager: React.FC = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%', userSelect: 'none' }}>Nama Penulis</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%', userSelect: 'none' }}>Kontak</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Lokasi & Afiliasi</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>Status</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '22%', userSelect: 'none' }}>Nama Penulis</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>WhatsApp</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '17%', userSelect: 'none' }}>Email</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Lokasi & Afiliasi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Status</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filteredPenulis.length === 0 ? (
               <TableEmptyState
-                colSpan={5}
+                colSpan={6}
                 icon="👤"
                 message="Tidak ada data penulis"
                 description={search ? `Tidak ada hasil untuk pencarian "${search}"` : "Belum ada penulis terdaftar. Klik tombol Tambah Penulis untuk membuat profil baru."}
@@ -473,31 +485,46 @@ const PenulisManager: React.FC = () => {
                     </div>
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
-                    <div>
-                      📧 {p.email || '-'} {p.email_valid === 1 && <span title="Email Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
-                    </div>
-                    <div style={{ marginTop: '2px' }}>
-                      💬 {p.wa_number ? (
-                        <a
-                          href={getWhatsAppLink(p.wa_number)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Klik untuk chat WhatsApp (Click to Chat)"
-                          style={{
-                            color: 'var(--text-primary)',
-                            textDecoration: 'none',
-                            fontWeight: '500',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
-                        >
-                          {p.wa_number} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
-                        </a>
-                      ) : '-'} {p.wa_valid === 1 && <span title="WhatsApp Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
-                    </div>
+                    {p.wa_number ? (
+                      <a
+                        href={getWhatsAppLink(p.wa_number)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Klik untuk chat WhatsApp (Click to Chat)"
+                        style={{
+                          color: 'var(--text-primary)',
+                          textDecoration: 'none',
+                          fontWeight: '500',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                        💬 {p.wa_number} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
+                      </a>
+                    ) : '-'} {p.wa_valid === 1 && <span title="WhatsApp Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
+                  </td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                    {p.email ? (
+                      <a
+                        href={`mailto:${p.email}`}
+                        title="Klik untuk mengirim email (Click to Send Email)"
+                        style={{
+                          color: 'var(--text-primary)',
+                          textDecoration: 'none',
+                          fontWeight: '500',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                        📧 {p.email} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
+                      </a>
+                    ) : '-'} {p.email_valid === 1 && <span title="Email Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                     <div style={{ whiteSpace: 'pre-line' }}>{p.address || (p.city ? `${p.city}, ${p.province || ''}` : p.province || '-')}</div>
@@ -527,25 +554,23 @@ const PenulisManager: React.FC = () => {
                           🤝 Jadi Pelanggan
                         </Button>
                       )}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => handleEdit(p, e)}
+                        style={{ padding: '4px 8px', fontSize: '11px' }}
+                      >
+                        ✏️ Edit
+                      </Button>
                       {!p.is_customer_only && (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={(e) => handleEdit(p, e)}
-                            style={{ padding: '4px 8px', fontSize: '11px' }}
-                          >
-                            ✏️ Edit
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={(e) => p.id && handleDelete(p.id, p.name, e)}
-                            style={{ padding: '4px 8px', fontSize: '11px' }}
-                          >
-                            🗑️ Hapus
-                          </Button>
-                        </>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={(e) => p.id && handleDelete(p.id, p.name, e)}
+                          style={{ padding: '4px 8px', fontSize: '11px' }}
+                        >
+                          🗑️ Hapus
+                        </Button>
                       )}
                     </div>
                   </td>
