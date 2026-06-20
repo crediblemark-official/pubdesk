@@ -497,7 +497,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>WhatsApp</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '17%', userSelect: 'none' }}>Email</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Lokasi & Afiliasi</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Status Follow-Up</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Status</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
@@ -590,29 +590,40 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
                     <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>{p.institution || '-'}</div>
                   </td>
                   <td style={{ padding: '10px 12px' }}>
-                    <Badge
-                      label={p.followup_status || 'New'}
-                      variant={followupVariantMap[p.followup_status || 'New']}
-                    />
-                  </td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                      {/* Cek apakah penulis sudah menjadi pelanggan */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Badge
+                        label={p.followup_status || 'New'}
+                        variant={followupVariantMap[p.followup_status || 'New']}
+                      />
                       {p.is_customer ? (
-                        <span style={{ fontSize: '15px', padding: '6px 10px' }} title="Sudah terdaftar sebagai pelanggan">
+                        <span style={{ fontSize: '14px', display: 'inline-flex', padding: '2px 4px' }} title="Sudah terdaftar sebagai pelanggan">
                           🤝
                         </span>
                       ) : (
-                        <Button
-                          variant="secondary"
-                          size="sm"
+                        <button
                           onClick={(e) => handlePromoteToCustomer(p, e)}
-                          title="Ubah data jadi pelanggan"
-                          style={{ padding: '6px 10px', background: 'var(--bg-panel)' }}
+                          title="Ubah data jadi pelanggan (Promosikan)"
+                          style={{ 
+                            border: 'none', 
+                            background: 'transparent', 
+                            cursor: 'pointer', 
+                            fontSize: '14px', 
+                            padding: '2px 4px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            transition: 'transform 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
                           🤝
-                        </Button>
+                        </button>
                       )}
+                    </div>
+                  </td>
+                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
                       <Button
                         variant="secondary"
                         size="sm"
