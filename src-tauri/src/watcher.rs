@@ -170,12 +170,14 @@ fn process_created_file(app_handle: &AppHandle, path: &Path) -> Result<bool, Str
     let path_str = path.to_string_lossy().to_string();
     
     let state = app_handle.state::<AppState>();
-    let db_lock = state.db.lock().unwrap();
-    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
-
-    // Cek apakah file sudah terdaftar
-    if let Ok(Some(_)) = db.get_file_by_path(&path_str) {
-        return Ok(false);
+    
+    // 1. Cek apakah file sudah terdaftar (scope lock db sangat singkat)
+    {
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+        if let Ok(Some(_)) = db.get_file_by_path(&path_str) {
+            return Ok(false);
+        }
     }
 
     let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
@@ -211,10 +213,15 @@ fn process_created_file(app_handle: &AppHandle, path: &Path) -> Result<bool, Str
         is_readonly: metadata.permissions().readonly(),
     };
 
-    let file_id = db.add_file(&new_file).map_err(|e| e.to_string())?;
+    // 2. Tambahkan ke database (scope lock db singkat)
+    let file_id = {
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+        db.add_file(&new_file).map_err(|e| e.to_string())?
+    };
     
-    // Jalankan pipeline indexing cerdas secara lokal
-    if let Err(e) = crate::indexing::pipeline::run_indexing_pipeline(db, file_id) {
+    // 3. Jalankan pipeline indexing cerdas secara lokal (tanpa memegang lock database di luar)
+    if let Err(e) = crate::indexing::pipeline::run_indexing_pipeline(app_handle, file_id) {
         println!("Gagal menjalankan pipeline indeks untuk berkas {}: {}", file_id, e);
     }
     
@@ -225,10 +232,15 @@ fn process_modified_file(app_handle: &AppHandle, path: &Path) -> Result<bool, St
     let path_str = path.to_string_lossy().to_string();
     
     let state = app_handle.state::<AppState>();
-    let db_lock = state.db.lock().unwrap();
-    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    
+    // Ambil data file jika sudah ada
+    let existing_file_opt = {
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+        db.get_file_by_path(&path_str).map_err(|e| e.to_string())?
+    };
 
-    if let Ok(Some(mut existing_file)) = db.get_file_by_path(&path_str) {
+    if let Some(mut existing_file) = existing_file_opt {
         if existing_file.path.starts_with("gdrive://") {
             return Ok(false);
         }
@@ -246,18 +258,22 @@ fn process_modified_file(app_handle: &AppHandle, path: &Path) -> Result<bool, St
         existing_file.modified_by = Some(format!("{}|local|0|system", size));
         existing_file.is_readonly = metadata.permissions().readonly();
 
-        db.update_file(&existing_file).map_err(|e| e.to_string())?;
+        // Update database (scope lock db singkat)
+        {
+            let db_lock = state.db.lock().unwrap();
+            let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+            db.update_file(&existing_file).map_err(|e| e.to_string())?;
+        }
         
         if let Some(file_id) = existing_file.id {
             // Jalankan pipeline indexing cerdas secara lokal untuk file yang diubah
-            if let Err(e) = crate::indexing::pipeline::run_indexing_pipeline(db, file_id) {
+            if let Err(e) = crate::indexing::pipeline::run_indexing_pipeline(app_handle, file_id) {
                 println!("Gagal memperbarui indeks untuk berkas {}: {}", file_id, e);
             }
         }
         
         Ok(true)
     } else {
-        drop(db_lock);
         process_created_file(app_handle, path)
     }
 }

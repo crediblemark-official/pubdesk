@@ -67,51 +67,74 @@ pub struct SearchResultInfo {
     pub version_label: Option<String>,
 }
 
-pub fn run_indexing_pipeline(db: &Database, file_id: i64) -> Result<(), String> {
-    // 0. Ambil informasi berkas dari database
-    let mut stmt = db.conn.prepare("SELECT path, filename FROM files WHERE id = ?1")
-        .map_err(|e| e.to_string())?;
-    let (file_path, file_name): (String, String) = stmt.query_row(params![file_id], |row| {
-        Ok((row.get(0)?, row.get(1)?))
-    }).map_err(|e| format!("Berkas tidak ditemukan di DB: {}", e))?;
+use tauri::{AppHandle, Manager};
+use crate::AppState;
+
+pub fn run_indexing_pipeline(app_handle: &AppHandle, file_id: i64) -> Result<(), String> {
+    // 0. Ambil informasi berkas dari database (scope lock db sangat singkat)
+    let (file_path, file_name) = {
+        let state = app_handle.state::<AppState>();
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+        
+        let mut stmt = db.conn.prepare("SELECT path, filename FROM files WHERE id = ?1")
+            .map_err(|e| e.to_string())?;
+        stmt.query_row(params![file_id], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        }).map_err(|e| format!("Berkas tidak ditemukan di DB: {}", e))?
+    }; // db_lock dilepas di sini!
     
     let path = Path::new(&file_path);
     if !path.exists() {
         return Err(format!("Berkas fisik tidak ditemukan di path: {}", file_path));
     }
 
-    // 1. Tahap Ekstraksi Teks
+    // 1. Tahap Ekstraksi Teks (I/O & CPU berat - berjalan di luar lock database!)
     let text = extract_text(path)?;
     let text_lower = text.to_lowercase();
     
-    // Hitung SHA-256 hash
+    // Hitung SHA-256 hash (I/O & CPU berat - berjalan di luar lock database!)
     let hash_val = calculate_sha256(path)?;
     
     // 2. Tahap Ekstraksi Entitas Cerdas (NER Heuristik)
     let mut entities = Vec::new();
     entities.push(("hash".to_string(), hash_val.clone()));
+
+    // Ambil data buku master & kontak master dari DB (lock db singkat)
+    let (books, contacts) = {
+        let state = app_handle.state::<AppState>();
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+        
+        let mut books = Vec::new();
+        if let Ok(mut stmt_books) = db.conn.prepare("SELECT title FROM books") {
+            if let Ok(rows) = stmt_books.query_map([], |row| row.get::<_, String>(0)) {
+                books = rows.flatten().collect();
+            }
+        }
+        
+        let mut contacts = Vec::new();
+        if let Ok(mut stmt_contacts) = db.conn.prepare("SELECT name FROM contacts") {
+            if let Ok(rows) = stmt_contacts.query_map([], |row| row.get::<_, String>(0)) {
+                contacts = rows.flatten().collect();
+            }
+        }
+        (books, contacts)
+    }; // db_lock dilepas di sini!
     
     // 2a. Deteksi Judul Buku Master
-    if let Ok(mut stmt_books) = db.conn.prepare("SELECT id, title FROM books") {
-        if let Ok(rows) = stmt_books.query_map([], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))) {
-            for row in rows.flatten() {
-                let title_lower = row.1.to_lowercase();
-                if text_lower.contains(&title_lower) || file_name.to_lowercase().contains(&title_lower) {
-                    entities.push(("judul".to_string(), row.1.clone()));
-                }
-            }
+    for title in books {
+        let title_lower = title.to_lowercase();
+        if text_lower.contains(&title_lower) || file_name.to_lowercase().contains(&title_lower) {
+            entities.push(("judul".to_string(), title));
         }
     }
     
     // 2b. Deteksi Penulis/Editor dari Kontak Master
-    if let Ok(mut stmt_contacts) = db.conn.prepare("SELECT id, name FROM contacts") {
-        if let Ok(rows) = stmt_contacts.query_map([], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))) {
-            for row in rows.flatten() {
-                let name_lower = row.1.to_lowercase();
-                if text_lower.contains(&name_lower) || file_name.to_lowercase().contains(&name_lower) {
-                    entities.push(("penulis".to_string(), row.1.clone()));
-                }
-            }
+    for name in contacts {
+        let name_lower = name.to_lowercase();
+        if text_lower.contains(&name_lower) || file_name.to_lowercase().contains(&name_lower) {
+            entities.push(("penulis".to_string(), name));
         }
     }
 
@@ -148,115 +171,122 @@ pub fn run_indexing_pipeline(db: &Database, file_id: i64) -> Result<(), String> 
     };
     entities.push(("summary".to_string(), summary));
 
-    // Simpan entitas ke DB
-    let _ = db.conn.execute("DELETE FROM file_entities WHERE file_id = ?1", params![file_id]);
-    for entity in &entities {
-        let _ = db.conn.execute(
-            "INSERT INTO file_entities (file_id, entity_type, entity_value) VALUES (?1, ?2, ?3)",
-            params![file_id, entity.0, entity.1]
-        );
-    }
+    // 3. Simpan hasil analisis ke DB (lock db singkat hanya saat menulis data)
+    {
+        let state = app_handle.state::<AppState>();
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
 
-    // 2f. Klasifikasi Otomatis Berbasis Konten (Content-Aware Classification)
-    let extension = path.extension().unwrap_or_default().to_string_lossy().to_string().to_lowercase();
-    let auto_type = classify_file_content(&file_name, &extension, &text_lower);
-    let _ = db.conn.execute(
-        "UPDATE files SET type = ?1 WHERE id = ?2",
-        params![auto_type, file_id]
-    );
-
-    // Tambahkan tag otomatis berdasarkan tipe berkas dan status draft awal
-    let auto_tag = format!("#{}", auto_type);
-    let _ = db.add_file_tag(file_id, &auto_tag);
-    let _ = db.add_file_tag(file_id, "#draft");
-
-    // 3. Tahap Pembuatan Vektor Teks (TF-IDF Vectorizer)
-    let tf_idf = compute_tf_idf_vector(&text_lower);
-    let vector_json = serde_json::to_string(&tf_idf).unwrap_or_default();
-    
-    let _ = db.conn.execute("DELETE FROM file_embeddings WHERE file_id = ?1", params![file_id]);
-    let _ = db.conn.execute(
-        "INSERT INTO file_embeddings (file_id, vector) VALUES (?1, ?2)",
-        params![file_id, vector_json]
-    );
-
-    // 4. Deteksi Duplikat & Kemiripan Versi
-    let all_embeddings = get_all_embeddings(&db.conn, file_id)?;
-    let mut max_similarity: f32 = 0.0;
-    
-    let _ = db.conn.execute("DELETE FROM file_relations WHERE source_file_id = ?1 OR target_file_id = ?1", params![file_id]);
-
-    // Cari duplikat persis menggunakan hash
-    if let Ok(mut stmt_dup) = db.conn.prepare(
-        "SELECT DISTINCT file_id FROM file_entities WHERE entity_type = 'hash' AND entity_value = ?1 AND file_id != ?2"
-    ) {
-        if let Ok(dup_rows) = stmt_dup.query_map(params![hash_val, file_id], |row| row.get::<_, i64>(0)) {
-            for dup_id in dup_rows.flatten() {
-                let _ = db.conn.execute(
-                    "INSERT OR IGNORE INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
-                    params![file_id, dup_id, "duplicate_of", 1.0]
-                );
-            }
+        // Simpan entitas ke DB
+        let _ = db.conn.execute("DELETE FROM file_entities WHERE file_id = ?1", params![file_id]);
+        for entity in &entities {
+            let _ = db.conn.execute(
+                "INSERT INTO file_entities (file_id, entity_type, entity_value) VALUES (?1, ?2, ?3)",
+                params![file_id, entity.0, entity.1]
+            );
         }
-    }
 
-    for (other_id, other_vector) in all_embeddings {
-        let similarity = calculate_cosine_similarity(&tf_idf, &other_vector);
+        // 2f. Klasifikasi Otomatis Berbasis Konten (Content-Aware Classification)
+        let extension = path.extension().unwrap_or_default().to_string_lossy().to_string().to_lowercase();
+        let auto_type = classify_file_content(&file_name, &extension, &text_lower);
+        let _ = db.conn.execute(
+            "UPDATE files SET type = ?1 WHERE id = ?2",
+            params![auto_type, file_id]
+        );
+
+        // Tambahkan tag otomatis berdasarkan tipe berkas dan status draft awal
+        let auto_tag = format!("#{}", auto_type);
+        let _ = db.add_file_tag(file_id, &auto_tag);
+        let _ = db.add_file_tag(file_id, "#draft");
+
+        // 3. Tahap Pembuatan Vektor Teks (TF-IDF Vectorizer)
+        let tf_idf = compute_tf_idf_vector(&text_lower);
+        let vector_json = serde_json::to_string(&tf_idf).unwrap_or_default();
         
-        // Versi/Revisi terdeteksi jika kemiripan sangat tinggi (> 0.80)
-        if similarity > 0.80 {
-            if similarity > max_similarity {
-                max_similarity = similarity;
-            }
-            
-            // Catat relasi versi
-            let _ = db.conn.execute(
-                "INSERT INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
-                params![file_id, other_id, "version_of", similarity]
-            );
-        } else if similarity > 0.30 {
-            // Relasi biasa
-            let _ = db.conn.execute(
-                "INSERT INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
-                params![file_id, other_id, "related_to", similarity]
-            );
-        }
-    }
-    
-    // Perbarui max similarity versi di tabel files
-    if max_similarity > 0.0 {
+        let _ = db.conn.execute("DELETE FROM file_embeddings WHERE file_id = ?1", params![file_id]);
         let _ = db.conn.execute(
-            "UPDATE files SET version_similarity = ?1 WHERE id = ?2",
-            params![max_similarity, file_id]
+            "INSERT INTO file_embeddings (file_id, vector) VALUES (?1, ?2)",
+            params![file_id, vector_json]
         );
-    }
 
-    // 5. Relasi Graf berdasarkan Kesamaan Entitas (Buku & Kontak)
-    for entity in &entities {
-        if entity.0 == "summary" {
-            continue;
-        }
-        // Cari berkas lain yang memiliki entitas yang sama
-        if let Ok(mut stmt_rel) = db.conn.prepare(
-            "SELECT DISTINCT file_id FROM file_entities WHERE entity_type = ?1 AND entity_value = ?2 AND file_id != ?3"
+        // 4. Deteksi Duplikat & Kemiripan Versi
+        let all_embeddings = get_all_embeddings(&db.conn, file_id)?;
+        let mut max_similarity: f32 = 0.0;
+        
+        let _ = db.conn.execute("DELETE FROM file_relations WHERE source_file_id = ?1 OR target_file_id = ?1", params![file_id]);
+
+        // Cari duplikat persis menggunakan hash
+        if let Ok(mut stmt_dup) = db.conn.prepare(
+            "SELECT DISTINCT file_id FROM file_entities WHERE entity_type = 'hash' AND entity_value = ?1 AND file_id != ?2"
         ) {
-            if let Ok(rows) = stmt_rel.query_map(params![entity.0, entity.1, file_id], |r| r.get::<_, i64>(0)) {
-                for other_file_id in rows.flatten() {
-                    let rel_type = if entity.0 == "judul" { "part_of" } else { "related_to" };
+            if let Ok(dup_rows) = stmt_dup.query_map(params![hash_val, file_id], |row| row.get::<_, i64>(0)) {
+                for dup_id in dup_rows.flatten() {
                     let _ = db.conn.execute(
                         "INSERT OR IGNORE INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
-                        params![file_id, other_file_id, rel_type, 0.70]
+                        params![file_id, dup_id, "duplicate_of", 1.0]
                     );
                 }
             }
         }
-    }
 
-    // 6. Inisialisasi statistik akses perilaku berkas
-    let _ = db.conn.execute(
-        "INSERT OR IGNORE INTO file_stats (file_id, access_count, last_accessed, active_project_boost) VALUES (?1, 0, NULL, 0)",
-        params![file_id]
-    );
+        for (other_id, other_vector) in all_embeddings {
+            let similarity = calculate_cosine_similarity(&tf_idf, &other_vector);
+            
+            // Versi/Revisi terdeteksi jika kemiripan sangat tinggi (> 0.80)
+            if similarity > 0.80 {
+                if similarity > max_similarity {
+                    max_similarity = similarity;
+                }
+                
+                // Catat relasi versi
+                let _ = db.conn.execute(
+                    "INSERT INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
+                    params![file_id, other_id, "version_of", similarity]
+                );
+            } else if similarity > 0.30 {
+                // Relasi biasa
+                let _ = db.conn.execute(
+                    "INSERT INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
+                    params![file_id, other_id, "related_to", similarity]
+                );
+            }
+        }
+        
+        // Perbarui max similarity versi di tabel files
+        if max_similarity > 0.0 {
+            let _ = db.conn.execute(
+                "UPDATE files SET version_similarity = ?1 WHERE id = ?2",
+                params![max_similarity, file_id]
+            );
+        }
+
+        // 5. Relasi Graf berdasarkan Kesamaan Entitas (Buku & Kontak)
+        for entity in &entities {
+            if entity.0 == "summary" {
+                continue;
+            }
+            // Cari berkas lain yang memiliki entitas yang sama
+            if let Ok(mut stmt_rel) = db.conn.prepare(
+                "SELECT DISTINCT file_id FROM file_entities WHERE entity_type = ?1 AND entity_value = ?2 AND file_id != ?3"
+            ) {
+                if let Ok(rows) = stmt_rel.query_map(params![entity.0, entity.1, file_id], |r| r.get::<_, i64>(0)) {
+                    for other_file_id in rows.flatten() {
+                        let rel_type = if entity.0 == "judul" { "part_of" } else { "related_to" };
+                        let _ = db.conn.execute(
+                            "INSERT OR IGNORE INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
+                            params![file_id, other_file_id, rel_type, 0.70]
+                        );
+                    }
+                }
+            }
+        }
+
+        // 6. Inisialisasi statistik akses perilaku berkas
+        let _ = db.conn.execute(
+            "INSERT OR IGNORE INTO file_stats (file_id, access_count, last_accessed, active_project_boost) VALUES (?1, 0, NULL, 0)",
+            params![file_id]
+        );
+    } // db_lock dilepas di sini!
 
     Ok(())
 }

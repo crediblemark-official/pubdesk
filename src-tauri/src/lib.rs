@@ -137,19 +137,26 @@ async fn add_watch_folder(
     watcher_state: State<'_, WatcherState>,
     path: String
 ) -> Result<String, String> {
-    let db_lock = state.db.lock().unwrap();
-    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
-    
-    let path_buf = std::path::PathBuf::from(&path);
-    if !path_buf.exists() || !path_buf.is_dir() {
-        return Err("Folder tidak ditemukan atau bukan merupakan direktori valid".to_string());
-    }
+    let (path_abs, paths) = {
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+        
+        let path_buf = std::path::PathBuf::from(&path);
+        if !path_buf.exists() || !path_buf.is_dir() {
+            return Err("Folder tidak ditemukan atau bukan merupakan direktori valid".to_string());
+        }
 
-    let path_abs = path_buf.canonicalize()
-        .map_err(|e| format!("Gagal memetakan path absolut: {}", e))?
-        .to_string_lossy().to_string();
+        let path_abs = path_buf.canonicalize()
+            .map_err(|e| format!("Gagal memetakan path absolut: {}", e))?
+            .to_string_lossy().to_string();
 
-    db.add_watch_folder(&path_abs).map_err(|e| e.to_string())?;
+        db.add_watch_folder(&path_abs).map_err(|e| e.to_string())?;
+
+        let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
+        let paths: Vec<std::path::PathBuf> = watch_folders.iter().map(|f| std::path::PathBuf::from(&f.path)).collect();
+        
+        (path_abs, paths)
+    }; // db_lock dilepas secara otomatis di sini!
 
     let app_handle_clone = app_handle.clone();
     let path_abs_clone = path_abs.clone();
@@ -159,9 +166,6 @@ async fn add_watch_folder(
         let _ = app_handle_clone.emit("local-files-changed", ());
     });
 
-    let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
-    let paths: Vec<std::path::PathBuf> = watch_folders.iter().map(|f| std::path::PathBuf::from(&f.path)).collect();
-    
     let mut manager_lock = watcher_state.manager.lock().unwrap();
     if let Some(manager) = manager_lock.as_mut() {
         manager.start(paths)?;
@@ -176,19 +180,22 @@ async fn remove_watch_folder(
     watcher_state: State<'_, WatcherState>,
     id: i64
 ) -> Result<(), String> {
-    let db_lock = state.db.lock().unwrap();
-    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
-    
-    let folders = db.get_watch_folders().map_err(|e| e.to_string())?;
-    if let Some(target) = folders.iter().find(|f| f.id == Some(id)) {
-        let _ = db.delete_files_by_prefix(&target.path);
-    }
+    let paths = {
+        let db_lock = state.db.lock().unwrap();
+        let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+        
+        let folders = db.get_watch_folders().map_err(|e| e.to_string())?;
+        if let Some(target) = folders.iter().find(|f| f.id == Some(id)) {
+            let _ = db.delete_files_by_prefix(&target.path);
+        }
 
-    db.delete_watch_folder(id).map_err(|e| e.to_string())?;
+        db.delete_watch_folder(id).map_err(|e| e.to_string())?;
 
-    let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
-    let paths: Vec<std::path::PathBuf> = watch_folders.iter().map(|f| std::path::PathBuf::from(&f.path)).collect();
-    
+        let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
+        let paths: Vec<std::path::PathBuf> = watch_folders.iter().map(|f| std::path::PathBuf::from(&f.path)).collect();
+        paths
+    }; // db_lock dilepas secara otomatis di sini!
+
     let mut manager_lock = watcher_state.manager.lock().unwrap();
     if let Some(manager) = manager_lock.as_mut() {
         manager.start(paths)?;
