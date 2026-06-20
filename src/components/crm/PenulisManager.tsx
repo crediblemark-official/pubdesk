@@ -29,7 +29,7 @@ const followupVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'inf
 
 const PenulisManager: React.FC = () => {
   const { penulis, addPenulis, updatePenulis, deletePenulis } = useCrmContext();
-  const { showConfirm, showToast, contacts, addContact, setEditingCustomer, setActiveModule } = useAppContext();
+  const { showConfirm, showToast, contacts, addContact, updateContact } = useAppContext();
   
   const [isEditing, setIsEditing] = useState(false);
   const [currentPenulis, setCurrentPenulis] = useState<Penulis | null>(null);
@@ -224,19 +224,8 @@ const PenulisManager: React.FC = () => {
 
   const handleEdit = (p: Penulis, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (p.is_customer_only) {
-      const contact = contacts.find(c => c.id === -p.id!);
-      if (contact) {
-        setEditingCustomer(contact);
-        setActiveModule('customer-form');
-        showToast('Mengarahkan ke form edit Pelanggan', 'info');
-      } else {
-        showToast('Data kontak pelanggan tidak ditemukan!', 'error');
-      }
-    } else {
-      setCurrentPenulis(p);
-      setIsEditing(true);
-    }
+    setCurrentPenulis(p);
+    setIsEditing(true);
   };
 
   const handleDelete = (id: number, name: string, e: React.MouseEvent) => {
@@ -260,7 +249,22 @@ const PenulisManager: React.FC = () => {
 
   const handleFormSubmit = async (data: Omit<Penulis, 'created_at' | 'id'> & { id?: number }) => {
     try {
-      if (data.id) {
+      if (data.id && data.id < 0) {
+        const contactId = -data.id;
+        const originalContact = contacts.find(c => c.id === contactId);
+        if (originalContact) {
+          await updateContact({
+            ...originalContact,
+            name: data.name,
+            wa_number: data.wa_number,
+            email: data.email,
+            address: data.address
+          });
+          showToast('Data pelanggan berhasil diperbarui!', 'success');
+        } else {
+          showToast('Kontak pelanggan tidak ditemukan!', 'error');
+        }
+      } else if (data.id) {
         const original = penulis.find(p => p.id === data.id);
         if (original) {
           await updatePenulis({
@@ -277,15 +281,15 @@ const PenulisManager: React.FC = () => {
       setCurrentPenulis(null);
     } catch (err) {
       console.error(err);
-      showToast('Gagal menyimpan data penulis!', 'error');
+      showToast('Gagal menyimpan data!', 'error');
     }
   };
 
   const handlePromoteToCustomer = (p: Penulis, e: React.MouseEvent) => {
     e.stopPropagation();
     showConfirm({
-      title: 'Promosikan Menjadi Pelanggan',
-      message: `Apakah Anda yakin ingin mempromosikan penulis "${p.name}" menjadi pelanggan?`,
+      title: 'Ubah Data Jadi Pelanggan',
+      message: `Apakah Anda yakin data ini akan diubah jadi pelanggan?`,
       confirmText: 'Ya, Promosikan',
       type: 'primary',
       onConfirm: async () => {
@@ -540,36 +544,38 @@ const PenulisManager: React.FC = () => {
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
                       {/* Cek apakah penulis sudah menjadi pelanggan */}
                       {p.is_customer ? (
-                        <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: '600', padding: '4px 8px', borderRadius: '12px', background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', gap: '4px' }} title="Sudah terdaftar sebagai pelanggan">
-                          🤝 Pelanggan
+                        <span style={{ fontSize: '15px', padding: '6px 10px' }} title="Sudah terdaftar sebagai pelanggan">
+                          🤝
                         </span>
                       ) : (
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={(e) => handlePromoteToCustomer(p, e)}
-                          title="Promosikan penulis menjadi Pelanggan"
-                          style={{ padding: '4px 8px', fontSize: '11px', background: 'var(--bg-panel)' }}
+                          title="Ubah data jadi pelanggan"
+                          style={{ padding: '6px 10px', background: 'var(--bg-panel)' }}
                         >
-                          🤝 Jadi Pelanggan
+                          🤝
                         </Button>
                       )}
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={(e) => handleEdit(p, e)}
-                        style={{ padding: '4px 8px', fontSize: '11px' }}
+                        style={{ padding: '6px 10px' }}
+                        title="Edit Profil"
                       >
-                        ✏️ Edit
+                        ✏️
                       </Button>
                       {!p.is_customer_only && (
                         <Button
                           variant="danger"
                           size="sm"
                           onClick={(e) => p.id && handleDelete(p.id, p.name, e)}
-                          style={{ padding: '4px 8px', fontSize: '11px' }}
+                          style={{ padding: '6px 10px' }}
+                          title="Hapus Lead"
                         >
-                          🗑️ Hapus
+                          🗑️
                         </Button>
                       )}
                     </div>

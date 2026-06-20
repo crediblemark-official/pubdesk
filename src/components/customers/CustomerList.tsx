@@ -1,8 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
+import { useCrmContext } from '../../contexts/CrmContext';
 import { Contact } from '../../types/contact.types';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
+import { Badge } from '../../ui/atoms/Badge';
+
+const followupVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'accent'> = {
+  'New': 'info',
+  'Contacted': 'warning',
+  'Interested': 'accent',
+  'Deal': 'success',
+  'Rejected': 'danger',
+  'Pelanggan': 'success'
+};
 
 const CustomerList: React.FC = () => {
   const {
@@ -13,6 +24,8 @@ const CustomerList: React.FC = () => {
     setEditingCustomer,
     setActiveModule
   } = useAppContext();
+
+  const { penulis } = useCrmContext();
 
   // State pencarian lokal
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,18 +115,7 @@ const CustomerList: React.FC = () => {
           />
         </div>
 
-        {/* Tombol Tambah Pelanggan */}
-        <Button 
-          onClick={() => {
-            setEditingCustomer(null);
-            setActiveModule('customer-form');
-          }}
-          variant="primary"
-          size="sm"
-          icon="➕"
-        >
-          Tambah Pelanggan
-        </Button>
+        {/* Tombol Tambah Pelanggan dihilangkan karena penambahan terpusat di Lead Penulis & Invoice */}
       </div>
 
       {/* Tabel Data (Membentang penuh seperti FileList) */}
@@ -122,104 +124,119 @@ const CustomerList: React.FC = () => {
           <thead>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '6%', textAlign: 'center', userSelect: 'none' }}>Avatar</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '24%', userSelect: 'none' }}>Nama Pelanggan</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Email</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '17%', userSelect: 'none' }}>Kontak WhatsApp</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Alamat Instansi / Pengiriman</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '22%', userSelect: 'none' }}>Nama Pelanggan</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Email</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>Kontak WhatsApp</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Alamat Instansi / Pengiriman</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '10%', userSelect: 'none' }}>Status</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '11%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filteredCustomers.length === 0 ? (
               <TableEmptyState
-                colSpan={6}
+                colSpan={7}
                 icon="👥"
                 message="Tidak ada data pelanggan"
-                description={searchQuery ? `Tidak ada hasil untuk pencarian "${searchQuery}"` : "Belum ada pelanggan terdaftar. Tambahkan pelanggan baru untuk memulai."}
+                description={searchQuery ? `Tidak ada hasil untuk pencarian "${searchQuery}"` : "Belum ada pelanggan terdaftar."}
               />
             ) : (
-              filteredCustomers.map((customer) => (
-                <tr
-                  key={customer.id}
-                  style={{
-                    borderBottom: '1px solid var(--border)',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    transition: 'background 0.1s ease',
-                    color: 'var(--text-primary)'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                >
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '16px' }}>
-                    👤
-                  </td>
-                  <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                    <div>{customer.name}</div>
-                  </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
-                    {customer.email ? (
-                      <div>📧 {customer.email}</div>
-                    ) : (
-                      <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada email</span>
-                    )}
-                  </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
-                    {customer.wa_number ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>{customer.wa_number}</span>
-                        <button
-                          onClick={(e) => handleCopyWa(customer.wa_number!, e)}
-                          style={{ 
-                            border: 'none', 
-                            background: 'transparent', 
-                            cursor: 'pointer', 
-                            fontSize: '12px', 
-                            padding: '4px', 
-                            opacity: 0.6,
-                            borderRadius: '4px',
-                            transition: 'opacity 0.15s ease'
-                          }}
-                          onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
-                          onMouseOut={(e) => e.currentTarget.style.opacity = '0.6'}
-                          title="Salin nomor WhatsApp"
-                        >
-                          📋
-                        </button>
+              filteredCustomers.map((customer) => {
+                const customerPenulis = penulis.find(p => 
+                  p.name.toLowerCase() === customer.name.toLowerCase() || 
+                  (customer.wa_number && p.wa_number === customer.wa_number)
+                );
+                const status = customerPenulis?.followup_status || 'Pelanggan';
+
+                return (
+                  <tr
+                    key={customer.id}
+                    style={{
+                      borderBottom: '1px solid var(--border)',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      transition: 'background 0.1s ease',
+                      color: 'var(--text-primary)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '16px' }}>
+                      👤
+                    </td>
+                    <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                      <div>{customer.name}</div>
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                      {customer.email ? (
+                        <div>📧 {customer.email}</div>
+                      ) : (
+                        <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada email</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                      {customer.wa_number ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{customer.wa_number}</span>
+                          <button
+                            onClick={(e) => handleCopyWa(customer.wa_number!, e)}
+                            style={{ 
+                              border: 'none', 
+                              background: 'transparent', 
+                              cursor: 'pointer', 
+                              fontSize: '12px', 
+                              padding: '4px', 
+                              opacity: 0.6,
+                              borderRadius: '4px',
+                              transition: 'opacity 0.15s ease'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                            onMouseOut={(e) => e.currentTarget.style.opacity = '0.6'}
+                            title="Salin nomor WhatsApp"
+                          >
+                            📋
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada</span>
+                      )}
+                    </td>
+                     <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }} title={customer.address}>
+                      <div style={{ whiteSpace: 'pre-line', lineHeight: '1.4' }}>
+                        {customer.address || <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada alamat terdaftar</span>}
                       </div>
-                    ) : (
-                      <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada</span>
-                    )}
-                  </td>
-                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }} title={customer.address}>
-                    <div style={{ whiteSpace: 'pre-line', lineHeight: '1.4' }}>
-                      {customer.address || <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada alamat terdaftar</span>}
-                    </div>
-                  </td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={(e) => handleStartEdit(customer, e)}
-                        style={{ padding: '4px 8px', fontSize: '11px' }}
-                        title="Edit Rincian Pelanggan"
-                      >
-                        ✏️ Edit
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={(e) => customer.id && handleDeleteCustomer(customer.id, customer.name, e)}
-                        style={{ padding: '4px 8px', fontSize: '11px' }}
-                        title="Hapus Pelanggan"
-                      >
-                        🗑️ Hapus
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <Badge 
+                        label={status}
+                        variant={followupVariantMap[status] || 'success'}
+                      />
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => handleStartEdit(customer, e)}
+                          style={{ padding: '6px 10px' }}
+                          title="Edit Rincian Pelanggan"
+                        >
+                          ✏️
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={(e) => customer.id && handleDeleteCustomer(customer.id, customer.name, e)}
+                          style={{ padding: '6px 10px' }}
+                          title="Hapus Pelanggan"
+                        >
+                          🗑️
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
