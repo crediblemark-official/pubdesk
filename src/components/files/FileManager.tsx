@@ -571,43 +571,89 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
         overflowX: 'auto',
         flexShrink: 0
       }}>
-        {/* Dropdown Jenis Filter Utama */}
+        {/* Jenis Filter Utama (Badge) */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '4px', whiteSpace: 'nowrap' }}>
             🔍 Filter:
           </span>
-          <select
-            value={filterType}
-            onChange={(e) => {
-              const val = e.target.value as 'none' | 'status' | 'tag';
-              setFilterType(val);
+          <button
+            onClick={() => {
+              setFilterType('none');
               setSelectedStatus(null);
               setSelectedTag(null);
             }}
             style={{
-              padding: '0 20px 0 8px',
-              borderRadius: '4px',
-              border: '1px solid var(--border)',
-              background: 'url("data:image/svg+xml;utf8,<svg fill=\'%235e5a55\' height=\'12\' viewBox=\'0 0 24 24\' width=\'12\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/></svg>\") no-repeat right 6px center var(--bg-card)',
-              color: 'var(--text-primary)',
-              fontSize: '11px',
-              fontWeight: '500',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: '600',
               cursor: 'pointer',
-              outline: 'none',
-              minWidth: '80px',
+              background: filterType === 'none' ? 'var(--accent)' : 'var(--bg-card)',
+              color: filterType === 'none' ? '#ffffff' : 'var(--text-secondary)',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
               height: '24px',
-              lineHeight: '22px',
-              WebkitAppearance: 'none',
-              MozAppearance: 'none',
-              appearance: 'none',
-              boxSizing: 'border-box',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+              boxSizing: 'border-box'
             }}
           >
-            <option value="none">Semua</option>
-            <option value="status">Status</option>
-            <option value="tag">Tag</option>
-          </select>
+            Semua
+          </button>
+          <button
+            onClick={() => {
+              setFilterType('status');
+              setSelectedStatus(null);
+              setSelectedTag(null);
+            }}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              background: filterType === 'status' ? 'var(--accent)' : 'var(--bg-card)',
+              color: filterType === 'status' ? '#ffffff' : 'var(--text-secondary)',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: '24px',
+              boxSizing: 'border-box'
+            }}
+          >
+            Status
+          </button>
+          <button
+            onClick={() => {
+              setFilterType('tag');
+              setSelectedStatus(null);
+              setSelectedTag(null);
+            }}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              background: filterType === 'tag' ? 'var(--accent)' : 'var(--bg-card)',
+              color: filterType === 'tag' ? '#ffffff' : 'var(--text-secondary)',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: '24px',
+              boxSizing: 'border-box'
+            }}
+          >
+            Tag
+          </button>
         </div>
 
         {/* Dropdown Nilai Status (Kondisional) */}
