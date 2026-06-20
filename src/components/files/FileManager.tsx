@@ -558,16 +558,33 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
-      {/* Baris Filter Status & Tag */}
-      <StatusFilter
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-      />
-      <TagFilter
-        allTags={allTags}
-        selectedTag={selectedTag}
-        setSelectedTag={setSelectedTag}
-      />
+      {/* Baris Filter Status & Tag Terpadu (Satu baris compact) */}
+      <div style={{
+        display: 'flex',
+        gap: '20px',
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--bg-panel)',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        flexShrink: 0
+      }}>
+        <StatusFilter
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+        />
+        
+        {/* Garis Pemisah Vertikal */}
+        {allTags.length > 0 && (
+          <div style={{ width: '1px', height: '16px', background: 'var(--border)', flexShrink: 0 }} />
+        )}
+
+        <TagFilter
+          allTags={allTags}
+          selectedTag={selectedTag}
+          setSelectedTag={setSelectedTag}
+        />
+      </div>
 
       {/* Daftar Berkas */}
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)', padding: fileLayoutMode === 'grid' ? '16px' : '0' }}>
