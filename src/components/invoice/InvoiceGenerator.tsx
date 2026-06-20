@@ -4,7 +4,7 @@ import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { InvoiceItem } from '../../types';
 
 const InvoiceGenerator: React.FC = () => {
-  const { services, addInvoice, addFile, showToast, rightPanelVisible } = useAppContext();
+  const { services, addInvoice, addFile, showToast, rightPanelVisible, invoices } = useAppContext();
   const {
     customer, setCustomer,
     items, addItem, removeItem,
@@ -32,6 +32,18 @@ const InvoiceGenerator: React.FC = () => {
   const [customTitle, setCustomTitle] = useState('');
   const [dynamicInputs, setDynamicInputs] = useState<Record<string, any>>({});
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
+
+  // Auto-generate nomor invoice (diawali KBM) ketika kosong
+  useEffect(() => {
+    if (!invoiceNo && invoices.length >= 0) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const seq = String(invoices.length + 1).padStart(4, '0');
+      setInvoiceNo(`KBM/${year}/${month}/${day}/${seq}`);
+    }
+  }, [invoices, invoiceNo, setInvoiceNo]);
 
   // Dynamically set default values when activeProfile changes
   useEffect(() => {

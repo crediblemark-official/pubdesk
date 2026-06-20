@@ -242,6 +242,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setItems([]);
     setShippingCost(0);
     setAdminFee(0);
+    setInvoiceNo('');
     setInvoiceDate(getIndonesianDate());
     setPaymentStatus('LUNAS');
     
