@@ -229,6 +229,12 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
     }
   };
 
+  const handleCopyText = (text: string, label: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    showToast(`${label} disalin!`, 'success');
+  };
+
   const handleAddNew = () => {
     setCurrentPenulis(null);
     setIsEditing(true);
@@ -618,48 +624,82 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                     {p.wa_number ? (
-                      <a
-                        href={getWhatsAppLink(p.wa_number)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Klik untuk chat WhatsApp (Click to Chat)"
-                        style={{
-                          color: 'var(--text-primary)',
-                          textDecoration: 'none',
-                          fontWeight: '500',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
-                      >
-                        💬 {p.wa_number} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
-                      </a>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <a
+                          href={getWhatsAppLink(p.wa_number)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Klik untuk chat WhatsApp (Click to Chat)"
+                          style={{
+                            color: 'var(--text-primary)',
+                            textDecoration: 'none',
+                            fontWeight: '500',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                        >
+                          💬 {p.wa_number} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
+                        </a>
+                        <button
+                          onClick={(e) => handleCopyText(p.wa_number!, 'Nomor WhatsApp', e)}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px', opacity: 0.6 }}
+                          title="Salin WhatsApp"
+                        >
+                          📋
+                        </button>
+                      </div>
                     ) : '-'} {p.wa_valid === 1 && <span title="WhatsApp Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                     {p.email ? (
-                      <a
-                        href={`mailto:${p.email}`}
-                        title="Klik untuk mengirim email (Click to Send Email)"
-                        style={{
-                          color: 'var(--text-primary)',
-                          textDecoration: 'none',
-                          fontWeight: '500',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
-                      >
-                        📧 {p.email} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
-                      </a>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <a
+                          href={`mailto:${p.email}`}
+                          title="Klik untuk mengirim email (Click to Send Email)"
+                          style={{
+                            color: 'var(--text-primary)',
+                            textDecoration: 'none',
+                            fontWeight: '500',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                        >
+                          📧 {p.email} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
+                        </a>
+                        <button
+                          onClick={(e) => handleCopyText(p.email!, 'Email', e)}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px', opacity: 0.6 }}
+                          title="Salin Email"
+                        >
+                          📋
+                        </button>
+                      </div>
                     ) : '-'} {p.email_valid === 1 && <span title="Email Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
-                    <div style={{ whiteSpace: 'pre-line' }}>{p.address || (p.city ? `${p.city}, ${p.province || ''}` : p.province || '-')}</div>
+                    {(() => {
+                      const resolvedAddress = p.address || (p.city ? `${p.city}, ${p.province || ''}` : p.province || '');
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'space-between' }}>
+                          <span style={{ whiteSpace: 'pre-line' }}>{resolvedAddress || '-'}</span>
+                          {resolvedAddress && (
+                            <button
+                              onClick={(e) => handleCopyText(resolvedAddress, 'Alamat', e)}
+                              style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px', opacity: 0.6, flexShrink: 0 }}
+                              title="Salin Alamat"
+                            >
+                              📋
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                     {p.data_source || '-'}
