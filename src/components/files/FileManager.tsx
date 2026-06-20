@@ -38,6 +38,19 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const isTreeView = true;
   const [expandedFolders, setExpandedFolders] = React.useState<Record<string, boolean>>({});
 
+  // Auto-scroll ke berkas yang terpilih
+  React.useEffect(() => {
+    if (selectedFileId !== null && selectedFileId !== undefined) {
+      const timer = setTimeout(() => {
+        const element = document.querySelector(`[data-file-id="${selectedFileId}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedFileId]);
+
   const fetchTagsData = async () => {
     try {
       const tags = await getAllTags();
@@ -772,6 +785,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
               return (
                 <div
                   key={file.id}
+                  data-file-id={file.id}
                   onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
@@ -951,6 +965,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                   return (
                     <tr
                       key={row.id}
+                      data-file-id={isFolder ? undefined : row.file?.id}
                       onClick={() => {
                         if (isFolder) {
                           setExpandedFolders(prev => ({
@@ -1165,6 +1180,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                   return (
                     <tr
                       key={file.id}
+                      data-file-id={file.id}
                       onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
                       onDoubleClick={(e) => {
                         e.stopPropagation();

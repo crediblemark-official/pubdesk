@@ -738,17 +738,38 @@ const PanelKanan: React.FC = () => {
                           boxShadow: '0 0 0 1px var(--border)'
                         }} />
                         
-                        <div style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          background: 'var(--bg-card)',
-                          padding: '10px 12px',
-                          borderRadius: '10px',
-                          border: '1px solid var(--border)',
-                          fontSize: '12px',
-                          gap: '6px',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-                        }}>
+                        <div 
+                          onClick={() => {
+                            const found = files.find(f => f.id === rel.file_id);
+                            if (found) {
+                              setSelectedFileId(rel.file_id);
+                            }
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'var(--bg-panel)';
+                            e.currentTarget.style.borderColor = 'var(--accent)';
+                            e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.06)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'var(--bg-card)';
+                            e.currentTarget.style.borderColor = 'var(--border)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
+                          }}
+                          title="Klik untuk melihat berkas ini"
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            background: 'var(--bg-card)',
+                            padding: '10px 12px',
+                            borderRadius: '10px',
+                            border: '1px solid var(--border)',
+                            fontSize: '12px',
+                            gap: '6px',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{
                               padding: '2px 6px',
@@ -767,14 +788,7 @@ const PanelKanan: React.FC = () => {
                           </div>
                           
                           <span 
-                            style={{ fontWeight: '600', color: 'var(--text-primary)', wordBreak: 'break-all', cursor: 'pointer' }}
-                            onClick={() => {
-                              const found = files.find(f => f.id === rel.file_id);
-                              if (found) {
-                                setSelectedFileId(rel.file_id);
-                              }
-                            }}
-                            title="Klik untuk melihat berkas ini"
+                            style={{ fontWeight: '600', color: 'var(--text-primary)', wordBreak: 'break-all' }}
                           >
                             {rel.filename}
                           </span>
