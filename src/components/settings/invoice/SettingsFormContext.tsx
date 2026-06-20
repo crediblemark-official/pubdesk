@@ -68,6 +68,18 @@ export interface SettingsFormContextType {
   setWatermarkOpacity: (v: number) => void;
   invoiceNoFormat: string;
   setInvoiceNoFormat: (v: string) => void;
+  companyWebsite: string;
+  setCompanyWebsite: (v: string) => void;
+  companyEmail: string;
+  setCompanyEmail: (v: string) => void;
+  companyYoutube: string;
+  setCompanyYoutube: (v: string) => void;
+  companyInstagram: string;
+  setCompanyInstagram: (v: string) => void;
+  companyPhone: string;
+  setCompanyPhone: (v: string) => void;
+  showCompanyContact: boolean;
+  setShowCompanyContact: (v: boolean) => void;
 }
 
 export const SettingsFormContext = createContext<SettingsFormContextType | undefined>(undefined);

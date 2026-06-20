@@ -74,4 +74,10 @@ export interface InvoiceProfile {
   watermarkColor?: string;
   watermarkOpacity?: number;
   invoiceNoFormat?: string;
+  companyWebsite?: string;
+  companyEmail?: string;
+  companyYoutube?: string;
+  companyInstagram?: string;
+  companyPhone?: string;
+  showCompanyContact?: boolean;
 }

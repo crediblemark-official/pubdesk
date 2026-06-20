@@ -12,6 +12,7 @@ import NotesSection from './invoice/NotesSection';
 import SignatureSection from './invoice/SignatureSection';
 import BankSection from './invoice/BankSection';
 import ColumnsSection from './invoice/ColumnsSection';
+import ContactSection from './invoice/ContactSection';
 
 const InvoiceSettings: React.FC = () => {
   const {
@@ -61,6 +62,12 @@ const InvoiceSettings: React.FC = () => {
   const [watermarkColor, setWatermarkColor] = useState('');
   const [watermarkOpacity, setWatermarkOpacity] = useState<number>(8); // Default 8%
   const [invoiceNoFormat, setInvoiceNoFormat] = useState('KBM/{year}/{month}/{day}/{seq}');
+  const [companyWebsite, setCompanyWebsite] = useState('');
+  const [companyEmail, setCompanyEmail] = useState('');
+  const [companyYoutube, setCompanyYoutube] = useState('');
+  const [companyInstagram, setCompanyInstagram] = useState('');
+  const [companyPhone, setCompanyPhone] = useState('');
+  const [showCompanyContact, setShowCompanyContact] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -159,6 +166,12 @@ const InvoiceSettings: React.FC = () => {
       setWatermarkColor('');
       setWatermarkOpacity(8);
       setInvoiceNoFormat('KBM/{year}/{month}/{day}/{seq}');
+      setCompanyWebsite('');
+      setCompanyEmail('');
+      setCompanyYoutube('');
+      setCompanyInstagram('');
+      setCompanyPhone('');
+      setShowCompanyContact(false);
     } else {
       const profile = profiles.find((p) => p.id === selectedProfileId);
       if (profile) {
@@ -204,6 +217,12 @@ const InvoiceSettings: React.FC = () => {
         setWatermarkColor(profile.watermarkColor || '');
         setWatermarkOpacity(profile.watermarkOpacity !== undefined ? profile.watermarkOpacity : 8);
         setInvoiceNoFormat(profile.invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}');
+        setCompanyWebsite(profile.companyWebsite || '');
+        setCompanyEmail(profile.companyEmail || '');
+        setCompanyYoutube(profile.companyYoutube || '');
+        setCompanyInstagram(profile.companyInstagram || '');
+        setCompanyPhone(profile.companyPhone || '');
+        setShowCompanyContact(profile.showCompanyContact || false);
       }
     }
   }, [selectedProfileId, isEditingNew, profiles]);
@@ -250,7 +269,13 @@ const InvoiceSettings: React.FC = () => {
     shippingType,
     watermarkColor,
     watermarkOpacity,
-    invoiceNoFormat
+    invoiceNoFormat,
+    companyWebsite,
+    companyEmail,
+    companyYoutube,
+    companyInstagram,
+    companyPhone,
+    showCompanyContact
   };
 
   const handleSave = () => {
@@ -325,6 +350,12 @@ const InvoiceSettings: React.FC = () => {
     setWatermarkColor(p.watermarkColor || '');
     setWatermarkOpacity(p.watermarkOpacity !== undefined ? p.watermarkOpacity : 8);
     setInvoiceNoFormat((p as any).invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}');
+    setCompanyWebsite((p as any).companyWebsite || '');
+    setCompanyEmail((p as any).companyEmail || '');
+    setCompanyYoutube((p as any).companyYoutube || '');
+    setCompanyInstagram((p as any).companyInstagram || '');
+    setCompanyPhone((p as any).companyPhone || '');
+    setShowCompanyContact((p as any).showCompanyContact || false);
 
     setShowTemplateModal(false);
   };
@@ -571,7 +602,19 @@ const InvoiceSettings: React.FC = () => {
               watermarkOpacity,
               setWatermarkOpacity,
               invoiceNoFormat,
-              setInvoiceNoFormat
+              setInvoiceNoFormat,
+              companyWebsite,
+              setCompanyWebsite,
+              companyEmail,
+              setCompanyEmail,
+              companyYoutube,
+              setCompanyYoutube,
+              companyInstagram,
+              setCompanyInstagram,
+              companyPhone,
+              setCompanyPhone,
+              showCompanyContact,
+              setShowCompanyContact
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -582,6 +625,7 @@ const InvoiceSettings: React.FC = () => {
               {renderAccordionSection(5, '5. Tanda Tangan Penutup', <SignatureSection />)}
               {renderAccordionSection(6, '6. Informasi Rekening Bank', <BankSection />)}
               {renderAccordionSection(7, '7. Kolom Tabel Rincian Invoice', <ColumnsSection />)}
+              {renderAccordionSection(8, '8. Informasi Kontak Profil', <ContactSection />)}
             </div>
           </SettingsFormContext.Provider>
 

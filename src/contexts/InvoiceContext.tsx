@@ -4,12 +4,24 @@ import { Contact } from '../types/contact.types';
 import { invoiceTemplates } from '../data/invoiceTemplates';
 import { getIndonesianDate, evaluateItemFormula } from '../utils/invoice';
 
-const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => ({
-  ...t.profile,
-  id: t.templateId,
-  name: t.profile.name || t.label,
-  invoiceNoFormat: (t.profile as any).invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}'
-})) as InvoiceProfile[];
+const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => {
+  const isKBMTmpl = t.profile.companyName?.toUpperCase().includes('KBM') || 
+                    t.profile.companyName?.toUpperCase().includes('SASTRABOOK') ||
+                    t.templateId.toUpperCase().includes('KBM') ||
+                    t.templateId.toUpperCase().includes('SASTRABOOK');
+  return {
+    ...t.profile,
+    id: t.templateId,
+    name: t.profile.name || t.label,
+    invoiceNoFormat: (t.profile as any).invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}',
+    companyWebsite: (t.profile as any).companyWebsite || (isKBMTmpl ? 'penerbitkbm.com | penerbitbukumurah.com' : ''),
+    companyEmail: (t.profile as any).companyEmail || (isKBMTmpl ? 'naskah@penerbitkbm.com' : ''),
+    companyYoutube: (t.profile as any).companyYoutube || (isKBMTmpl ? 'Penerbit KBM Sastrabook' : ''),
+    companyInstagram: (t.profile as any).companyInstagram || (isKBMTmpl ? '@penerbit.sastrabook / @penerbit.kbmindonesia' : ''),
+    companyPhone: (t.profile as any).companyPhone || (isKBMTmpl ? '0813 5751 7526' : ''),
+    showCompanyContact: (t.profile as any).showCompanyContact !== undefined ? (t.profile as any).showCompanyContact : isKBMTmpl
+  };
+}) as InvoiceProfile[];
 
 interface InvoiceContextType {
   customer: Partial<Contact>;
