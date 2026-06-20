@@ -1,6 +1,7 @@
 /**
  * Service untuk integrasi Google Apps Script (Google Sheets & Google Drive)
  */
+import { invoke } from '@tauri-apps/api/core';
 
 export interface GASInvoiceItem {
   item_title: string;
@@ -89,25 +90,19 @@ export const googleAppsScriptService = {
       auth_token: token,
       action: 'create_invoice',
       ...invoiceData,
-      file_base64: fileBase64,
+      file_base_64: fileBase64,
       file_name: fileName || `Invoice-${invoiceData.invoice_no?.replace(/\//g, '_') || 'DRAF'}.pdf`,
       file_mime_type: 'application/pdf'
     };
 
-    const response = await fetch(url, {
+    // Melakukan request native menggunakan Rust backend (Bebas dari CORS block!)
+    const responseText = await invoke<string>('call_gas_api', {
+      url,
       method: 'POST',
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8' // Menggunakan text/plain agar browser tidak mengirim request preflight CORS OPTIONS yang rumit ke GAS
-      },
-      body: JSON.stringify(payload)
+      payloadJson: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
+    const result = JSON.parse(responseText);
     if (result.status === 'error') {
       throw new Error(result.message || 'Terjadi kesalahan dari Google Apps Script');
     }
@@ -129,16 +124,15 @@ export const googleAppsScriptService = {
     }
 
     const requestUrl = `${url}?auth_token=${encodeURIComponent(token)}&action=get_invoices`;
-    const response = await fetch(requestUrl, {
+    
+    // Melakukan request native menggunakan Rust backend (Bebas dari CORS block!)
+    const responseText = await invoke<string>('call_gas_api', {
+      url: requestUrl,
       method: 'GET',
-      mode: 'cors'
+      payloadJson: null
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     if (data.status === 'error') {
       throw new Error(data.message || 'Terjadi kesalahan dari Google Apps Script');
     }

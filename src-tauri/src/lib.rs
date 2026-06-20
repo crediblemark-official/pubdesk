@@ -475,6 +475,39 @@ async fn record_file_access(
 }
 
 #[tauri::command]
+async fn call_gas_api(
+    url: String,
+    method: String,
+    payload_json: Option<String>,
+) -> Result<String, String> {
+    let client = reqwest::Client::new();
+    let response = if method.to_uppercase() == "POST" {
+        let body = payload_json.unwrap_or_default();
+        client.post(&url)
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| format!("Request POST gagal: {}", e))?
+    } else {
+        client.get(&url)
+            .send()
+            .await
+            .map_err(|e| format!("Request GET gagal: {}", e))?
+    };
+
+    let status = response.status();
+    let text = response.text().await
+        .map_err(|e| format!("Gagal membaca response text: {}", e))?;
+
+    if !status.is_success() {
+        return Err(format!("Server merespons dengan status {}: {}", status, text));
+    }
+
+    Ok(text)
+}
+
+#[tauri::command]
 async fn global_semantic_search(
     state: State<'_, AppState>,
     query: String,
@@ -526,6 +559,7 @@ pub fn run() {
             get_related_files,
             record_file_access,
             global_semantic_search,
+            call_gas_api,
             add_file_tag,
             remove_file_tag,
             get_file_tags,

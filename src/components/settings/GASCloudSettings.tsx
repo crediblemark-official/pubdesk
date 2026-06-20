@@ -35,17 +35,20 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
     showToast('Menguji koneksi ke Google Apps Script...', 'info');
 
     try {
-      // Panggil endpoint GET untuk menguji
+      const { invoke } = await import('@tauri-apps/api/core');
       const testUrl = `${urlInput.trim()}?auth_token=${encodeURIComponent(tokenInput.trim())}&action=get_invoices`;
-      const response = await fetch(testUrl, {
+      
+      const responseText = await invoke<string>('call_gas_api', {
+        url: testUrl,
         method: 'GET',
-        mode: 'cors'
+        payloadJson: null
       });
 
-      if (response.ok) {
-        showToast('Koneksi sukses! Google Apps Script merespons dengan benar.', 'success');
+      const data = JSON.parse(responseText);
+      if (data && data.status === 'error') {
+        showToast(`Koneksi gagal! ${data.message}`, 'error');
       } else {
-        showToast(`Koneksi gagal! HTTP status: ${response.status}`, 'error');
+        showToast('Koneksi sukses! Google Apps Script merespons dengan benar.', 'success');
       }
     } catch (err: any) {
       console.error(err);
