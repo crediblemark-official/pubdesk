@@ -8,6 +8,7 @@ use sha2::{Sha256, Digest};
 use std::fs::File as StdFile;
 use std::io::Read;
 
+#[allow(dead_code)]
 fn calculate_sha256(path: &Path) -> Result<String, String> {
     let mut file = StdFile::open(path).map_err(|e| e.to_string())?;
     let mut hasher = Sha256::new();
