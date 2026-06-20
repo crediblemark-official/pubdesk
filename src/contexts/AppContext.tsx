@@ -119,6 +119,8 @@ interface AppContextType {
   setSelectedNaskahId: (id: number | null) => void;
   selectedLayouterId: number | null;
   setSelectedLayouterId: (id: number | null) => void;
+  selectedLegalitasId: number | null;
+  setSelectedLegalitasId: (id: number | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -148,6 +150,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [selectedPenerbitId, setSelectedPenerbitId] = useState<number | null>(null);
   const [selectedNaskahId, setSelectedNaskahId] = useState<number | null>(null);
   const [selectedLayouterId, setSelectedLayouterId] = useState<number | null>(null);
+  const [selectedLegalitasId, setSelectedLegalitasId] = useState<number | null>(null);
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
   const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
@@ -857,6 +860,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSelectedNaskahId,
       selectedLayouterId,
       setSelectedLayouterId,
+      selectedLegalitasId,
+      setSelectedLegalitasId,
       addInvoice,
       updateInvoice,
       deleteInvoice,

@@ -2,7 +2,11 @@ import React, { createContext, useContext, useState, ReactNode, useMemo, useEffe
 import { InvoiceItem, InvoiceProfile } from '../types/invoice.types';
 import { Contact } from '../types/contact.types';
 import { invoiceTemplates } from '../data/invoiceTemplates';
-import { getIndonesianDate, evaluateItemFormula } from '../utils/invoice';
+import { evaluateItemFormula, getIndonesianDate } from '../utils/invoice';
+
+export interface InvoiceCustomerData extends Partial<Contact> {
+  isPenulis?: boolean;
+}
 
 const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => {
   const isKBMTmpl = t.profile.companyName?.toUpperCase().includes('KBM') || 
@@ -27,7 +31,7 @@ const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => {
 }) as InvoiceProfile[];
 
 interface InvoiceContextType {
-  customer: Partial<Contact>;
+  customer: InvoiceCustomerData;
   items: InvoiceItem[];
   shippingCost: number;
   adminFee: number;
@@ -42,7 +46,7 @@ interface InvoiceContextType {
   profiles: InvoiceProfile[];
   activeProfileId: string;
   activeProfile: InvoiceProfile | undefined;
-  setCustomer: (customer: Partial<Contact> | ((prev: Partial<Contact>) => Partial<Contact>)) => void;
+  setCustomer: (customer: InvoiceCustomerData | ((prev: InvoiceCustomerData) => InvoiceCustomerData)) => void;
   addItem: (item: InvoiceItem) => void;
   updateItem: (index: number, item: Partial<InvoiceItem>) => void;
   removeItem: (index: number) => void;
@@ -72,11 +76,12 @@ interface InvoiceContextType {
 const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
 
 export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [customer, setCustomerState] = useState<Partial<Contact>>({
+  const [customer, setCustomerState] = useState<InvoiceCustomerData>({
     name: '',
     wa_number: '',
     email: '',
-    address: ''
+    address: '',
+    isPenulis: false
   });
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [shippingCost, setShippingCost] = useState(0);
@@ -165,7 +170,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [activeProfile]);
 
-  const setCustomer = (customerOrUpdater: Partial<Contact> | ((prev: Partial<Contact>) => Partial<Contact>)) => {
+  const setCustomer = (customerOrUpdater: InvoiceCustomerData | ((prev: InvoiceCustomerData) => InvoiceCustomerData)) => {
     setCustomerState(customerOrUpdater);
   };
 
@@ -211,7 +216,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const resetInvoice = () => {
-    setCustomer({ name: '', wa_number: '', email: '', address: '' });
+    setCustomer({ name: '', wa_number: '', email: '', address: '', isPenulis: false });
     setItems([]);
     setShippingCost(0);
     setAdminFee(0);
@@ -281,7 +286,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         name: metadata.customerName || '',
         wa_number: metadata.customerWa || '',
         email: (metadata as any).customerEmail || '',
-        address: metadata.customerAddress || ''
+        address: metadata.customerAddress || '',
+        isPenulis: (metadata as any).isPenulis || false
       });
       
       let parsedItems = [];

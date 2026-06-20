@@ -32,6 +32,9 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentMember, setCurrentMember] = useState<Layouter | null>(null);
 
+  // ID baris yang sedang terseleksi (highlight lokal)
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
   // Filter state — badge multi-select untuk status
   const [activeStatuses, setActiveStatuses] = useState<string[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState('');
@@ -81,8 +84,18 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
     setIsEditing(true);
   };
 
+  // Single click — seleksi baris saja
   const handleRowClick = (id?: number) => {
     if (id) {
+      setSelectedId(id);
+      setSelectedLayouterId(id);
+    }
+  };
+
+  // Double click — buka panel preview kanan
+  const handleRowDoubleClick = (id?: number) => {
+    if (id) {
+      setSelectedId(id);
       setSelectedLayouterId(id);
       setRightPanelVisible(true);
     }
@@ -269,14 +282,19 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
                   key={l.id}
                   style={{
                     borderBottom: '1px solid var(--border)',
-                    background: 'transparent',
+                    background: selectedId === l.id ? 'rgba(99,102,241,0.08)' : 'transparent',
                     cursor: 'pointer',
                     transition: 'background 0.1s ease',
                     color: 'var(--text-primary)'
                   }}
                   onClick={() => handleRowClick(l.id)}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.02)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  onDoubleClick={() => handleRowDoubleClick(l.id)}
+                  onMouseEnter={(e) => {
+                    if (selectedId !== l.id) e.currentTarget.style.background = 'rgba(0,0,0,0.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedId !== l.id) e.currentTarget.style.background = 'transparent';
+                  }}
                 >
                   <td style={{ padding: '10px 12px', fontWeight: '600' }}>
                     <div>{l.name}</div>

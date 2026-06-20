@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useFileState } from '../../contexts/FileContext';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
+import { useCrmContext } from '../../contexts/CrmContext';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
 import { MetadataSection } from './generator-sections/MetadataSection';
 import { CustomerSection } from './generator-sections/CustomerSection';
@@ -11,6 +12,7 @@ import { GlobalCostsSection } from './generator-sections/GlobalCostsSection';
 const InvoiceGenerator: React.FC = () => {
   const { addInvoice, updateInvoice, showToast, rightPanelVisible, invoices, contacts, addContact, updateContact } = useAppContext();
   const { addFile, updateFile, files } = useFileState();
+  const { penulis, addPenulis, updatePenulis } = useCrmContext();
   const {
     customer,
     items,
@@ -62,38 +64,79 @@ const InvoiceGenerator: React.FC = () => {
       return;
     }
 
-    // Auto-save/update pelanggan ke database SQLite tabel contacts saat invoice disimpan
+    const isPenulis = customer.isPenulis;
+    let contactId: number | undefined = undefined;
     const customerNameTrimmed = customer.name.trim();
-    const existingContact = contacts.find(c => c.type === 'customer' && c.name.toLowerCase() === customerNameTrimmed.toLowerCase());
-    let contactId = existingContact?.id;
 
-    if (!existingContact) {
-      try {
-        contactId = await addContact({
-          name: customerNameTrimmed,
-          wa_number: customer.wa_number?.trim() || undefined,
-          email: customer.email?.trim() || undefined,
-          address: customer.address?.trim() || undefined,
-          type: 'customer',
-          created_at: new Date().toISOString()
-        });
-      } catch (err) {
-        console.error('Gagal menyimpan pelanggan baru secara otomatis:', err);
-      }
-    } else {
-      const hasWaChanged = (customer.wa_number?.trim() || '') !== (existingContact.wa_number || '');
-      const hasEmailChanged = (customer.email?.trim() || '') !== (existingContact.email || '');
-      const hasAddressChanged = (customer.address?.trim() || '') !== (existingContact.address || '');
-      if (hasWaChanged || hasEmailChanged || hasAddressChanged) {
+    if (isPenulis) {
+      // Auto-save/update ke tabel Penulis (CRM)
+      const existingPenulis = penulis.find(p => p.name.toLowerCase() === customerNameTrimmed.toLowerCase());
+      if (!existingPenulis) {
         try {
-          await updateContact({
-            ...existingContact,
-            wa_number: customer.wa_number?.trim() || existingContact.wa_number,
-            email: customer.email?.trim() || existingContact.email,
-            address: customer.address?.trim() || existingContact.address
+          await addPenulis({
+            name: customerNameTrimmed,
+            wa_number: customer.wa_number?.trim() || '',
+            email: customer.email?.trim() || '',
+            address: customer.address?.trim() || '',
+            data_source: 'Invoice',
+            email_valid: 0,
+            wa_valid: 0
           });
         } catch (err) {
-          console.error('Gagal memperbarui data kontak secara otomatis:', err);
+          console.error('Gagal menyimpan penulis baru secara otomatis:', err);
+        }
+      } else {
+        const hasWaChanged = (customer.wa_number?.trim() || '') !== (existingPenulis.wa_number || '');
+        const hasEmailChanged = (customer.email?.trim() || '') !== (existingPenulis.email || '');
+        const hasAddressChanged = (customer.address?.trim() || '') !== (existingPenulis.address || '');
+        if (hasWaChanged || hasEmailChanged || hasAddressChanged) {
+          try {
+            await updatePenulis({
+              ...existingPenulis,
+              wa_number: customer.wa_number?.trim() || existingPenulis.wa_number,
+              email: customer.email?.trim() || existingPenulis.email,
+              address: customer.address?.trim() || existingPenulis.address
+            });
+          } catch (err) {
+            console.error('Gagal memperbarui data penulis secara otomatis:', err);
+          }
+        }
+      }
+      // Kita biarkan contactId undefined jika penulis, karena customer_id di tabel invoices merujuk pada tabel contacts.
+      // Opsional: kita bisa tetap sinkron ke tabel contacts sebagai cache. Tapi untuk saat ini biarkan null sesuai plan.
+    } else {
+      // Auto-save/update pelanggan ke database SQLite tabel contacts saat invoice disimpan
+      const existingContact = contacts.find(c => c.type === 'customer' && c.name.toLowerCase() === customerNameTrimmed.toLowerCase());
+      contactId = existingContact?.id;
+
+      if (!existingContact) {
+        try {
+          contactId = await addContact({
+            name: customerNameTrimmed,
+            wa_number: customer.wa_number?.trim() || undefined,
+            email: customer.email?.trim() || undefined,
+            address: customer.address?.trim() || undefined,
+            type: 'customer',
+            created_at: new Date().toISOString()
+          });
+        } catch (err) {
+          console.error('Gagal menyimpan pelanggan baru secara otomatis:', err);
+        }
+      } else {
+        const hasWaChanged = (customer.wa_number?.trim() || '') !== (existingContact.wa_number || '');
+        const hasEmailChanged = (customer.email?.trim() || '') !== (existingContact.email || '');
+        const hasAddressChanged = (customer.address?.trim() || '') !== (existingContact.address || '');
+        if (hasWaChanged || hasEmailChanged || hasAddressChanged) {
+          try {
+            await updateContact({
+              ...existingContact,
+              wa_number: customer.wa_number?.trim() || existingContact.wa_number,
+              email: customer.email?.trim() || existingContact.email,
+              address: customer.address?.trim() || existingContact.address
+            });
+          } catch (err) {
+            console.error('Gagal memperbarui data kontak secara otomatis:', err);
+          }
         }
       }
     }
@@ -115,7 +158,8 @@ const InvoiceGenerator: React.FC = () => {
       customerName: customerNameTrimmed,
       customerWa: customer.wa_number || '',
       customerEmail: customer.email || '',
-      customerAddress: customer.address || ''
+      customerAddress: customer.address || '',
+      isPenulis
     };
 
     const invoiceData = {

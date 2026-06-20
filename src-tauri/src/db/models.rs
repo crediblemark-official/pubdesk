@@ -256,7 +256,6 @@ pub struct NaskahOrder {
     pub total_pages: Option<i64>,
     pub synopsis: Option<String>,
     // Detail penerbitan
-    pub package_type: Option<String>,
     pub order_type: Option<String>,
     pub copies: Option<i64>,
     pub book_size: Option<String>,
@@ -266,6 +265,7 @@ pub struct NaskahOrder {
     pub initial_request: Option<String>,
     pub revised_request: Option<String>,
     pub shipping_address: Option<String>,
+    pub store_links: Option<String>, // JSON array format: [{ platform, url }]
     pub status: String,
     pub created_at: String,
 }
@@ -281,7 +281,6 @@ impl Default for NaskahOrder {
             genre: None,
             total_pages: None,
             synopsis: None,
-            package_type: None,
             order_type: None,
             copies: None,
             book_size: None,
@@ -290,6 +289,7 @@ impl Default for NaskahOrder {
             initial_request: None,
             revised_request: None,
             shipping_address: None,
+            store_links: None,
             status: "Belum Dimulai".to_string(),
             created_at: Local::now().to_rfc3339(),
         }
@@ -350,4 +350,29 @@ impl Default for WorkflowEvent {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Legalitas {
+    pub id: Option<i64>,
+    pub judul_buku: String,
+    pub nama_penulis: String,
+    pub tipe: String, // E-ISBN, ISBN, QRCBN, dll
+    pub tanggal_pengajuan: Option<String>,
+    pub keterangan: Option<String>,
+    pub status: String,
+    pub created_at: String,
+}
 
+impl Default for Legalitas {
+    fn default() -> Self {
+        Self {
+            id: None,
+            judul_buku: String::new(),
+            nama_penulis: String::new(),
+            tipe: "E-ISBN".to_string(),
+            tanggal_pengajuan: None,
+            keterangan: None,
+            status: "Diajukan".to_string(),
+            created_at: Local::now().to_rfc3339(),
+        }
+    }
+}

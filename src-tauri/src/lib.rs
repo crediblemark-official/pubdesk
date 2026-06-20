@@ -667,6 +667,34 @@ async fn delete_layouter(state: State<'_, AppState>, id: i64) -> Result<(), Stri
     db.delete_layouter(id).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn get_legalitas(state: State<'_, AppState>) -> Result<Vec<Legalitas>, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_legalitas().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_legalitas(state: State<'_, AppState>, legalitas: Legalitas) -> Result<i64, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.add_legalitas(&legalitas).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn update_legalitas(state: State<'_, AppState>, legalitas: Legalitas) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.update_legalitas(&legalitas).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn delete_legalitas(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.delete_legalitas(id).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -735,7 +763,11 @@ pub fn run() {
             get_layouters,
             add_layouter,
             update_layouter,
-            delete_layouter
+            delete_layouter,
+            get_legalitas,
+            add_legalitas,
+            update_legalitas,
+            delete_legalitas
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

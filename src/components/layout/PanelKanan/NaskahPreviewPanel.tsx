@@ -92,7 +92,6 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
       naskahData.legal_type,
       naskahData.penulis_id,
       naskahData.penerbit_id,
-      naskahData.package_type,
       naskahData.order_type,
       naskahData.copies,
     ];
@@ -287,6 +286,52 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
           <InfoRow label="Legalitas" value={naskahData.legal_type || '—'} noBorder />
         </SectionCard>
 
+        {/* Toko Online / Distribusi */}
+        {naskahData.store_links && (
+          <SectionCard title="🌐 Toko Online / Distribusi">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {(() => {
+                try {
+                  const links = JSON.parse(naskahData.store_links);
+                  if (Array.isArray(links) && links.length > 0) {
+                    return links.map((link: { platform: string; url: string }, idx: number) => (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '10px 14px',
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          color: 'var(--text-primary)',
+                          transition: 'background 0.2s ease',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: '600' }}>{link.platform || 'Link'}</span>
+                        <span style={{ fontSize: '12px', color: '#8b5cf6', background: 'rgba(139,92,246,0.1)', padding: '2px 8px', borderRadius: '12px' }}>
+                          Buka ↗
+                        </span>
+                      </a>
+                    ));
+                  }
+                  return <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Belum ada link toko online</div>;
+                } catch {
+                  return <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Data link tidak valid</div>;
+                }
+              })()}
+            </div>
+          </SectionCard>
+        )}
+
         {/* Penulis */}
         <SectionCard title="✍️ Penulis">
           {penulisData ? (
@@ -391,8 +436,7 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
         </SectionCard>
 
         {/* Detail Produksi */}
-        <SectionCard title="📦 Detail Produksi">
-          <InfoRow label="Paket" value={naskahData.package_type || 'Standar'} />
+        <SectionCard title="📦 Detail Penerbitan">
           <InfoRow label="Tipe Order" value={naskahData.order_type || '—'} />
           <InfoRow label="Jumlah Cetak" value={naskahData.copies ? `${naskahData.copies} eksemplar` : '—'} noBorder />
         </SectionCard>

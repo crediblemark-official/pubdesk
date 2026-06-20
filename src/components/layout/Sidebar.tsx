@@ -36,6 +36,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 appState.activeModule === 'crm-penerbit' ||
                 appState.activeModule === 'crm-naskah' ||
                 appState.activeModule === 'crm-tim' ||
+                appState.activeModule === 'crm-legalitas' ||
+                appState.activeModule === 'pelanggan' ||
                 appState.activeModule === 'naskah-orders' ||
                 appState.activeModule === 'layouters'
               )
@@ -75,6 +77,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                       'crm-penerbit',
                       'crm-naskah',
                       'crm-tim',
+                      'crm-legalitas',
+                      'pelanggan',
                       'naskah-orders',
                       'layouters'
                     ].includes(appState.activeModule);
@@ -160,10 +164,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               {showMasterDataSubmenu && (
                 <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
                   {[
-                    { module: 'crm-penulis' as const, label: 'Lead Penulis', icon: '👤' },
-                    { module: 'crm-penerbit' as const, label: 'CRM Penerbit', icon: '🏢' },
-                    { module: 'crm-naskah' as const, label: 'Database Naskah', icon: '📚' },
-                    { module: 'crm-tim' as const, label: 'Tim', icon: '👥' },
+                    { module: 'crm-penulis' as const, label: 'Penulis', icon: '👤' },
+                    { module: 'crm-penerbit' as const, label: 'Penerbit', icon: '🏢' },
+                    { module: 'crm-naskah' as const, label: 'Naskah', icon: '📚' },
+                    { module: 'crm-legalitas' as const, label: 'Legalitas', icon: '⚖️' },
+                    { module: 'pelanggan' as const, label: 'Pelanggan', icon: '👥' },
+                    { module: 'crm-tim' as const, label: 'Tim', icon: '👨‍💼' },
                   ].map((sub) => {
                     const isSubActive = appState.activeModule === sub.module;
                     return (

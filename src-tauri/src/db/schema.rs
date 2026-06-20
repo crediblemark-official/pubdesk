@@ -241,6 +241,7 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
             revised_request TEXT,
             legal_type TEXT,
             shipping_address TEXT,
+            store_links TEXT,
             status TEXT NOT NULL DEFAULT 'Belum Dimulai',
             created_at TEXT NOT NULL
         )",
@@ -284,6 +285,22 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
     let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN total_pages INTEGER", []);
     let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN synopsis TEXT", []);
     let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN assigned_team_ids TEXT", []);
+    let _ = conn.execute("ALTER TABLE naskah_orders ADD COLUMN store_links TEXT", []);
+
+    // Legalitas table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS legalitas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            judul_buku TEXT NOT NULL,
+            nama_penulis TEXT NOT NULL,
+            tipe TEXT NOT NULL,
+            tanggal_pengajuan TEXT,
+            keterangan TEXT,
+            status TEXT NOT NULL DEFAULT 'Diajukan',
+            created_at TEXT NOT NULL
+        )",
+        [],
+    )?;
 
     Ok(())
 }

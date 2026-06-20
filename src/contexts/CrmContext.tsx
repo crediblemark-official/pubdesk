@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Penulis, Penerbit, NaskahOrder, Layouter } from '../types/crm.types';
+import { Penulis, Penerbit, NaskahOrder, Layouter, Legalitas } from '../types/crm.types';
 
 interface CrmContextType {
   penulis: Penulis[];
@@ -23,6 +23,11 @@ interface CrmContextType {
   addLayouter: (l: Omit<Layouter, 'created_at'>) => Promise<number>;
   updateLayouter: (l: Layouter) => Promise<void>;
   deleteLayouter: (id: number) => Promise<void>;
+  legalitas: Legalitas[];
+  loadLegalitas: () => Promise<void>;
+  addLegalitas: (l: Omit<Legalitas, 'created_at'>) => Promise<number>;
+  updateLegalitas: (l: Legalitas) => Promise<void>;
+  deleteLegalitas: (id: number) => Promise<void>;
 }
 
 const CrmContext = createContext<CrmContextType | undefined>(undefined);
@@ -32,6 +37,16 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [penerbit, setPenerbit] = useState<Penerbit[]>([]);
   const [naskahOrders, setNaskahOrders] = useState<NaskahOrder[]>([]);
   const [layouters, setLayouters] = useState<Layouter[]>([]);
+  const [legalitas, setLegalitas] = useState<Legalitas[]>([]);
+
+  const loadLegalitas = async () => {
+    try {
+      const data = await invoke<Legalitas[]>('get_legalitas');
+      setLegalitas(data);
+    } catch (err) {
+      console.error('Gagal memuat data legalitas:', err);
+    }
+  };
 
   const loadPenulis = async () => {
     try {
@@ -202,11 +217,45 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const addLegalitas = async (l: Omit<Legalitas, 'created_at'>) => {
+    try {
+      const payload = {
+        ...l,
+        created_at: new Date().toISOString()
+      };
+      const id = await invoke<number>('add_legalitas', { legalitas: payload });
+      await loadLegalitas();
+      return id;
+    } catch (err) {
+      console.error('Gagal menambah legalitas:', err);
+      return 0;
+    }
+  };
+
+  const updateLegalitas = async (l: Legalitas) => {
+    try {
+      await invoke('update_legalitas', { legalitas: l });
+      await loadLegalitas();
+    } catch (err) {
+      console.error('Gagal mengupdate legalitas:', err);
+    }
+  };
+
+  const deleteLegalitas = async (id: number) => {
+    try {
+      await invoke('delete_legalitas', { id });
+      await loadLegalitas();
+    } catch (err) {
+      console.error('Gagal menghapus legalitas:', err);
+    }
+  };
+
   useEffect(() => {
     loadPenulis();
     loadPenerbit();
     loadNaskahOrders();
     loadLayouters();
+    loadLegalitas();
   }, []);
 
   return (
@@ -216,10 +265,12 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         penerbit,
         naskahOrders,
         layouters,
+        legalitas,
         loadPenulis,
         loadPenerbit,
         loadNaskahOrders,
         loadLayouters,
+        loadLegalitas,
         addPenulis,
         updatePenulis,
         deletePenulis,
@@ -231,7 +282,10 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         deleteNaskahOrder,
         addLayouter,
         updateLayouter,
-        deleteLayouter
+        deleteLayouter,
+        addLegalitas,
+        updateLegalitas,
+        deleteLegalitas,
       }}
     >
       {children}

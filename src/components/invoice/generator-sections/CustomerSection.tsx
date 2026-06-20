@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useAppContext } from '../../../contexts/AppContext';
+import { useCrmContext } from '../../../contexts/CrmContext';
 
 export const CustomerSection: React.FC = () => {
   const { customer, setCustomer } = useInvoiceContext();
   const { contacts } = useAppContext();
+  const { penulis } = useCrmContext();
   const [waInput, setWaInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Saring kontak bertipe 'customer'
   const customers = contacts.filter(c => c.type === 'customer');
 
+  // Gabungkan pelanggan dan penulis untuk suggestions
+  const allContacts = [
+    ...customers.map(c => ({ ...c, source: 'Pelanggan' })),
+    ...penulis.map(p => ({ ...p, source: 'Penulis' }))
+  ];
+
   // Saring data suggestion berdasarkan input Nama saat ini
-  const filteredSuggestions = customers.filter(c => 
+  const filteredSuggestions = allContacts.filter(c => 
     customer.name && c.name.toLowerCase().includes(customer.name.toLowerCase())
   );
 
@@ -103,12 +111,14 @@ export const CustomerSection: React.FC = () => {
               <div
                 key={c.id}
                 onClick={() => {
-                  setCustomer({
+                  setCustomer(prev => ({
+                    ...prev,
                     name: c.name,
                     wa_number: c.wa_number || '',
                     email: c.email || '',
-                    address: c.address || ''
-                  });
+                    address: c.address || '',
+                    isPenulis: c.source === 'Penulis'
+                  }));
                   setShowSuggestions(false);
                 }}
                 style={{
@@ -121,7 +131,12 @@ export const CustomerSection: React.FC = () => {
                 onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
-                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{c.name}</div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>{c.name}</span>
+                  <span style={{ fontSize: '10px', background: c.source === 'Penulis' ? 'rgba(99,102,241,0.1)' : 'rgba(16,185,129,0.1)', color: c.source === 'Penulis' ? 'var(--accent)' : '#10b981', padding: '2px 6px', borderRadius: '4px' }}>
+                    {c.source}
+                  </span>
+                </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                   WA: {c.wa_number || '-'} | Email: {c.email || '-'}
                 </div>
@@ -162,6 +177,19 @@ export const CustomerSection: React.FC = () => {
           onChange={(e) => setCustomer(prev => ({ ...prev, address: e.target.value }))}
           placeholder="Alamat Pengiriman"
         />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', padding: '12px', background: 'var(--bg-panel)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+        <input
+          type="checkbox"
+          id="isPenulis"
+          checked={customer.isPenulis || false}
+          onChange={(e) => setCustomer(prev => ({ ...prev, isPenulis: e.target.checked }))}
+          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+        />
+        <label htmlFor="isPenulis" style={{ fontSize: '14px', color: 'var(--text-primary)', cursor: 'pointer', userSelect: 'none' }}>
+          Apakah pelanggan ini penulis? (Simpan ke Master Data Penulis)
+        </label>
       </div>
     </>
   );

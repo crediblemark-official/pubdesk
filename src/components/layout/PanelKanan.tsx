@@ -9,6 +9,8 @@ import PenulisPreviewPanel from './PanelKanan/PenulisPreviewPanel';
 import PenerbitPreviewPanel from './PanelKanan/PenerbitPreviewPanel';
 import NaskahPreviewPanel from './PanelKanan/NaskahPreviewPanel';
 import TimPreviewPanel from './PanelKanan/TimPreviewPanel';
+import LegalitasPreviewPanel from './PanelKanan/LegalitasPreviewPanel';
+import PelangganPreviewPanel from './PanelKanan/PelangganPreviewPanel';
 
 /**
  * PanelKanan — orchestrator panel pratinjau di sisi kanan layar.
@@ -83,6 +85,12 @@ const PanelKanan: React.FC = () => {
     case 'crm-tim':
     case 'layouters':
       return <TimPreviewPanel layouterId={selectedLayouterId} />;
+
+    case 'crm-legalitas':
+      return <LegalitasPreviewPanel />;
+
+    case 'pelanggan':
+      return <PelangganPreviewPanel />;
 
     // Settings — tampilkan preview layanan jika tab services aktif
     case 'settings':

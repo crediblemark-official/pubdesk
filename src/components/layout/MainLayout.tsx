@@ -17,6 +17,8 @@ import PenulisManager from '../crm/PenulisManager';
 import PenerbitManager from '../crm/PenerbitManager';
 import NaskahOrdersManager from '../crm/NaskahOrdersManager';
 import LayouterManager from '../crm/LayouterManager';
+import LegalitasManager from '../crm/LegalitasManager';
+import PelangganManager from '../crm/PelangganManager';
 
 
 const MainLayout = () => {
@@ -99,6 +101,10 @@ const MainLayout = () => {
       case 'crm-tim':
       case 'layouters':
         return <LayouterManager searchQuery={fileSearchQuery} />;
+      case 'crm-legalitas':
+        return <LegalitasManager searchQuery={fileSearchQuery} />;
+      case 'pelanggan':
+        return <PelangganManager searchQuery={fileSearchQuery} />;
       case 'ledger':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':

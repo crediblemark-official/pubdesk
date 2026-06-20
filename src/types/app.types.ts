@@ -16,8 +16,10 @@ export type AppModule =
   | 'crm-penerbit'
   | 'crm-naskah'
   | 'crm-tim'
+  | 'crm-legalitas'
   | 'naskah-orders'
-  | 'layouters';
+  | 'layouters'
+  | 'pelanggan';
 
 export interface AppState {
   activeModule: AppModule;

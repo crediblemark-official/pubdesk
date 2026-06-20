@@ -49,11 +49,15 @@ export interface NaskahOrder {
   total_pages?: number;
   synopsis?: string;
   // Detail penerbitan
-  package_type?: string;
   order_type?: string;
   copies?: number;
   book_size?: string;
   legal_type?: string;
+  assigned_team_ids?: string;
+  initial_request?: string;
+  revised_request?: string;
+  shipping_address?: string;
+  store_links?: string; // JSON string format: [{ platform, url }]
   status: string;
   created_at: string;
 }
@@ -76,6 +80,16 @@ export interface WorkflowEvent {
   pic_name?: string;
   notes?: string;
   proof_path_or_link?: string;
-  status: string;
+  status: string; // "Belum Dimulai", "Sedang Dikerjakan", "Selesai", "Terkendala"
 }
 
+export interface Legalitas {
+  id?: number;
+  judul_buku: string;
+  nama_penulis: string;
+  tipe: string; // E-ISBN, ISBN, QRCBN, QRSBN, HAKI, dll.
+  tanggal_pengajuan?: string;
+  keterangan?: string;
+  status: string; // "Diajukan", "Selesai", dll.
+  created_at: string;
+}

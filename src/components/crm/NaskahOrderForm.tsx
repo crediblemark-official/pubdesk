@@ -28,11 +28,14 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
   const [status, setStatus] = useState('Belum Dimulai');
 
   // Field detail penerbitan
-  const [packageType, setPackageType] = useState('Standar');
   const [orderType, setOrderType] = useState('Baru');
   const [copies, setCopies] = useState<number>(0);
   const [bookSize, setBookSize] = useState('14x20');
   const [legalType, setLegalType] = useState('ISBN');
+
+  // Field store links (Toko Online)
+  interface StoreLink { platform: string; url: string; }
+  const [storeLinks, setStoreLinks] = useState<StoreLink[]>([]);
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -46,11 +49,19 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
       setTotalPages(initialData.total_pages || undefined);
       setSynopsis(initialData.synopsis || '');
       setStatus(initialData.status);
-      setPackageType(initialData.package_type || 'Standar');
       setOrderType(initialData.order_type || 'Baru');
       setCopies(initialData.copies || 0);
       setBookSize(initialData.book_size || '14x20');
       setLegalType(initialData.legal_type || 'ISBN');
+      if (initialData.store_links) {
+        try {
+          setStoreLinks(JSON.parse(initialData.store_links));
+        } catch {
+          setStoreLinks([]);
+        }
+      } else {
+        setStoreLinks([]);
+      }
     } else {
       setNaskahIdCode('');
       setTitle('');
@@ -60,11 +71,11 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
       setTotalPages(undefined);
       setSynopsis('');
       setStatus('Belum Dimulai');
-      setPackageType('Standar');
       setOrderType('Baru');
       setCopies(0);
       setBookSize('14x20');
       setLegalType('ISBN');
+      setStoreLinks([]);
     }
   }, [initialData]);
 
@@ -85,11 +96,11 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
       total_pages: totalPages || undefined,
       synopsis: synopsis.trim() || undefined,
       status,
-      package_type: packageType,
       order_type: orderType,
       copies,
       book_size: bookSize,
       legal_type: legalType,
+      store_links: storeLinks.length > 0 ? JSON.stringify(storeLinks) : undefined,
     });
   };
 
@@ -117,13 +128,6 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
     { value: 'Religi', label: 'Religi' },
     { value: 'Komik/Manga', label: 'Komik/Manga' },
     { value: 'Lainnya', label: 'Lainnya' },
-  ];
-
-  const packageOptions = [
-    { value: 'Standar', label: 'Standar' },
-    { value: 'Populer', label: 'Populer' },
-    { value: 'Eksklusif', label: 'Eksklusif' },
-    { value: 'Kustom', label: 'Kustom' }
   ];
 
   const orderTypeOptions = [
@@ -251,13 +255,6 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <Select
-                  label="Paket Penerbitan"
-                  options={packageOptions}
-                  value={packageType}
-                  onChange={(e) => setPackageType(e.target.value)}
-                  fullWidth
-                />
-                <Select
                   label="Tipe Order"
                   options={orderTypeOptions}
                   value={orderType}
@@ -291,6 +288,59 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
                 onChange={(e) => setLegalType(e.target.value)}
                 fullWidth
               />
+            </div>
+          </AccordionSection>
+
+          {/* Accordion 3: Toko Online / Distribusi */}
+          <AccordionSection index={3} title="🌐 Toko Online / Distribusi" expandedSection={expandedSection} onToggle={setExpandedSection}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Tambahkan link toko online tempat buku ini dijual (misal: Shopee, Google Play Book, dll).</p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {storeLinks.map((link, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <input
+                        type="text"
+                        placeholder="Platform (misal: Shopee)"
+                        value={link.platform}
+                        onChange={(e) => {
+                          const newLinks = [...storeLinks];
+                          newLinks[idx].platform = e.target.value;
+                          setStoreLinks(newLinks);
+                        }}
+                        style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
+                      />
+                    </div>
+                    <div style={{ flex: 2 }}>
+                      <input
+                        type="url"
+                        placeholder="URL (https://...)"
+                        value={link.url}
+                        onChange={(e) => {
+                          const newLinks = [...storeLinks];
+                          newLinks[idx].url = e.target.value;
+                          setStoreLinks(newLinks);
+                        }}
+                        style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
+                      />
+                    </div>
+                    <Button type="button" variant="danger" onClick={() => {
+                      const newLinks = [...storeLinks];
+                      newLinks.splice(idx, 1);
+                      setStoreLinks(newLinks);
+                    }}>
+                      Hapus
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <Button type="button" variant="secondary" onClick={() => {
+                setStoreLinks([...storeLinks, { platform: '', url: '' }]);
+              }} style={{ alignSelf: 'flex-start' }}>
+                + Tambah Link
+              </Button>
             </div>
           </AccordionSection>
         </Accordion>

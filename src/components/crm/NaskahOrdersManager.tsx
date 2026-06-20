@@ -22,10 +22,13 @@ const STATUS_LIST = ['Belum Dimulai', 'Sedang Dikerjakan', 'Selesai', 'Batal'];
 
 const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery = '' }) => {
   const { naskahOrders, penulis, penerbit, addNaskahOrder, updateNaskahOrder, deleteNaskahOrder } = useCrmContext();
-  const { showConfirm, showToast, setSelectedNaskahId } = useAppContext();
+  const { showConfirm, showToast, setSelectedNaskahId, setRightPanelVisible } = useAppContext();
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<NaskahOrder | null>(null);
+
+  // ID baris yang sedang terseleksi (highlight lokal)
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // Filter badge state (bisa multi-pilih status)
   const [activeStatuses, setActiveStatuses] = useState<string[]>([]);
@@ -93,8 +96,21 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
     setIsEditing(true);
   };
 
+  // Single click — seleksi baris & simpan ke context
   const handleRowClick = (id?: number) => {
-    if (id) setSelectedNaskahId(id);
+    if (id) {
+      setSelectedId(id);
+      setSelectedNaskahId(id);
+    }
+  };
+
+  // Double click — buka panel preview kanan
+  const handleRowDoubleClick = (id?: number) => {
+    if (id) {
+      setSelectedId(id);
+      setSelectedNaskahId(id);
+      setRightPanelVisible(true);
+    }
   };
 
   const handleDelete = (id: number, title: string, e: React.MouseEvent) => {
@@ -257,18 +273,17 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
         <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '32%', userSelect: 'none' }}>Judul &amp; Identitas</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '22%', userSelect: 'none' }}>Penulis &amp; Penerbit</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Genre</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '10%', userSelect: 'none' }}>Paket</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '35%', userSelect: 'none' }}>Judul &amp; Identitas</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%', userSelect: 'none' }}>Penulis &amp; Penerbit</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>Genre</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '10%', userSelect: 'none' }}>Status</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filteredOrders.length === 0 ? (
               <TableEmptyState
-                colSpan={6}
+                colSpan={5}
                 icon="📚"
                 message="Tidak ada data naskah"
                 description={hasActiveFilter ? 'Tidak ada hasil untuk filter yang dipilih.' : 'Belum ada naskah terdaftar. Klik Tambah Naskah untuk menambahkan.'}
@@ -279,14 +294,19 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
                   key={o.id}
                   style={{
                     borderBottom: '1px solid var(--border)',
-                    background: 'transparent',
+                    background: selectedId === o.id ? 'rgba(99,102,241,0.08)' : 'transparent',
                     cursor: 'pointer',
                     transition: 'background 0.1s ease',
                     color: 'var(--text-primary)'
                   }}
                   onClick={() => handleRowClick(o.id)}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.02)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  onDoubleClick={() => handleRowDoubleClick(o.id)}
+                  onMouseEnter={(e) => {
+                    if (selectedId !== o.id) e.currentTarget.style.background = 'rgba(0,0,0,0.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedId !== o.id) e.currentTarget.style.background = 'transparent';
+                  }}
                 >
                   <td style={{ padding: '10px 12px' }}>
                     <div style={{ fontWeight: '600' }}>{o.title}</div>
@@ -312,9 +332,6 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
                         {o.genre}
                       </span>
                     ) : <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>-</span>}
-                  </td>
-                  <td style={{ padding: '10px 12px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    {o.package_type || 'Standar'}
                   </td>
                   <td style={{ padding: '10px 12px' }}>
                     <Badge

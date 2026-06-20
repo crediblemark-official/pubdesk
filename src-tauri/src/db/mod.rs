@@ -707,7 +707,7 @@ impl Database {
     // NaskahOrder CRUD
     pub fn add_naskah_order(&self, n: &NaskahOrder) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO naskah_orders (naskah_id_code, title, penulis_id, penerbit_id, genre, total_pages, synopsis, package_type, order_type, copies, book_size, legal_type, assigned_team_ids, initial_request, revised_request, shipping_address, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+            "INSERT INTO naskah_orders (naskah_id_code, title, penulis_id, penerbit_id, genre, total_pages, synopsis, order_type, copies, book_size, legal_type, assigned_team_ids, initial_request, revised_request, shipping_address, store_links, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
             params![
                 n.naskah_id_code,
                 n.title,
@@ -716,7 +716,6 @@ impl Database {
                 n.genre,
                 n.total_pages,
                 n.synopsis,
-                n.package_type,
                 n.order_type,
                 n.copies,
                 n.book_size,
@@ -725,6 +724,7 @@ impl Database {
                 n.initial_request,
                 n.revised_request,
                 n.shipping_address,
+                n.store_links,
                 n.status,
                 n.created_at
             ]
@@ -734,7 +734,7 @@ impl Database {
 
     pub fn get_naskah_orders(&self) -> Result<Vec<NaskahOrder>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, naskah_id_code, title, penulis_id, penerbit_id, genre, total_pages, synopsis, package_type, order_type, copies, book_size, legal_type, assigned_team_ids, initial_request, revised_request, shipping_address, status, created_at FROM naskah_orders ORDER BY created_at DESC"
+            "SELECT id, naskah_id_code, title, penulis_id, penerbit_id, genre, total_pages, synopsis, order_type, copies, book_size, legal_type, assigned_team_ids, initial_request, revised_request, shipping_address, store_links, status, created_at FROM naskah_orders ORDER BY created_at DESC"
         )?;
         let rows = stmt.query_map([], |row| {
             Ok(NaskahOrder {
@@ -746,15 +746,15 @@ impl Database {
                 genre: row.get(5)?,
                 total_pages: row.get(6)?,
                 synopsis: row.get(7)?,
-                package_type: row.get(8)?,
-                order_type: row.get(9)?,
-                copies: row.get(10)?,
-                book_size: row.get(11)?,
-                legal_type: row.get(12)?,
-                assigned_team_ids: row.get(13)?,
-                initial_request: row.get(14)?,
-                revised_request: row.get(15)?,
-                shipping_address: row.get(16)?,
+                order_type: row.get(8)?,
+                copies: row.get(9)?,
+                book_size: row.get(10)?,
+                legal_type: row.get(11)?,
+                assigned_team_ids: row.get(12)?,
+                initial_request: row.get(13)?,
+                revised_request: row.get(14)?,
+                shipping_address: row.get(15)?,
+                store_links: row.get(16)?,
                 status: row.get(17)?,
                 created_at: row.get(18)?,
             })
@@ -768,7 +768,7 @@ impl Database {
 
     pub fn update_naskah_order(&self, n: &NaskahOrder) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE naskah_orders SET naskah_id_code = ?1, title = ?2, penulis_id = ?3, penerbit_id = ?4, genre = ?5, total_pages = ?6, synopsis = ?7, package_type = ?8, order_type = ?9, copies = ?10, book_size = ?11, legal_type = ?12, assigned_team_ids = ?13, initial_request = ?14, revised_request = ?15, shipping_address = ?16, status = ?17 WHERE id = ?18",
+            "UPDATE naskah_orders SET naskah_id_code = ?1, title = ?2, penulis_id = ?3, penerbit_id = ?4, genre = ?5, total_pages = ?6, synopsis = ?7, order_type = ?8, copies = ?9, book_size = ?10, legal_type = ?11, assigned_team_ids = ?12, initial_request = ?13, revised_request = ?14, shipping_address = ?15, store_links = ?16, status = ?17 WHERE id = ?18",
             params![
                 n.naskah_id_code,
                 n.title,
@@ -777,7 +777,6 @@ impl Database {
                 n.genre,
                 n.total_pages,
                 n.synopsis,
-                n.package_type,
                 n.order_type,
                 n.copies,
                 n.book_size,
@@ -786,6 +785,7 @@ impl Database {
                 n.initial_request,
                 n.revised_request,
                 n.shipping_address,
+                n.store_links,
                 n.status,
                 n.id
             ]
@@ -909,6 +909,66 @@ impl Database {
                 e.id
             ]
         )?;
+        Ok(())
+    }
+
+    // Legalitas CRUD
+    pub fn add_legalitas(&self, l: &Legalitas) -> Result<i64, DbError> {
+        self.conn.execute(
+            "INSERT INTO legalitas (judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                l.judul_buku,
+                l.nama_penulis,
+                l.tipe,
+                l.tanggal_pengajuan,
+                l.keterangan,
+                l.status,
+                l.created_at
+            ]
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    pub fn get_legalitas(&self) -> Result<Vec<Legalitas>, DbError> {
+        let mut stmt = self.conn.prepare("SELECT id, judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, created_at FROM legalitas ORDER BY created_at DESC")?;
+        let rows = stmt.query_map([], |row| {
+            Ok(Legalitas {
+                id: row.get(0)?,
+                judul_buku: row.get(1)?,
+                nama_penulis: row.get(2)?,
+                tipe: row.get(3)?,
+                tanggal_pengajuan: row.get(4)?,
+                keterangan: row.get(5)?,
+                status: row.get(6)?,
+                created_at: row.get(7)?,
+            })
+        })?;
+        let mut res = Vec::new();
+        for r in rows {
+            res.push(r?);
+        }
+        Ok(res)
+    }
+
+    pub fn update_legalitas(&self, l: &Legalitas) -> Result<(), DbError> {
+        self.conn.execute(
+            "UPDATE legalitas SET judul_buku = ?1, nama_penulis = ?2, tipe = ?3, tanggal_pengajuan = ?4, keterangan = ?5, status = ?6 WHERE id = ?7",
+            params![
+                l.judul_buku,
+                l.nama_penulis,
+                l.tipe,
+                l.tanggal_pengajuan,
+                l.keterangan,
+                l.status,
+                l.id
+            ]
+        )?;
+        Ok(())
+    }
+
+    pub fn delete_legalitas(&self, id: i64) -> Result<(), DbError> {
+        self.conn
+            .execute("DELETE FROM legalitas WHERE id = ?1", params![id])?;
         Ok(())
     }
 }
