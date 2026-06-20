@@ -3,7 +3,11 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { Invoice } from '../../types';
 
-const InvoiceManager: React.FC = () => {
+interface InvoiceManagerProps {
+  searchQuery?: string;
+}
+
+const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => {
   const { 
     invoices, 
     files, 
@@ -18,7 +22,7 @@ const InvoiceManager: React.FC = () => {
   
   const { loadInvoiceToForm } = useInvoiceContext();
   
-  const [searchQuery, setSearchQuery] = useState('');
+
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LUNAS' | 'BELUM LUNAS' | 'PENDING'>('ALL');
   
   // Format harga Rupiah
@@ -222,16 +226,8 @@ const InvoiceManager: React.FC = () => {
 
 
       {/* Filter Section */}
-      <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-panel)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
-        <div style={{ flex: 1, minWidth: '220px' }}>
-          <input
-            type="text"
-            placeholder="Cari nomor invoice atau pelanggan..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
-          />
-        </div>
+      <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-panel)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '16px', alignItems: 'center', justifyContent: 'flex-end', flexShrink: 0 }}>
+        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Status Pembayaran:</span>
         <div>
           <select
             value={statusFilter}

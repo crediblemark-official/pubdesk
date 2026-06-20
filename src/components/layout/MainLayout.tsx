@@ -59,6 +59,11 @@ const MainLayout = () => {
     };
   }, [isDragging]);
 
+  // Reset pencarian saat berpindah modul aktif
+  useEffect(() => {
+    setFileSearchQuery('');
+  }, [appState.activeModule]);
+
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
@@ -68,7 +73,7 @@ const MainLayout = () => {
       case 'invoice':
         return <InvoiceGenerator />;
       case 'invoice-manager':
-        return <InvoiceManager />;
+        return <InvoiceManager searchQuery={fileSearchQuery} />;
       case 'invoice-insight':
         return <InvoiceInsight />;
       case 'extractor':
