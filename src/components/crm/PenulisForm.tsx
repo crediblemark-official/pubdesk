@@ -18,8 +18,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [waNumber, setWaNumber] = useState('');
-  const [province, setProvince] = useState('');
-  const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
   const [job, setJob] = useState('');
   const [institution, setInstitution] = useState('');
   const [dataSource, setDataSource] = useState('');
@@ -35,8 +34,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
       setName(initialData.name);
       setEmail(initialData.email || '');
       setWaNumber(initialData.wa_number || '');
-      setProvince(initialData.province || '');
-      setCity(initialData.city || '');
+      setAddress(initialData.address || '');
       setJob(initialData.job || '');
       setInstitution(initialData.institution || '');
       setDataSource(initialData.data_source || '');
@@ -48,8 +46,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
       setName('');
       setEmail('');
       setWaNumber('');
-      setProvince('');
-      setCity('');
+      setAddress('');
       setJob('');
       setInstitution('');
       setDataSource('');
@@ -72,8 +69,9 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
       name: name.trim(),
       email: email.trim() || undefined,
       wa_number: waNumber.trim() || undefined,
-      province: province.trim() || undefined,
-      city: city.trim() || undefined,
+      address: address.trim() || undefined,
+      province: initialData?.province, // tetapkan data lama jika ada
+      city: initialData?.city,
       job: job.trim() || undefined,
       institution: institution.trim() || undefined,
       data_source: dataSource.trim() || undefined,
@@ -151,21 +149,28 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <TextField
-                  label="Provinsi"
-                  placeholder="Contoh: Jawa Timur"
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value)}
-                  fullWidth
-                />
-
-                <TextField
-                  label="Kota / Kabupaten"
-                  placeholder="Contoh: Surabaya"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  fullWidth
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                  Alamat Lengkap (Opsional)
+                </label>
+                <textarea
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    height: '80px',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    lineHeight: '1.4'
+                  }}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Contoh: Jl. Diponegoro No. 12, Surabaya, Jawa Timur"
                 />
               </div>
 

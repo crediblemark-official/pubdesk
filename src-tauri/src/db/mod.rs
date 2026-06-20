@@ -539,13 +539,14 @@ impl Database {
     // Penulis CRUD
     pub fn add_penulis(&self, p: &Penulis) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO penulis (name, email, wa_number, province, city, job, institution, data_source, email_valid, wa_valid, followup_status, notes, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+            "INSERT INTO penulis (name, email, wa_number, province, city, address, job, institution, data_source, email_valid, wa_valid, followup_status, notes, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
             params![
                 p.name,
                 p.email,
                 p.wa_number,
                 p.province,
                 p.city,
+                p.address,
                 p.job,
                 p.institution,
                 p.data_source,
@@ -560,7 +561,7 @@ impl Database {
     }
 
     pub fn get_penulis(&self) -> Result<Vec<Penulis>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, name, email, wa_number, province, city, job, institution, data_source, email_valid, wa_valid, followup_status, notes, created_at FROM penulis ORDER BY name ASC")?;
+        let mut stmt = self.conn.prepare("SELECT id, name, email, wa_number, province, city, address, job, institution, data_source, email_valid, wa_valid, followup_status, notes, created_at FROM penulis ORDER BY name ASC")?;
         let rows = stmt.query_map([], |row| {
             Ok(Penulis {
                 id: row.get(0)?,
@@ -569,14 +570,15 @@ impl Database {
                 wa_number: row.get(3)?,
                 province: row.get(4)?,
                 city: row.get(5)?,
-                job: row.get(6)?,
-                institution: row.get(7)?,
-                data_source: row.get(8)?,
-                email_valid: row.get(9)?,
-                wa_valid: row.get(10)?,
-                followup_status: row.get(11)?,
-                notes: row.get(12)?,
-                created_at: row.get(13)?,
+                address: row.get(6)?,
+                job: row.get(7)?,
+                institution: row.get(8)?,
+                data_source: row.get(9)?,
+                email_valid: row.get(10)?,
+                wa_valid: row.get(11)?,
+                followup_status: row.get(12)?,
+                notes: row.get(13)?,
+                created_at: row.get(14)?,
             })
         })?;
         let mut res = Vec::new();
@@ -588,13 +590,14 @@ impl Database {
 
     pub fn update_penulis(&self, p: &Penulis) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE penulis SET name = ?1, email = ?2, wa_number = ?3, province = ?4, city = ?5, job = ?6, institution = ?7, data_source = ?8, email_valid = ?9, wa_valid = ?10, followup_status = ?11, notes = ?12 WHERE id = ?13",
+            "UPDATE penulis SET name = ?1, email = ?2, wa_number = ?3, province = ?4, city = ?5, address = ?6, job = ?7, institution = ?8, data_source = ?9, email_valid = ?10, wa_valid = ?11, followup_status = ?12, notes = ?13 WHERE id = ?14",
             params![
                 p.name,
                 p.email,
                 p.wa_number,
                 p.province,
                 p.city,
+                p.address,
                 p.job,
                 p.institution,
                 p.data_source,

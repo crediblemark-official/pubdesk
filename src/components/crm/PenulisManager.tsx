@@ -108,10 +108,12 @@ const PenulisManager: React.FC = () => {
       type: 'primary',
       onConfirm: async () => {
         try {
-          // Bentuk alamat yang komprehensif dari data instansi, kota, dan provinsi penulis
+          // Bentuk alamat lengkap dari data instansi dan alamat penulis
           const addressParts = [];
           if (p.institution) addressParts.push(p.institution);
-          if (p.city || p.province) {
+          if (p.address) {
+            addressParts.push(p.address);
+          } else if (p.city || p.province) {
             addressParts.push(`${p.city || ''}, ${p.province || ''}`.trim().replace(/^,\s*|,\s*$/, ''));
           }
           const fullAddress = addressParts.join('\n');
@@ -280,7 +282,7 @@ const PenulisManager: React.FC = () => {
                     </div>
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
-                    <div>{p.city ? `${p.city}, ${p.province || ''}` : p.province || '-'}</div>
+                    <div style={{ whiteSpace: 'pre-line' }}>{p.address || (p.city ? `${p.city}, ${p.province || ''}` : p.province || '-')}</div>
                     <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>{p.institution || '-'}</div>
                   </td>
                   <td style={{ padding: '10px 12px' }}>

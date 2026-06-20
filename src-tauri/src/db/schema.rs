@@ -196,6 +196,9 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Migrasi ad-hoc untuk menambahkan kolom address ke penulis
+    let _ = conn.execute("ALTER TABLE penulis ADD COLUMN address TEXT", []);
+
     // Penerbit table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS penerbit (

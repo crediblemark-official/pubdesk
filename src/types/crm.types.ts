@@ -5,6 +5,7 @@ export interface Penulis {
   wa_number?: string;
   province?: string;
   city?: string;
+  address?: string;
   job?: string;
   institution?: string;
   data_source?: string;
