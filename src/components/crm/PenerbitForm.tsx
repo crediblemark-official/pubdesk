@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Penerbit } from '../../types/crm.types';
+import { useAppContext } from '../../contexts/AppContext';
 
 interface PenerbitFormProps {
   initialData?: Penerbit | null;
@@ -8,6 +9,8 @@ interface PenerbitFormProps {
 }
 
 const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCancel }) => {
+  const { showToast } = useAppContext();
+
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   const [email, setEmail] = useState('');
@@ -53,7 +56,10 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      showToast('Nama penerbit tidak boleh kosong!', 'error');
+      return;
+    }
 
     onSubmit({
       id: initialData?.id,
@@ -72,247 +78,181 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
     });
   };
 
+  const inputStyle = {
+    width: '100%',
+    padding: '10px 14px',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    fontSize: '14px',
+    background: 'var(--bg-card)',
+    color: 'var(--text-primary)',
+    outline: 'none'
+  };
+
   return (
-    <div style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border)',
-      borderRadius: '12px',
-      padding: '24px',
-      maxWidth: '600px',
-      width: '100%',
-      margin: '0 auto',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-    }}>
-      <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px', color: 'var(--text-primary)' }}>
-        {initialData ? '📝 Edit Penerbit' : '🏢 Tambah Penerbit Baru'}
-      </h3>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-            Nama Penerbit / Penerbitan <span style={{ color: '#ff4d4f' }}>*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              background: 'var(--bg-main)',
-              color: 'var(--text-primary)',
-              outline: 'none'
-            }}
-            placeholder="Masukkan nama penerbit..."
-          />
-        </div>
+    <div className="customer-form" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+      <h1 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-primary)' }}>
+        {initialData ? '📝 Edit Profil Penerbit' : 'Pembuat Profil Penerbit Baru'}
+      </h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ background: 'var(--bg-panel)', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid var(--border)' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              Kota Asal Penerbit
+              Nama Penerbit / Penerbitan <span style={{ color: '#ff4d4f' }}>*</span>
             </label>
             <input
               type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-              placeholder="Contoh: Yogyakarta"
+              style={inputStyle}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Contoh: PT. Aksara Nusantara"
+              required
+              autoFocus
             />
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              Status Kerja Sama
-            </label>
-            <select
-              value={cooperationStatus}
-              onChange={(e) => setCooperationStatus(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-            >
-              <option value="Aktif">Aktif</option>
-              <option value="Negosiasi">Dalam Negosiasi</option>
-              <option value="Pasif">Pasif</option>
-              <option value="Berhenti">Berhenti</option>
-            </select>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              Email Resmi
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-              placeholder="redaksi@penerbit.com"
-            />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Kota Asal Penerbit
+              </label>
               <input
-                type="checkbox"
-                checked={emailValid === 1}
-                onChange={(e) => setEmailValid(e.target.checked ? 1 : 0)}
+                type="text"
+                style={inputStyle}
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Contoh: Yogyakarta"
               />
-              Email Valid / Aktif
-            </label>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Status Kerja Sama
+              </label>
+              <select
+                style={inputStyle}
+                value={cooperationStatus}
+                onChange={(e) => setCooperationStatus(e.target.value)}
+              >
+                <option value="Aktif">Aktif</option>
+                <option value="Negosiasi">Dalam Negosiasi</option>
+                <option value="Pasif">Pasif</option>
+                <option value="Berhenti">Berhenti</option>
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              Nomor WhatsApp PIC
-            </label>
-            <input
-              type="text"
-              value={waNumber}
-              onChange={(e) => setWaNumber(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-              placeholder="Contoh: 0813..."
-            />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Email Resmi
+              </label>
               <input
-                type="checkbox"
-                checked={waValid === 1}
-                onChange={(e) => setWaValid(e.target.checked ? 1 : 0)}
+                type="email"
+                style={inputStyle}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="redaksi@penerbit.com"
               />
-              WhatsApp Valid / Aktif
-            </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                <input
+                  type="checkbox"
+                  checked={emailValid === 1}
+                  onChange={(e) => setEmailValid(e.target.checked ? 1 : 0)}
+                />
+                Email Valid / Aktif
+              </label>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Nomor WhatsApp PIC
+              </label>
+              <input
+                type="text"
+                style={inputStyle}
+                value={waNumber}
+                onChange={(e) => setWaNumber(e.target.value)}
+                placeholder="Contoh: 08123456789"
+              />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                <input
+                  type="checkbox"
+                  checked={waValid === 1}
+                  onChange={(e) => setWaValid(e.target.checked ? 1 : 0)}
+                />
+                WhatsApp Valid / PIC Aktif
+              </label>
+            </div>
+          </div>
+
+          <h3 style={{ fontSize: '14px', fontWeight: '600', marginTop: '10px', color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
+            Media Sosial & Kontak Digital
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Instagram
+              </label>
+              <input
+                type="text"
+                style={inputStyle}
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                placeholder="@username_penerbit"
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Facebook Page
+              </label>
+              <input
+                type="text"
+                style={inputStyle}
+                value={facebook}
+                onChange={(e) => setFacebook(e.target.value)}
+                placeholder="Nama Halaman Facebook"
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                LinkedIn Company Page
+              </label>
+              <input
+                type="text"
+                style={inputStyle}
+                value={linkedin}
+                onChange={(e) => setLinkedin(e.target.value)}
+                placeholder="nama-perusahaan"
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                TikTok
+              </label>
+              <input
+                type="text"
+                style={inputStyle}
+                value={tiktok}
+                onChange={(e) => setTiktok(e.target.value)}
+                placeholder="@tiktok_penerbit"
+              />
+            </div>
           </div>
         </div>
 
-        <h4 style={{ fontSize: '14px', fontWeight: '600', marginTop: '10px', marginBottom: '4px', color: 'var(--text-primary)' }}>
-          Media Sosial & Kontak Digital
-        </h4>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              Instagram
-            </label>
-            <input
-              type="text"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-              placeholder="@username"
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              Facebook Page
-            </label>
-            <input
-              type="text"
-              value={facebook}
-              onChange={(e) => setFacebook(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-              placeholder="Nama Page"
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              LinkedIn
-            </label>
-            <input
-              type="text"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-              placeholder="penerbit-company"
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              TikTok
-            </label>
-            <input
-              type="text"
-              value={tiktok}
-              onChange={(e) => setTiktok(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                background: 'var(--bg-main)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-              placeholder="@tiktok_handle"
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px', fontSize: '14px', fontWeight: '600' }}>
-            💾 Simpan Data
+            {initialData ? '💾 Perbarui & Catat' : '💾 Simpan & Catat'}
           </button>
-          <button type="button" className="btn-secondary" onClick={onCancel} style={{ flex: 1, padding: '10px', fontSize: '14px', fontWeight: '600' }}>
+          <button type="button" className="btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '14px', fontWeight: '600' }} onClick={onCancel}>
             ❌ Batal
           </button>
         </div>

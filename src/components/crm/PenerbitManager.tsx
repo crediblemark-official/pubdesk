@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCrmContext } from '../../contexts/CrmContext';
+import { useAppContext } from '../../contexts/AppContext';
 import { Penerbit } from '../../types/crm.types';
 import PenerbitForm from './PenerbitForm';
+import { TableEmptyState } from '../../ui/molecules/EmptyState';
 
 const PenerbitManager: React.FC = () => {
   const { penerbit, addPenerbit, updatePenerbit, deletePenerbit } = useCrmContext();
+  const { showConfirm, showToast } = useAppContext();
+
   const [isEditing, setIsEditing] = useState(false);
   const [currentPenerbit, setCurrentPenerbit] = useState<Penerbit | null>(null);
 
@@ -13,48 +17,68 @@ const PenerbitManager: React.FC = () => {
   const [coopFilter, setCoopFilter] = useState('');
 
   // Filter data penerbit
-  const filteredPenerbit = penerbit.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.city && p.city.toLowerCase().includes(search.toLowerCase())) ||
-      (p.email && p.email.toLowerCase().includes(search.toLowerCase())) ||
-      (p.wa_number && p.wa_number.includes(search));
-    const matchesCoop = coopFilter ? p.cooperation_status === coopFilter : true;
-    return matchesSearch && matchesCoop;
-  });
+  const filteredPenerbit = useMemo(() => {
+    return penerbit.filter((p) => {
+      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+        (p.city && p.city.toLowerCase().includes(search.toLowerCase())) ||
+        (p.email && p.email.toLowerCase().includes(search.toLowerCase())) ||
+        (p.wa_number && p.wa_number.includes(search));
+      const matchesCoop = coopFilter ? p.cooperation_status === coopFilter : true;
+      return matchesSearch && matchesCoop;
+    });
+  }, [penerbit, search, coopFilter]);
 
   const handleAddNew = () => {
     setCurrentPenerbit(null);
     setIsEditing(true);
   };
 
-  const handleEdit = (p: Penerbit) => {
+  const handleEdit = (p: Penerbit, e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentPenerbit(p);
     setIsEditing(true);
   };
 
-  const handleDelete = async (id?: number) => {
-    if (!id) return;
-    if (confirm('Apakah Anda yakin ingin menghapus penerbit ini?')) {
-      await deletePenerbit(id);
-    }
+  const handleDelete = (id: number, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    showConfirm({
+      title: 'Hapus Penerbit',
+      message: `Apakah Anda yakin ingin menghapus penerbit "${name}"?`,
+      confirmText: 'Hapus',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deletePenerbit(id);
+          showToast('Data penerbit berhasil dihapus!', 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal menghapus penerbit!', 'error');
+        }
+      }
+    });
   };
 
   const handleFormSubmit = async (data: Omit<Penerbit, 'created_at' | 'id'> & { id?: number }) => {
-    if (data.id) {
-      // Update
-      const original = penerbit.find(p => p.id === data.id);
-      if (original) {
-        await updatePenerbit({
-          ...original,
-          ...data,
-        } as Penerbit);
+    try {
+      if (data.id) {
+        const original = penerbit.find(p => p.id === data.id);
+        if (original) {
+          await updatePenerbit({
+            ...original,
+            ...data,
+          } as Penerbit);
+          showToast('Data penerbit berhasil diperbarui!', 'success');
+        }
+      } else {
+        await addPenerbit(data as Omit<Penerbit, 'created_at'>);
+        showToast('Penerbit baru berhasil ditambahkan!', 'success');
       }
-    } else {
-      // Add
-      await addPenerbit(data as Omit<Penerbit, 'created_at'>);
+      setIsEditing(false);
+      setCurrentPenerbit(null);
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal menyimpan data penerbit!', 'error');
     }
-    setIsEditing(false);
-    setCurrentPenerbit(null);
   };
 
   const getCoopBadgeStyle = (status?: string) => {
@@ -74,79 +98,65 @@ const PenerbitManager: React.FC = () => {
 
   if (isEditing) {
     return (
-      <div style={{ padding: '24px', overflowY: 'auto', height: '100%' }}>
-        <PenerbitForm
-          initialData={currentPenerbit}
-          onSubmit={handleFormSubmit}
-          onCancel={() => {
-            setIsEditing(false);
-            setCurrentPenerbit(null);
-          }}
-        />
-      </div>
+      <PenerbitForm
+        initialData={currentPenerbit}
+        onSubmit={handleFormSubmit}
+        onCancel={() => {
+          setIsEditing(false);
+          setCurrentPenerbit(null);
+        }}
+      />
     );
   }
 
   return (
-    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-            🏢 CRM Penerbit
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Kelola data penerbit mitra, jalin kerja sama, dan pantau status kolaborasi.
-          </p>
-        </div>
-        <button className="btn-primary" onClick={handleAddNew} style={{ padding: '10px 18px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>➕ Tambah Penerbit</span>
-        </button>
-      </div>
-
-      {/* Filter Toolbar */}
-      <div style={{
-        display: 'flex',
-        gap: '16px',
-        background: 'var(--bg-card)',
-        padding: '16px',
-        borderRadius: '12px',
-        border: '1px solid var(--border)',
-        marginBottom: '20px',
-        flexWrap: 'wrap'
+    <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      
+      {/* Baris Atas: Filter & Tambah */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: '10px 16px', 
+        borderBottom: '1px solid var(--border)', 
+        background: 'var(--bg-panel)', 
+        flexWrap: 'wrap', 
+        gap: '12px' 
       }}>
-        <div style={{ flex: '2 1 200px' }}>
-          <input
-            type="text"
-            placeholder="Cari nama penerbit, kota, email, atau WhatsApp..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-main)',
-              color: 'var(--text-primary)',
-              outline: 'none',
-              fontSize: '14px'
-            }}
-          />
-        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Input Pencarian */}
+          <div style={{ position: 'relative', width: '250px' }}>
+            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '14px' }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Cari nama penerbit, kota..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '6px 12px 6px 36px', 
+                border: '1px solid var(--border)', 
+                borderRadius: '20px', 
+                fontSize: '12px', 
+                background: 'var(--bg-card)', 
+                color: 'var(--text-primary)', 
+                outline: 'none'
+              }}
+            />
+          </div>
 
-        <div style={{ flex: '1 1 150px' }}>
+          {/* Filter Status */}
           <select
             value={coopFilter}
             onChange={(e) => setCoopFilter(e.target.value)}
             style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: '8px',
+              padding: '6px 12px',
               border: '1px solid var(--border)',
-              background: 'var(--bg-main)',
+              borderRadius: '20px',
+              fontSize: '12px',
+              background: 'var(--bg-card)',
               color: 'var(--text-primary)',
-              outline: 'none',
-              fontSize: '14px'
+              outline: 'none'
             }}
           >
             <option value="">Semua Status Kerja Sama</option>
@@ -156,53 +166,85 @@ const PenerbitManager: React.FC = () => {
             <option value="Berhenti">Berhenti</option>
           </select>
         </div>
+
+        {/* Tombol Tambah */}
+        <button 
+          onClick={handleAddNew}
+          className="btn-primary" 
+          style={{ 
+            padding: '6px 14px', 
+            fontSize: '12px', 
+            fontWeight: '600', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            borderRadius: '6px', 
+            cursor: 'pointer' 
+          }}
+        >
+          <span>➕</span> Tambah Penerbit
+        </button>
       </div>
 
-      {/* Grid/Table List */}
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
-        {filteredPenerbit.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            Belum ada data penerbit yang sesuai.
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                <th style={{ padding: '16px 20px', fontWeight: '600' }}>Nama Penerbit</th>
-                <th style={{ padding: '16px 20px', fontWeight: '600' }}>Kontak Resmi</th>
-                <th style={{ padding: '16px 20px', fontWeight: '600' }}>Sosial Media</th>
-                <th style={{ padding: '16px 20px', fontWeight: '600' }}>Status</th>
-                <th style={{ padding: '16px 20px', fontWeight: '600', textAlign: 'right' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPenerbit.map((p) => (
-                <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '16px 20px', fontWeight: '500', color: 'var(--text-primary)' }}>
+      {/* Tabel Data */}
+      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <thead>
+            <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%', userSelect: 'none' }}>Nama Penerbit</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%', userSelect: 'none' }}>Kontak Resmi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Sosial Media</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>Status</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredPenerbit.length === 0 ? (
+              <TableEmptyState
+                colSpan={5}
+                icon="🏢"
+                message="Tidak ada data penerbit"
+                description={search ? `Tidak ada hasil untuk pencarian "${search}"` : "Belum ada mitra penerbit terdaftar. Klik tombol Tambah Penerbit untuk memulai kerja sama baru."}
+              />
+            ) : (
+              filteredPenerbit.map((p) => (
+                <tr
+                  key={p.id}
+                  style={{
+                    borderBottom: '1px solid var(--border)',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    transition: 'background 0.1s ease',
+                    color: 'var(--text-primary)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-primary)' }}>
                     <div>{p.name}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '400', marginTop: '2px' }}>
                       📍 Kota: {p.city || '-'}
                     </div>
                   </td>
-                  <td style={{ padding: '16px 20px', color: 'var(--text-primary)' }}>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                     <div>
-                      📧 {p.email || '-'} {p.email_valid === 1 && <span title="Email Valid" style={{ color: '#22c55e' }}>✓</span>}
+                      📧 {p.email || '-'} {p.email_valid === 1 && <span title="Email Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
                     </div>
-                    <div style={{ marginTop: '4px' }}>
-                      💬 {p.wa_number || '-'} {p.wa_valid === 1 && <span title="WhatsApp Valid" style={{ color: '#22c55e' }}>✓</span>}
+                    <div style={{ marginTop: '2px' }}>
+                      💬 {p.wa_number || '-'} {p.wa_valid === 1 && <span title="WhatsApp Valid" style={{ color: '#22c55e', marginLeft: '4px' }}>✓</span>}
                     </div>
                   </td>
-                  <td style={{ padding: '16px 20px', color: 'var(--text-primary)' }}>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px' }}>
-                      {p.instagram && <span>📸 Instagram: {p.instagram}</span>}
-                      {p.facebook && <span>👥 Facebook: {p.facebook}</span>}
-                      {p.linkedin && <span>💼 LinkedIn: {p.linkedin}</span>}
+                      {p.instagram && <span>📸 IG: {p.instagram}</span>}
+                      {p.facebook && <span>👥 FB: {p.facebook}</span>}
+                      {p.linkedin && <span>💼 In: {p.linkedin}</span>}
                       {!p.instagram && !p.facebook && !p.linkedin && <span>-</span>}
                     </div>
                   </td>
-                  <td style={{ padding: '16px 20px' }}>
+                  <td style={{ padding: '10px 12px' }}>
                     <span style={{
-                      padding: '4px 10px',
+                      padding: '3px 8px',
                       borderRadius: '12px',
                       fontSize: '11px',
                       fontWeight: '600',
@@ -211,21 +253,29 @@ const PenerbitManager: React.FC = () => {
                       {p.cooperation_status || 'Aktif'}
                     </span>
                   </td>
-                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                      <button className="btn-secondary" onClick={() => handleEdit(p)} style={{ padding: '6px 12px', fontSize: '12px' }}>
+                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <button
+                        className="btn-secondary"
+                        onClick={(e) => handleEdit(p, e)}
+                        style={{ padding: '4px 8px', fontSize: '11px', fontWeight: '600' }}
+                      >
                         ✏️ Edit
                       </button>
-                      <button className="btn-secondary" onClick={() => handleDelete(p.id)} style={{ padding: '6px 12px', fontSize: '12px', color: '#ef4444' }}>
+                      <button
+                        className="btn-danger"
+                        onClick={(e) => p.id && handleDelete(p.id, p.name, e)}
+                        style={{ padding: '4px 8px', fontSize: '11px', fontWeight: '600' }}
+                      >
                         🗑️ Hapus
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
