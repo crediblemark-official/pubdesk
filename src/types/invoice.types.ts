@@ -70,4 +70,5 @@ export interface InvoiceProfile {
   signatureImg?: string;
   headerType?: 'logo_only' | 'logo_text' | 'text_only';
   tableColumns?: InvoiceTableColumn[];
+  shippingType?: 'none' | 'global' | 'item';
 }

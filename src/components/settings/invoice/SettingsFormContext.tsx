@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { InvoiceTableColumn } from '../../../types';
+import { InvoiceTableColumn } from '../../../types/invoice.types';
 
 export interface SettingsFormContextType {
   profileName: string;
@@ -60,6 +60,8 @@ export interface SettingsFormContextType {
   setHeaderType: (v: 'logo_only' | 'logo_text' | 'text_only') => void;
   tableColumns: InvoiceTableColumn[];
   setTableColumns: (v: InvoiceTableColumn[] | ((prev: InvoiceTableColumn[]) => InvoiceTableColumn[])) => void;
+  shippingType: 'none' | 'global' | 'item';
+  setShippingType: (v: 'none' | 'global' | 'item') => void;
 }
 
 export const SettingsFormContext = createContext<SettingsFormContextType | undefined>(undefined);

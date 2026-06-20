@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { useAppContext } from '../../contexts/AppContext';
-import { InvoiceProfile, InvoiceTableColumn } from '../../types';
+import { InvoiceProfile, InvoiceTableColumn } from '../../types/invoice.types';
 import { invoiceTemplates } from '../../data/invoiceTemplates';
 import InvoicePreview from '../invoice/InvoicePreview';
 import { SettingsFormContext } from './invoice/SettingsFormContext';
@@ -57,6 +57,7 @@ const InvoiceSettings: React.FC = () => {
   const [signatureImg, setSignatureImg] = useState('');
   const [headerType, setHeaderType] = useState<'logo_only' | 'logo_text' | 'text_only'>('logo_text');
   const [tableColumns, setTableColumns] = useState<InvoiceTableColumn[]>([]);
+  const [shippingType, setShippingType] = useState<'none' | 'global' | 'item'>('global');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -97,6 +98,21 @@ const InvoiceSettings: React.FC = () => {
     );
   };
 
+  // Helper to build full columns (injecting item_shipping_cost if needed)
+  const getFullTableColumns = (cols: InvoiceTableColumn[], type: 'none' | 'global' | 'item') => {
+    let finalCols = cols.filter(c => c.key !== 'item_shipping_cost');
+    if (type === 'item') {
+      const totalIdx = finalCols.findIndex(c => c.key === 'total');
+      const shippingCol = { key: 'item_shipping_cost', label: 'Ongkos Kirim', type: 'currency' as const, align: 'right' as const, width: '100px' };
+      if (totalIdx > -1) {
+        finalCols.splice(totalIdx, 0, shippingCol);
+      } else {
+        finalCols.push(shippingCol);
+      }
+    }
+    return finalCols;
+  };
+
   // Memuat data profil terpilih ke dalam state form
   useEffect(() => {
     if (isEditingNew) {
@@ -134,9 +150,9 @@ const InvoiceSettings: React.FC = () => {
         { key: 'paper_type', label: 'Jenis Naskah', type: 'text', align: 'center', width: '90px' },
         { key: 'quantity', label: 'Jml. Cetak', type: 'number', align: 'center', width: '80px' },
         { key: 'price', label: 'Cetak/pcs', type: 'currency', align: 'right', width: '100px' },
-        { key: 'item_shipping_cost', label: 'Ongkos Kirim', type: 'currency', align: 'right', width: '100px' },
-        { key: 'total', label: 'Total Biaya', type: 'formula', align: 'right', width: '110px', formula: '({price} * {quantity}) + {item_shipping_cost}' }
+        { key: 'total', label: 'Total Biaya', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
       ]);
+      setShippingType('global');
     } else {
       const profile = profiles.find((p) => p.id === selectedProfileId);
       if (profile) {
@@ -168,7 +184,15 @@ const InvoiceSettings: React.FC = () => {
         setCompanyLogo(profile.companyLogo || '');
         setSignatureImg(profile.signatureImg || '');
         setHeaderType(profile.headerType || 'logo_text');
-        setTableColumns(profile.tableColumns || []);
+
+        // Sembunyikan item_shipping_cost dari tabel kolom editor
+        const colsWithoutShipping = (profile.tableColumns || []).filter(c => c.key !== 'item_shipping_cost');
+        setTableColumns(colsWithoutShipping);
+
+        // Deteksi tipe ongkos kirim bawaan
+        const hasShippingCol = (profile.tableColumns || []).some(c => c.key === 'item_shipping_cost');
+        const detectedType = profile.shippingType || (hasShippingCol ? 'item' : 'global');
+        setShippingType(detectedType);
       }
     }
   }, [selectedProfileId, isEditingNew, profiles]);
@@ -211,7 +235,8 @@ const InvoiceSettings: React.FC = () => {
     companyLogo,
     signatureImg,
     headerType,
-    tableColumns
+    tableColumns: getFullTableColumns(tableColumns, shippingType),
+    shippingType
   };
 
   const handleSave = () => {
@@ -222,7 +247,9 @@ const InvoiceSettings: React.FC = () => {
 
     const savedProfile: InvoiceProfile = {
       ...currentEditingProfile,
-      id: isEditingNew ? `profile_${Date.now()}` : selectedProfileId
+      id: isEditingNew ? `profile_${Date.now()}` : selectedProfileId,
+      tableColumns: getFullTableColumns(tableColumns, shippingType),
+      shippingType
     };
 
     addOrUpdateProfile(savedProfile);
@@ -271,7 +298,15 @@ const InvoiceSettings: React.FC = () => {
     setCompanyLogo(p.companyLogo || '');
     setSignatureImg(p.signatureImg || '');
     setHeaderType(p.headerType || 'logo_text');
-    setTableColumns(p.tableColumns || []);
+    // Sembunyikan item_shipping_cost dari tabel kolom editor saat memuat template
+    const colsWithoutShipping = (p.tableColumns || []).filter(c => c.key !== 'item_shipping_cost');
+    setTableColumns(colsWithoutShipping);
+
+    // Deteksi tipe ongkos kirim bawaan dari template
+    const hasShippingCol = (p.tableColumns || []).some(c => c.key === 'item_shipping_cost');
+    const detectedType = p.shippingType || (hasShippingCol ? 'item' : 'global');
+    setShippingType(detectedType);
+
     setShowTemplateModal(false);
   };
 
@@ -509,7 +544,9 @@ const InvoiceSettings: React.FC = () => {
               headerType,
               setHeaderType,
               tableColumns,
-              setTableColumns
+              setTableColumns,
+              shippingType,
+              setShippingType
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
