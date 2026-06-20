@@ -27,7 +27,7 @@ const formatTanggal = (isoString: string) => {
 
 const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
   const { layouters, addLayouter, updateLayouter, deleteLayouter } = useCrmContext();
-  const { showConfirm, showToast } = useAppContext();
+  const { showConfirm, showToast, setSelectedLayouterId, setRightPanelVisible } = useAppContext();
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentMember, setCurrentMember] = useState<Layouter | null>(null);
@@ -79,6 +79,13 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
     e.stopPropagation();
     setCurrentMember(l);
     setIsEditing(true);
+  };
+
+  const handleRowClick = (id?: number) => {
+    if (id) {
+      setSelectedLayouterId(id);
+      setRightPanelVisible(true);
+    }
   };
 
   const handleDelete = (id: number, name: string, e: React.MouseEvent) => {
@@ -264,10 +271,11 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
                   style={{
                     borderBottom: '1px solid var(--border)',
                     background: 'transparent',
-                    cursor: 'default',
+                    cursor: 'pointer',
                     transition: 'background 0.1s ease',
                     color: 'var(--text-primary)'
                   }}
+                  onClick={() => handleRowClick(l.id)}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.02)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >

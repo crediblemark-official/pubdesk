@@ -8,6 +8,7 @@ import InsightPanel from './PanelKanan/InsightPanel';
 import PenulisPreviewPanel from './PanelKanan/PenulisPreviewPanel';
 import PenerbitPreviewPanel from './PanelKanan/PenerbitPreviewPanel';
 import NaskahPreviewPanel from './PanelKanan/NaskahPreviewPanel';
+import TimPreviewPanel from './PanelKanan/TimPreviewPanel';
 
 /**
  * PanelKanan — orchestrator panel pratinjau di sisi kanan layar.
@@ -30,6 +31,7 @@ const PanelKanan: React.FC = () => {
     selectedPenulisId,
     selectedPenerbitId,
     selectedNaskahId,
+    selectedLayouterId,
   } = useAppContext();
 
   const { files, selectedFileId, setSelectedFileId, setRightPanelVisible } = useFileState();
@@ -77,6 +79,10 @@ const PanelKanan: React.FC = () => {
 
     case 'crm-naskah':
       return <NaskahPreviewPanel naskahId={selectedNaskahId} />;
+
+    case 'crm-tim':
+    case 'layouters':
+      return <TimPreviewPanel layouterId={selectedLayouterId} />;
 
     // Settings — tampilkan preview layanan jika tab services aktif
     case 'settings':
