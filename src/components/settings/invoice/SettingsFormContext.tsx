@@ -20,6 +20,12 @@ export interface SettingsFormContextType {
   setHeaderPrimaryColor: (v: string) => void;
   headerSecondaryColor: string;
   setHeaderSecondaryColor: (v: string) => void;
+  footerBgColor: string;
+  setFooterBgColor: (v: string) => void;
+  footerPrimaryColor: string;
+  setFooterPrimaryColor: (v: string) => void;
+  footerSecondaryColor: string;
+  setFooterSecondaryColor: (v: string) => void;
   defaultHal: string;
   setDefaultHal: (v: string) => void;
   defaultLampiran: string;

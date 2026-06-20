@@ -50,6 +50,9 @@ export interface InvoiceProfile {
   headerBgColor: string;
   headerPrimaryColor: string;
   headerSecondaryColor: string;
+  footerBgColor?: string;
+  footerPrimaryColor?: string;
+  footerSecondaryColor?: string;
   defaultHal: string;
   defaultLampiran: string;
   salamPembuka: string;

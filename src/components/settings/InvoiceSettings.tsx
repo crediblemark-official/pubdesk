@@ -68,6 +68,9 @@ const InvoiceSettings: React.FC = () => {
   const [companyInstagram, setCompanyInstagram] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
   const [showCompanyContact, setShowCompanyContact] = useState(false);
+  const [footerBgColor, setFooterBgColor] = useState('');
+  const [footerPrimaryColor, setFooterPrimaryColor] = useState('');
+  const [footerSecondaryColor, setFooterSecondaryColor] = useState('');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -172,6 +175,9 @@ const InvoiceSettings: React.FC = () => {
       setCompanyInstagram('');
       setCompanyPhone('');
       setShowCompanyContact(false);
+      setFooterBgColor('#222933');
+      setFooterPrimaryColor('#d93838');
+      setFooterSecondaryColor('#d93838');
     } else {
       const profile = profiles.find((p) => p.id === selectedProfileId);
       if (profile) {
@@ -184,6 +190,9 @@ const InvoiceSettings: React.FC = () => {
         setHeaderBgColor(profile.headerBgColor || '#222933');
         setHeaderPrimaryColor(profile.headerPrimaryColor || (profile as any).headerColor || profile.accentColor || '#d93838');
         setHeaderSecondaryColor(profile.headerSecondaryColor || (profile as any).headerColor || profile.accentColor || '#d93838');
+        setFooterBgColor(profile.footerBgColor || profile.headerBgColor || '#222933');
+        setFooterPrimaryColor(profile.footerPrimaryColor || profile.headerPrimaryColor || profile.accentColor || '#d93838');
+        setFooterSecondaryColor(profile.footerSecondaryColor || profile.headerSecondaryColor || profile.accentColor || '#d93838');
         setDefaultHal(profile.defaultHal || '');
         setDefaultLampiran(profile.defaultLampiran || '-');
         setSalamPembuka(profile.salamPembuka || '');
@@ -203,16 +212,16 @@ const InvoiceSettings: React.FC = () => {
         setCompanyLogo(profile.companyLogo || '');
         setSignatureImg(profile.signatureImg || '');
         setHeaderType(profile.headerType || 'logo_text');
-
+ 
         // Sembunyikan item_shipping_cost dari tabel kolom editor
         const colsWithoutShipping = (profile.tableColumns || []).filter(c => c.key !== 'item_shipping_cost');
         setTableColumns(colsWithoutShipping);
-
+ 
         // Deteksi tipe ongkos kirim bawaan
         const hasShippingCol = (profile.tableColumns || []).some(c => c.key === 'item_shipping_cost');
         const detectedType = profile.shippingType || (hasShippingCol ? 'item' : 'global');
         setShippingType(detectedType);
-
+ 
         // Muat watermark settings
         setWatermarkColor(profile.watermarkColor || '');
         setWatermarkOpacity(profile.watermarkOpacity !== undefined ? profile.watermarkOpacity : 8);
@@ -246,6 +255,9 @@ const InvoiceSettings: React.FC = () => {
     headerBgColor,
     headerPrimaryColor,
     headerSecondaryColor,
+    footerBgColor,
+    footerPrimaryColor,
+    footerSecondaryColor,
     defaultHal,
     defaultLampiran,
     salamPembuka,
@@ -614,7 +626,13 @@ const InvoiceSettings: React.FC = () => {
               companyPhone,
               setCompanyPhone,
               showCompanyContact,
-              setShowCompanyContact
+              setShowCompanyContact,
+              footerBgColor,
+              setFooterBgColor,
+              footerPrimaryColor,
+              setFooterPrimaryColor,
+              footerSecondaryColor,
+              setFooterSecondaryColor
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

@@ -18,6 +18,12 @@ const DesignSection: React.FC = () => {
     setHeaderSecondaryColor,
     headerBgColor,
     setHeaderBgColor,
+    footerBgColor,
+    setFooterBgColor,
+    footerPrimaryColor,
+    setFooterPrimaryColor,
+    footerSecondaryColor,
+    setFooterSecondaryColor,
     watermarkColor,
     setWatermarkColor,
     watermarkOpacity,
@@ -152,6 +158,66 @@ const DesignSection: React.FC = () => {
             />
           </div>
         </div>
+
+         <div className="compact-form-group">
+           <label className="compact-label">Warna Latar Footer SVG (Kiri)</label>
+           <div style={{ display: 'flex', gap: '6px' }}>
+             <input
+               type="color"
+               style={{ width: '32px', height: '32px', padding: '2px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-card)', cursor: 'pointer' }}
+               value={footerBgColor}
+               onChange={(e) => setFooterBgColor(e.target.value)}
+             />
+             <input
+               type="text"
+               className="compact-input"
+               style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+               value={footerBgColor}
+               onChange={(e) => setFooterBgColor(e.target.value)}
+               placeholder="#222933"
+             />
+           </div>
+         </div>
+
+         <div className="compact-form-group">
+           <label className="compact-label">Warna Utama Footer SVG (Kanan)</label>
+           <div style={{ display: 'flex', gap: '6px' }}>
+             <input
+               type="color"
+               style={{ width: '32px', height: '32px', padding: '2px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-card)', cursor: 'pointer' }}
+               value={footerPrimaryColor}
+               onChange={(e) => setFooterPrimaryColor(e.target.value)}
+             />
+             <input
+               type="text"
+               className="compact-input"
+               style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+               value={footerPrimaryColor}
+               onChange={(e) => setFooterPrimaryColor(e.target.value)}
+               placeholder="#d93838"
+             />
+           </div>
+         </div>
+
+         <div className="compact-form-group">
+           <label className="compact-label">Warna Aksen Footer SVG (Tengah)</label>
+           <div style={{ display: 'flex', gap: '6px' }}>
+             <input
+               type="color"
+               style={{ width: '32px', height: '32px', padding: '2px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-card)', cursor: 'pointer' }}
+               value={footerSecondaryColor}
+               onChange={(e) => setFooterSecondaryColor(e.target.value)}
+             />
+             <input
+               type="text"
+               className="compact-input"
+               style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+               value={footerSecondaryColor}
+               onChange={(e) => setFooterSecondaryColor(e.target.value)}
+               placeholder="#d93838"
+             />
+           </div>
+         </div>
 
         <div className="compact-form-group">
           <label className="compact-label">Warna Watermark (Kosongkan untuk otomatis)</label>

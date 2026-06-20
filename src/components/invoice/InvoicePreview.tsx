@@ -204,6 +204,9 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
   const headerBgColor = profile?.headerBgColor || '#222933';
   const headerPrimaryColor = profile?.headerPrimaryColor || (profile as any)?.headerColor || profile?.accentColor || '#c01c1c';
   const headerSecondaryColor = profile?.headerSecondaryColor || (profile as any)?.headerColor || profile?.accentColor || '#c01c1c';
+  const footerBgColor = profile?.footerBgColor || profile?.headerBgColor || '#222933';
+  const footerPrimaryColor = profile?.footerPrimaryColor || profile?.headerPrimaryColor || profile?.accentColor || '#c01c1c';
+  const footerSecondaryColor = profile?.footerSecondaryColor || profile?.headerSecondaryColor || profile?.accentColor || '#c01c1c';
 
 
 
@@ -716,10 +719,10 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
               {/* Grup shape background horizontal dengan efek timbul (drop shadow) */}
               <g filter="url(#drop-shadow-footer)">
                 {/* Bidang hitam */}
-                <path d="M 0 20 H 312 L 349.5 70 H 0 Z" fill={headerBgColor} />
+                <path d="M 0 20 H 312 L 349.5 70 H 0 Z" fill={footerBgColor} />
 
                 {/* Bidang merah kanan (Warna dinamis) */}
-                <path d="M 388.25 20 H 1045 V 70 H 425.75 Z" fill={headerPrimaryColor} />
+                <path d="M 388.25 20 H 1045 V 70 H 425.75 Z" fill={footerPrimaryColor} />
               </g>
 
               {/* Teks Pengantar Transfer (di dalam shape footer kiri) */}
@@ -756,7 +759,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
               {/* Grup shape miring tengah dengan efek timbul (drop shadow) di atas shape horizontal */}
               <g filter="url(#drop-shadow-middle-footer)">
                 {/* Diagonal merah tengah (Warna dinamis) */}
-                <path d="M 320 5 H 359 L 407.75 70 H 368.75 Z" fill={headerSecondaryColor} />
+                <path d="M 320 5 H 359 L 407.75 70 H 368.75 Z" fill={footerSecondaryColor} />
 
                 {/* Pemisah putih */}
                 <path d="M 359 5 H 377 L 425.75 70 H 407.75 Z" fill="#ffffff" />

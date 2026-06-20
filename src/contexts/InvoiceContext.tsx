@@ -19,7 +19,10 @@ const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => {
     companyYoutube: (t.profile as any).companyYoutube || (isKBMTmpl ? 'Penerbit KBM Sastrabook' : ''),
     companyInstagram: (t.profile as any).companyInstagram || (isKBMTmpl ? '@penerbit.sastrabook / @penerbit.kbmindonesia' : ''),
     companyPhone: (t.profile as any).companyPhone || (isKBMTmpl ? '0813 5751 7526' : ''),
-    showCompanyContact: (t.profile as any).showCompanyContact !== undefined ? (t.profile as any).showCompanyContact : isKBMTmpl
+    showCompanyContact: (t.profile as any).showCompanyContact !== undefined ? (t.profile as any).showCompanyContact : isKBMTmpl,
+    footerBgColor: (t.profile as any).footerBgColor || t.profile.headerBgColor || '#222933',
+    footerPrimaryColor: (t.profile as any).footerPrimaryColor || t.profile.headerPrimaryColor || t.profile.accentColor || '#c01c1c',
+    footerSecondaryColor: (t.profile as any).footerSecondaryColor || t.profile.headerSecondaryColor || t.profile.accentColor || '#c01c1c'
   };
 }) as InvoiceProfile[];
 
