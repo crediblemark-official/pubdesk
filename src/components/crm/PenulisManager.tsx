@@ -456,7 +456,7 @@ const PenulisManager: React.FC = () => {
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>WhatsApp</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '17%', userSelect: 'none' }}>Email</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Lokasi & Afiliasi</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Status</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Status Follow-Up</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
