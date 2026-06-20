@@ -98,7 +98,8 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
     { value: 'Contacted', label: 'Sudah Dihubungi' },
     { value: 'Interested', label: 'Tertarik' },
     { value: 'Deal', label: 'Deal (Naskah Masuk)' },
-    { value: 'Rejected', label: 'Menolak' }
+    { value: 'Rejected', label: 'Menolak' },
+    { value: 'Pelanggan', label: '🤝 Pelanggan' }
   ];
 
   return (
