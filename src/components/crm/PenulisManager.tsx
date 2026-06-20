@@ -38,6 +38,7 @@ const PenulisManager: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [provinceFilter, setProvinceFilter] = useState('');
+  const [contactTypeFilter, setContactTypeFilter] = useState<'all' | 'penulis' | 'customer'>('all');
 
   // Gabungkan data penulis asli dengan kontak pelanggan
   const combinedPenulis = useMemo(() => {
@@ -104,9 +105,17 @@ const PenulisManager: React.FC = () => {
         (p.wa_number && p.wa_number.includes(search));
       const matchesStatus = statusFilter ? p.followup_status === statusFilter : true;
       const matchesProvince = provinceFilter ? p.province === provinceFilter : true;
-      return matchesSearch && matchesStatus && matchesProvince;
+      
+      let matchesType = true;
+      if (contactTypeFilter === 'penulis') {
+        matchesType = !p.is_customer_only;
+      } else if (contactTypeFilter === 'customer') {
+        matchesType = !!p.is_customer;
+      }
+      
+      return matchesSearch && matchesStatus && matchesProvince && matchesType;
     });
-  }, [combinedPenulis, search, statusFilter, provinceFilter]);
+  }, [combinedPenulis, search, statusFilter, provinceFilter, contactTypeFilter]);
 
   const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -349,6 +358,54 @@ const PenulisManager: React.FC = () => {
         gap: '12px' 
       }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Tab Filter Tipe Kontak */}
+          <div style={{ 
+            display: 'flex', 
+            background: 'rgba(0, 0, 0, 0.2)', 
+            padding: '3px', 
+            borderRadius: '20px', 
+            border: '1px solid var(--border)',
+            gap: '2px',
+            marginRight: '8px'
+          }}>
+            {[
+              { id: 'all', label: 'Semua', count: combinedPenulis.length },
+              { id: 'penulis', label: 'Lead Penulis', count: combinedPenulis.filter(p => !p.is_customer_only).length },
+              { id: 'customer', label: 'Pelanggan', count: combinedPenulis.filter(p => p.is_customer).length }
+            ].map(tab => {
+              const isTabActive = contactTypeFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setContactTypeFilter(tab.id as any)}
+                  style={{
+                    border: 'none',
+                    padding: '5px 12px',
+                    borderRadius: '16px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    background: isTabActive ? 'var(--accent)' : 'transparent',
+                    color: isTabActive ? '#ffffff' : 'var(--text-secondary)',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>{tab.label}</span>
+                  <span style={{
+                    background: isTabActive ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)',
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    fontSize: '9px',
+                    color: isTabActive ? '#ffffff' : 'var(--text-secondary)'
+                  }}>{tab.count}</span>
+                </button>
+              );
+            })}
+          </div>
+
           {/* Input Pencarian */}
           <div style={{ position: 'relative', width: '250px' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '14px' }}>🔍</span>

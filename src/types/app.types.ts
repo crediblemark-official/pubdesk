@@ -12,8 +12,6 @@ export type AppModule =
   | 'settings'
   | 'books'
   | 'services'
-  | 'customer-form'
-  | 'customer-manager'
   | 'crm-penulis'
   | 'crm-penerbit'
   | 'naskah-orders'

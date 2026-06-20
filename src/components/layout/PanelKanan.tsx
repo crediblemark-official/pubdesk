@@ -5,7 +5,6 @@ import InvoicePreview from '../invoice/InvoicePreview';
 import FilePreviewPanel from './PanelKanan/FilePreviewPanel';
 import ServicePreviewPanel from './PanelKanan/ServicePreviewPanel';
 import InsightPanel from './PanelKanan/InsightPanel';
-import CustomerPreviewPanel from './PanelKanan/CustomerPreviewPanel';
 import PenulisPreviewPanel from './PanelKanan/PenulisPreviewPanel';
 
 /**
@@ -15,7 +14,6 @@ import PenulisPreviewPanel from './PanelKanan/PenulisPreviewPanel';
  *   - FilePreviewPanel   → Smart Folders & Manajemen Invoice
  *   - ServicePreviewPanel → Layanan / Settings > Services
  *   - InsightPanel        → Invoice Insight
- *   - CustomerPreviewPanel → Pelanggan
  *   - PenulisPreviewPanel  → Lead Penulis (CRM)
  */
 const PanelKanan: React.FC = () => {
@@ -27,7 +25,6 @@ const PanelKanan: React.FC = () => {
     selectedInsightMetric,
     invoices,
     setActiveModule,
-    selectedCustomerId,
     selectedPenulisId,
   } = useAppContext();
 
@@ -65,9 +62,7 @@ const PanelKanan: React.FC = () => {
     case 'services':
       return <ServicePreviewPanel serviceId={selectedServiceId} services={services} />;
 
-    // Modul Pelanggan — preview pelanggan terpilih
-    case 'customer-manager':
-      return <CustomerPreviewPanel customerId={selectedCustomerId} />;
+
 
     // Modul Lead Penulis (CRM) — preview penulis terpilih
     case 'crm-penulis':

@@ -32,8 +32,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             ? (appState.activeModule === 'invoice' || appState.activeModule === 'invoice-manager' || appState.activeModule === 'invoice-insight')
             : item.id === 'master-data-parent'
             ? (
-                appState.activeModule === 'customer-form' ||
-                appState.activeModule === 'customer-manager' ||
                 appState.activeModule === 'crm-penulis' ||
                 appState.activeModule === 'crm-penerbit' ||
                 appState.activeModule === 'naskah-orders' ||
@@ -71,8 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     }
                   } else if (item.id === 'master-data-parent') {
                     const isAnySubActive = [
-                      'customer-form',
-                      'customer-manager',
                       'crm-penulis',
                       'crm-penerbit',
                       'naskah-orders',
@@ -80,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     ].includes(appState.activeModule);
                     
                     if (!isAnySubActive) {
-                      setActiveModule('customer-manager');
+                      setActiveModule('crm-penulis');
                     }
                   } else {
                     setActiveModule(item.id);
@@ -160,7 +156,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               {showMasterDataSubmenu && (
                 <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
                   {[
-                    { module: 'customer-manager' as const, label: 'Pelanggan', icon: '👥' },
                     { module: 'crm-penulis' as const, label: 'Lead Penulis', icon: '👤' },
                     { module: 'crm-penerbit' as const, label: 'CRM Penerbit', icon: '🏢' },
                     { module: 'naskah-orders' as const, label: 'Naskah & Orders', icon: '📚' },
