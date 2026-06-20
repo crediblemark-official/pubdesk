@@ -32,9 +32,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const [fileTags, setFileTags] = React.useState<Record<number, string[]>>({});
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
 
-  const [sortBy, setSortBy] = React.useState<'name' | 'date' | 'size' | 'type'>('name');
+  const [sortBy, setSortBy] = React.useState<'name' | 'date' | 'size' | 'type' | 'status'>('name');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('asc');
-  const [isTreeView, setIsTreeView] = React.useState<boolean>(false);
+  const isTreeView = true;
   const [expandedFolders, setExpandedFolders] = React.useState<Record<string, boolean>>({});
 
   const fetchTagsData = async () => {
@@ -130,6 +130,11 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
           const typeB = b.type || '';
           comparison = typeA.localeCompare(typeB);
           break;
+        case 'status':
+          const statusA = a.status || '';
+          const statusB = b.status || '';
+          comparison = statusA.localeCompare(statusB);
+          break;
         default:
           comparison = 0;
       }
@@ -179,12 +184,26 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
           const typeB = fileB.type || '';
           comparison = typeA.localeCompare(typeB);
           break;
+        case 'status':
+          const statusA = fileA.status || '';
+          const statusB = fileB.status || '';
+          comparison = statusA.localeCompare(statusB);
+          break;
         default:
           comparison = 0;
       }
       
       return sortOrder === 'asc' ? comparison : -comparison;
     });
+  };
+
+  const handleSort = (field: 'name' | 'type' | 'date' | 'status') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
   };
 
   const getVirtualFolders = () => {
@@ -598,13 +617,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
   const showTreeActive = isTreeView && fileCategory === 'other' && fileLayoutMode === 'list';
   let treeRows: any[] = [];
-  let rootFolderName = 'Lokal';
 
   if (showTreeActive) {
     const commonPrefix = getCommonPrefix(preFilteredFiles.map(f => f.path));
-    if (commonPrefix) {
-      rootFolderName = commonPrefix.split('/').pop() || 'Lokal';
-    }
     const tree = buildLocalFileTree(preFilteredFiles, commonPrefix);
     const sortedTree = sortTreeNodes(tree);
     treeRows = flattenTree(sortedTree, expandedFolders);
@@ -666,89 +681,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
         </div>
       )}
 
-      {/* Toolbar Kontrol (Urutkan & Tampilan Pohon) */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 16px',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--bg-panel)',
-        flexWrap: 'wrap',
-        gap: '12px',
-        flexShrink: 0
-      }}>
-        {/* Sisi Kiri: Sortir */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-            ⇅ Urutkan:
-          </span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              fontSize: '12px',
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="name">Nama</option>
-            <option value="date">Tanggal Modifikasi</option>
-            <option value="size">Ukuran</option>
-            <option value="type">Tipe</option>
-          </select>
-          <button
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              fontSize: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              height: '26px',
-              width: '26px'
-            }}
-            title={sortOrder === 'asc' ? "Naik (A-Z / Terlama)" : "Turun (Z-A / Terbaru)"}
-          >
-            {sortOrder === 'asc' ? '▲' : '▼'}
-          </button>
-        </div>
-
-        {/* Sisi Kanan: Toggle Tree View */}
-        {fileCategory === 'other' && fileLayoutMode === 'list' && (
-            <button
-              onClick={() => setIsTreeView(!isTreeView)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '5px 12px',
-                borderRadius: '6px',
-                border: 'none',
-                background: isTreeView ? 'var(--accent)' : 'var(--bg-card)',
-                color: isTreeView ? '#ffffff' : 'var(--text-primary)',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <span>{isTreeView ? '🌲' : '📋'}</span>
-              <span>{isTreeView ? `Tampilan Pohon (${rootFolderName})` : 'Aktifkan Tampilan Pohon'}</span>
-            </button>
-        )}
-      </div>
 
       {/* Daftar Berkas */}
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)', padding: fileLayoutMode === 'grid' ? '16px' : '0' }}>
@@ -888,13 +820,32 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                <th style={{ padding: '8px 12px', fontWeight: '600', width: '40%' }}>Nama Berkas</th>
-                <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%' }}>Tipe</th>
-                <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%' }}>Diubah Terakhir</th>
-                <th style={{ padding: '8px 12px', fontWeight: '600', width: '10%' }}>Status</th>
-                <th style={{ padding: '8px 12px', fontWeight: '600', width: '10%', textAlign: 'center' }}>Aksi</th>
-              </tr>
-            </thead>
+                <th 
+                  onClick={() => handleSort('name')}
+                  style={{ padding: '8px 12px', fontWeight: '600', width: '40%', cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Nama Berkas {sortBy === 'name' && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
+                </th>
+                <th 
+                  onClick={() => handleSort('type')}
+                  style={{ padding: '8px 12px', fontWeight: '600', width: '15%', cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Tipe {sortBy === 'type' && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
+                </th>
+                <th 
+                  onClick={() => handleSort('date')}
+                  style={{ padding: '8px 12px', fontWeight: '600', width: '25%', cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Diubah Terakhir {sortBy === 'date' && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
+                </th>
+                <th 
+                  onClick={() => handleSort('status')}
+                  style={{ padding: '8px 12px', fontWeight: '600', width: '10%', cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Status {sortBy === 'status' && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
+                </th>
+                <th style={{ padding: '8px 12px', fontWeight: '600', width: '10%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
+              </tr>            </thead>
             <tbody>
               {/* Baris kembali ke folder induk */}
               {fileCategory === 'gdrive' && !searchQuery && currentFolderId !== rootFolderId && (
