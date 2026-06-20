@@ -95,10 +95,10 @@ const MainLayout = () => {
         return <PenerbitManager searchQuery={fileSearchQuery} />;
       case 'crm-naskah':
       case 'naskah-orders':
-        return <NaskahOrdersManager />;
+        return <NaskahOrdersManager searchQuery={fileSearchQuery} />;
       case 'crm-tim':
       case 'layouters':
-        return <LayouterManager />;
+        return <LayouterManager searchQuery={fileSearchQuery} />;
       case 'ledger':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':

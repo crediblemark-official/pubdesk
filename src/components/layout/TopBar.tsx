@@ -140,7 +140,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
         </div>
 
         {/* Path bar atau field cari berkas */}
-        {(activeModule === 'files' || activeModule === 'invoice-manager' || activeModule === 'crm-penulis') ? (
+        {(activeModule === 'files' || activeModule === 'invoice-manager' || activeModule === 'crm-penulis' || activeModule === 'crm-naskah' || activeModule === 'crm-tim') ? (
           (!isSearchFocused && !searchQuery) ? (
             <div 
               className="top-bar-gnome-pathbar" 
@@ -242,7 +242,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
                 )
               ) : (
                 <span className="top-bar-path-text" style={{ color: 'var(--text-secondary)' }}>
-                  {activeModule === 'crm-penulis' ? '🔍 Cari nama, email, WA...' : '🔍 Cari nomor invoice atau pelanggan...'}
+                  {activeModule === 'crm-penulis' ? '🔍 Cari nama, email, WA...' : activeModule === 'crm-naskah' ? '🔍 Cari judul, penulis, genre...' : activeModule === 'crm-tim' ? '🔍 Cari nama, peran, divisi...' : '🔍 Cari nomor invoice atau pelanggan...'}
                 </span>
               )}
             </div>
@@ -251,7 +251,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
               <span style={{ position: 'absolute', left: '10px', color: 'var(--text-secondary)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
               <input
                 type="text"
-                placeholder={activeModule === 'files' ? "Cari berkas..." : activeModule === 'crm-penulis' ? "Cari nama, email, WA..." : "Cari nomor invoice atau pelanggan..."}
+                placeholder={activeModule === 'files' ? "Cari berkas..." : activeModule === 'crm-penulis' ? "Cari nama, email, WA..." : activeModule === 'crm-naskah' ? "Cari judul, penulis, genre..." : activeModule === 'crm-tim' ? "Cari nama, peran, divisi..." : "Cari nomor invoice atau pelanggan..."}
                 value={searchQuery}
                 autoFocus
                 onBlur={() => {

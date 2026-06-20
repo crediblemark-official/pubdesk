@@ -7,34 +7,68 @@ import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
 import { Badge } from '../../ui/atoms/Badge';
 
-const TimManager: React.FC = () => {
+interface TimManagerProps {
+  searchQuery?: string;
+}
+
+// Format tanggal singkat ke ID locale
+const formatTanggal = (isoString: string) => {
+  if (!isoString) return '-';
+  try {
+    return new Date(isoString).toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  } catch {
+    return '-';
+  }
+};
+
+const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
   const { layouters, addLayouter, updateLayouter, deleteLayouter } = useCrmContext();
   const { showConfirm, showToast } = useAppContext();
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentMember, setCurrentMember] = useState<Layouter | null>(null);
 
-  // State filter
-  const [search, setSearch] = useState('');
+  // Filter state — badge multi-select untuk status
+  const [activeStatuses, setActiveStatuses] = useState<string[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState('');
 
-  // Daftar departemen unik dari data yang ada
+  // Daftar departemen unik dari data
   const departments = useMemo(() => {
     const set = new Set(layouters.map((l) => l.department).filter(Boolean) as string[]);
     return Array.from(set).sort();
   }, [layouters]);
 
+  // Toggle status badge filter
+  const toggleStatus = (status: string) => {
+    setActiveStatuses((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    );
+  };
+
   // Filter anggota tim
   const filteredMembers = useMemo(() => {
     return layouters.filter((l) => {
+      const q = searchQuery.toLowerCase();
       const matchSearch =
-        l.name.toLowerCase().includes(search.toLowerCase()) ||
-        l.role.toLowerCase().includes(search.toLowerCase()) ||
-        (l.department && l.department.toLowerCase().includes(search.toLowerCase()));
+        !q ||
+        l.name.toLowerCase().includes(q) ||
+        l.role.toLowerCase().includes(q) ||
+        (l.department && l.department.toLowerCase().includes(q));
+
+      const statusLabel = l.is_active === 1 ? 'Aktif' : 'Nonaktif';
+      const matchStatus = activeStatuses.length === 0 || activeStatuses.includes(statusLabel);
       const matchDept = departmentFilter ? l.department === departmentFilter : true;
-      return matchSearch && matchDept;
+      return matchSearch && matchStatus && matchDept;
     });
-  }, [layouters, search, departmentFilter]);
+  }, [layouters, searchQuery, activeStatuses, departmentFilter]);
+
+  // Hitung statistik
+  const totalAktif = layouters.filter((l) => l.is_active === 1).length;
+  const totalNonaktif = layouters.length - totalAktif;
 
   const handleAddNew = () => {
     setCurrentMember(null);
@@ -71,10 +105,7 @@ const TimManager: React.FC = () => {
       if (data.id) {
         const original = layouters.find((l) => l.id === data.id);
         if (original) {
-          await updateLayouter({
-            ...original,
-            ...data,
-          } as Layouter);
+          await updateLayouter({ ...original, ...data } as Layouter);
           showToast('Data anggota tim berhasil diperbarui!', 'success');
         }
       } else {
@@ -94,41 +125,17 @@ const TimManager: React.FC = () => {
       <LayouterForm
         initialData={currentMember}
         onSubmit={handleFormSubmit}
-        onCancel={() => {
-          setIsEditing(false);
-          setCurrentMember(null);
-        }}
+        onCancel={() => { setIsEditing(false); setCurrentMember(null); }}
       />
     );
   }
 
-  // Hitung statistik tim
-  const totalAktif = layouters.filter((l) => l.is_active === 1).length;
+  const hasActiveFilter = activeStatuses.length > 0 || !!departmentFilter || !!searchQuery;
 
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
 
-      {/* Header statistik */}
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        padding: '10px 16px',
-        background: 'var(--bg-card)',
-        borderBottom: '1px solid var(--border)',
-        fontSize: '12px'
-      }}>
-        <span style={{ color: 'var(--text-secondary)' }}>
-          Total Tim: <strong style={{ color: 'var(--text-primary)' }}>{layouters.length}</strong>
-        </span>
-        <span style={{ color: 'var(--text-secondary)' }}>
-          Aktif: <strong style={{ color: '#22c55e' }}>{totalAktif}</strong>
-        </span>
-        <span style={{ color: 'var(--text-secondary)' }}>
-          Nonaktif: <strong style={{ color: '#ef4444' }}>{layouters.length - totalAktif}</strong>
-        </span>
-      </div>
-
-      {/* Baris Filter & Tambah */}
+      {/* Toolbar: filter badge + info + tombol tambah */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -137,78 +144,118 @@ const TimManager: React.FC = () => {
         borderBottom: '1px solid var(--border)',
         background: 'var(--bg-panel)',
         flexWrap: 'wrap',
-        gap: '12px'
+        gap: '10px'
       }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Input Pencarian */}
-          <div style={{ position: 'relative', width: '240px' }}>
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '14px' }}>🔍</span>
-            <input
-              type="text"
-              placeholder="Cari nama, peran, divisi..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 12px 6px 36px',
-                border: '1px solid var(--border)',
-                borderRadius: '20px',
-                fontSize: '12px',
-                background: 'var(--bg-card)',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
-            />
-          </div>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+
+          {/* Info jumlah */}
+          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginRight: '4px' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>{filteredMembers.length}</strong>
+            {' '}dari{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>{layouters.length}</strong>
+            {' '}anggota
+          </span>
+
+          {/* Separator */}
+          <span style={{ color: 'var(--border)', fontSize: '16px' }}>|</span>
+
+          {/* Badge filter Aktif */}
+          {[
+            { label: 'Aktif', count: totalAktif, variant: 'success' as const },
+            { label: 'Nonaktif', count: totalNonaktif, variant: 'neutral' as const }
+          ].map(({ label, count, variant }) => {
+            const isActive = activeStatuses.includes(label);
+            return (
+              <button
+                key={label}
+                onClick={() => toggleStatus(label)}
+                style={{
+                  padding: '3px 10px',
+                  borderRadius: '20px',
+                  fontSize: '11px',
+                  fontWeight: isActive ? '700' : '500',
+                  border: `1.5px solid ${isActive ? 'currentColor' : 'var(--border)'}`,
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  opacity: isActive ? 1 : 0.75
+                }}
+              >
+                <Badge label={`${label} (${count})`} variant={isActive ? variant : 'neutral'} />
+              </button>
+            );
+          })}
 
           {/* Filter Departemen */}
-          <select
-            value={departmentFilter}
-            onChange={(e) => setDepartmentFilter(e.target.value)}
-            style={{
-              padding: '6px 12px',
-              border: '1px solid var(--border)',
-              borderRadius: '20px',
-              fontSize: '12px',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="">Semua Divisi</option>
-            {departments.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
+          {departments.length > 0 && (
+            <select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              style={{
+                padding: '4px 10px',
+                border: `1.5px solid ${departmentFilter ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: '20px',
+                fontSize: '11px',
+                background: departmentFilter ? 'rgba(99,102,241,0.08)' : 'transparent',
+                color: departmentFilter ? 'var(--accent)' : 'var(--text-secondary)',
+                outline: 'none',
+                cursor: 'pointer',
+                fontWeight: departmentFilter ? '600' : '400'
+              }}
+            >
+              <option value="">Semua Divisi</option>
+              {departments.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Reset filter */}
+          {hasActiveFilter && (
+            <button
+              onClick={() => { setActiveStatuses([]); setDepartmentFilter(''); }}
+              style={{
+                padding: '3px 8px',
+                borderRadius: '20px',
+                fontSize: '11px',
+                border: '1px solid var(--border)',
+                background: 'transparent',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                opacity: 0.75
+              }}
+            >
+              ✕ Reset
+            </button>
+          )}
         </div>
 
-        {/* Tombol Tambah */}
         <Button onClick={handleAddNew} variant="primary" size="sm" icon="➕">
           Tambah Anggota Tim
         </Button>
       </div>
 
-      {/* Tabel Data */}
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
-          <thead>
+      {/* Tabel */}
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', background: 'var(--bg-card)' }}>
+        <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%', userSelect: 'none' }}>Nama Anggota</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Peran</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Divisi</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '14%', userSelect: 'none' }}>Target / Minggu</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '12%', userSelect: 'none' }}>Status</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '11%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '22%', userSelect: 'none' }}>Nama Anggota</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Peran</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>Divisi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Target/Minggu</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '14%', userSelect: 'none' }}>Tanggal Masuk</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '9%', userSelect: 'none' }}>Status</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '9%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filteredMembers.length === 0 ? (
               <TableEmptyState
-                colSpan={6}
+                colSpan={7}
                 icon="👥"
                 message="Tidak ada data anggota tim"
-                description={search || departmentFilter ? `Tidak ada hasil untuk filter yang dipilih` : 'Belum ada anggota tim terdaftar. Klik tombol Tambah Anggota Tim untuk menambahkan.'}
+                description={hasActiveFilter ? 'Tidak ada hasil untuk filter yang dipilih.' : 'Belum ada anggota tim terdaftar. Klik Tambah Anggota Tim untuk menambahkan.'}
               />
             ) : (
               filteredMembers.map((l) => (
@@ -217,14 +264,14 @@ const TimManager: React.FC = () => {
                   style={{
                     borderBottom: '1px solid var(--border)',
                     background: 'transparent',
-                    cursor: 'pointer',
+                    cursor: 'default',
                     transition: 'background 0.1s ease',
                     color: 'var(--text-primary)'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.02)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
-                  <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                  <td style={{ padding: '10px 12px', fontWeight: '600' }}>
                     <div>{l.name}</div>
                     {l.notes && (
                       <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '400', marginTop: '2px', fontStyle: 'italic' }}>
@@ -232,25 +279,28 @@ const TimManager: React.FC = () => {
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '12px' }}>
                     {l.role}
                   </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                  <td style={{ padding: '10px 12px' }}>
                     {l.department ? (
                       <span style={{
                         padding: '2px 8px',
                         borderRadius: '4px',
                         fontSize: '11px',
                         fontWeight: '600',
-                        background: 'rgba(99, 102, 241, 0.1)',
+                        background: 'rgba(99,102,241,0.1)',
                         color: '#818cf8'
                       }}>
                         {l.department}
                       </span>
-                    ) : '-'}
+                    ) : <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>-</span>}
                   </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px' }}>
                     🎯 {l.weekly_target} naskah
+                  </td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px' }}>
+                    📅 {formatTanggal(l.created_at)}
                   </td>
                   <td style={{ padding: '10px 12px' }}>
                     <Badge
@@ -260,19 +310,11 @@ const TimManager: React.FC = () => {
                   </td>
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={(e) => handleEdit(l, e)}
-                      >
+                      <Button variant="secondary" size="sm" onClick={(e) => handleEdit(l, e)}>
                         ✏️ Edit
                       </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={(e) => l.id && handleDelete(l.id, l.name, e)}
-                      >
-                        🗑️ Hapus
+                      <Button variant="danger" size="sm" onClick={(e) => l.id && handleDelete(l.id, l.name, e)}>
+                        🗑️
                       </Button>
                     </div>
                   </td>
