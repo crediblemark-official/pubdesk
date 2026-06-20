@@ -75,8 +75,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
                   {[
                     { cat: 'all' as const, label: 'Semua Berkas', icon: '📂' },
-                    { cat: 'invoice' as const, label: 'Dokumen Invoice', icon: '📄' },
+                    { cat: 'invoice' as const, label: 'Dokumen Invoice', icon: '🧾' },
                     { cat: 'service' as const, label: 'Katalog Layanan', icon: '🛠️' },
+                    { cat: 'pdf' as const, label: 'Dokumen PDF', icon: '📕' },
+                    { cat: 'spreadsheet' as const, label: 'Spreadsheet', icon: '📊' },
+                    { cat: 'text' as const, label: 'Dokumen Teks & Word', icon: '📝' },
+                    { cat: 'image' as const, label: 'Gambar', icon: '🖼️' },
+                    { cat: 'presentation' as const, label: 'Presentasi', icon: '📉' },
                     { cat: 'gdrive' as const, label: 'Google Drive', icon: '☁️' },
                     { cat: 'other' as const, label: 'Berkas Lainnya', icon: '📁' },
                   ].map((sub) => {

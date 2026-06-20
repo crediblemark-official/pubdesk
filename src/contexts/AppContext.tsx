@@ -40,8 +40,8 @@ interface AppContextType {
   selectedFileId: number | null;
   setSelectedFileId: (id: number | null) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
-  fileCategory: 'all' | 'invoice' | 'service' | 'other' | 'gdrive';
-  setFileCategory: (category: 'all' | 'invoice' | 'service' | 'other' | 'gdrive') => void;
+  fileCategory: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation';
+  setFileCategory: (category: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation') => void;
   loadBooks: () => Promise<void>;
   loadContacts: () => Promise<void>;
   loadInvoices: () => Promise<void>;
@@ -112,7 +112,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [services, setServices] = useState<Service[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
-  const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'service' | 'other' | 'gdrive'>('all');
+  const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation'>('all');
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);

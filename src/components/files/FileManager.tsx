@@ -565,12 +565,42 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
   const baseFiles = searchQuery.trim() ? searchResults : allFiles;
   const preFilteredFiles = baseFiles.filter((file) => {
-    const matchesCategory =
-      (fileCategory === 'all' && file.type !== 'gdrive') ||
-      (fileCategory === 'invoice' && file.type === 'invoice') ||
-      (fileCategory === 'service' && file.type === 'service') ||
-      (fileCategory === 'gdrive' && file.type === 'gdrive') ||
-      (fileCategory === 'other' && file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive');
+    const filenameLower = (file.filename || '').toLowerCase();
+    const isPdf = filenameLower.endsWith('.pdf');
+    const isSpreadsheet = filenameLower.endsWith('.xlsx') || filenameLower.endsWith('.xls') || filenameLower.endsWith('.csv') || filenameLower.endsWith('.ods');
+    const isText = filenameLower.endsWith('.docx') || filenameLower.endsWith('.doc') || filenameLower.endsWith('.txt') || filenameLower.endsWith('.odt') || filenameLower.endsWith('.rtf') || filenameLower.endsWith('.md');
+    const isImage = filenameLower.endsWith('.png') || filenameLower.endsWith('.jpg') || filenameLower.endsWith('.jpeg') || filenameLower.endsWith('.gif') || filenameLower.endsWith('.svg') || filenameLower.endsWith('.webp');
+    const isPresentation = filenameLower.endsWith('.pptx') || filenameLower.endsWith('.ppt') || filenameLower.endsWith('.odp');
+
+    let matchesCategory = false;
+    if (fileCategory === 'all') {
+      matchesCategory = file.type !== 'gdrive';
+    } else if (fileCategory === 'invoice') {
+      matchesCategory = file.type === 'invoice';
+    } else if (fileCategory === 'service') {
+      matchesCategory = file.type === 'service';
+    } else if (fileCategory === 'gdrive') {
+      matchesCategory = file.type === 'gdrive';
+    } else if (fileCategory === 'pdf') {
+      matchesCategory = file.type !== 'gdrive' && isPdf;
+    } else if (fileCategory === 'spreadsheet') {
+      matchesCategory = file.type !== 'gdrive' && isSpreadsheet;
+    } else if (fileCategory === 'text') {
+      matchesCategory = file.type !== 'gdrive' && isText;
+    } else if (fileCategory === 'image') {
+      matchesCategory = file.type !== 'gdrive' && isImage;
+    } else if (fileCategory === 'presentation') {
+      matchesCategory = file.type !== 'gdrive' && isPresentation;
+    } else if (fileCategory === 'other') {
+      matchesCategory = file.type !== 'invoice' && 
+                        file.type !== 'service' && 
+                        file.type !== 'gdrive' && 
+                        !isPdf && 
+                        !isSpreadsheet && 
+                        !isText && 
+                        !isImage && 
+                        !isPresentation;
+    }
 
     const fileParentId = getParentId(file);
     const isShared = getIsShared(file);
@@ -616,7 +646,16 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
 
   const filteredFiles = sortFiles(preFilteredFiles);
 
-  const showTreeActive = isTreeView && fileCategory === 'other' && fileLayoutMode === 'list';
+  const isLocalCategory = 
+    fileCategory === 'all' ||
+    fileCategory === 'other' ||
+    fileCategory === 'pdf' ||
+    fileCategory === 'spreadsheet' ||
+    fileCategory === 'text' ||
+    fileCategory === 'image' ||
+    fileCategory === 'presentation';
+
+  const showTreeActive = isTreeView && isLocalCategory && fileLayoutMode === 'list';
   let treeRows: any[] = [];
 
   if (showTreeActive) {
