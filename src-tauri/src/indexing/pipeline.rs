@@ -281,6 +281,55 @@ pub fn run_indexing_pipeline(app_handle: &AppHandle, file_id: i64) -> Result<(),
             }
         }
 
+        // 5b. Relasi Graf berdasarkan Konteks Folder Induk & Kemiripan Nama Berkas (Cross-File-Type)
+        if let Ok(mut stmt_all) = db.conn.prepare("SELECT id, path, filename FROM files WHERE id != ?1") {
+            let path_curr = Path::new(&path);
+            let parent_curr = path_curr.parent().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
+            let stem_curr = path_curr.file_stem().map(|s| s.to_string_lossy().to_string().to_lowercase()).unwrap_or_default();
+
+            if let Ok(all_rows) = stmt_all.query_map(params![file_id], |row| {
+                let id: i64 = row.get(0)?;
+                let other_path: String = row.get(1)?;
+                let other_filename: String = row.get(2)?;
+                Ok((id, other_path, other_filename))
+            }) {
+                for (other_id, other_path_str, _other_filename) in all_rows.flatten() {
+                    let path_other = Path::new(&other_path_str);
+                    let parent_other = path_other.parent().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
+                    let stem_other = path_other.file_stem().map(|s| s.to_string_lossy().to_string().to_lowercase()).unwrap_or_default();
+
+                    let is_same_folder = !parent_curr.is_empty() && parent_curr == parent_other;
+                    
+                    // Kemiripan nama (substring match yang signifikan, minimal 3 karakter)
+                    let is_name_related = if stem_curr.len() >= 3 && stem_other.len() >= 3 {
+                        stem_curr.contains(&stem_other) || stem_other.contains(&stem_curr)
+                    } else {
+                        false
+                    };
+
+                    let mut confidence: f32 = 0.0;
+                    if is_same_folder && is_name_related {
+                        // Sangat berelasi: di folder yang sama dan nama berkas mirip
+                        confidence = 0.85;
+                    } else if is_name_related {
+                        // Cukup berelasi: nama mirip walaupun beda folder
+                        confidence = 0.70;
+                    } else if is_same_folder {
+                        // Berelasi karena satu folder (konteks lokasi sama)
+                        confidence = 0.50;
+                    }
+
+                    if confidence > 0.0 {
+                        // Catat relasi lintas berkas
+                        let _ = db.conn.execute(
+                            "INSERT INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
+                            params![file_id, other_id, "related_to", confidence]
+                        );
+                    }
+                }
+            }
+        }
+
         // 6. Inisialisasi statistik akses perilaku berkas
         let _ = db.conn.execute(
             "INSERT OR IGNORE INTO file_stats (file_id, access_count, last_accessed, active_project_boost) VALUES (?1, 0, NULL, 0)",
