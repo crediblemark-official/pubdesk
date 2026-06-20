@@ -107,6 +107,8 @@ interface AppContextType {
   getAllFileTags: () => Promise<Record<number, string[]>>;
   selectedInsightMetric: 'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null;
   setSelectedInsightMetric: (metric: 'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null) => void;
+  editingCustomer: Contact | null;
+  setEditingCustomer: (customer: Contact | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -130,6 +132,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [confirmOptions, setConfirmOptions] = useState<ConfirmOptions | null>(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'services' | 'local-folders' | 'google-drive' | 'google-apps-script'>('invoice');
   const [selectedInsightMetric, setSelectedInsightMetric] = useState<'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
   const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
@@ -820,6 +823,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addContact,
       updateContact,
       deleteContact,
+      editingCustomer,
+      setEditingCustomer,
       addInvoice,
       updateInvoice,
       deleteInvoice,

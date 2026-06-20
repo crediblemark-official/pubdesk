@@ -12,7 +12,8 @@ export type AppModule =
   | 'settings'
   | 'books'
   | 'services'
-  | 'customers';
+  | 'customer-form'
+  | 'customer-manager';
 
 export interface AppState {
   activeModule: AppModule;

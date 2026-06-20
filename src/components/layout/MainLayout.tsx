@@ -12,7 +12,8 @@ import Settings from '../settings/Settings';
 import { FileManager } from '../files/FileManager';
 import BookManager from '../books/BookManager';
 import ServiceManager from '../services-module/ServiceManager';
-import CustomerManager from '../customers/CustomerManager';
+import CustomerForm from '../customers/CustomerForm';
+import CustomerList from '../customers/CustomerList';
 
 
 const MainLayout = () => {
@@ -85,8 +86,10 @@ const MainLayout = () => {
         return <BookManager />;
       case 'services':
         return <ServiceManager />;
-      case 'customers':
-        return <CustomerManager />;
+      case 'customer-form':
+        return <CustomerForm />;
+      case 'customer-manager':
+        return <CustomerList />;
       case 'ledger':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':

@@ -14,7 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     { id: 'invoice' as const, label: 'Invoice', icon: '🧾' },
     { id: 'extractor' as const, label: 'Pre-order Extractor', icon: '📥' },
     { id: 'files' as const, label: 'Smart Folders', icon: '📁' },
-    { id: 'customers' as const, label: 'Pelanggan', icon: '👥' },
+    { id: 'customer-parent' as const, label: 'Pelanggan', icon: '👥' },
     { id: 'ledger' as const, label: 'Buku Besar', icon: '📊' },
   ];
 
@@ -30,9 +30,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         {menuItems.map((item) => {
           const isActive = item.id === 'invoice'
             ? (appState.activeModule === 'invoice' || appState.activeModule === 'invoice-manager' || appState.activeModule === 'invoice-insight')
+            : item.id === 'customer-parent'
+            ? (appState.activeModule === 'customer-form' || appState.activeModule === 'customer-manager')
             : appState.activeModule === item.id;
           const showSubmenu = item.id === 'files' && !collapsed;
           const showInvoiceSubmenu = item.id === 'invoice' && !collapsed;
+          const showCustomerSubmenu = item.id === 'customer-parent' && !collapsed;
           return (
             <div key={item.id}>
               <button
@@ -58,6 +61,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                   if (item.id === 'invoice') {
                     if (appState.activeModule !== 'invoice' && appState.activeModule !== 'invoice-manager' && appState.activeModule !== 'invoice-insight') {
                       setActiveModule('invoice');
+                    }
+                  } else if (item.id === 'customer-parent') {
+                    if (appState.activeModule !== 'customer-form' && appState.activeModule !== 'customer-manager') {
+                      setActiveModule('customer-manager');
                     }
                   } else {
                     setActiveModule(item.id);
@@ -89,6 +96,56 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     { module: 'invoice' as const, label: 'Invoice Generator', icon: '✍️' },
                     { module: 'invoice-manager' as const, label: 'Managemen Invoice', icon: '🗃️' },
                     { module: 'invoice-insight' as const, label: 'Invoice Insight', icon: '📊' },
+                  ].map((sub) => {
+                    const isSubActive = appState.activeModule === sub.module;
+                    return (
+                      <button
+                        key={sub.module}
+                        onClick={() => {
+                          setActiveModule(sub.module);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '6px 10px',
+                          border: 'none',
+                          borderRadius: '6px',
+                          background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+                          color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: isSubActive ? '600' : '400',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseOver={(e) => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }
+                        }}
+                        onMouseOut={(e) => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text-secondary)';
+                          }
+                        }}
+                      >
+                        <span style={{ fontSize: '14px' }}>{sub.icon}</span>
+                        <span>{sub.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {showCustomerSubmenu && (
+                <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
+                  {[
+                    { module: 'customer-form' as const, label: 'Tambah Pelanggan', icon: '➕' },
+                    { module: 'customer-manager' as const, label: 'Daftar Pelanggan', icon: '🗃️' },
                   ].map((sub) => {
                     const isSubActive = appState.activeModule === sub.module;
                     return (
