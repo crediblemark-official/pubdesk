@@ -20,6 +20,7 @@ export const CustomerSection: React.FC = () => {
     const lines = waInput.split('\n');
     let name = '';
     let wa_number = '';
+    let email = '';
     let address = '';
 
     lines.forEach((line) => {
@@ -27,6 +28,8 @@ export const CustomerSection: React.FC = () => {
         name = line.substring(5).trim();
       } else if (line.toLowerCase().startsWith('no:') || line.toLowerCase().startsWith('wa:')) {
         wa_number = line.substring(line.indexOf(':') + 1).trim();
+      } else if (line.toLowerCase().startsWith('email:')) {
+        email = line.substring(6).trim();
       } else if (line.toLowerCase().startsWith('alamat:')) {
         address = line.substring(7).trim();
       }
@@ -36,6 +39,7 @@ export const CustomerSection: React.FC = () => {
       ...prev,
       name: name || prev.name || '',
       wa_number: wa_number || prev.wa_number || '',
+      email: email || prev.email || '',
       address: address || prev.address || ''
     }));
   };
@@ -102,6 +106,7 @@ export const CustomerSection: React.FC = () => {
                   setCustomer({
                     name: c.name,
                     wa_number: c.wa_number || '',
+                    email: c.email || '',
                     address: c.address || ''
                   });
                   setShowSuggestions(false);
@@ -118,7 +123,7 @@ export const CustomerSection: React.FC = () => {
               >
                 <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{c.name}</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                  WA: {c.wa_number || '-'}
+                  WA: {c.wa_number || '-'} | Email: {c.email || '-'}
                 </div>
               </div>
             ))}
@@ -134,6 +139,17 @@ export const CustomerSection: React.FC = () => {
           value={customer.wa_number || ''}
           onChange={(e) => setCustomer(prev => ({ ...prev, wa_number: e.target.value }))}
           placeholder="08123456789"
+        />
+      </div>
+
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Alamat Email (Opsional)</label>
+        <input
+          type="email"
+          style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
+          value={customer.email || ''}
+          onChange={(e) => setCustomer(prev => ({ ...prev, email: e.target.value }))}
+          placeholder="pelanggan@email.com"
         />
       </div>
 

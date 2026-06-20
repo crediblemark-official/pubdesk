@@ -75,6 +75,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [customer, setCustomerState] = useState<Partial<Contact>>({
     name: '',
     wa_number: '',
+    email: '',
     address: ''
   });
   const [items, setItems] = useState<InvoiceItem[]>([]);
@@ -210,7 +211,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const resetInvoice = () => {
-    setCustomer({ name: '', wa_number: '', address: '' });
+    setCustomer({ name: '', wa_number: '', email: '', address: '' });
     setItems([]);
     setShippingCost(0);
     setAdminFee(0);
@@ -279,6 +280,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setCustomer({
         name: metadata.customerName || '',
         wa_number: metadata.customerWa || '',
+        email: (metadata as any).customerEmail || '',
         address: metadata.customerAddress || ''
       });
       

@@ -72,6 +72,7 @@ const InvoiceGenerator: React.FC = () => {
         contactId = await addContact({
           name: customerNameTrimmed,
           wa_number: customer.wa_number?.trim() || undefined,
+          email: customer.email?.trim() || undefined,
           address: customer.address?.trim() || undefined,
           type: 'customer',
           created_at: new Date().toISOString()
@@ -81,12 +82,14 @@ const InvoiceGenerator: React.FC = () => {
       }
     } else {
       const hasWaChanged = (customer.wa_number?.trim() || '') !== (existingContact.wa_number || '');
+      const hasEmailChanged = (customer.email?.trim() || '') !== (existingContact.email || '');
       const hasAddressChanged = (customer.address?.trim() || '') !== (existingContact.address || '');
-      if (hasWaChanged || hasAddressChanged) {
+      if (hasWaChanged || hasEmailChanged || hasAddressChanged) {
         try {
           await updateContact({
             ...existingContact,
             wa_number: customer.wa_number?.trim() || existingContact.wa_number,
+            email: customer.email?.trim() || existingContact.email,
             address: customer.address?.trim() || existingContact.address
           });
         } catch (err) {
@@ -111,6 +114,7 @@ const InvoiceGenerator: React.FC = () => {
       invoiceType,
       customerName: customerNameTrimmed,
       customerWa: customer.wa_number || '',
+      customerEmail: customer.email || '',
       customerAddress: customer.address || ''
     };
 

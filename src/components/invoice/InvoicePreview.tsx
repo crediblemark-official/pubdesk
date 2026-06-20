@@ -9,6 +9,7 @@ interface InvoicePreviewProps {
   overrideInvoice?: {
     customerName: string;
     waNumber?: string;
+    email?: string;
     address?: string;
     items: InvoiceItem[];
     shippingCost: number;
@@ -27,7 +28,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
   const contextData = useInvoiceContext();
   
   const customer = overrideInvoice 
-    ? { name: overrideInvoice.customerName, wa_number: overrideInvoice.waNumber, address: overrideInvoice.address } 
+    ? { name: overrideInvoice.customerName, wa_number: overrideInvoice.waNumber, email: overrideInvoice.email, address: overrideInvoice.address } 
     : contextData.customer;
   const items = overrideInvoice ? overrideInvoice.items : contextData.items;
   const shippingCost = overrideInvoice ? overrideInvoice.shippingCost : contextData.shippingCost;
@@ -422,6 +423,11 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
               <div style={{ fontSize: '10px', color: '#1f2937', fontWeight: '600' }}>
                 No. WA : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.wa_number || '-'}</span>
               </div>
+              {customer.email && (
+                <div style={{ fontSize: '10px', color: '#1f2937', fontWeight: '600', marginTop: '2px' }}>
+                  Email : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.email}</span>
+                </div>
+              )}
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: '#4b5563' }}>

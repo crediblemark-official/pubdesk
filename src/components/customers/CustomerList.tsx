@@ -121,17 +121,18 @@ const CustomerList: React.FC = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '8%', textAlign: 'center', userSelect: 'none' }}>Avatar</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '32%', userSelect: 'none' }}>Nama Pelanggan</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Kontak WhatsApp</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '25%', userSelect: 'none' }}>Alamat Instansi / Pengiriman</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '6%', textAlign: 'center', userSelect: 'none' }}>Avatar</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '24%', userSelect: 'none' }}>Nama Pelanggan</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Email</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '17%', userSelect: 'none' }}>Kontak WhatsApp</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Alamat Instansi / Pengiriman</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filteredCustomers.length === 0 ? (
               <TableEmptyState
-                colSpan={5}
+                colSpan={6}
                 icon="👥"
                 message="Tidak ada data pelanggan"
                 description={searchQuery ? `Tidak ada hasil untuk pencarian "${searchQuery}"` : "Belum ada pelanggan terdaftar. Tambahkan pelanggan baru untuk memulai."}
@@ -155,10 +156,12 @@ const CustomerList: React.FC = () => {
                   </td>
                   <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-primary)' }}>
                     <div>{customer.name}</div>
-                    {customer.email && (
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '400', marginTop: '2px' }}>
-                        📧 {customer.email}
-                      </div>
+                  </td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                    {customer.email ? (
+                      <div>📧 {customer.email}</div>
+                    ) : (
+                      <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada email</span>
                     )}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
