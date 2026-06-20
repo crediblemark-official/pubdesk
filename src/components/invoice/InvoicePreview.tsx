@@ -605,7 +605,9 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
                 textAlign: 'center', 
                 fontWeight: '600',
                 lineHeight: '1.4',
-                whiteSpace: 'pre-wrap'
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
               }}>
                 {spesifikasiFasilitas || activeProfile.defaultSpesifikasi}
               </div>
