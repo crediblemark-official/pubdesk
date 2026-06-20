@@ -157,18 +157,8 @@ pub fn run_indexing_pipeline(app_handle: &AppHandle, file_id: i64) -> Result<(),
         }
     }
 
-    // 2e. Deteksi Ringkasan Otomatis (Summary)
-    let summary_len = text.chars().count();
-    let summary = if summary_len > 0 {
-        let end_idx = std::cmp::min(summary_len, 200);
-        let mut s: String = text.chars().take(end_idx).collect();
-        if summary_len > 200 {
-            s.push_str("...");
-        }
-        s.replace("\n", " ").replace("\r", " ")
-    } else {
-        "Tidak ada konten teks yang dapat diekstrak.".to_string()
-    };
+    // 2e. Deteksi Ringkasan Otomatis (Summary) menggunakan sentence rank heuristik offline
+    let summary = generate_summary(&text);
     entities.push(("summary".to_string(), summary));
 
     // 3. Simpan hasil analisis ke DB (lock db singkat hanya saat menulis data)
@@ -635,5 +625,127 @@ fn calculate_cosine_similarity(vec1: &HashMap<String, f32>, vec2: &HashMap<Strin
         }
     }
     dot_product
+}
+
+fn generate_summary(text: &str) -> String {
+    if text.trim().is_empty() {
+        return "Tidak ada konten teks yang dapat diekstrak.".to_string();
+    }
+
+    // 1. Pemisahan teks menjadi kalimat-kalimat
+    let mut sentences = Vec::new();
+    let mut current_sentence = String::new();
+    
+    let chars: Vec<char> = text.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        current_sentence.push(c);
+        
+        if (c == '.' || c == '?' || c == '!') && (i + 1 == chars.len() || chars[i + 1].is_whitespace()) {
+            let trimmed = current_sentence.trim().to_string();
+            if !trimmed.is_empty() {
+                sentences.push(trimmed);
+            }
+            current_sentence = String::new();
+        }
+        i += 1;
+    }
+    if !current_sentence.trim().is_empty() {
+        sentences.push(current_sentence.trim().to_string());
+    }
+
+    if sentences.is_empty() {
+        return "Tidak ada konten teks yang dapat diekstrak.".to_string();
+    }
+
+    // Jika jumlah kalimat sangat sedikit, langsung gabungkan saja
+    if sentences.len() <= 3 {
+        return sentences.join(" ");
+    }
+
+    // 2. Hitung frekuensi kata kunci penting (untuk scoring kalimat)
+    let stopwords = vec![
+        "yang", "di", "dan", "dari", "untuk", "dengan", "ke", "ini", "itu", "pada", "adalah", "sebagai",
+        "the", "of", "and", "in", "to", "a", "for", "with", "is", "on", "that", "by", "an", "kami", "kita",
+        "mereka", "dia", "ia", "kamu", "saya", "aku", "akan", "telah", "sudah", "dapat", "bisa", "ada",
+        "oleh", "atau", "juga", "bahwa", "seperti", "hanya", "untuk", "dalam", "namun", "tetapi", "karena"
+    ];
+
+    let mut word_freqs = HashMap::new();
+    for sentence in &sentences {
+        let words: Vec<&str> = sentence.split(|c: char| !c.is_alphanumeric())
+            .map(|w| w.trim())
+            .filter(|w| !w.is_empty())
+            .collect();
+        for word in words {
+            let w_lower = word.to_lowercase();
+            if w_lower.len() > 2 && !stopwords.contains(&w_lower.as_str()) {
+                *word_freqs.entry(w_lower).or_insert(0) += 1;
+            }
+        }
+    }
+
+    // 3. Beri skor pada setiap kalimat
+    let mut sentence_scores = Vec::new();
+    for (idx, sentence) in sentences.iter().enumerate() {
+        let words: Vec<&str> = sentence.split(|c: char| !c.is_alphanumeric())
+            .map(|w| w.trim())
+            .filter(|w| !w.is_empty())
+            .collect();
+        
+        if words.is_empty() {
+            sentence_scores.push((idx, 0.0f32));
+            continue;
+        }
+
+        let mut keyword_score = 0.0f32;
+        for word in &words {
+            let w_lower = word.to_lowercase();
+            if let Some(&freq) = word_freqs.get(&w_lower) {
+                keyword_score += freq as f32;
+            }
+        }
+        keyword_score /= words.len() as f32;
+
+        let position_weight = if idx == 0 {
+            1.5f32
+        } else if idx < 3 {
+            1.0f32
+        } else {
+            0.0f32
+        };
+
+        let word_count = words.len();
+        let length_weight = if word_count >= 12 && word_count <= 35 {
+            0.5f32
+        } else {
+            0.0f32
+        };
+
+        let total_score = keyword_score + position_weight + length_weight;
+        sentence_scores.push((idx, total_score));
+    }
+
+    // 4. Pilih 3 kalimat terbaik dengan skor tertinggi
+    sentence_scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    let mut top_sentences = sentence_scores.into_iter().take(3).collect::<Vec<_>>();
+    top_sentences.sort_by_key(|a| a.0);
+
+    let summary_sentences: Vec<String> = top_sentences.into_iter()
+        .map(|(idx, _)| sentences[idx].clone())
+        .collect();
+
+    let mut result = summary_sentences.join(" ");
+    result = result.split_whitespace().collect::<Vec<&str>>().join(" ");
+    
+    let char_count = result.chars().count();
+    if char_count > 350 {
+        let mut truncated: String = result.chars().take(347).collect();
+        truncated.push_str("...");
+        result = truncated;
+    }
+
+    result
 }
 
