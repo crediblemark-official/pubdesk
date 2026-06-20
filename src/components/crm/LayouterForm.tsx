@@ -19,7 +19,6 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
   const [role, setRole] = useState('Layouter');
   const [department, setDepartment] = useState('Produksi');
   const [isActive, setIsActive] = useState(1);
-  const [weeklyTarget, setWeeklyTarget] = useState(3);
   const [notes, setNotes] = useState('');
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
@@ -30,14 +29,12 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
       setRole(initialData.role);
       setDepartment(initialData.department || 'Produksi');
       setIsActive(initialData.is_active);
-      setWeeklyTarget(initialData.weekly_target);
       setNotes(initialData.notes || '');
     } else {
       setName('');
       setRole('Layouter');
       setDepartment('Produksi');
       setIsActive(1);
-      setWeeklyTarget(3);
       setNotes('');
     }
   }, [initialData]);
@@ -55,7 +52,6 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
       role,
       department,
       is_active: isActive,
-      weekly_target: weeklyTarget,
       notes: notes.trim() || undefined,
     });
   };
@@ -120,15 +116,6 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
                   fullWidth
                 />
               </div>
-
-              <TextField
-                label="Target Kerja Mingguan (Naskah)"
-                type="number"
-                value={weeklyTarget}
-                onChange={(e) => setWeeklyTarget(Number(e.target.value))}
-                min={0}
-                fullWidth
-              />
 
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', marginTop: '8px' }}>

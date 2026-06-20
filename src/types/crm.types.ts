@@ -64,7 +64,6 @@ export interface Layouter {
   role: string;
   department?: string; // Divisi/departemen: Produksi, Editorial, Desain, dst.
   is_active: number;
-  weekly_target: number;
   notes?: string;
   created_at: string;
 }

@@ -248,18 +248,17 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
           <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '22%', userSelect: 'none' }}>Nama Anggota</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Peran</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '15%', userSelect: 'none' }}>Divisi</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', userSelect: 'none' }}>Target/Minggu</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '14%', userSelect: 'none' }}>Tanggal Masuk</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '9%', userSelect: 'none' }}>Status</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '9%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', userSelect: 'none' }}>Peran</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '18%', userSelect: 'none' }}>Divisi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '16%', userSelect: 'none' }}>Tanggal Masuk</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '12%', userSelect: 'none' }}>Status</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '12%', textAlign: 'center', userSelect: 'none' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filteredMembers.length === 0 ? (
               <TableEmptyState
-                colSpan={7}
+                colSpan={6}
                 icon="👥"
                 message="Tidak ada data anggota tim"
                 description={hasActiveFilter ? 'Tidak ada hasil untuk filter yang dipilih.' : 'Belum ada anggota tim terdaftar. Klik Tambah Anggota Tim untuk menambahkan.'}
@@ -303,9 +302,6 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
                         {l.department}
                       </span>
                     ) : <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>-</span>}
-                  </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px' }}>
-                    🎯 {l.weekly_target} naskah
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px' }}>
                     📅 {formatTanggal(l.created_at)}

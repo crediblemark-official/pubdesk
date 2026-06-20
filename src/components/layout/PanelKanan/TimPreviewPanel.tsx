@@ -70,7 +70,7 @@ const ROLE_GRADIENT: Record<string, string> = {
 };
 
 const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ layouterId }) => {
-  const { layouters, naskahOrders } = useCrmContext();
+  const { layouters } = useCrmContext();
 
   const memberData = useMemo(() => {
     if (!layouterId) return null;
@@ -89,12 +89,6 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ layouterId }) => {
     const filled = fields.filter(Boolean).length;
     return Math.round((filled / fields.length) * 100);
   }, [memberData]);
-
-  // Hitung jumlah naskah yang sedang dikerjakan anggota ini
-  // (referensi dari assigned_team_ids sudah dihapus, tampilkan statistik umum)
-  const totalNaskah = naskahOrders.length;
-  const naskahSelesai = naskahOrders.filter((n) => n.status === 'Selesai').length;
-  const naskahBerjalan = naskahOrders.filter((n) => n.status === 'Sedang Dikerjakan').length;
 
   if (!layouterId || !memberData) {
     return (
@@ -267,14 +261,6 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ layouterId }) => {
           <InfoRow label="Peran / Jabatan" value={memberData.role} />
           <InfoRow label="Divisi" value={memberData.department || '—'} />
           <InfoRow
-            label="Target Mingguan"
-            value={
-              <span style={{ color: '#818cf8', fontWeight: '700' }}>
-                {memberData.weekly_target} naskah/minggu
-              </span>
-            }
-          />
-          <InfoRow
             label="Status"
             value={
               <Badge
@@ -282,23 +268,6 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ layouterId }) => {
                 variant={memberData.is_active === 1 ? 'success' : 'neutral'}
               />
             }
-            noBorder
-          />
-        </SectionCard>
-
-        {/* Statistik Produksi — data agregat dari naskah orders */}
-        <SectionCard title="📊 Statistik Produksi">
-          <InfoRow
-            label="Total Naskah Terdaftar"
-            value={<span style={{ color: 'var(--text-primary)', fontWeight: '700' }}>{totalNaskah}</span>}
-          />
-          <InfoRow
-            label="Sedang Dikerjakan"
-            value={<span style={{ color: '#f59e0b', fontWeight: '700' }}>{naskahBerjalan}</span>}
-          />
-          <InfoRow
-            label="Selesai"
-            value={<span style={{ color: '#22c55e', fontWeight: '700' }}>{naskahSelesai}</span>}
             noBorder
           />
         </SectionCard>
