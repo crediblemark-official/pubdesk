@@ -339,6 +339,15 @@ const InvoiceGenerator: React.FC = () => {
           );
 
           if (cloudResult.success) {
+            try {
+              await tauriInvoke('update_invoice_sync_status', {
+                id: invoiceId,
+                syncStatus: 'synced',
+                cloudFileUrl: cloudResult.fileUrl || ''
+              });
+            } catch (dbUpdateError) {
+              console.error('Gagal memperbarui status sinkronisasi di database lokal:', dbUpdateError);
+            }
             showToast(`Invoice berhasil disinkronkan ke Cloud!`, 'success');
           }
         } catch (cloudError) {

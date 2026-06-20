@@ -93,6 +93,8 @@ pub struct Invoice {
     pub total: f64,
     pub export_format: Option<String>,
     pub file_path: Option<String>,
+    pub sync_status: Option<String>,
+    pub cloud_file_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -117,6 +119,8 @@ impl Default for Invoice {
             total: 0.0,
             export_format: None,
             file_path: None,
+            sync_status: Some("pending".to_string()),
+            cloud_file_url: None,
         }
     }
 }

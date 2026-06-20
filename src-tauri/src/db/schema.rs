@@ -96,6 +96,10 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Migrasi ad-hoc untuk kolom sinkronisasi invoice
+    let _ = conn.execute("ALTER TABLE invoices ADD COLUMN sync_status TEXT DEFAULT 'pending'", []);
+    let _ = conn.execute("ALTER TABLE invoices ADD COLUMN cloud_file_url TEXT", []);
+
     // Services table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS services (

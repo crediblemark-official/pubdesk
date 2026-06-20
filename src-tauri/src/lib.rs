@@ -343,6 +343,19 @@ fn add_invoice(state: State<'_, AppState>, invoice: Invoice) -> Result<i64, Stri
     db.add_invoice(&invoice).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn update_invoice_sync_status(
+    state: State<'_, AppState>,
+    id: i64,
+    sync_status: String,
+    cloud_file_url: String,
+) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database not initialized")?;
+    db.update_invoice_sync_status(id, &sync_status, &cloud_file_url)
+        .map_err(|e| e.to_string())
+}
+
 // Files commands
 #[tauri::command]
 fn get_files(state: State<'_, AppState>) -> Result<Vec<File>, String> {
@@ -497,6 +510,7 @@ pub fn run() {
             add_contact,
             get_invoices,
             add_invoice,
+            update_invoice_sync_status,
             get_files,
             add_file,
             delete_file,

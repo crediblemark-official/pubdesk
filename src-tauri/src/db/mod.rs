@@ -136,7 +136,7 @@ impl Database {
     // Invoices
     pub fn add_invoice(&self, invoice: &Invoice) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, sync_status, cloud_file_url) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 invoice.created_at,
                 invoice.customer_id,
@@ -145,14 +145,16 @@ impl Database {
                 invoice.admin_fee,
                 invoice.total,
                 invoice.export_format,
-                invoice.file_path
+                invoice.file_path,
+                invoice.sync_status.as_deref().unwrap_or("pending"),
+                invoice.cloud_file_url
             ]
         )?;
         Ok(self.conn.last_insert_rowid())
     }
 
     pub fn get_invoices(&self) -> Result<Vec<Invoice>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path FROM invoices ORDER BY created_at DESC")?;
+        let mut stmt = self.conn.prepare("SELECT id, created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, sync_status, cloud_file_url FROM invoices ORDER BY created_at DESC")?;
         let invoices = stmt.query_map([], |row| {
             Ok(Invoice {
                 id: row.get(0)?,
@@ -164,6 +166,8 @@ impl Database {
                 total: row.get(6)?,
                 export_format: row.get(7)?,
                 file_path: row.get(8)?,
+                sync_status: row.get(9)?,
+                cloud_file_url: row.get(10)?,
             })
         })?;
 
@@ -172,6 +176,14 @@ impl Database {
             result.push(invoice?);
         }
         Ok(result)
+    }
+
+    pub fn update_invoice_sync_status(&self, id: i64, sync_status: &str, cloud_file_url: &str) -> Result<(), DbError> {
+        self.conn.execute(
+            "UPDATE invoices SET sync_status = ?1, cloud_file_url = ?2 WHERE id = ?3",
+            params![sync_status, cloud_file_url, id]
+        )?;
+        Ok(())
     }
 
     // Files
