@@ -2,6 +2,7 @@ pub mod error;
 pub mod models;
 pub mod schema;
 
+// Modul database SQLite untuk aplikasi PubDesk
 pub use error::DbError;
 pub use models::*;
 use rusqlite::{params, Connection};

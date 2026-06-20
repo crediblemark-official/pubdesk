@@ -12,6 +12,7 @@ import Settings from '../settings/Settings';
 import { FileManager } from '../files/FileManager';
 import BookManager from '../books/BookManager';
 import ServiceManager from '../services-module/ServiceManager';
+// Modul CRM & Manajemen Kontak Pelanggan
 import CustomerForm from '../customers/CustomerForm';
 import CustomerList from '../customers/CustomerList';
 import PenulisManager from '../crm/PenulisManager';
