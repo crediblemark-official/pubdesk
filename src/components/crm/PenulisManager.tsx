@@ -17,7 +17,7 @@ const followupVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'inf
 
 const PenulisManager: React.FC = () => {
   const { penulis, addPenulis, updatePenulis, deletePenulis } = useCrmContext();
-  const { showConfirm, showToast } = useAppContext();
+  const { showConfirm, showToast, contacts, addContact } = useAppContext();
   
   const [isEditing, setIsEditing] = useState(false);
   const [currentPenulis, setCurrentPenulis] = useState<Penulis | null>(null);
@@ -97,6 +97,31 @@ const PenulisManager: React.FC = () => {
       console.error(err);
       showToast('Gagal menyimpan data penulis!', 'error');
     }
+  };
+
+  const handlePromoteToCustomer = (p: Penulis, e: React.MouseEvent) => {
+    e.stopPropagation();
+    showConfirm({
+      title: 'Promosikan Menjadi Pelanggan',
+      message: `Apakah Anda yakin ingin mempromosikan penulis "${p.name}" menjadi pelanggan?`,
+      confirmText: 'Ya, Promosikan',
+      type: 'primary',
+      onConfirm: async () => {
+        try {
+          await addContact({
+            name: p.name,
+            wa_number: p.wa_number || undefined,
+            address: p.city ? `${p.city}, ${p.province || ''}` : p.province || undefined,
+            type: 'customer',
+            created_at: new Date().toISOString()
+          });
+          showToast(`Penulis "${p.name}" berhasil dipromosikan menjadi Pelanggan!`, 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal mempromosikan penulis menjadi pelanggan!', 'error');
+        }
+      }
+    });
   };
 
   if (isEditing) {
@@ -256,11 +281,32 @@ const PenulisManager: React.FC = () => {
                     />
                   </td>
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                      {/* Cek apakah penulis sudah menjadi pelanggan */}
+                      {contacts.some(c => 
+                        c.type === 'customer' && 
+                        (c.name.toLowerCase() === p.name.toLowerCase() || 
+                         (p.wa_number && c.wa_number === p.wa_number))
+                      ) ? (
+                        <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: '600', padding: '4px 8px', borderRadius: '12px', background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', gap: '4px' }} title="Sudah terdaftar sebagai pelanggan">
+                          🤝 Pelanggan
+                        </span>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => handlePromoteToCustomer(p, e)}
+                          title="Promosikan penulis menjadi Pelanggan"
+                          style={{ padding: '4px 8px', fontSize: '11px', background: 'var(--bg-panel)' }}
+                        >
+                          🤝 Jadi Pelanggan
+                        </Button>
+                      )}
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={(e) => handleEdit(p, e)}
+                        style={{ padding: '4px 8px', fontSize: '11px' }}
                       >
                         ✏️ Edit
                       </Button>
@@ -268,6 +314,7 @@ const PenulisManager: React.FC = () => {
                         variant="danger"
                         size="sm"
                         onClick={(e) => p.id && handleDelete(p.id, p.name, e)}
+                        style={{ padding: '4px 8px', fontSize: '11px' }}
                       >
                         🗑️ Hapus
                       </Button>
