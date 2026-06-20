@@ -5,7 +5,7 @@ import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { Invoice } from '../../types/invoice.types';
 import { formatPrice } from '../../utils/format';
 import { getInvoiceMetadata } from '../../utils/invoice';
-import { StatusBadge } from '../../ui/atoms/Badge';
+import { StatusBadge, Badge } from '../../ui/atoms/Badge';
 import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 
@@ -40,13 +40,13 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
   
   const { loadInvoiceToForm } = useInvoiceContext();
 
-  const [sortField, setSortField] = useState<'date' | 'invoiceNo' | 'customerName' | 'total' | 'status'>('date');
+  const [sortField, setSortField] = useState<'date' | 'invoiceNo' | 'customerName' | 'total' | 'status' | 'fileStatus'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Filter status pembayaran — pola identik dengan Smart Folders
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
-  const handleSort = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status') => {
+  const handleSort = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status' | 'fileStatus') => {
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
@@ -55,7 +55,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
     }
   };
 
-  const renderSortIcon = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status') => {
+  const renderSortIcon = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status' | 'fileStatus') => {
     if (sortField !== field) return null;
     return sortDirection === 'asc' ? ' ▴' : ' ▾';
   };
@@ -104,6 +104,13 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
           valA = metaA.paymentStatus || 'BERMASALAH';
           valB = metaB.paymentStatus || 'BERMASALAH';
           break;
+        case 'fileStatus': {
+          const fileA = files.find(f => f.type === 'invoice' && f.version_label === String(a.id));
+          const fileB = files.find(f => f.type === 'invoice' && f.version_label === String(b.id));
+          valA = fileA?.status || 'draft';
+          valB = fileB?.status || 'draft';
+          break;
+        }
         default:
           valA = a.created_at;
           valB = b.created_at;
@@ -113,7 +120,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
       if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [invoices, searchQuery, sortField, sortDirection, selectedStatus]);
+  }, [invoices, searchQuery, sortField, sortDirection, selectedStatus, files]);
 
   // Aksi Buka File PDF Secara Native
   const handleOpenPDF = async (invoiceId: number) => {
@@ -284,28 +291,28 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <th 
                 onClick={() => handleSort('date')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '15%', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '12%', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Tanggal"
               >
                 Tanggal{renderSortIcon('date')}
               </th>
               <th 
                 onClick={() => handleSort('invoiceNo')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '20%', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '16%', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Nomor Invoice"
               >
                 No. Invoice{renderSortIcon('invoiceNo')}
               </th>
               <th 
                 onClick={() => handleSort('customerName')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '25%', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '22%', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Nama Pelanggan"
               >
                 Pelanggan{renderSortIcon('customerName')}
               </th>
               <th 
                 onClick={() => handleSort('total')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '15%', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '12%', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Total Nominal"
               >
                 Total{renderSortIcon('total')}
@@ -315,7 +322,14 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                 style={{ padding: '8px 12px', fontWeight: '600', width: '12%', textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Status Pembayaran"
               >
-                Status{renderSortIcon('status')}
+                Status Invoice{renderSortIcon('status')}
+              </th>
+              <th 
+                onClick={() => handleSort('fileStatus')}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '13%', textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                title="Urutkan berdasarkan Status Berkas"
+              >
+                Status Berkas{renderSortIcon('fileStatus')}
               </th>
               <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', textAlign: 'center' }}>Aksi</th>
             </tr>
@@ -323,7 +337,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
           <tbody>
             {filteredInvoices.length === 0 ? (
               <TableEmptyState
-                colSpan={6}
+                colSpan={7}
                 icon="🧾"
                 message="Tidak ada invoice yang ditemukan"
                 description={searchQuery ? `Tidak ada hasil untuk "${searchQuery}"` : undefined}
@@ -382,9 +396,17 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                       {formatPrice(inv.total)}
                     </td>
                     
-                    {/* Status Pembayaran */}
+                    {/* Status Invoice */}
                     <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                       <StatusBadge status={status} />
+                    </td>
+
+                    {/* Status Berkas */}
+                    <td style={{ padding: '6px 12px', textAlign: 'center' }}>
+                      <Badge 
+                        label={(fileEntry?.status || 'draft').toUpperCase()} 
+                        statusValue={fileEntry?.status || 'draft'} 
+                      />
                     </td>
                     
                     {/* Aksi */}
