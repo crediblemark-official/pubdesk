@@ -14,6 +14,8 @@ export interface Penulis {
   followup_status?: string;
   notes?: string;
   created_at: string;
+  is_customer?: boolean;
+  is_customer_only?: boolean;
 }
 
 export interface Penerbit {

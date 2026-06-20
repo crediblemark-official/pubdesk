@@ -140,6 +140,7 @@ const CustomerForm: React.FC = () => {
                   value={waNumber}
                   onChange={(e) => setWaNumber(e.target.value)}
                   placeholder="Contoh: 08123456789 atau +62812..."
+                  required
                 />
               </div>
 
@@ -167,7 +168,7 @@ const CustomerForm: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Alamat Pengiriman / Surat (Opsional)
+                  Alamat Pengiriman / Surat
                 </label>
                 <textarea
                   style={{ 
@@ -186,6 +187,7 @@ const CustomerForm: React.FC = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Masukkan alamat lengkap pengiriman buku atau invoice..."
+                  required
                 />
               </div>
             </div>

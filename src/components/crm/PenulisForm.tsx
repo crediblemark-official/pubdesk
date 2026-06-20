@@ -136,6 +136,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
                     placeholder="Contoh: 08123456789"
                     value={waNumber}
                     onChange={(e) => setWaNumber(e.target.value)}
+                    required
                     fullWidth
                   />
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -151,7 +152,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Alamat Lengkap (Opsional)
+                  Alamat Lengkap
                 </label>
                 <textarea
                   style={{
@@ -171,6 +172,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Contoh: Jl. Diponegoro No. 12, Surabaya, Jawa Timur"
+                  required
                 />
               </div>
 

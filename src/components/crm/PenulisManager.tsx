@@ -12,7 +12,8 @@ const followupVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'inf
   'Contacted': 'warning',
   'Interested': 'accent',
   'Deal': 'success',
-  'Rejected': 'danger'
+  'Rejected': 'danger',
+  'Pelanggan': 'success'
 };
 
 const PenulisManager: React.FC = () => {
@@ -27,16 +28,66 @@ const PenulisManager: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [provinceFilter, setProvinceFilter] = useState('');
 
+  // Gabungkan data penulis asli dengan kontak pelanggan
+  const combinedPenulis = useMemo(() => {
+    const list: Penulis[] = penulis.map((p) => {
+      const isCustomer = contacts.some(
+        (c) =>
+          c.type === 'customer' &&
+          (c.name.toLowerCase() === p.name.toLowerCase() ||
+            (p.wa_number && c.wa_number === p.wa_number))
+      );
+      return {
+        ...p,
+        is_customer: isCustomer,
+      };
+    });
+
+    // Cari pelanggan murni yang belum ada di daftar penulis
+    const customerContacts = contacts.filter((c) => c.type === 'customer');
+    customerContacts.forEach((c) => {
+      const alreadyInPenulis = list.some(
+        (p) =>
+          p.name.toLowerCase() === c.name.toLowerCase() ||
+          (c.wa_number && p.wa_number === c.wa_number)
+      );
+
+      if (!alreadyInPenulis) {
+        list.push({
+          id: -c.id!, // Gunakan id negatif agar unik
+          name: c.name,
+          email: c.email || '',
+          wa_number: c.wa_number || '',
+          address: c.address || '',
+          province: '',
+          city: '',
+          job: 'Pelanggan',
+          institution: '',
+          data_source: 'Database Pelanggan',
+          email_valid: c.email ? 1 : 0,
+          wa_valid: c.wa_number ? 1 : 0,
+          followup_status: 'Pelanggan',
+          notes: 'Ditampilkan dari data pelanggan',
+          created_at: c.created_at,
+          is_customer: true,
+          is_customer_only: true,
+        });
+      }
+    });
+
+    return list;
+  }, [penulis, contacts]);
+
   // Cari daftar provinsi unik untuk opsi filter
   const uniqueProvinces = useMemo(() => {
     return Array.from(
-      new Set(penulis.map((p) => p.province).filter(Boolean))
+      new Set(combinedPenulis.map((p) => p.province).filter(Boolean))
     ) as string[];
-  }, [penulis]);
+  }, [combinedPenulis]);
 
   // Filter data penulis
   const filteredPenulis = useMemo(() => {
-    return penulis.filter((p) => {
+    return combinedPenulis.filter((p) => {
       const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
         (p.email && p.email.toLowerCase().includes(search.toLowerCase())) ||
         (p.wa_number && p.wa_number.includes(search));
@@ -44,7 +95,7 @@ const PenulisManager: React.FC = () => {
       const matchesProvince = provinceFilter ? p.province === provinceFilter : true;
       return matchesSearch && matchesStatus && matchesProvince;
     });
-  }, [penulis, search, statusFilter, provinceFilter]);
+  }, [combinedPenulis, search, statusFilter, provinceFilter]);
 
   const handleAddNew = () => {
     setCurrentPenulis(null);
@@ -204,6 +255,7 @@ const PenulisManager: React.FC = () => {
             <option value="Interested">Tertarik</option>
             <option value="Deal">Deal (Naskah)</option>
             <option value="Rejected">Menolak</option>
+            <option value="Pelanggan">🤝 Pelanggan</option>
           </select>
 
           {/* Filter Provinsi */}
@@ -294,11 +346,7 @@ const PenulisManager: React.FC = () => {
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
                       {/* Cek apakah penulis sudah menjadi pelanggan */}
-                      {contacts.some(c => 
-                        c.type === 'customer' && 
-                        (c.name.toLowerCase() === p.name.toLowerCase() || 
-                         (p.wa_number && c.wa_number === p.wa_number))
-                      ) ? (
+                      {p.is_customer ? (
                         <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: '600', padding: '4px 8px', borderRadius: '12px', background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', gap: '4px' }} title="Sudah terdaftar sebagai pelanggan">
                           🤝 Pelanggan
                         </span>
@@ -313,22 +361,26 @@ const PenulisManager: React.FC = () => {
                           🤝 Jadi Pelanggan
                         </Button>
                       )}
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={(e) => handleEdit(p, e)}
-                        style={{ padding: '4px 8px', fontSize: '11px' }}
-                      >
-                        ✏️ Edit
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={(e) => p.id && handleDelete(p.id, p.name, e)}
-                        style={{ padding: '4px 8px', fontSize: '11px' }}
-                      >
-                        🗑️ Hapus
-                      </Button>
+                      {!p.is_customer_only && (
+                        <>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => handleEdit(p, e)}
+                            style={{ padding: '4px 8px', fontSize: '11px' }}
+                          >
+                            ✏️ Edit
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={(e) => p.id && handleDelete(p.id, p.name, e)}
+                            style={{ padding: '4px 8px', fontSize: '11px' }}
+                          >
+                            🗑️ Hapus
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
