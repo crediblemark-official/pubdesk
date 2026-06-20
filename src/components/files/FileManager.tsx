@@ -590,11 +590,11 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
               border: '1px solid var(--border)',
               background: 'var(--bg-card)',
               color: 'var(--text-primary)',
-              fontSize: '12px',
-              fontWeight: '600',
+              fontSize: '11px',
+              fontWeight: '500',
               cursor: 'pointer',
               outline: 'none',
-              minWidth: '90px',
+              minWidth: '80px',
               height: '24px',
               boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
