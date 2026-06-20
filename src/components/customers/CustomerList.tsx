@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { Contact } from '../../types/contact.types';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
+import { Button } from '../../ui/atoms/Button';
 
 const CustomerList: React.FC = () => {
   const {
@@ -102,25 +103,17 @@ const CustomerList: React.FC = () => {
         </div>
 
         {/* Tombol Tambah Pelanggan */}
-        <button 
+        <Button 
           onClick={() => {
             setEditingCustomer(null);
             setActiveModule('customer-form');
           }}
-          className="btn-primary" 
-          style={{ 
-            padding: '6px 14px', 
-            fontSize: '12px', 
-            fontWeight: '600', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '6px', 
-            borderRadius: '6px', 
-            cursor: 'pointer' 
-          }}
+          variant="primary"
+          size="sm"
+          icon="➕"
         >
-          <span>➕</span> Tambah Pelanggan
-        </button>
+          Tambah Pelanggan
+        </Button>
       </div>
 
       {/* Tabel Data (Membentang penuh seperti FileList) */}
@@ -195,27 +188,31 @@ const CustomerList: React.FC = () => {
                       <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada</span>
                     )}
                   </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={customer.address}>
-                    {customer.address || <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada alamat terdaftar</span>}
+                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }} title={customer.address}>
+                    <div style={{ whiteSpace: 'pre-line', lineHeight: '1.4' }}>
+                      {customer.address || <span style={{ fontStyle: 'italic', opacity: 0.5 }}>Tidak ada alamat terdaftar</span>}
+                    </div>
                   </td>
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                      <button
-                        className="btn-secondary"
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={(e) => handleStartEdit(customer, e)}
-                        style={{ padding: '4px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}
+                        style={{ padding: '4px 8px', fontSize: '11px' }}
                         title="Edit Rincian Pelanggan"
                       >
                         ✏️ Edit
-                      </button>
-                      <button
-                        className="btn-danger"
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
                         onClick={(e) => customer.id && handleDeleteCustomer(customer.id, customer.name, e)}
-                        style={{ padding: '4px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}
+                        style={{ padding: '4px 8px', fontSize: '11px' }}
                         title="Hapus Pelanggan"
                       >
                         🗑️ Hapus
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
