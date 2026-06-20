@@ -7,6 +7,7 @@ import { TagFilter } from './TagFilter';
 import { StatusFilter } from './StatusFilter';
 import { FileGrid } from './FileGrid';
 import { FileList } from './FileList';
+import { useInvoiceContext } from '../../contexts/InvoiceContext';
 
 interface FileManagerProps {
   searchQuery: string;
@@ -30,8 +31,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     refreshAccountToken,
     getAllTags,
     getAllFileTags,
-    setRightPanelVisible
+    setRightPanelVisible,
+    appState,
+    setActiveModule
   } = useAppContext();
+
+  const { loadInvoiceToForm } = useInvoiceContext();
 
   const [searchResults, setSearchResults] = React.useState<any[]>([]);
   const [allTags, setAllTags] = React.useState<string[]>([]);
@@ -571,6 +576,34 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
         overflowX: 'auto',
         flexShrink: 0
       }}>
+        {/* Tombol Buat Invoice khusus Manajemen Invoice */}
+        {appState.activeModule === 'invoice-manager' && (
+          <button 
+            className="btn-primary" 
+            onClick={() => {
+              loadInvoiceToForm({ id: null, file_path: '', items_json: '[]', shipping_cost: 0, admin_fee: 0, total: 0 });
+              setActiveModule('invoice');
+            }}
+            style={{ 
+              padding: '4px 10px', 
+              borderRadius: '6px',
+              border: 'none',
+              fontSize: '12px', 
+              fontWeight: '600',
+              cursor: 'pointer',
+              background: 'var(--accent)',
+              color: '#ffffff',
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              height: '24px',
+              flexShrink: 0
+            }}
+          >
+            <span>➕</span> Buat Invoice
+          </button>
+        )}
+
         {/* Jenis Filter Utama (Badge) */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
           <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '4px', whiteSpace: 'nowrap' }}>
