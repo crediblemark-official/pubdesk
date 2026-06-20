@@ -58,6 +58,8 @@ const InvoiceSettings: React.FC = () => {
   const [headerType, setHeaderType] = useState<'logo_only' | 'logo_text' | 'text_only'>('logo_text');
   const [tableColumns, setTableColumns] = useState<InvoiceTableColumn[]>([]);
   const [shippingType, setShippingType] = useState<'none' | 'global' | 'item'>('global');
+  const [watermarkColor, setWatermarkColor] = useState('');
+  const [watermarkOpacity, setWatermarkOpacity] = useState<number>(8); // Default 8%
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -153,6 +155,8 @@ const InvoiceSettings: React.FC = () => {
         { key: 'total', label: 'Total Biaya', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
       ]);
       setShippingType('global');
+      setWatermarkColor('');
+      setWatermarkOpacity(8);
     } else {
       const profile = profiles.find((p) => p.id === selectedProfileId);
       if (profile) {
@@ -193,6 +197,10 @@ const InvoiceSettings: React.FC = () => {
         const hasShippingCol = (profile.tableColumns || []).some(c => c.key === 'item_shipping_cost');
         const detectedType = profile.shippingType || (hasShippingCol ? 'item' : 'global');
         setShippingType(detectedType);
+
+        // Muat watermark settings
+        setWatermarkColor(profile.watermarkColor || '');
+        setWatermarkOpacity(profile.watermarkOpacity !== undefined ? profile.watermarkOpacity : 8);
       }
     }
   }, [selectedProfileId, isEditingNew, profiles]);
@@ -236,7 +244,9 @@ const InvoiceSettings: React.FC = () => {
     signatureImg,
     headerType,
     tableColumns: getFullTableColumns(tableColumns, shippingType),
-    shippingType
+    shippingType,
+    watermarkColor,
+    watermarkOpacity
   };
 
   const handleSave = () => {
@@ -306,6 +316,10 @@ const InvoiceSettings: React.FC = () => {
     const hasShippingCol = (p.tableColumns || []).some(c => c.key === 'item_shipping_cost');
     const detectedType = p.shippingType || (hasShippingCol ? 'item' : 'global');
     setShippingType(detectedType);
+
+    // Muat watermark dari template
+    setWatermarkColor(p.watermarkColor || '');
+    setWatermarkOpacity(p.watermarkOpacity !== undefined ? p.watermarkOpacity : 8);
 
     setShowTemplateModal(false);
   };
@@ -546,7 +560,11 @@ const InvoiceSettings: React.FC = () => {
               tableColumns,
               setTableColumns,
               shippingType,
-              setShippingType
+              setShippingType,
+              watermarkColor,
+              setWatermarkColor,
+              watermarkOpacity,
+              setWatermarkOpacity
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

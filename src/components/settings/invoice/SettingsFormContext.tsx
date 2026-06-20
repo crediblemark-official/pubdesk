@@ -62,6 +62,10 @@ export interface SettingsFormContextType {
   setTableColumns: (v: InvoiceTableColumn[] | ((prev: InvoiceTableColumn[]) => InvoiceTableColumn[])) => void;
   shippingType: 'none' | 'global' | 'item';
   setShippingType: (v: 'none' | 'global' | 'item') => void;
+  watermarkColor: string;
+  setWatermarkColor: (v: string) => void;
+  watermarkOpacity: number;
+  setWatermarkOpacity: (v: number) => void;
 }
 
 export const SettingsFormContext = createContext<SettingsFormContextType | undefined>(undefined);

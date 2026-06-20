@@ -137,24 +137,27 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
     if (!paymentStatus) return null;
 
     let text = '';
-    let color = '';
+    let baseColor = '';
 
     switch (paymentStatus.toUpperCase()) {
       case 'LUNAS':
         text = 'LUNAS';
-        color = 'rgba(22, 163, 74, 0.08)'; // Hijau lembut
+        baseColor = '#16a34a';
         break;
       case 'BELUM LUNAS':
         text = 'BELUM LUNAS';
-        color = 'rgba(220, 38, 38, 0.08)'; // Merah lembut
+        baseColor = '#dc2626';
         break;
       case 'PENDING':
         text = 'PENDING';
-        color = 'rgba(217, 119, 6, 0.08)'; // Oranye lembut
+        baseColor = '#d97706';
         break;
       default:
         return null;
     }
+
+    const color = activeProfile?.watermarkColor || baseColor;
+    const opacityValue = activeProfile?.watermarkOpacity !== undefined ? activeProfile.watermarkOpacity / 100 : 0.08;
 
     return (
       <div
@@ -175,6 +178,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
           pointerEvents: 'none',
           userSelect: 'none',
           zIndex: 10,
+          opacity: opacityValue,
           fontFamily: '"Montserrat", sans-serif'
         }}
       >

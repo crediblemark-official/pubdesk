@@ -17,7 +17,11 @@ const DesignSection: React.FC = () => {
     headerSecondaryColor,
     setHeaderSecondaryColor,
     headerBgColor,
-    setHeaderBgColor
+    setHeaderBgColor,
+    watermarkColor,
+    setWatermarkColor,
+    watermarkOpacity,
+    setWatermarkOpacity
   } = useSettingsForm();
 
   const { rightPanelVisible } = useAppContext();
@@ -146,6 +150,43 @@ const DesignSection: React.FC = () => {
               onChange={(e) => setHeaderBgColor(e.target.value)}
               placeholder="#222933"
             />
+          </div>
+        </div>
+
+        <div className="compact-form-group">
+          <label className="compact-label">Warna Watermark (Kosongkan untuk otomatis)</label>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <input
+              type="color"
+              style={{ width: '32px', height: '32px', padding: '2px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-card)', cursor: 'pointer' }}
+              value={watermarkColor || '#cccccc'}
+              onChange={(e) => setWatermarkColor(e.target.value)}
+            />
+            <input
+              type="text"
+              className="compact-input"
+              style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              value={watermarkColor}
+              onChange={(e) => setWatermarkColor(e.target.value)}
+              placeholder="Gunakan warna bawaan status"
+            />
+          </div>
+        </div>
+
+        <div className="compact-form-group">
+          <label className="compact-label">Opasitas Watermark ({watermarkOpacity}%)</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '32px' }}>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              style={{ flex: 1, accentColor: 'var(--accent)', cursor: 'pointer' }}
+              value={watermarkOpacity}
+              onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
+            />
+            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', width: '36px', textAlign: 'right' }}>
+              {watermarkOpacity}%
+            </span>
           </div>
         </div>
       </div>

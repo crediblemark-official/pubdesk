@@ -71,4 +71,6 @@ export interface InvoiceProfile {
   headerType?: 'logo_only' | 'logo_text' | 'text_only';
   tableColumns?: InvoiceTableColumn[];
   shippingType?: 'none' | 'global' | 'item';
+  watermarkColor?: string;
+  watermarkOpacity?: number;
 }
