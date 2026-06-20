@@ -220,6 +220,11 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Migrasi ad-hoc untuk menambahkan kolom baru ke penerbit
+    let _ = conn.execute("ALTER TABLE penerbit ADD COLUMN address TEXT", []);
+    let _ = conn.execute("ALTER TABLE penerbit ADD COLUMN notes TEXT", []);
+    let _ = conn.execute("ALTER TABLE penerbit ADD COLUMN province TEXT", []);
+
     // Naskah Orders table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS naskah_orders (

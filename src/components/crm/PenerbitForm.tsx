@@ -17,6 +17,9 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
 
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
+  const [address, setAddress] = useState('');
+  const [notes, setNotes] = useState('');
   const [email, setEmail] = useState('');
   const [waNumber, setWaNumber] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -34,6 +37,9 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
     if (initialData) {
       setName(initialData.name);
       setCity(initialData.city || '');
+      setProvince(initialData.province || '');
+      setAddress(initialData.address || '');
+      setNotes(initialData.notes || '');
       setEmail(initialData.email || '');
       setWaNumber(initialData.wa_number || '');
       setInstagram(initialData.instagram || '');
@@ -47,6 +53,9 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
     } else {
       setName('');
       setCity('');
+      setProvince('');
+      setAddress('');
+      setNotes('');
       setEmail('');
       setWaNumber('');
       setInstagram('');
@@ -71,6 +80,9 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
       id: initialData?.id,
       name: name.trim(),
       city: city.trim() || undefined,
+      province: province.trim() || undefined,
+      address: address.trim() || undefined,
+      notes: notes.trim() || undefined,
       email: email.trim() || undefined,
       wa_number: waNumber.trim() || undefined,
       instagram: instagram.trim() || undefined,
@@ -111,12 +123,20 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
                 autoFocus
               />
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                 <TextField
                   label="Kota Asal Penerbit"
                   placeholder="Contoh: Yogyakarta"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
+                  fullWidth
+                />
+
+                <TextField
+                  label="Provinsi"
+                  placeholder="Contoh: DIY"
+                  value={province}
+                  onChange={(e) => setProvince(e.target.value)}
                   fullWidth
                 />
 
@@ -167,6 +187,31 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
                   </label>
                 </div>
               </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                  Alamat Lengkap Kantor
+                </label>
+                <textarea
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    height: '80px',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    lineHeight: '1.4'
+                  }}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Contoh: Jl. Ringroad Utara No. 12, Sleman, Yogyakarta"
+                />
+              </div>
             </div>
           </AccordionSection>
 
@@ -207,6 +252,33 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
                   fullWidth
                 />
               </div>
+            </div>
+          </AccordionSection>
+
+          <AccordionSection index={3} title="📝 Catatan Kemitraan" expandedSection={expandedSection} onToggle={setExpandedSection}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Catatan / MoU / Kesepakatan Khusus
+              </label>
+              <textarea
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  outline: 'none',
+                  height: '80px',
+                  resize: 'vertical',
+                  boxSizing: 'border-box',
+                  lineHeight: '1.4'
+                }}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Tulis detail kesepakatan harga cetak, nomor kontrak, atau PIC penting..."
+              />
             </div>
           </AccordionSection>
         </Accordion>

@@ -22,6 +22,9 @@ export interface Penerbit {
   id?: number;
   name: string;
   city?: string;
+  province?: string;
+  address?: string;
+  notes?: string;
   instagram?: string;
   facebook?: string;
   email?: string;
@@ -29,7 +32,7 @@ export interface Penerbit {
   linkedin?: string;
   twitter?: string;
   tiktok?: string;
-  wa_valid: number;
+  wa_valid: number; // 0 = false, 1 = true
   email_valid: number;
   cooperation_status?: string;
   created_at: string;

@@ -486,7 +486,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
               outline: 'none'
             }}
           >
-            <option value="">Semua Status Follow-Up</option>
+            <option value="">Filter Status</option>
             <option value="New">Baru (New)</option>
             <option value="Contacted">Sudah Dihubungi</option>
             <option value="Interested">Tertarik</option>

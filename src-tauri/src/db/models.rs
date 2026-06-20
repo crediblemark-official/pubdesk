@@ -215,6 +215,9 @@ pub struct Penerbit {
     pub email_valid: i32,
     pub cooperation_status: Option<String>,
     pub created_at: String,
+    pub address: Option<String>,
+    pub notes: Option<String>,
+    pub province: Option<String>,
 }
 
 impl Default for Penerbit {
@@ -234,6 +237,9 @@ impl Default for Penerbit {
             email_valid: 0,
             cooperation_status: None,
             created_at: Local::now().to_rfc3339(),
+            address: None,
+            notes: None,
+            province: None,
         }
     }
 }

@@ -113,6 +113,8 @@ interface AppContextType {
   setSelectedCustomerId: (id: number | null) => void;
   selectedPenulisId: number | null;
   setSelectedPenulisId: (id: number | null) => void;
+  selectedPenerbitId: number | null;
+  setSelectedPenerbitId: (id: number | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -139,6 +141,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [selectedPenulisId, setSelectedPenulisId] = useState<number | null>(null);
+  const [selectedPenerbitId, setSelectedPenerbitId] = useState<number | null>(null);
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
   const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
@@ -509,6 +512,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const setActiveModule = (module: AppState['activeModule']) => {
     setAppState(prev => ({ ...prev, activeModule: module }));
+    setSelectedFileId(null);
+    setSelectedBookId(null);
+    setSelectedServiceId(null);
+    setSelectedCustomerId(null);
+    setSelectedPenulisId(null);
+    setSelectedPenerbitId(null);
+    setRightPanelVisible(false);
   };
 
 
@@ -835,6 +845,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSelectedCustomerId,
       selectedPenulisId,
       setSelectedPenulisId,
+      selectedPenerbitId,
+      setSelectedPenerbitId,
       addInvoice,
       updateInvoice,
       deleteInvoice,

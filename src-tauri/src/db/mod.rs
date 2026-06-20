@@ -620,7 +620,7 @@ impl Database {
     // Penerbit CRUD
     pub fn add_penerbit(&self, p: &Penerbit) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO penerbit (name, city, instagram, facebook, email, wa_number, linkedin, twitter, tiktok, wa_valid, email_valid, cooperation_status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+            "INSERT INTO penerbit (name, city, instagram, facebook, email, wa_number, linkedin, twitter, tiktok, wa_valid, email_valid, cooperation_status, created_at, address, notes, province) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
             params![
                 p.name,
                 p.city,
@@ -634,14 +634,17 @@ impl Database {
                 p.wa_valid,
                 p.email_valid,
                 p.cooperation_status,
-                p.created_at
+                p.created_at,
+                p.address,
+                p.notes,
+                p.province
             ]
         )?;
         Ok(self.conn.last_insert_rowid())
     }
 
     pub fn get_penerbit(&self) -> Result<Vec<Penerbit>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, name, city, instagram, facebook, email, wa_number, linkedin, twitter, tiktok, wa_valid, email_valid, cooperation_status, created_at FROM penerbit ORDER BY name ASC")?;
+        let mut stmt = self.conn.prepare("SELECT id, name, city, instagram, facebook, email, wa_number, linkedin, twitter, tiktok, wa_valid, email_valid, cooperation_status, created_at, address, notes, province FROM penerbit ORDER BY name ASC")?;
         let rows = stmt.query_map([], |row| {
             Ok(Penerbit {
                 id: row.get(0)?,
@@ -658,6 +661,9 @@ impl Database {
                 email_valid: row.get(11)?,
                 cooperation_status: row.get(12)?,
                 created_at: row.get(13)?,
+                address: row.get(14)?,
+                notes: row.get(15)?,
+                province: row.get(16)?,
             })
         })?;
         let mut res = Vec::new();
@@ -669,7 +675,7 @@ impl Database {
 
     pub fn update_penerbit(&self, p: &Penerbit) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE penerbit SET name = ?1, city = ?2, instagram = ?3, facebook = ?4, email = ?5, wa_number = ?6, linkedin = ?7, twitter = ?8, tiktok = ?9, wa_valid = ?10, email_valid = ?11, cooperation_status = ?12 WHERE id = ?13",
+            "UPDATE penerbit SET name = ?1, city = ?2, instagram = ?3, facebook = ?4, email = ?5, wa_number = ?6, linkedin = ?7, twitter = ?8, tiktok = ?9, wa_valid = ?10, email_valid = ?11, cooperation_status = ?12, address = ?13, notes = ?14, province = ?15 WHERE id = ?16",
             params![
                 p.name,
                 p.city,
@@ -683,6 +689,9 @@ impl Database {
                 p.wa_valid,
                 p.email_valid,
                 p.cooperation_status,
+                p.address,
+                p.notes,
+                p.province,
                 p.id
             ]
         )?;
