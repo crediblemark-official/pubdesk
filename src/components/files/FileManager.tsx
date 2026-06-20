@@ -817,7 +817,25 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
           </div>
         ) : (
           // List View Layout (Tabel)
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <>
+            <style>{`
+              @media (max-width: 1000px) {
+                .file-col-status {
+                  display: none !important;
+                }
+              }
+              @media (max-width: 800px) {
+                .file-col-status, .file-col-date {
+                  display: none !important;
+                }
+              }
+              @media (max-width: 600px) {
+                .file-col-status, .file-col-date, .file-col-type {
+                  display: none !important;
+                }
+              }
+            `}</style>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                 <th 
@@ -828,18 +846,21 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                 </th>
                 <th 
                   onClick={() => handleSort('type')}
+                  className="file-col-type"
                   style={{ padding: '8px 12px', fontWeight: '600', width: '15%', cursor: 'pointer', userSelect: 'none' }}
                 >
                   Tipe {sortBy === 'type' && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
                 </th>
                 <th 
                   onClick={() => handleSort('date')}
+                  className="file-col-date"
                   style={{ padding: '8px 12px', fontWeight: '600', width: '25%', cursor: 'pointer', userSelect: 'none' }}
                 >
                   Diubah Terakhir {sortBy === 'date' && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
                 </th>
                 <th 
                   onClick={() => handleSort('status')}
+                  className="file-col-status"
                   style={{ padding: '8px 12px', fontWeight: '600', width: '10%', cursor: 'pointer', userSelect: 'none' }}
                 >
                   Status {sortBy === 'status' && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
@@ -866,9 +887,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                     <span style={{ fontSize: '16px' }}>📁</span>
                     <span>.. (Kembali ke folder sebelumnya)</span>
                   </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>Folder Induk</td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>-</td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>-</td>
+                  <td className="file-col-type" style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>Folder Induk</td>
+                  <td className="file-col-date" style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>-</td>
+                  <td className="file-col-status" style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>-</td>
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>-</td>
                 </tr>
               )}
@@ -954,13 +975,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
+                      <td className="file-col-type" style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
                         {isFolder ? 'Folder' : getDisplayType(row.file)}
                       </td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                      <td className="file-col-date" style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                         {isFolder ? '-' : formatDateTime(row.file?.last_modified)}
                       </td>
-                      <td style={{ padding: '10px 12px' }}>
+                      <td className="file-col-status" style={{ padding: '10px 12px' }}>
                         {isFolder ? '-' : (
                           <span
                             style={{
@@ -1117,13 +1138,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
+                      <td className="file-col-type" style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
                         {getDisplayType(file)}
                       </td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                      <td className="file-col-date" style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                         {formatDateTime(file.last_modified)}
                       </td>
-                      <td style={{ padding: '10px 12px' }}>
+                      <td className="file-col-status" style={{ padding: '10px 12px' }}>
                         <span
                           style={{
                             display: 'inline-block',
@@ -1238,6 +1259,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
               )}
             </tbody>
           </table>
+          </>
         )}
       </div>
     </div>
