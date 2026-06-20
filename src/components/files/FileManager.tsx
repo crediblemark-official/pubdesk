@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { invoke } from '@tauri-apps/api/core';
+import { getCommonPrefix, buildLocalFileTree, flattenTree } from '../../utils/fileTree';
 
 interface FileManagerProps {
   searchQuery: string;
@@ -30,6 +31,11 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const [allTags, setAllTags] = React.useState<string[]>([]);
   const [fileTags, setFileTags] = React.useState<Record<number, string[]>>({});
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
+
+  const [sortBy, setSortBy] = React.useState<'name' | 'date' | 'size' | 'type'>('name');
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('asc');
+  const [isTreeView, setIsTreeView] = React.useState<boolean>(false);
+  const [expandedFolders, setExpandedFolders] = React.useState<Record<string, boolean>>({});
 
   const fetchTagsData = async () => {
     try {
@@ -99,6 +105,86 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   const getIsShared = (file: any) => {
     if (file.type !== 'gdrive') return false;
     return parseModifiedBy(file.modified_by).shared === '1';
+  };
+
+  const sortFiles = (filesToSort: any[]) => {
+    return [...filesToSort].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = a.filename.localeCompare(b.filename);
+          break;
+        case 'date':
+          const dateA = new Date(a.last_modified).getTime() || 0;
+          const dateB = new Date(b.last_modified).getTime() || 0;
+          comparison = dateA - dateB;
+          break;
+        case 'size':
+          const sizeA = parseInt(parseModifiedBy(a.modified_by).size, 10) || 0;
+          const sizeB = parseInt(parseModifiedBy(b.modified_by).size, 10) || 0;
+          comparison = sizeA - sizeB;
+          break;
+        case 'type':
+          const typeA = a.type || '';
+          const typeB = b.type || '';
+          comparison = typeA.localeCompare(typeB);
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  const sortTreeNodes = (nodes: any[]): any[] => {
+    return [...nodes].map(node => {
+      if (node.type === 'folder' && node.children) {
+        return {
+          ...node,
+          children: sortTreeNodes(node.children)
+        };
+      }
+      return node;
+    }).sort((a, b) => {
+      if (a.type !== b.type) {
+        return a.type === 'folder' ? -1 : 1;
+      }
+      
+      if (a.type === 'folder') {
+        return a.name.localeCompare(b.name);
+      }
+      
+      let comparison = 0;
+      const fileA = a.file;
+      const fileB = b.file;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = fileA.filename.localeCompare(fileB.filename);
+          break;
+        case 'date':
+          const dateA = new Date(fileA.last_modified).getTime() || 0;
+          const dateB = new Date(fileB.last_modified).getTime() || 0;
+          comparison = dateA - dateB;
+          break;
+        case 'size':
+          const sizeA = parseInt(parseModifiedBy(fileA.modified_by).size, 10) || 0;
+          const sizeB = parseInt(parseModifiedBy(fileB.modified_by).size, 10) || 0;
+          comparison = sizeA - sizeB;
+          break;
+        case 'type':
+          const typeA = fileA.type || '';
+          const typeB = fileB.type || '';
+          comparison = typeA.localeCompare(typeB);
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
   };
 
   const getVirtualFolders = () => {
@@ -212,25 +298,37 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
       );
     }
 
-    if (size === 'large') {
-      return (
-        <span style={{ fontSize: '36px', lineHeight: '1' }}>
-          {file.type === 'invoice' && '📄'}
-          {file.type === 'service' && '🛠️'}
-          {file.type === 'gdrive' && (isFolder ? '📁' : '☁️')}
-          {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
-        </span>
-      );
-    } else {
-      return (
-        <span style={{ fontSize: '16px' }}>
-          {file.type === 'invoice' && '📄'}
-          {file.type === 'service' && '🛠️'}
-          {file.type === 'gdrive' && (isFolder ? '📁' : '☁️')}
-          {file.type !== 'invoice' && file.type !== 'service' && file.type !== 'gdrive' && '📁'}
-        </span>
-      );
-    }
+    const getEmoji = () => {
+      if (file.type === 'folder') {
+        return expandedFolders[file.path] ? '📂' : '📁';
+      }
+      if (file.type === 'invoice') return '📄';
+      if (file.type === 'service') return '🛠️';
+      if (file.type === 'gdrive') return isFolder ? (expandedFolders[file.path] ? '📂' : '📁') : '☁️';
+      
+      // Berkas lokal
+      const ext = (file.version_label || '').toLowerCase();
+      switch (ext) {
+        case 'pdf': return '📕';
+        case 'docx':
+        case 'doc': return '📘';
+        case 'xlsx':
+        case 'xls': return '📗';
+        case 'png':
+        case 'jpg':
+        case 'jpeg': return '🖼️';
+        case 'txt':
+        case 'md': return '📝';
+        default: return '📄';
+      }
+    };
+
+    const fontSize = size === 'large' ? '36px' : '16px';
+    return (
+      <span style={{ fontSize, lineHeight: '1' }}>
+        {getEmoji()}
+      </span>
+    );
   };
 
   // Handler Buka Berkas Fisik via Rust Backend
@@ -446,8 +544,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     : files;
 
   const baseFiles = searchQuery.trim() ? searchResults : allFiles;
-
-  const filteredFiles = baseFiles.filter((file) => {
+  const preFilteredFiles = baseFiles.filter((file) => {
     const matchesCategory =
       (fileCategory === 'all' && file.type !== 'gdrive') ||
       (fileCategory === 'invoice' && file.type === 'invoice') ||
@@ -497,6 +594,21 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     return matchesCategory && matchesFolder && matchesTag;
   });
 
+  const filteredFiles = sortFiles(preFilteredFiles);
+
+  const showTreeActive = isTreeView && fileCategory === 'other' && fileLayoutMode === 'list';
+  let treeRows: any[] = [];
+  let rootFolderName = 'Lokal';
+
+  if (showTreeActive) {
+    const commonPrefix = getCommonPrefix(preFilteredFiles.map(f => f.path));
+    if (commonPrefix) {
+      rootFolderName = commonPrefix.split('/').pop() || 'Lokal';
+    }
+    const tree = buildLocalFileTree(preFilteredFiles, commonPrefix);
+    const sortedTree = sortTreeNodes(tree);
+    treeRows = flattenTree(sortedTree, expandedFolders);
+  }
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
       {/* Baris Filter Tag */}
@@ -553,6 +665,90 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
           ))}
         </div>
       )}
+
+      {/* Toolbar Kontrol (Urutkan & Tampilan Pohon) */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--bg-panel)',
+        flexWrap: 'wrap',
+        gap: '12px',
+        flexShrink: 0
+      }}>
+        {/* Sisi Kiri: Sortir */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
+            ⇅ Urutkan:
+          </span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              fontSize: '12px',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="name">Nama</option>
+            <option value="date">Tanggal Modifikasi</option>
+            <option value="size">Ukuran</option>
+            <option value="type">Tipe</option>
+          </select>
+          <button
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              height: '26px',
+              width: '26px'
+            }}
+            title={sortOrder === 'asc' ? "Naik (A-Z / Terlama)" : "Turun (Z-A / Terbaru)"}
+          >
+            {sortOrder === 'asc' ? '▲' : '▼'}
+          </button>
+        </div>
+
+        {/* Sisi Kanan: Toggle Tree View */}
+        {fileCategory === 'other' && fileLayoutMode === 'list' && (
+            <button
+              onClick={() => setIsTreeView(!isTreeView)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                background: isTreeView ? 'var(--accent)' : 'var(--bg-card)',
+                color: isTreeView ? '#ffffff' : 'var(--text-primary)',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>{isTreeView ? '🌲' : '📋'}</span>
+              <span>{isTreeView ? `Tampilan Pohon (${rootFolderName})` : 'Aktifkan Tampilan Pohon'}</span>
+            </button>
+        )}
+      </div>
 
       {/* Daftar Berkas */}
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)', padding: fileLayoutMode === 'grid' ? '16px' : '0' }}>
@@ -725,106 +921,278 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                   <td style={{ padding: '10px 12px', textAlign: 'center' }}>-</td>
                 </tr>
               )}
-              {filteredFiles.map((file) => {
-                const isSelected = selectedFileId === file.id;
-                return (
-                  <tr
-                    key={file.id}
-                    onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
-                    onDoubleClick={(e) => handleOpenFile(e, file)}
-                    title="Klik dua kali untuk membuka berkas secara native"
-                    style={{
-                      borderBottom: '1px solid var(--border)',
-                      background: isSelected ? 'rgba(192, 28, 28, 0.08)' : 'transparent',
-                      cursor: 'pointer',
-                      transition: 'background 0.1s ease',
-                      color: 'var(--text-primary)'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = 'transparent';
-                    }}
-                  >
-                    <td style={{ padding: '10px 12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {renderFileIcon(file, 'small')}
-                      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {file.filename}
-                        </span>
-                        {/* Tags */}
-                        {fileTags[file.id] && fileTags[file.id].length > 0 && (
-                          <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap' }}>
-                            {fileTags[file.id].map(tag => (
-                              <span key={tag} style={{ fontSize: '9px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '1px 5px', borderRadius: '3px' }}>
-                                {tag}
-                              </span>
-                            ))}
+              {showTreeActive ? (
+                treeRows.map((row) => {
+                  const isFolder = row.type === 'folder';
+                  const isSelected = !isFolder && selectedFileId === row.file?.id;
+                  
+                  return (
+                    <tr
+                      key={row.id}
+                      onClick={() => {
+                        if (isFolder) {
+                          setExpandedFolders(prev => ({
+                            ...prev,
+                            [row.path]: !prev[row.path]
+                          }));
+                        } else {
+                          setSelectedFileId(isSelected ? null : (row.file?.id ?? null));
+                        }
+                      }}
+                      onDoubleClick={(e) => {
+                        if (!isFolder) {
+                          handleOpenFile(e, row.file);
+                        } else {
+                          setExpandedFolders(prev => ({
+                            ...prev,
+                            [row.path]: !prev[row.path]
+                          }));
+                        }
+                      }}
+                      style={{
+                        borderBottom: '1px solid var(--border)',
+                        background: isSelected ? 'rgba(192, 28, 28, 0.08)' : 'transparent',
+                        cursor: 'pointer',
+                        transition: 'background 0.1s ease',
+                        color: 'var(--text-primary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <td style={{
+                        padding: '10px 12px',
+                        fontWeight: isFolder ? '600' : '500',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        paddingLeft: `${12 + row.depth * 20}px`
+                      }}>
+                        {isFolder ? (
+                          <span style={{
+                            fontSize: '10px',
+                            color: 'var(--text-secondary)',
+                            marginRight: '2px',
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            width: '12px',
+                            textAlign: 'center'
+                          }}>
+                            {expandedFolders[row.path] ? '▼' : '▶'}
+                          </span>
+                        ) : (
+                          <span style={{ width: '12px', display: 'inline-block' }} />
+                        )}
+                        {renderFileIcon(isFolder ? { type: 'folder', path: row.path } : row.file, 'small')}
+                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {row.name}
+                          </span>
+                          {/* Tags */}
+                          {!isFolder && fileTags[row.file?.id] && fileTags[row.file?.id].length > 0 && (
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap' }}>
+                              {fileTags[row.file?.id].map(tag => (
+                                <span key={tag} style={{ fontSize: '9px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '1px 5px', borderRadius: '3px' }}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
+                        {isFolder ? 'Folder' : getDisplayType(row.file)}
+                      </td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                        {isFolder ? '-' : formatDateTime(row.file?.last_modified)}
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        {isFolder ? '-' : (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              background: row.file?.status === 'Tersimpan' ? 'rgba(46, 194, 126, 0.15)' : 'rgba(0, 0, 0, 0.06)',
+                              color: row.file?.status === 'Tersimpan' ? '#2ec27e' : 'var(--text-secondary)'
+                            }}
+                          >
+                            {row.file?.status}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        {!isFolder && (
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            {/* Tombol Buka Berkas */}
+                            <button
+                              onClick={(e) => handleOpenFile(e, row.file)}
+                              title="Buka berkas"
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                color: 'var(--text-secondary)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background 0.15s ease'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                              }}
+                            >
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                              </svg>
+                            </button>
+
+                            {/* Tombol Buka Lokasi Berkas (Hanya untuk berkas lokal) */}
+                            {!row.file.path.startsWith('gdrive://') && (
+                              <button
+                                onClick={(e) => handleOpenFileLocation(e, row.file.path)}
+                                title="Buka lokasi berkas"
+                                style={{
+                                  border: 'none',
+                                  background: 'transparent',
+                                  color: 'var(--text-secondary)',
+                                  cursor: 'pointer',
+                                  padding: '4px',
+                                  borderRadius: '4px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'background 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                                  e.currentTarget.style.color = 'var(--text-primary)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.color = 'var(--text-secondary)';
+                                }}
+                              >
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                              </button>
+                            )}
+
+                            {/* Tombol Hapus */}
+                            <button
+                              onClick={(e) => handleDelete(e, row.file.id!, row.file.filename)}
+                              title="Hapus berkas"
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                color: 'var(--accent)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background 0.15s ease'
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(192, 28, 28, 0.1)'}
+                              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                              </svg>
+                            </button>
                           </div>
                         )}
-                      </div>
-                    </td>
-                    <td style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
-                      {getDisplayType(file)}
-                    </td>
-                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
-                      {formatDateTime(file.last_modified)}
-                    </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: '600',
-                          background: file.status === 'Tersimpan' ? 'rgba(46, 194, 126, 0.15)' : 'rgba(0, 0, 0, 0.06)',
-                          color: file.status === 'Tersimpan' ? '#2ec27e' : 'var(--text-secondary)'
-                        }}
-                      >
-                        {file.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        {/* Tombol Buka Berkas */}
-                        <button
-                          onClick={(e) => handleOpenFile(e, file)}
-                          title="Buka berkas"
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                filteredFiles.map((file) => {
+                  const isSelected = selectedFileId === file.id;
+                  return (
+                    <tr
+                      key={file.id}
+                      onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
+                      onDoubleClick={(e) => handleOpenFile(e, file)}
+                      title="Klik dua kali untuk membuka berkas secara native"
+                      style={{
+                        borderBottom: '1px solid var(--border)',
+                        background: isSelected ? 'rgba(192, 28, 28, 0.08)' : 'transparent',
+                        cursor: 'pointer',
+                        transition: 'background 0.1s ease',
+                        color: 'var(--text-primary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <td style={{ padding: '10px 12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {renderFileIcon(file, 'small')}
+                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {file.filename}
+                          </span>
+                          {/* Tags */}
+                          {fileTags[file.id] && fileTags[file.id].length > 0 && (
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap' }}>
+                              {fileTags[file.id].map(tag => (
+                                <span key={tag} style={{ fontSize: '9px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '1px 5px', borderRadius: '3px' }}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
+                        {getDisplayType(file)}
+                      </td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                        {formatDateTime(file.last_modified)}
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span
                           style={{
-                            border: 'none',
-                            background: 'transparent',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            padding: '4px',
+                            display: 'inline-block',
+                            padding: '2px 6px',
                             borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'background 0.15s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
-                            e.currentTarget.style.color = 'var(--text-primary)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = 'var(--text-secondary)';
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            background: file.status === 'Tersimpan' ? 'rgba(46, 194, 126, 0.15)' : 'rgba(0, 0, 0, 0.06)',
+                            color: file.status === 'Tersimpan' ? '#2ec27e' : 'var(--text-secondary)'
                           }}
                         >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                          </svg>
-                        </button>
-
-                        {/* Tombol Buka Lokasi Berkas (Hanya untuk berkas lokal) */}
-                        {!file.path.startsWith('gdrive://') && (
+                          {file.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                          {/* Tombol Buka Berkas */}
                           <button
-                            onClick={(e) => handleOpenFileLocation(e, file.path)}
-                            title="Buka lokasi berkas"
+                            onClick={(e) => handleOpenFile(e, file)}
+                            title="Buka berkas"
                             style={{
                               border: 'none',
                               background: 'transparent',
@@ -847,42 +1215,76 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                             }}
                           >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                              <polyline points="15 3 21 3 21 9"></polyline>
+                              <line x1="10" y1="14" x2="21" y2="3"></line>
                             </svg>
                           </button>
-                        )}
 
-                        {/* Tombol Hapus */}
-                        <button
-                          onClick={(e) => handleDelete(e, file.id!, file.filename)}
-                          title="Hapus berkas"
-                          style={{
-                            border: 'none',
-                            background: 'transparent',
-                            color: 'var(--accent)',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'background 0.15s ease'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(192, 28, 28, 0.1)'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                        >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                          {/* Tombol Buka Lokasi Berkas (Hanya untuk berkas lokal) */}
+                          {!file.path.startsWith('gdrive://') && (
+                            <button
+                              onClick={(e) => handleOpenFileLocation(e, file.path)}
+                              title="Buka lokasi berkas"
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                color: 'var(--text-secondary)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background 0.15s ease'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                              }}
+                            >
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                              </svg>
+                            </button>
+                          )}
+
+                          {/* Tombol Hapus */}
+                          <button
+                            onClick={(e) => handleDelete(e, file.id!, file.filename)}
+                            title="Hapus berkas"
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              color: 'var(--accent)',
+                              cursor: 'pointer',
+                              padding: '4px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'background 0.15s ease'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(192, 28, 28, 0.1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              <line x1="10" y1="11" x2="10" y2="17"></line>
+                              <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         )}
