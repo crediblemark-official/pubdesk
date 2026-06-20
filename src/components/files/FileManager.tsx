@@ -24,7 +24,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     gdriveAccounts, 
     refreshAccountToken,
     getAllTags,
-    getAllFileTags
+    getAllFileTags,
+    setRightPanelVisible
   } = useAppContext();
 
   const [searchResults, setSearchResults] = React.useState<any[]>([]);
@@ -733,8 +734,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                 <div
                   key={file.id}
                   onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
-                  onDoubleClick={(e) => handleOpenFile(e, file)}
-                  title="Klik dua kali untuk membuka"
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFileId(file.id);
+                    setRightPanelVisible(true);
+                  }}
+                  title="Klik dua kali untuk melihat pratinjau"
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -761,7 +766,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                   }}
                 >
                   {/* File Icon */}
-                  {renderFileIcon(file, 'large')}
+                  <span
+                    onClick={(e) => handleOpenFile(e, file)}
+                    title="Klik ikon untuk membuka berkas secara native"
+                    style={{ cursor: 'pointer', display: 'inline-flex' }}
+                  >
+                    {renderFileIcon(file, 'large')}
+                  </span>
 
                   {/* File Name */}
                   <span 
@@ -912,8 +923,10 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                         }
                       }}
                       onDoubleClick={(e) => {
+                        e.stopPropagation();
                         if (!isFolder) {
-                          handleOpenFile(e, row.file);
+                          setSelectedFileId(row.file?.id ?? null);
+                          setRightPanelVisible(true);
                         } else {
                           setExpandedFolders(prev => ({
                             ...prev,
@@ -958,7 +971,17 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                         ) : (
                           <span style={{ width: '12px', display: 'inline-block' }} />
                         )}
-                        {renderFileIcon(isFolder ? { type: 'folder', path: row.path } : row.file, 'small')}
+                        <span
+                          onClick={(e) => {
+                            if (!isFolder) {
+                              handleOpenFile(e, row.file);
+                            }
+                          }}
+                          title={isFolder ? undefined : "Klik ikon untuk membuka berkas secara native"}
+                          style={{ cursor: isFolder ? 'default' : 'pointer', display: 'inline-flex' }}
+                        >
+                          {renderFileIcon(isFolder ? { type: 'folder', path: row.path } : row.file, 'small')}
+                        </span>
                         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                           <span title={row.name} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {row.name}
@@ -1104,8 +1127,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                     <tr
                       key={file.id}
                       onClick={() => setSelectedFileId(isSelected ? null : (file.id ?? null))}
-                      onDoubleClick={(e) => handleOpenFile(e, file)}
-                      title="Klik dua kali untuk membuka berkas secara native"
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedFileId(file.id);
+                        setRightPanelVisible(true);
+                      }}
+                      title="Klik dua kali untuk melihat pratinjau"
                       style={{
                         borderBottom: '1px solid var(--border)',
                         background: isSelected ? 'rgba(192, 28, 28, 0.08)' : 'transparent',
@@ -1121,7 +1148,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                       }}
                     >
                       <td style={{ padding: '10px 12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {renderFileIcon(file, 'small')}
+                        <span
+                          onClick={(e) => handleOpenFile(e, file)}
+                          title="Klik ikon untuk membuka berkas secara native"
+                          style={{ cursor: 'pointer', display: 'inline-flex' }}
+                        >
+                          {renderFileIcon(file, 'small')}
+                        </span>
                         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                           <span title={file.filename} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {file.filename}
