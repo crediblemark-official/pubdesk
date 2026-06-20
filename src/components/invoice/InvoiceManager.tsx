@@ -5,7 +5,7 @@ import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { Invoice } from '../../types/invoice.types';
 import { formatPrice } from '../../utils/format';
 import { getInvoiceMetadata } from '../../utils/invoice';
-import { StatusBadge, Badge } from '../../ui/atoms/Badge';
+import { StatusBadge } from '../../ui/atoms/Badge';
 import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 
@@ -398,15 +398,12 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                     
                     {/* Status Invoice */}
                     <td style={{ padding: '6px 12px', textAlign: 'center' }}>
-                      <StatusBadge status={status} />
+                      <StatusBadge status={status} size="sm" />
                     </td>
 
                     {/* Status Berkas */}
                     <td style={{ padding: '6px 12px', textAlign: 'center' }}>
-                      <Badge 
-                        label={(fileEntry?.status || 'draft').toUpperCase()} 
-                        statusValue={fileEntry?.status || 'draft'} 
-                      />
+                      <StatusBadge status={fileEntry?.status || 'draft'} size="sm" />
                     </td>
                     
                     {/* Aksi */}
