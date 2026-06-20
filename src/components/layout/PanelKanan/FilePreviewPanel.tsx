@@ -5,6 +5,7 @@ import { useFileState } from '../../../contexts/FileContext';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import InvoicePreview from '../../invoice/InvoicePreview';
 import { parseModifiedBy, formatBytes, getMimeLabel } from '../../../utils/gdrive';
+import { formatPrice } from '../../../utils/format';
 
 interface FilePreviewPanelProps {
   /** ID berkas yang dipilih */
@@ -40,6 +41,11 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
   const [loadingMetadata, setLoadingMetadata] = useState(false);
   const [currentTags, setCurrentTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState('');
+  const [activeTab, setActiveTab] = useState<'preview' | 'inspector'>('preview');
+
+  useEffect(() => {
+    setActiveTab('preview');
+  }, [selectedFileId]);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -51,20 +57,42 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
       }
 
       const file = files.find(f => f.id === selectedFileId);
-      // Berkas invoice dan service tidak perlu metadata semantik
-      if (!file || file.type === 'invoice' || file.type === 'service' || file.type === 'gdrive') {
-        setFileMetadata(null);
+      if (!file) return;
+
+      setFileMetadata(null);
+      setRelatedFiles([]);
+      setCurrentTags([]);
+
+      // Service dan GDrive tidak didukung di penganalisis teks lokal
+      if (file.type === 'service' || file.type === 'gdrive') {
         return;
       }
 
       setLoadingMetadata(true);
       try {
-        const metadata = await invoke<any>('get_file_metadata', { fileId: selectedFileId });
-        const related = await invoke<any[]>('get_related_files', { fileId: selectedFileId });
-        const tags = await getFileTags(selectedFileId);
-        setFileMetadata(metadata);
-        setRelatedFiles(related);
-        setCurrentTags(tags);
+        // 1. Ambil tag berkas (didukung semua berkas di SQLite)
+        try {
+          const tags = await getFileTags(selectedFileId);
+          setCurrentTags(tags || []);
+        } catch (err) {
+          console.error('Gagal mengambil tag:', err);
+        }
+
+        // 2. Ambil metadata semantik
+        try {
+          const metadata = await invoke<any>('get_file_metadata', { fileId: selectedFileId });
+          setFileMetadata(metadata);
+        } catch (err) {
+          console.error('Gagal mengambil metadata semantik:', err);
+        }
+
+        // 3. Ambil berkas terkait
+        try {
+          const related = await invoke<any[]>('get_related_files', { fileId: selectedFileId });
+          setRelatedFiles(related || []);
+        } catch (err) {
+          console.error('Gagal mengambil berkas terkait:', err);
+        }
       } catch (err) {
         console.error('Gagal memuat metadata berkas:', err);
       } finally {
@@ -114,6 +142,169 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
       console.error('Gagal memperbarui status berkas:', err);
       showToast('Gagal memperbarui status berkas', 'error');
     }
+  };
+
+  const renderInspectorContent = (currentFile: any) => {
+    // 1. Dapatkan metadata invoice tiruan jika metadata semantik null
+    let resolvedMetadata = fileMetadata;
+    
+    if (currentFile.type === 'invoice' && !resolvedMetadata) {
+      const invoiceId = currentFile.version_label ? parseInt(currentFile.version_label) : null;
+      const invoice = invoices.find(inv => inv.id === invoiceId);
+      let invoiceNo = 'DRAF';
+      let customerName = 'Umum';
+      let paymentStatus = 'LUNAS';
+      let formattedTotal = 'Rp 0';
+      
+      if (invoice) {
+        formattedTotal = formatPrice(invoice.total);
+        try {
+          if (invoice.file_path) {
+            const metaObj = JSON.parse(invoice.file_path);
+            invoiceNo = metaObj.invoiceNo || 'DRAF';
+            customerName = metaObj.customerName || 'Umum';
+            paymentStatus = metaObj.paymentStatus || 'LUNAS';
+          }
+        } catch {}
+      }
+
+      resolvedMetadata = {
+        filename: currentFile.filename,
+        type: 'Invoice PDF',
+        version_label: currentFile.version_label || 'Lokal',
+        summary: `Invoice tagihan nomor ${invoiceNo} untuk pelanggan ${customerName}. Total nominal pembayaran sebesar ${formattedTotal} dengan status ${paymentStatus}.`,
+        entities: [
+          { entity_type: 'nomor', entity_value: invoiceNo },
+          { entity_type: 'pelanggan', entity_value: customerName },
+          { entity_type: 'status', entity_value: paymentStatus }
+        ]
+      };
+    }
+
+    if (!resolvedMetadata) {
+      return (
+        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          Pratinjau untuk berkas ini tidak tersedia
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Status Berkas */}
+        <div>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Status Berkas</h5>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <select
+              value={currentFile.status || 'draft'}
+              onChange={e => handleStatusChange(e.target.value)}
+              style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="draft">Draft</option>
+              <option value="review">Review</option>
+              <option value="approved">Approved</option>
+              <option value="final">Final</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Entitas Terdeteksi */}
+        <div>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Entitas Terdeteksi</h5>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            {!resolvedMetadata.entities || resolvedMetadata.entities.length === 0 ? (
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Tidak ada entitas penerbitan khusus yang terdeteksi.</span>
+            ) : (
+              resolvedMetadata.entities.filter((ent: any) => ent.entity_type !== 'hash').map((ent: any, idx: number) => {
+                const iconMap: Record<string, string> = { judul: '📖', penulis: '✍️', bab: '📑', ISBN: '🔢', nomor: '🔢', pelanggan: '👤', status: '🚦' };
+                const icon = iconMap[ent.entity_type] || '📑';
+                return (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: idx < resolvedMetadata.entities.filter((e: any) => e.entity_type !== 'hash').length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: idx < resolvedMetadata.entities.filter((e: any) => e.entity_type !== 'hash').length - 1 ? '6px' : '0' }}>
+                    <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {icon} <span style={{ textTransform: 'capitalize' }}>{ent.entity_type}</span>
+                    </span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{ent.entity_value}</strong>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Tag Berkas */}
+        <div>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Tag Berkas</h5>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {currentTags.length === 0 ? (
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Belum ada tag untuk berkas ini.</span>
+              ) : (
+                currentTags.map(tag => (
+                  <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                    {tag}
+                    <button onClick={() => handleRemoveTag(tag)} style={{ border: 'none', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', padding: '0 2px', fontSize: '10px', display: 'flex', alignItems: 'center', fontWeight: 'bold' }} title="Hapus tag">×</button>
+                  </span>
+                ))
+              )}
+            </div>
+            <form onSubmit={handleAddTag} style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+              <input
+                type="text"
+                placeholder="Tambah tag baru (misal: #final)..."
+                value={newTagInput}
+                onChange={e => setNewTagInput(e.target.value)}
+                style={{ flex: 1, padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
+              />
+              <button type="submit" style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: 'var(--accent)', color: '#ffffff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                Tambah
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Ringkasan */}
+        <div>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Ringkasan Konten Otomatis</h5>
+          <div style={{ background: 'var(--bg-card)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.5', fontStyle: 'italic' }}>
+            "{resolvedMetadata.summary || 'Tidak ada ringkasan teks untuk berkas ini.'}"
+          </div>
+        </div>
+
+        {/* Linimasa Versi */}
+        <div>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '12px' }}>Linimasa Versi & Relasi Berkas</h5>
+          {relatedFiles.length === 0 ? (
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+              Tidak ada berkas terkait atau versi lain terdeteksi.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid var(--border)', gap: '16px', marginLeft: '6px' }}>
+              {relatedFiles.map((rel: any, idx: number) => {
+                const isVersion = rel.relation_type === 'version_of';
+                const isDup = rel.relation_type === 'duplicate_of';
+                const dotColor = isDup ? '#ef4444' : (isVersion ? '#2ec27e' : '#1e90ff');
+                const badgeColor = isDup ? 'rgba(239, 68, 68, 0.15)' : (isVersion ? 'rgba(46, 194, 126, 0.15)' : 'rgba(30, 144, 255, 0.15)');
+                const badgeText = isDup ? 'Duplikat Persis' : (isVersion ? `Revisi (${Math.round(rel.confidence * 100)}%)` : 'Terkait');
+                return (
+                  <div key={idx} style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '-23px', top: '12px', width: '12px', height: '12px', borderRadius: '50%', background: dotColor, border: '2.5px solid var(--bg-panel)', boxShadow: '0 0 0 1px var(--border)' }} />
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '12px', gap: '6px' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '700', background: badgeColor, color: dotColor, textTransform: 'uppercase' }}>{badgeText}</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{new Date(rel.last_modified).toLocaleDateString('id-ID')}</span>
+                      </div>
+                      <span style={{ fontWeight: '600', color: 'var(--text-primary)', wordBreak: 'break-all' }}>{rel.filename}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // ---------- Tidak ada berkas terpilih ----------
@@ -174,18 +365,84 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
-        <div style={{ padding: '8px 16px', background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: '8px', zIndex: 10 }}>
-          <button
-            className="btn-primary compact-btn"
-            onClick={() => { loadInvoiceToForm(invoice); setActiveModule('invoice'); }}
-            style={{ height: '32px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '0 12px' }}
-          >
-            <span>📝</span> Edit / Muat ke Generator
-          </button>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', background: 'var(--bg-panel)' }}>
+        {/* Header Tab Switcher */}
+        <div style={{ padding: '8px 16px', background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', zIndex: 10 }}>
+          {/* Tab Menu */}
+          <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-card)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <button
+              onClick={() => setActiveTab('preview')}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                background: activeTab === 'preview' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'preview' ? '#ffffff' : 'var(--text-secondary)',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              📄 Pratinjau
+            </button>
+            <button
+              onClick={() => setActiveTab('inspector')}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                background: activeTab === 'inspector' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'inspector' ? '#ffffff' : 'var(--text-secondary)',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              🔍 Inspektur Cerdas
+            </button>
+          </div>
+
+          {/* Action Button */}
+          {activeTab === 'preview' && (
+            <button
+              className="btn-primary compact-btn"
+              onClick={() => { loadInvoiceToForm(invoice); setActiveModule('invoice'); }}
+              style={{ height: '30px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '0 12px' }}
+            >
+              <span>📝</span> Edit
+            </button>
+          )}
         </div>
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          <InvoicePreview overrideInvoice={overrideInvoice} />
+
+        {/* Tab Content */}
+        <div style={{ flex: 1, overflow: 'auto', padding: activeTab === 'inspector' ? '20px 24px' : '0' }}>
+          {activeTab === 'preview' ? (
+            <InvoicePreview overrideInvoice={overrideInvoice} />
+          ) : (
+            <>
+              {/* Header Info Berkas */}
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
+                <h3 style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  🔍 Inspektur Berkas Cerdas
+                </h3>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px 0', wordBreak: 'break-all' }}>
+                  {file.filename}
+                </h4>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                  <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: 'rgba(192, 28, 28, 0.1)', color: 'var(--accent)', textTransform: 'uppercase' }}>
+                    {file.type}
+                  </span>
+                  <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: 'rgba(0, 0, 0, 0.05)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                    Lokal
+                  </span>
+                </div>
+              </div>
+
+              {renderInspectorContent(file)}
+            </>
+          )}
         </div>
       </div>
     );
@@ -315,15 +572,6 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     );
   }
 
-  // ---------- Tidak ada metadata ----------
-  if (!fileMetadata) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', textAlign: 'center' }}>Pratinjau untuk berkas ini tidak tersedia</p>
-      </div>
-    );
-  }
-
   // ---------- Berkas lokal — tampilkan metadata semantik ----------
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', padding: '24px', overflowY: 'auto' }}>
@@ -333,133 +581,19 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
           🔍 Inspektur Berkas Cerdas
         </h3>
         <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px 0', wordBreak: 'break-all' }}>
-          {fileMetadata.filename}
+          {file.filename}
         </h4>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
           <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: 'rgba(192, 28, 28, 0.1)', color: 'var(--accent)', textTransform: 'uppercase' }}>
-            {fileMetadata.type}
+            {file.type}
           </span>
           <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: 'rgba(0, 0, 0, 0.05)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-            {fileMetadata.version_label || 'Lokal'}
+            {file.version_label || 'Lokal'}
           </span>
         </div>
       </div>
 
-      {/* Status */}
-      <div style={{ marginBottom: '20px' }}>
-        <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Status Berkas</h5>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <select
-            value={fileMetadata.status || 'draft'}
-            onChange={e => handleStatusChange(e.target.value)}
-            style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', cursor: 'pointer' }}
-          >
-            <option value="draft">Draft</option>
-            <option value="review">Review</option>
-            <option value="approved">Approved</option>
-            <option value="final">Final</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Entitas */}
-      <div style={{ marginBottom: '20px' }}>
-        <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Entitas Terdeteksi</h5>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          {fileMetadata.entities.length === 0 ? (
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Tidak ada entitas penerbitan khusus yang terdeteksi.</span>
-          ) : (
-            fileMetadata.entities.filter((ent: any) => ent.entity_type !== 'hash').map((ent: any, idx: number) => {
-              const iconMap: Record<string, string> = { judul: '📖', penulis: '✍️', bab: '📑', ISBN: '🔢' };
-              const icon = iconMap[ent.entity_type] || '📑';
-              return (
-                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: idx < fileMetadata.entities.filter((e: any) => e.entity_type !== 'hash').length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: idx < fileMetadata.entities.filter((e: any) => e.entity_type !== 'hash').length - 1 ? '6px' : '0' }}>
-                  <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {icon} <span style={{ textTransform: 'capitalize' }}>{ent.entity_type}</span>
-                  </span>
-                  <strong style={{ color: 'var(--text-primary)' }}>{ent.entity_value}</strong>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      {/* Tag */}
-      <div style={{ marginBottom: '20px' }}>
-        <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Tag Berkas</h5>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {currentTags.length === 0 ? (
-              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Belum ada tag untuk berkas ini.</span>
-            ) : (
-              currentTags.map(tag => (
-                <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
-                  {tag}
-                  <button onClick={() => handleRemoveTag(tag)} style={{ border: 'none', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', padding: '0 2px', fontSize: '10px', display: 'flex', alignItems: 'center', fontWeight: 'bold' }} title="Hapus tag">×</button>
-                </span>
-              ))
-            )}
-          </div>
-          <form onSubmit={handleAddTag} style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-            <input
-              type="text"
-              placeholder="Tambah tag baru (misal: #final)..."
-              value={newTagInput}
-              onChange={e => setNewTagInput(e.target.value)}
-              style={{ flex: 1, padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
-            />
-            <button type="submit" style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: 'var(--accent)', color: '#ffffff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-              Tambah
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* Ringkasan */}
-      <div style={{ marginBottom: '20px' }}>
-        <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Ringkasan Konten Otomatis</h5>
-        <div style={{ background: 'var(--bg-card)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.5', fontStyle: 'italic' }}>
-          "{fileMetadata.summary || 'Tidak ada konten teks untuk dirangkum.'}"
-        </div>
-      </div>
-
-      {/* Linimasa Versi */}
-      <div style={{ marginBottom: '20px' }}>
-        <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '12px' }}>Linimasa Versi & Relasi Berkas</h5>
-        {relatedFiles.length === 0 ? (
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
-            Tidak ada berkas terkait atau versi lain terdeteksi.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid var(--border)', gap: '16px', marginLeft: '6px' }}>
-            {relatedFiles.map((rel: any, idx: number) => {
-              const isVersion = rel.relation_type === 'version_of';
-              const isDup = rel.relation_type === 'duplicate_of';
-              const dotColor = isDup ? '#ef4444' : (isVersion ? '#2ec27e' : '#1e90ff');
-              const badgeColor = isDup ? 'rgba(239, 68, 68, 0.15)' : (isVersion ? 'rgba(46, 194, 126, 0.15)' : 'rgba(30, 144, 255, 0.15)');
-              const badgeText = isDup ? 'Duplikat Persis' : (isVersion ? `Revisi (${Math.round(rel.confidence * 100)}%)` : 'Terkait');
-              return (
-                <div key={idx} style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: '-23px', top: '12px', width: '12px', height: '12px', borderRadius: '50%', background: dotColor, border: '2.5px solid var(--bg-panel)', boxShadow: '0 0 0 1px var(--border)' }} />
-                  <div
-                    onClick={() => { const found = files.find(f => f.id === rel.file_id); if (found) { /* setSelectedFileId handled by parent */ } }}
-                    style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '12px', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-panel)'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-card)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '700', background: badgeColor, color: dotColor, textTransform: 'uppercase' }}>{badgeText}</span>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{new Date(rel.last_modified).toLocaleDateString('id-ID')}</span>
-                    </div>
-                    <span style={{ fontWeight: '600', color: 'var(--text-primary)', wordBreak: 'break-all' }}>{rel.filename}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {renderInspectorContent(file)}
     </div>
   );
 };
