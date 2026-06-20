@@ -56,7 +56,9 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
             version_label TEXT,
             last_modified TEXT NOT NULL,
             modified_by TEXT,
-            is_readonly BOOLEAN NOT NULL DEFAULT 0
+            is_readonly BOOLEAN NOT NULL DEFAULT 0,
+            description TEXT,
+            responsible_parties TEXT
         )",
         [],
     )?;
@@ -124,6 +126,8 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
 
     // Migrasi ad-hoc untuk menambahkan kolom version_similarity jika database sudah terlanjur dibuat
     let _ = conn.execute("ALTER TABLE files ADD COLUMN version_similarity REAL", []);
+    let _ = conn.execute("ALTER TABLE files ADD COLUMN description TEXT", []);
+    let _ = conn.execute("ALTER TABLE files ADD COLUMN responsible_parties TEXT", []);
 
     // file_entities table
     conn.execute(

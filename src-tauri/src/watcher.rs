@@ -241,6 +241,8 @@ fn process_created_file(app_handle: &AppHandle, path: &Path) -> Result<bool, Str
         last_modified,
         modified_by: Some(format!("{}|local|0|system", size)),
         is_readonly: metadata.permissions().readonly(),
+        description: None,
+        responsible_parties: None,
     };
 
     // 2. Tambahkan ke database (scope lock db singkat)

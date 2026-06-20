@@ -73,6 +73,8 @@ pub struct File {
     pub last_modified: String,
     pub modified_by: Option<String>,
     pub is_readonly: bool,
+    pub description: Option<String>,
+    pub responsible_parties: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

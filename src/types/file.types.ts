@@ -13,6 +13,8 @@ export interface File {
   last_modified: string;
   modified_by?: string;
   is_readonly: boolean;
+  description?: string;
+  responsible_parties?: string;
 }
 
 export interface Tag {

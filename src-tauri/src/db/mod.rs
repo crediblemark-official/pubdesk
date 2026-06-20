@@ -214,7 +214,7 @@ impl Database {
     // Files
     pub fn add_file(&self, file: &File) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO files (path, filename, type, project_id, status, version_label, last_modified, modified_by, is_readonly) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO files (path, filename, type, project_id, status, version_label, last_modified, modified_by, is_readonly, description, responsible_parties) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             params![
                 file.path,
                 file.filename,
@@ -224,14 +224,16 @@ impl Database {
                 file.version_label,
                 file.last_modified,
                 file.modified_by,
-                file.is_readonly
+                file.is_readonly,
+                file.description,
+                file.responsible_parties
             ]
         )?;
         Ok(self.conn.last_insert_rowid())
     }
 
     pub fn get_files(&self) -> Result<Vec<File>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, path, filename, type, project_id, status, version_label, last_modified, modified_by, is_readonly FROM files")?;
+        let mut stmt = self.conn.prepare("SELECT id, path, filename, type, project_id, status, version_label, last_modified, modified_by, is_readonly, description, responsible_parties FROM files")?;
         let files = stmt.query_map([], |row| {
             Ok(File {
                 id: row.get(0)?,
@@ -244,6 +246,8 @@ impl Database {
                 last_modified: row.get(7)?,
                 modified_by: row.get(8)?,
                 is_readonly: row.get(9)?,
+                description: row.get(10)?,
+                responsible_parties: row.get(11)?,
             })
         })?;
 
@@ -262,7 +266,7 @@ impl Database {
 
     pub fn update_file(&self, file: &File) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE files SET filename = ?1, type = ?2, project_id = ?3, status = ?4, version_label = ?5, last_modified = ?6, modified_by = ?7, is_readonly = ?8 WHERE path = ?9",
+            "UPDATE files SET filename = ?1, type = ?2, project_id = ?3, status = ?4, version_label = ?5, last_modified = ?6, modified_by = ?7, is_readonly = ?8, description = ?9, responsible_parties = ?10 WHERE path = ?11",
             params![
                 file.filename,
                 file.r#type,
@@ -272,6 +276,8 @@ impl Database {
                 file.last_modified,
                 file.modified_by,
                 file.is_readonly,
+                file.description,
+                file.responsible_parties,
                 file.path
             ]
         )?;
@@ -382,7 +388,7 @@ impl Database {
 
     #[allow(dead_code)]
     pub fn get_file_by_path(&self, path: &str) -> Result<Option<File>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, path, filename, type, project_id, status, version_label, last_modified, modified_by, is_readonly FROM files WHERE path = ?1")?;
+        let mut stmt = self.conn.prepare("SELECT id, path, filename, type, project_id, status, version_label, last_modified, modified_by, is_readonly, description, responsible_parties FROM files WHERE path = ?1")?;
         let mut rows = stmt.query(params![path])?;
         if let Some(row) = rows.next()? {
             Ok(Some(File {
@@ -396,6 +402,8 @@ impl Database {
                 last_modified: row.get(7)?,
                 modified_by: row.get(8)?,
                 is_readonly: row.get(9)?,
+                description: row.get(10)?,
+                responsible_parties: row.get(11)?,
             }))
         } else {
             Ok(None)

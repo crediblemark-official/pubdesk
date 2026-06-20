@@ -42,10 +42,22 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
   const [currentTags, setCurrentTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState('');
   const [activeTab, setActiveTab] = useState<'preview' | 'inspector'>('preview');
+  const [descriptionInput, setDescriptionInput] = useState('');
+  const [newResponsibleParty, setNewResponsibleParty] = useState('');
+
+  const currentFileSelected = files.find(f => f.id === selectedFileId);
 
   useEffect(() => {
     setActiveTab('preview');
   }, [selectedFileId]);
+
+  useEffect(() => {
+    if (currentFileSelected) {
+      setDescriptionInput(currentFileSelected.description || '');
+    } else {
+      setDescriptionInput('');
+    }
+  }, [selectedFileId, currentFileSelected?.id, currentFileSelected?.description]);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -144,6 +156,73 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     }
   };
 
+  const handleSaveDescription = async () => {
+    const fileObj = files.find(f => f.id === selectedFileId);
+    if (!fileObj) return;
+    if (descriptionInput === (fileObj.description || '')) return;
+    try {
+      await updateFile({ ...fileObj, description: descriptionInput });
+      showToast('Deskripsi berkas berhasil diperbarui', 'success');
+    } catch (err) {
+      console.error('Gagal memperbarui deskripsi berkas:', err);
+      showToast('Gagal memperbarui deskripsi berkas', 'error');
+    }
+  };
+
+  const getResponsiblePartiesList = (currentFile: any): Array<{ name: string; timestamp: string }> => {
+    try {
+      if (currentFile.responsible_parties) {
+        const parsed = JSON.parse(currentFile.responsible_parties);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  };
+
+  const handleAddResponsibleParty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const fileObj = files.find(f => f.id === selectedFileId);
+    if (!fileObj || !newResponsibleParty.trim()) return;
+    
+    const name = newResponsibleParty.trim();
+    const parties = getResponsiblePartiesList(fileObj);
+    
+    if (parties.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+      showToast('Nama penanggung jawab sudah terdaftar', 'error');
+      return;
+    }
+    
+    const newParty = {
+      name,
+      timestamp: new Date().toISOString()
+    };
+    
+    const updatedParties = [...parties, newParty];
+    try {
+      await updateFile({ ...fileObj, responsible_parties: JSON.stringify(updatedParties) });
+      setNewResponsibleParty('');
+      showToast('Penanggung jawab berhasil ditambahkan', 'success');
+    } catch (err) {
+      console.error('Gagal menambahkan penanggung jawab:', err);
+      showToast('Gagal menambahkan penanggung jawab', 'error');
+    }
+  };
+
+  const handleRemoveResponsibleParty = async (nameToRemove: string) => {
+    const fileObj = files.find(f => f.id === selectedFileId);
+    if (!fileObj) return;
+    
+    const parties = getResponsiblePartiesList(fileObj);
+    const updatedParties = parties.filter(p => p.name !== nameToRemove);
+    try {
+      await updateFile({ ...fileObj, responsible_parties: JSON.stringify(updatedParties) });
+      showToast('Penanggung jawab berhasil dihapus', 'success');
+    } catch (err) {
+      console.error('Gagal menghapus penanggung jawab:', err);
+      showToast('Gagal menghapus penanggung jawab', 'error');
+    }
+  };
+
   const renderInspectorContent = (currentFile: any) => {
     // 1. Dapatkan metadata invoice tiruan jika metadata semantik null
     let resolvedMetadata = fileMetadata;
@@ -205,6 +284,79 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
               <option value="approved">Approved</option>
               <option value="final">Final</option>
             </select>
+          </div>
+        </div>
+
+        {/* Deskripsi Berkas */}
+        <div>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Deskripsi Berkas</h5>
+          <textarea
+            placeholder="Tambahkan deskripsi berkas di sini..."
+            value={descriptionInput}
+            onChange={e => setDescriptionInput(e.target.value)}
+            onBlur={handleSaveDescription}
+            rows={3}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+              resize: 'vertical',
+              outline: 'none',
+              transition: 'border-color 0.15s ease'
+            }}
+            onFocus={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+            onBlurCapture={handleSaveDescription}
+          />
+        </div>
+
+        {/* Pihak Penanggung Jawab */}
+        <div>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Pihak Penanggung Jawab</h5>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* List Penanggung Jawab */}
+            {getResponsiblePartiesList(currentFile).length === 0 ? (
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                Belum ada penanggung jawab yang ditambahkan.
+              </span>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {getResponsiblePartiesList(currentFile).map(party => (
+                  <div key={party.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>👤 {party.name}</strong>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                        🕒 {new Date(party.timestamp).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                    <button 
+                      onClick={() => handleRemoveResponsibleParty(party.name)} 
+                      style={{ border: 'none', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', padding: '4px' }}
+                      title="Hapus penanggung jawab"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Form Tambah Penanggung Jawab */}
+            <form onSubmit={handleAddResponsibleParty} style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+              <input
+                type="text"
+                placeholder="Nama penanggung jawab baru..."
+                value={newResponsibleParty}
+                onChange={e => setNewResponsibleParty(e.target.value)}
+                style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
+              />
+              <button type="submit" style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: 'var(--accent)', color: '#ffffff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                Tambah
+              </button>
+            </form>
           </div>
         </div>
 
