@@ -960,7 +960,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                         )}
                         {renderFileIcon(isFolder ? { type: 'folder', path: row.path } : row.file, 'small')}
                         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span title={row.name} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {row.name}
                           </span>
                           {/* Tags */}
@@ -1123,7 +1123,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                       <td style={{ padding: '10px 12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {renderFileIcon(file, 'small')}
                         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span title={file.filename} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {file.filename}
                           </span>
                           {/* Tags */}
