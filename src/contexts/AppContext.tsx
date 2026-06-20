@@ -56,6 +56,8 @@ interface AppContextType {
   deleteBook: (id: number) => Promise<void>;
   updateBook: (book: Book) => Promise<void>;
   addContact: (contact: Contact) => Promise<number>;
+  updateContact: (contact: Contact) => Promise<void>;
+  deleteContact: (id: number) => Promise<void>;
   addInvoice: (invoice: Invoice) => Promise<number>;
   updateInvoice: (invoice: Invoice) => Promise<void>;
   deleteInvoice: (id: number) => Promise<void>;
@@ -585,6 +587,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const updateContact = async (contact: Contact) => {
+    try {
+      await invoke('update_contact', { contact });
+      await loadContacts();
+    } catch (error) {
+      console.error('Failed to update contact:', error);
+      showToast('Gagal memperbarui kontak', 'error');
+    }
+  };
+
+  const deleteContact = async (id: number) => {
+    try {
+      await invoke('delete_contact', { id });
+      await loadContacts();
+    } catch (error) {
+      console.error('Failed to delete contact:', error);
+      showToast('Gagal menghapus kontak', 'error');
+    }
+  };
+
   const addInvoice = async (invoice: Invoice) => {
     try {
       const id = await invoke<number>('add_invoice', { invoice });
@@ -796,6 +818,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       deleteBook,
       updateBook,
       addContact,
+      updateContact,
+      deleteContact,
       addInvoice,
       updateInvoice,
       deleteInvoice,

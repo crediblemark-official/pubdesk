@@ -71,6 +71,28 @@ impl Database {
         Ok(result)
     }
 
+    pub fn update_contact(&self, contact: &Contact) -> Result<(), DbError> {
+        self.conn.execute(
+            "UPDATE contacts SET name = ?1, wa_number = ?2, address = ?3, type = ?4 WHERE id = ?5",
+            params![
+                contact.name,
+                contact.wa_number,
+                contact.address,
+                contact.r#type,
+                contact.id
+            ],
+        )?;
+        Ok(())
+    }
+
+    pub fn delete_contact(&self, id: i64) -> Result<(), DbError> {
+        self.conn.execute(
+            "DELETE FROM contacts WHERE id = ?1",
+            params![id],
+        )?;
+        Ok(())
+    }
+
     // Books
     pub fn add_book(&self, book: &Book) -> Result<i64, DbError> {
         self.conn.execute(

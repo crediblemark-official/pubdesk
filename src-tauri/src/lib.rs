@@ -328,6 +328,20 @@ fn add_contact(state: State<'_, AppState>, contact: Contact) -> Result<i64, Stri
     db.add_contact(&contact).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn update_contact(state: State<'_, AppState>, contact: Contact) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database not initialized")?;
+    db.update_contact(&contact).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn delete_contact(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database not initialized")?;
+    db.delete_contact(id).map_err(|e| e.to_string())
+}
+
 // Invoices commands
 #[tauri::command]
 fn get_invoices(state: State<'_, AppState>) -> Result<Vec<Invoice>, String> {
@@ -555,6 +569,8 @@ pub fn run() {
             delete_service,
             get_contacts,
             add_contact,
+            update_contact,
+            delete_contact,
             get_invoices,
             add_invoice,
             update_invoice,

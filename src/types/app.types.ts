@@ -11,7 +11,8 @@ export type AppModule =
   | 'ledger'
   | 'settings'
   | 'books'
-  | 'services';
+  | 'services'
+  | 'customers';
 
 export interface AppState {
   activeModule: AppModule;
