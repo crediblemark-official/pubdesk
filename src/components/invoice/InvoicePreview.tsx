@@ -583,29 +583,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
 
           </div>
 
-          {/* Rekening Bank (Sebaris, di atas Tanda Tangan & Kontak) */}
-          {activeProfile?.showBankInfo && (
-            <div style={{ 
-              padding: '0 35px', 
-              width: '100%', 
-              boxSizing: 'border-box',
-              flexShrink: 0
-            }}>
-              <div style={{ 
-                border: '1px solid #e5e7eb', 
-                borderRadius: '4px', 
-                padding: '6px 12px', 
-                fontSize: '8px', 
-                color: '#1f2937', 
-                background: '#f9fafb',
-                lineHeight: '1.4',
-                textAlign: 'center',
-                fontFamily: '"Montserrat", "Segoe UI", sans-serif'
-              }}>
-                Transfer melalui rekening bank: <strong>{activeProfile.bankName}</strong> | <strong>{activeProfile.bankAccountNo}</strong> | a/n. <strong>{activeProfile.bankAccountOwner}</strong>
-              </div>
-            </div>
-          )}
 
           {/* Middle Section (Contact & Totals) */}
           <div style={{ padding: '10px 35px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0 }}>
@@ -744,6 +721,21 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
                 {/* Bidang merah kanan (Warna dinamis) */}
                 <path d="M 538.25 20 H 1045 V 70 H 575.75 Z" fill={headerPrimaryColor} />
               </g>
+
+              {/* Teks Rekening Bank (Sebaris di dalam shape footer kiri) */}
+              {activeProfile?.showBankInfo && (
+                <text 
+                  x="35" 
+                  y="49" 
+                  fill="#ffffff" 
+                  fontFamily='"Montserrat", "Segoe UI", sans-serif' 
+                  fontSize="12.5" 
+                  fontWeight="600"
+                  letterSpacing="0.2"
+                >
+                  Transfer: {activeProfile.bankName} | {activeProfile.bankAccountNo} | a/n. {activeProfile.bankAccountOwner}
+                </text>
+              )}
 
               {/* Grup shape miring tengah dengan efek timbul (drop shadow) di atas shape horizontal */}
               <g filter="url(#drop-shadow-middle-footer)">
