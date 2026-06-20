@@ -591,34 +591,36 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
                   </td>
                   <td style={{ padding: '10px 12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Badge
-                        label={p.followup_status || 'New'}
-                        variant={followupVariantMap[p.followup_status || 'New']}
-                      />
                       {p.is_customer ? (
-                        <span style={{ fontSize: '14px', display: 'inline-flex', padding: '2px 4px' }} title="Sudah terdaftar sebagai pelanggan">
+                        <span style={{ fontSize: '16px', display: 'inline-flex', padding: '2px 4px' }} title="Pelanggan Terverifikasi">
                           🤝
                         </span>
                       ) : (
-                        <button
-                          onClick={(e) => handlePromoteToCustomer(p, e)}
-                          title="Ubah data jadi pelanggan (Promosikan)"
-                          style={{ 
-                            border: 'none', 
-                            background: 'transparent', 
-                            cursor: 'pointer', 
-                            fontSize: '14px', 
-                            padding: '2px 4px',
-                            borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            transition: 'transform 0.15s ease'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                          🤝
-                        </button>
+                        <>
+                          <Badge
+                            label={p.followup_status || 'New'}
+                            variant={followupVariantMap[p.followup_status || 'New']}
+                          />
+                          <button
+                            onClick={(e) => handlePromoteToCustomer(p, e)}
+                            title="Ubah data jadi pelanggan (Promosikan)"
+                            style={{ 
+                              border: 'none', 
+                              background: 'transparent', 
+                              cursor: 'pointer', 
+                              fontSize: '14px', 
+                              padding: '2px 4px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              transition: 'transform 0.15s ease'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            🤝
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>
