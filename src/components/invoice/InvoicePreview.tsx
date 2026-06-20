@@ -45,6 +45,11 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
   const profile = previewProfile || (overrideInvoice ? profiles.find(p => p.id === invoiceType) : contextData.activeProfile) || (profiles.length > 0 ? profiles[0] : null);
   const activeProfile = profile;
 
+  const isKBMCompany = activeProfile?.companyName?.toUpperCase().includes('KBM') || 
+                       activeProfile?.companyName?.toUpperCase().includes('SASTRABOOK') ||
+                       activeProfile?.name?.toUpperCase().includes('KBM') ||
+                       activeProfile?.name?.toUpperCase().includes('SASTRABOOK');
+
   const panelRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const a4Width = 595;
@@ -658,6 +663,22 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
                   No. Rekening: <strong>{activeProfile.bankAccountNo}</strong><br />
                   A.n. <strong>{activeProfile.bankAccountOwner}</strong>
                 </div>
+                {isKBMCompany && (
+                  <div style={{ 
+                    marginTop: '6px', 
+                    paddingTop: '6px', 
+                    borderTop: '1px solid #e5e7eb', 
+                    fontSize: '6.5px', 
+                    color: '#6b7280',
+                    textAlign: 'center',
+                    lineHeight: '1.3'
+                  }}>
+                    Website: penerbitkbm.com | penerbitbukumurah.com<br />
+                    Email: naskah@penerbitkbm.com | Youtube: Penerbit KBM Sastrabook<br />
+                    IG: @penerbit.sastrabook / @penerbit.kbmindonesia<br />
+                    Kontak Telp. 0813 5751 7526
+                  </div>
+                )}
               </div>
             ) : null}
           </div>
