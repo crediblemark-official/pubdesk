@@ -47,10 +47,18 @@ const NotesSection: React.FC = () => {
           {showSpesifikasi && (
             <div className="compact-form-group">
               <label className="compact-label">Teks Spesifikasi Bawaan</label>
-              <input
-                type="text"
+              <textarea
                 className="compact-input"
-                style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                rows={3}
+                style={{ 
+                  width: '100%', 
+                  border: '1px solid var(--border)', 
+                  background: 'var(--bg-card)', 
+                  color: 'var(--text-primary)',
+                  fontFamily: 'inherit',
+                  padding: '6px 8px',
+                  resize: 'vertical'
+                }}
                 value={defaultSpesifikasi}
                 onChange={(e) => setDefaultSpesifikasi(e.target.value)}
                 placeholder="Contoh: Sesuai proposal kerjasama"

@@ -128,9 +128,19 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
         {activeProfile?.showSpesifikasi && (
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Spesifikasi & Fasilitas</label>
-            <input
-              type="text"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+            <textarea
+              rows={2}
+              style={{ 
+                width: '100%', 
+                padding: '10px 14px', 
+                border: '1px solid var(--border)', 
+                borderRadius: '8px', 
+                fontSize: '14px', 
+                background: 'var(--bg-card)', 
+                color: 'var(--text-primary)',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
               value={spesifikasiFasilitas}
               onChange={(e) => setSpesifikasiFasilitas(e.target.value)}
               placeholder="Sesuai poster paket yang diambil"
