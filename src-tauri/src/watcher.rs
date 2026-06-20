@@ -14,6 +14,25 @@ fn get_last_processed() -> &'static Mutex<HashMap<String, Instant>> {
     LAST_PROCESSED.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+fn should_ignore_path(path: &Path) -> bool {
+    let ignore_dirs = [
+        ".git", "node_modules", "target", "dist", "build",
+        ".vscode", ".gemini", ".idea", "__pycache__", ".next",
+        ".svelte-kit", ".cache", ".npm", ".yarn", ".pnp",
+    ];
+    for segment in path.components() {
+        if let Some(segment_str) = segment.as_os_str().to_str() {
+            if segment_str.starts_with('.') {
+                return true;
+            }
+            if ignore_dirs.contains(&segment_str) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 fn should_process_path(path_str: &str) -> bool {
     let mut map = get_last_processed().lock().unwrap();
     let now = Instant::now();
@@ -68,6 +87,11 @@ impl WatcherManager {
 
 fn handle_watcher_event(app_handle: &AppHandle, event: Event) {
     let mut changed = false;
+
+    let has_ignored = event.paths.iter().any(|p| should_ignore_path(p));
+    if has_ignored {
+        return;
+    }
 
     match event.kind {
         EventKind::Create(CreateKind::File) | EventKind::Create(CreateKind::Any) => {
@@ -156,6 +180,9 @@ pub fn scan_directory_recursive(app_handle: &AppHandle, dir_path: &Path) -> Resu
     if let Ok(entries) = std::fs::read_dir(dir_path) {
         for entry in entries.flatten() {
             let path = entry.path();
+            if should_ignore_path(&path) {
+                continue;
+            }
             if path.is_dir() {
                 let _ = scan_directory_recursive(app_handle, &path);
             } else if path.is_file() {
@@ -167,6 +194,9 @@ pub fn scan_directory_recursive(app_handle: &AppHandle, dir_path: &Path) -> Resu
 }
 
 fn process_created_file(app_handle: &AppHandle, path: &Path) -> Result<bool, String> {
+    if should_ignore_path(path) {
+        return Ok(false);
+    }
     let path_str = path.to_string_lossy().to_string();
     
     let state = app_handle.state::<AppState>();
@@ -229,6 +259,9 @@ fn process_created_file(app_handle: &AppHandle, path: &Path) -> Result<bool, Str
 }
 
 fn process_modified_file(app_handle: &AppHandle, path: &Path) -> Result<bool, String> {
+    if should_ignore_path(path) {
+        return Ok(false);
+    }
     let path_str = path.to_string_lossy().to_string();
     
     let state = app_handle.state::<AppState>();

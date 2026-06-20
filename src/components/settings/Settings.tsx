@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
-import { TabBar } from '../../ui/TabBar';
+import { TabBar } from '../../ui/molecules/TabBar';
 import InvoiceSettings from './InvoiceSettings';
 import GASCloudSettings from './GASCloudSettings';
 import ServiceManager from '../services-module/ServiceManager';

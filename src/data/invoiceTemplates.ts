@@ -8,7 +8,7 @@
  * 3. Template akan otomatis tersedia tanpa perlu mendaftar di sini
  */
 
-import { InvoiceProfile } from '../types';
+import { InvoiceProfile } from '../types/invoice.types';
 
 export interface InvoiceTemplate {
   /** ID unik template — berbeda dari ID profil yang akan dibuat */

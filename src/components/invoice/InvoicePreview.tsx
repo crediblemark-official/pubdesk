@@ -142,8 +142,12 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
         text = 'BELUM LUNAS';
         baseColor = '#dc2626';
         break;
-      case 'PENDING':
-        text = 'PENDING';
+      case 'DP':
+        text = 'DP';
+        baseColor = '#2563eb';
+        break;
+      case 'BERMASALAH':
+        text = 'BERMASALAH';
         baseColor = '#d97706';
         break;
       default:
@@ -154,8 +158,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
     const opacityValue = activeProfile?.watermarkOpacity !== undefined ? activeProfile.watermarkOpacity / 100 : 0.08;
 
     const isMultiLine = text === 'BELUM LUNAS';
-    const fontSize = isMultiLine ? '36px' : text === 'LUNAS' ? '54px' : '44px';
-    const letterSpacing = isMultiLine ? '3px' : text === 'LUNAS' ? '6px' : '4px';
+    const fontSize = isMultiLine ? '36px' : (text === 'LUNAS' || text === 'DP') ? '54px' : text === 'BERMASALAH' ? '34px' : '44px';
+    const letterSpacing = isMultiLine ? '3px' : (text === 'LUNAS' || text === 'DP') ? '6px' : text === 'BERMASALAH' ? '2.5px' : '4px';
 
     const textContent = isMultiLine ? (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

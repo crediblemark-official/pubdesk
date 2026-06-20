@@ -58,12 +58,12 @@ export const buildLocalFileTree = (localFiles: any[], commonPrefix: string): Fil
 
   localFiles.forEach(file => {
     // Dapatkan path relatif terhadap commonPrefix
+    if (!file || !file.path) return;
     let relativePath = file.path;
     if (commonPrefix && file.path.startsWith(commonPrefix)) {
       relativePath = file.path.substring(commonPrefix.length);
     }
 
-    // Hilangkan leading slash jika ada
     if (relativePath.startsWith('/')) {
       relativePath = relativePath.substring(1);
     }

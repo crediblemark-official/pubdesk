@@ -4,45 +4,12 @@ import { useAppContext } from '../../../contexts/AppContext';
 import { useFileState } from '../../../contexts/FileContext';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import InvoicePreview from '../../invoice/InvoicePreview';
+import { parseModifiedBy, formatBytes, getMimeLabel } from '../../../utils/gdrive';
 
 interface FilePreviewPanelProps {
   /** ID berkas yang dipilih */
   selectedFileId: number | null;
 }
-
-// Helper parse modified_by metadata field
-const parseModifiedBy = (modifiedBy?: string) => {
-  if (!modifiedBy) return { size: '0', parentId: 'root', shared: '0', accountEmail: '' };
-  const parts = modifiedBy.split('|');
-  return {
-    size: parts[0] || '0',
-    parentId: parts[1] || 'root',
-    shared: parts[2] || '0',
-    accountEmail: parts[3] || ''
-  };
-};
-
-// Format ukuran file dari string bytes
-const formatBytes = (modifiedBy?: string, mimeType?: string): string => {
-  if (!modifiedBy) return '-';
-  const sizePart = modifiedBy.split('|')[0] || '0';
-  const bytes = parseInt(sizePart);
-  if (isNaN(bytes) || bytes === 0) return '-';
-  if (mimeType === 'application/vnd.google-apps.folder') return '-';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-// Format MIME ke label mudah dibaca
-const getMimeLabel = (mime?: string): string => {
-  if (!mime) return 'Berkas Cloud';
-  if (mime.startsWith('application/vnd.google-apps.')) {
-    return mime.replace('application/vnd.google-apps.', 'Google ').toUpperCase();
-  }
-  return mime;
-};
 
 /**
  * Panel kanan untuk konteks modul Smart Folders dan Manajemen Invoice.

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../contexts/AppContext';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
-import { InvoiceItem } from '../../../types';
+import { InvoiceItem } from '../../../types/invoice.types';
 import { formatPrice } from '../../../utils/format';
 
 export const ItemsSection: React.FC = () => {

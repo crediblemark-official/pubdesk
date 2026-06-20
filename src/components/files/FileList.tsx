@@ -2,7 +2,7 @@ import React from 'react';
 import { FileIcon, formatDateTime, getDisplayType } from './fileHelpers';
 import { useAppContext } from '../../contexts/AppContext';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
-import { StatusBadge } from '../../ui/Badge';
+import { StatusBadge } from '../../ui/atoms/Badge';
 
 interface FileListProps {
   filteredFiles: any[];

@@ -122,7 +122,8 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
           >
             <option value="LUNAS">LUNAS</option>
             <option value="BELUM LUNAS">BELUM LUNAS</option>
-            <option value="PENDING">PENDING</option>
+            <option value="DP">DP</option>
+            <option value="BERMASALAH">BERMASALAH</option>
           </select>
         </div>
         {activeProfile?.showSpesifikasi && (

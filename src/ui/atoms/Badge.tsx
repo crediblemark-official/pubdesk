@@ -23,8 +23,9 @@ const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
   Aktif: 'success',
   // Status invoice
   LUNAS: 'success',
-  PENDING: 'warning',
+  BERMASALAH: 'warning',
   'BELUM LUNAS': 'danger',
+  DP: 'info',
 };
 
 const VARIANT_STYLE_MAP: Record<BadgeVariant, React.CSSProperties> = {

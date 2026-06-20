@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 
-const ConfirmDialog: React.FC = () => {
+export const ConfirmDialog: React.FC = () => {
   const { confirmOptions, hideConfirm } = useAppContext();
 
   if (!confirmOptions) return null;
@@ -22,8 +22,13 @@ const ConfirmDialog: React.FC = () => {
   };
 
   const handleConfirm = async () => {
-    await onConfirm();
-    hideConfirm();
+    try {
+      await onConfirm();
+    } catch (error) {
+      console.error('Confirm action failed:', error);
+    } finally {
+      hideConfirm();
+    }
   };
 
   // Tentukan class tombol konfirmasi berdasarkan tipe

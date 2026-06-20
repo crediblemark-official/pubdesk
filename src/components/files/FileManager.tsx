@@ -8,8 +8,8 @@ import { TagFilter } from './TagFilter';
 import { StatusFilter } from './StatusFilter';
 import { FileGrid } from './FileGrid';
 import { FileList } from './FileList';
-import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/FilterBar';
-import { EmptyState } from '../../ui/EmptyState';
+import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
+import { EmptyState } from '../../ui/molecules/EmptyState';
 
 interface FileManagerProps {
   searchQuery: string;
@@ -87,7 +87,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
       }
       try {
         const results = await invoke<any[]>('global_semantic_search', { query: searchQuery });
-        const mapped = results.map(res => ({
+        const mapped = (results || []).map(res => ({
           id: res.id,
           path: res.path,
           filename: res.filename,
@@ -557,8 +557,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
   let treeRows: any[] = [];
 
   if (showTreeActive) {
-    const commonPrefix = getCommonPrefix(preFilteredFiles.map(f => f.path));
-    const tree = buildLocalFileTree(preFilteredFiles, commonPrefix);
+    const validFiles = preFilteredFiles.filter(f => f && f.path);
+    const commonPrefix = getCommonPrefix(validFiles.map(f => f.path));
+    const tree = buildLocalFileTree(validFiles, commonPrefix);
     const sortedTree = sortTreeNodes(tree);
     treeRows = flattenTree(sortedTree, expandedFolders);
   }

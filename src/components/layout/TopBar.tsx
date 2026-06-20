@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useFileState } from '../../contexts/FileContext';
+import { parseModifiedBy } from '../../utils/gdrive';
 
 interface TopBarProps {
   onToggleSidebar?: () => void;
@@ -165,17 +166,6 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
                         <line x1="6" y1="18" x2="6.01" y2="18" />
                       </svg>
                     );
-
-                    const parseModifiedBy = (modifiedBy?: string) => {
-                      if (!modifiedBy) return { size: '0', parentId: 'root', shared: '0', accountEmail: '' };
-                      const parts = modifiedBy.split('|');
-                      return {
-                        size: parts[0] || '0',
-                        parentId: parts[1] || 'root',
-                        shared: parts[2] || '0',
-                        accountEmail: parts[3] || ''
-                      };
-                    };
 
                     const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
 
@@ -402,4 +392,5 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
   );
 };
 
+export { TopBar };
 export default TopBar;

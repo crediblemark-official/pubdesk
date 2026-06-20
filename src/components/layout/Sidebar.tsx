@@ -244,4 +244,5 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   );
 };
 
+export { Sidebar };
 export default Sidebar;

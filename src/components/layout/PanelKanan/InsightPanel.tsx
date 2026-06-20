@@ -12,7 +12,8 @@ const getMetricTitle = (metric: string): string => {
   switch (metric) {
     case 'lunas': return '🟢 Pembayaran Lunas';
     case 'belum_lunas': return '🔴 Piutang Belum Lunas';
-    case 'pending': return '🟡 Pembayaran Pending';
+    case 'dp': return '🔵 Pembayaran Uang Muka (DP)';
+    case 'bermasalah': return '🟡 Pembayaran Bermasalah';
     case 'total':
     default:
       return '📊 Ringkasan Total Invoice';
@@ -26,8 +27,10 @@ const getMetricDescription = (metric: string): string => {
       return 'Dana dari invoice ini telah masuk ke rekening usaha Anda sepenuhnya. Transaksi selesai dan catatan keuangan bersih.';
     case 'belum_lunas':
       return 'Invoice ini merupakan piutang aktif yang belum dibayar oleh pelanggan. Disarankan untuk segera mengirimkan pengingat tagihan.';
-    case 'pending':
-      return 'Invoice ini sudah dibuat namun status pembayarannya masih tertunda atau dalam proses verifikasi bank.';
+    case 'dp':
+      return 'Invoice ini telah dibayar sebagian oleh pelanggan sebagai uang muka (Down Payment).';
+    case 'bermasalah':
+      return 'Invoice ini ditandai bermasalah (misalnya ada sengketa, keterlambatan kronis, atau pembatalan sepihak).';
     case 'total':
     default:
       return 'Menampilkan seluruh invoice yang terbit di sistem. Analisis ini mencakup omzet kotor baik yang sudah cair maupun piutang.';
@@ -39,7 +42,7 @@ const parseInvoiceMeta = (invoice: any) => {
   try {
     if (invoice.file_path) return JSON.parse(invoice.file_path);
   } catch {}
-  return { paymentStatus: 'PENDING', invoiceNo: '-', customerName: 'Umum', invoiceDate: '-' };
+  return { paymentStatus: 'BERMASALAH', invoiceNo: '-', customerName: 'Umum', invoiceDate: '-' };
 };
 
 /**
@@ -55,11 +58,12 @@ const InsightPanel: React.FC<InsightPanelProps> = ({
 
   const filtered = invoices.filter(inv => {
     const meta = parseInvoiceMeta(inv);
-    const status = meta.paymentStatus || 'PENDING';
+    const status = meta.paymentStatus || 'BERMASALAH';
 
     if (metric === 'lunas') return status === 'LUNAS';
     if (metric === 'belum_lunas') return status === 'BELUM LUNAS';
-    if (metric === 'pending') return status === 'PENDING';
+    if (metric === 'dp') return status === 'DP';
+    if (metric === 'bermasalah') return status === 'BERMASALAH';
     return true; // total
   });
 

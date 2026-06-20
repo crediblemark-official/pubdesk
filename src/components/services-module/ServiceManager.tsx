@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
-import { Service } from '../../types';
+import { Service } from '../../types/service.types';
 import { formatPrice } from '../../utils/format';
-import { TableEmptyState } from '../../ui/EmptyState';
-import { Badge } from '../../ui/Badge';
+import { Badge } from '../../ui/atoms/Badge';
+import { TableEmptyState } from '../../ui/molecules/EmptyState';
 
 const ServiceManager: React.FC = () => {
   const { services, addService, updateService, deleteService, showToast, selectedServiceId, setSelectedServiceId, addFile, files, showConfirm, rightPanelVisible } = useAppContext();

@@ -16,7 +16,8 @@ interface InvoiceManagerProps {
 // Daftar status pembayaran invoice
 const PAYMENT_STATUSES = [
   { value: 'LUNAS', label: 'Lunas', color: '#16a34a' },
-  { value: 'PENDING', label: 'Pending', color: '#d97706' },
+  { value: 'DP', label: 'DP', color: '#2563eb' },
+  { value: 'BERMASALAH', label: 'Bermasalah', color: '#d97706' },
   { value: 'BELUM LUNAS', label: 'Belum Lunas', color: '#dc2626' },
 ];
 
@@ -70,7 +71,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
       const searchLower = searchQuery.toLowerCase();
       
       const matchesSearch = invoiceNoLower.includes(searchLower) || customerNameLower.includes(searchLower);
-      const matchesStatus = selectedStatus === null || (metadata.paymentStatus || 'PENDING') === selectedStatus;
+      const matchesStatus = selectedStatus === null || (metadata.paymentStatus || 'BERMASALAH') === selectedStatus;
       
       return matchesSearch && matchesStatus;
     });
@@ -100,8 +101,8 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
           valB = b.total;
           break;
         case 'status':
-          valA = metaA.paymentStatus || 'PENDING';
-          valB = metaB.paymentStatus || 'PENDING';
+          valA = metaA.paymentStatus || 'BERMASALAH';
+          valB = metaB.paymentStatus || 'BERMASALAH';
           break;
         default:
           valA = a.created_at;
@@ -330,7 +331,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
             ) : (
               filteredInvoices.map((inv) => {
                 const metadata = getInvoiceMetadata(inv);
-                const status = metadata.paymentStatus || 'PENDING';
+                const status = metadata.paymentStatus || 'BERMASALAH';
                 const fileEntry = files.find(f => f.type === 'invoice' && f.version_label === String(inv.id));
                 const hasFile = !!fileEntry;
                 const isSelected = fileEntry && fileEntry.id === selectedFileId;

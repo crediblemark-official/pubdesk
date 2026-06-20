@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { formatPrice } from '../../utils/format';
-import { Book } from '../../types';
-import { TableEmptyState } from '../../ui/EmptyState';
+import { Book } from '../../types/book.types';
+import { TableEmptyState } from '../../ui/molecules/EmptyState';
 
 const BookManager: React.FC = () => {
   const { books, addBook, updateBook, deleteBook, showToast, selectedBookId, setSelectedBookId, addFile, files, showConfirm } = useAppContext();

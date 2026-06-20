@@ -1,15 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Sidebar from './Sidebar';
-import PanelKanan from './PanelKanan';
+import { Sidebar } from './Sidebar';
+import { TopBar } from './TopBar';
+import { PanelKanan } from './PanelKanan';
+import { Toast } from '../../components/shared/Toast';
+import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
 import InvoiceGenerator from '../invoice/InvoiceGenerator';
 import InvoiceManager from '../invoice/InvoiceManager';
 import InvoiceInsight from '../invoice/InvoiceInsight';
 import { useAppContext } from '../../contexts/AppContext';
-import TopBar from './TopBar';
 import Settings from '../settings/Settings';
-import Toast from '../shared/Toast';
-import ConfirmDialog from '../shared/ConfirmDialog';
-import FileManager from '../files/FileManager';
+import { FileManager } from '../files/FileManager';
 import BookManager from '../books/BookManager';
 import ServiceManager from '../services-module/ServiceManager';
 
@@ -160,4 +160,5 @@ const MainLayout = () => {
   );
 };
 
+export { MainLayout };
 export default MainLayout;

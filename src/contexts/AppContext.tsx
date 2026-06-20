@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { AppState, Book, Contact, Invoice, File, Service } from '../types';
+import { AppState } from '../types/app.types';
+import { Book } from '../types/book.types';
+import { Contact } from '../types/contact.types';
+import { Invoice } from '../types/invoice.types';
+import { File } from '../types/file.types';
+import { Service } from '../types/service.types';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
@@ -98,8 +103,8 @@ interface AppContextType {
   getFileTags: (fileId: number) => Promise<string[]>;
   getAllTags: () => Promise<string[]>;
   getAllFileTags: () => Promise<Record<number, string[]>>;
-  selectedInsightMetric: 'total' | 'lunas' | 'belum_lunas' | 'pending' | null;
-  setSelectedInsightMetric: (metric: 'total' | 'lunas' | 'belum_lunas' | 'pending' | null) => void;
+  selectedInsightMetric: 'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null;
+  setSelectedInsightMetric: (metric: 'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -122,7 +127,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
   const [confirmOptions, setConfirmOptions] = useState<ConfirmOptions | null>(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'services' | 'local-folders' | 'google-drive' | 'google-apps-script'>('invoice');
-  const [selectedInsightMetric, setSelectedInsightMetric] = useState<'total' | 'lunas' | 'belum_lunas' | 'pending' | null>(null);
+  const [selectedInsightMetric, setSelectedInsightMetric] = useState<'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null>(null);
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
   const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
@@ -537,60 +542,114 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addBook = async (book: Book) => {
-    const id = await invoke<number>('add_book', { book });
-    await loadBooks();
-    return id;
+    try {
+      const id = await invoke<number>('add_book', { book });
+      await loadBooks();
+      return id;
+    } catch (error) {
+      console.error('Failed to add book:', error);
+      showToast('Gagal menambahkan buku', 'error');
+      return 0;
+    }
   };
 
   const deleteBook = async (id: number) => {
-    await invoke('delete_book', { id });
-    await loadBooks();
+    try {
+      await invoke('delete_book', { id });
+      await loadBooks();
+    } catch (error) {
+      console.error('Failed to delete book:', error);
+      showToast('Gagal menghapus buku', 'error');
+    }
   };
 
   const updateBook = async (book: Book) => {
-    await invoke('update_book', { book });
-    await loadBooks();
+    try {
+      await invoke('update_book', { book });
+      await loadBooks();
+    } catch (error) {
+      console.error('Failed to update book:', error);
+      showToast('Gagal memperbarui buku', 'error');
+    }
   };
 
   const addContact = async (contact: Contact) => {
-    const id = await invoke<number>('add_contact', { contact });
-    await loadContacts();
-    return id;
+    try {
+      const id = await invoke<number>('add_contact', { contact });
+      await loadContacts();
+      return id;
+    } catch (error) {
+      console.error('Failed to add contact:', error);
+      showToast('Gagal menambahkan kontak', 'error');
+      return 0;
+    }
   };
 
   const addInvoice = async (invoice: Invoice) => {
-    const id = await invoke<number>('add_invoice', { invoice });
-    await loadInvoices();
-    return id;
+    try {
+      const id = await invoke<number>('add_invoice', { invoice });
+      await loadInvoices();
+      return id;
+    } catch (error) {
+      console.error('Failed to add invoice:', error);
+      showToast('Gagal menambahkan invoice', 'error');
+      return 0;
+    }
   };
 
   const updateInvoice = async (invoice: Invoice) => {
-    await invoke('update_invoice', { invoice });
-    await loadInvoices();
+    try {
+      await invoke('update_invoice', { invoice });
+      await loadInvoices();
+    } catch (error) {
+      console.error('Failed to update invoice:', error);
+      showToast('Gagal memperbarui invoice', 'error');
+    }
   };
 
   const deleteInvoice = async (id: number) => {
-    await invoke('delete_invoice', { id });
-    await loadInvoices();
+    try {
+      await invoke('delete_invoice', { id });
+      await loadInvoices();
+    } catch (error) {
+      console.error('Failed to delete invoice:', error);
+      showToast('Gagal menghapus invoice', 'error');
+    }
   };
 
   const addFile = async (file: File) => {
-    const id = await invoke<number>('add_file', { file });
-    await loadFiles();
-    return id;
+    try {
+      const id = await invoke<number>('add_file', { file });
+      await loadFiles();
+      return id;
+    } catch (error) {
+      console.error('Failed to add file:', error);
+      showToast('Gagal menambahkan file', 'error');
+      return 0;
+    }
   };
 
   const deleteFile = async (id: number) => {
-    await invoke('delete_file', { id });
-    await loadFiles();
-    if (selectedFileId === id) {
-      setSelectedFileId(null);
+    try {
+      await invoke('delete_file', { id });
+      await loadFiles();
+      if (selectedFileId === id) {
+        setSelectedFileId(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+      showToast('Gagal menghapus file', 'error');
     }
   };
 
   const updateFile = async (file: File) => {
-    await invoke('update_file', { file });
-    await loadFiles();
+    try {
+      await invoke('update_file', { file });
+      await loadFiles();
+    } catch (error) {
+      console.error('Failed to update file:', error);
+      showToast('Gagal memperbarui file', 'error');
+    }
   };
 
   const loadServices = async () => {
@@ -603,21 +662,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addService = async (service: Service) => {
-    const id = await invoke<number>('add_service', { service });
-    await loadServices();
-    return id;
+    try {
+      const id = await invoke<number>('add_service', { service });
+      await loadServices();
+      return id;
+    } catch (error) {
+      console.error('Failed to add service:', error);
+      showToast('Gagal menambahkan layanan', 'error');
+      return 0;
+    }
   };
 
   const updateService = async (service: Service) => {
-    await invoke('update_service', { service });
-    await loadServices();
+    try {
+      await invoke('update_service', { service });
+      await loadServices();
+    } catch (error) {
+      console.error('Failed to update service:', error);
+      showToast('Gagal memperbarui layanan', 'error');
+    }
   };
 
   const deleteService = async (id: number) => {
-    await invoke('delete_service', { id });
-    await loadServices();
-    if (selectedServiceId === id) {
-      setSelectedServiceId(null);
+    try {
+      await invoke('delete_service', { id });
+      await loadServices();
+      if (selectedServiceId === id) {
+        setSelectedServiceId(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete service:', error);
+      showToast('Gagal menghapus layanan', 'error');
     }
   };
 
@@ -631,36 +706,70 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addWatchFolder = async (path: string) => {
-    const result = await invoke<string>('add_watch_folder', { path });
-    await loadWatchFolders();
-    await loadFiles();
-    return result;
+    try {
+      const result = await invoke<string>('add_watch_folder', { path });
+      await loadWatchFolders();
+      await loadFiles();
+      return result;
+    } catch (error) {
+      console.error('Failed to add watch folder:', error);
+      showToast('Gagal menambahkan folder pantauan', 'error');
+      return '';
+    }
   };
 
   const removeWatchFolder = async (id: number) => {
-    await invoke('remove_watch_folder', { id });
-    await loadWatchFolders();
-    await loadFiles();
+    try {
+      await invoke('remove_watch_folder', { id });
+      await loadWatchFolders();
+      await loadFiles();
+    } catch (error) {
+      console.error('Failed to remove watch folder:', error);
+      showToast('Gagal menghapus folder pantauan', 'error');
+    }
   };
 
   const addFileTag = async (fileId: number, tag: string) => {
-    await invoke('add_file_tag', { fileId, tag });
+    try {
+      await invoke('add_file_tag', { fileId, tag });
+    } catch (error) {
+      console.error('Failed to add file tag:', error);
+    }
   };
 
   const removeFileTag = async (fileId: number, tag: string) => {
-    await invoke('remove_file_tag', { fileId, tag });
+    try {
+      await invoke('remove_file_tag', { fileId, tag });
+    } catch (error) {
+      console.error('Failed to remove file tag:', error);
+    }
   };
 
   const getFileTags = async (fileId: number): Promise<string[]> => {
-    return await invoke<string[]>('get_file_tags', { fileId });
+    try {
+      return await invoke<string[]>('get_file_tags', { fileId });
+    } catch (error) {
+      console.error('Failed to get file tags:', error);
+      return [];
+    }
   };
 
   const getAllTags = async (): Promise<string[]> => {
-    return await invoke<string[]>('get_all_tags');
+    try {
+      return await invoke<string[]>('get_all_tags');
+    } catch (error) {
+      console.error('Failed to get all tags:', error);
+      return [];
+    }
   };
 
   const getAllFileTags = async (): Promise<Record<number, string[]>> => {
-    return await invoke<Record<number, string[]>>('get_all_file_tags');
+    try {
+      return await invoke<Record<number, string[]>>('get_all_file_tags');
+    } catch (error) {
+      console.error('Failed to get all file tags:', error);
+      return {};
+    }
   };
 
   return (

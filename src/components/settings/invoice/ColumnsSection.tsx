@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSettingsForm } from './SettingsFormContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { InvoiceTableColumn } from '../../../types';
+import { InvoiceTableColumn } from '../../../types/invoice.types';
 
 const generateKeyFromLabel = (label: string, index: number): string => {
   const clean = label
