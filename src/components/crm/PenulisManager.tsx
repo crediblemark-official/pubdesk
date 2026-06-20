@@ -40,7 +40,6 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
   
   // State filter
   const [statusFilter, setStatusFilter] = useState('');
-  const [provinceFilter, setProvinceFilter] = useState('');
   const [contactTypeFilter, setContactTypeFilter] = useState<'all' | 'penulis' | 'customer'>('all');
 
   // Gabungkan data penulis asli dengan kontak pelanggan
@@ -93,21 +92,17 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
     return list;
   }, [penulis, contacts]);
 
-  // Cari daftar provinsi unik untuk opsi filter
-  const uniqueProvinces = useMemo(() => {
-    return Array.from(
-      new Set(combinedPenulis.map((p) => p.province).filter(Boolean))
-    ) as string[];
-  }, [combinedPenulis]);
+
 
   // Filter data penulis
   const filteredPenulis = useMemo(() => {
     return combinedPenulis.filter((p) => {
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch = searchQuery ? (
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.email && p.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (p.wa_number && p.wa_number.includes(searchQuery));
+        (p.wa_number && p.wa_number.includes(searchQuery))
+      ) : true;
       const matchesStatus = statusFilter ? p.followup_status === statusFilter : true;
-      const matchesProvince = provinceFilter ? p.province === provinceFilter : true;
       
       let matchesType = true;
       if (contactTypeFilter === 'penulis') {
@@ -116,9 +111,9 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
         matchesType = !!p.is_customer;
       }
       
-      return matchesSearch && matchesStatus && matchesProvince && matchesType;
+      return matchesSearch && matchesStatus && matchesType;
     });
-  }, [combinedPenulis, searchQuery, statusFilter, provinceFilter, contactTypeFilter]);
+  }, [combinedPenulis, searchQuery, statusFilter, contactTypeFilter]);
 
   const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -506,25 +501,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
             <option value="Pelanggan">🤝 Pelanggan</option>
           </select>
 
-          {/* Filter Provinsi */}
-          <select
-            value={provinceFilter}
-            onChange={(e) => setProvinceFilter(e.target.value)}
-            style={{
-              padding: '6px 12px',
-              border: '1px solid var(--border)',
-              borderRadius: '20px',
-              fontSize: '12px',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              outline: 'none'
-            }}
-          >
-            <option value="">Semua Provinsi</option>
-            {uniqueProvinces.map((prov) => (
-              <option key={prov} value={prov}>{prov}</option>
-            ))}
-          </select>
+
         </div>
 
         {/* Input File Tersembunyi untuk Impor Excel */}
