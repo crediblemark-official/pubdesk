@@ -42,10 +42,11 @@ impl Database {
     // Contacts
     pub fn add_contact(&self, contact: &Contact) -> Result<i64, DbError> {
         self.conn.execute(
-            "INSERT INTO contacts (name, wa_number, address, type, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT INTO contacts (name, wa_number, email, address, type, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             params![
                 contact.name,
                 contact.wa_number,
+                contact.email,
                 contact.address,
                 contact.r#type,
                 contact.created_at
@@ -57,15 +58,16 @@ impl Database {
     pub fn get_contacts(&self) -> Result<Vec<Contact>, DbError> {
         let mut stmt = self
             .conn
-            .prepare("SELECT id, name, wa_number, address, type, created_at FROM contacts")?;
+            .prepare("SELECT id, name, wa_number, email, address, type, created_at FROM contacts")?;
         let contacts = stmt.query_map([], |row| {
             Ok(Contact {
                 id: row.get(0)?,
                 name: row.get(1)?,
                 wa_number: row.get(2)?,
-                address: row.get(3)?,
-                r#type: row.get(4)?,
-                created_at: row.get(5)?,
+                email: row.get(3)?,
+                address: row.get(4)?,
+                r#type: row.get(5)?,
+                created_at: row.get(6)?,
             })
         })?;
 
@@ -78,10 +80,11 @@ impl Database {
 
     pub fn update_contact(&self, contact: &Contact) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE contacts SET name = ?1, wa_number = ?2, address = ?3, type = ?4 WHERE id = ?5",
+            "UPDATE contacts SET name = ?1, wa_number = ?2, email = ?3, address = ?4, type = ?5 WHERE id = ?6",
             params![
                 contact.name,
                 contact.wa_number,
+                contact.email,
                 contact.address,
                 contact.r#type,
                 contact.id
@@ -918,7 +921,7 @@ fn sync_contacts_from_invoices(conn: &Connection) -> Result<(), DbError> {
                         
                         if exists == 0 {
                             conn.execute(
-                                "INSERT INTO contacts (name, wa_number, address, type, created_at) VALUES (?1, ?2, ?3, 'customer', ?4)",
+                                "INSERT INTO contacts (name, wa_number, email, address, type, created_at) VALUES (?1, ?2, NULL, ?3, 'customer', ?4)",
                                 params![customer_name_trimmed, customer_wa, customer_address, created_at]
                             )?;
                         }

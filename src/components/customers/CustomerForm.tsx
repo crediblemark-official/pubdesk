@@ -16,6 +16,7 @@ const CustomerForm: React.FC = () => {
   // State form
   const [name, setName] = useState('');
   const [waNumber, setWaNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
   
   // State accordion
@@ -26,10 +27,12 @@ const CustomerForm: React.FC = () => {
     if (editingCustomer) {
       setName(editingCustomer.name);
       setWaNumber(editingCustomer.wa_number || '');
+      setEmail(editingCustomer.email || '');
       setAddress(editingCustomer.address || '');
     } else {
       setName('');
       setWaNumber('');
+      setEmail('');
       setAddress('');
     }
   }, [editingCustomer]);
@@ -39,6 +42,7 @@ const CustomerForm: React.FC = () => {
     setEditingCustomer(null);
     setName('');
     setWaNumber('');
+    setEmail('');
     setAddress('');
     setActiveModule('customer-manager');
   };
@@ -55,6 +59,7 @@ const CustomerForm: React.FC = () => {
       id: editingCustomer?.id || undefined,
       name: name.trim(),
       wa_number: waNumber.trim() || undefined,
+      email: email.trim() || undefined,
       address: address.trim() || undefined,
       type: 'customer',
       created_at: editingCustomer
@@ -73,6 +78,7 @@ const CustomerForm: React.FC = () => {
       setEditingCustomer(null);
       setName('');
       setWaNumber('');
+      setEmail('');
       setAddress('');
       setActiveModule('customer-manager');
     } catch (err) {
@@ -134,6 +140,28 @@ const CustomerForm: React.FC = () => {
                   value={waNumber}
                   onChange={(e) => setWaNumber(e.target.value)}
                   placeholder="Contoh: 08123456789 atau +62812..."
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                  Alamat Email (Opsional)
+                </label>
+                <input
+                  type="email"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 14px', 
+                    border: '1px solid var(--border)', 
+                    borderRadius: '8px', 
+                    fontSize: '14px', 
+                    background: 'var(--bg-card)', 
+                    color: 'var(--text-primary)', 
+                    outline: 'none' 
+                  }}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Contoh: pelanggan@email.com"
                 />
               </div>
 

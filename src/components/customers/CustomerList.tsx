@@ -161,7 +161,12 @@ const CustomerList: React.FC = () => {
                     👤
                   </td>
                   <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                    {customer.name}
+                    <div>{customer.name}</div>
+                    {customer.email && (
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '400', marginTop: '2px' }}>
+                        📧 {customer.email}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                     {customer.wa_number ? (

@@ -108,10 +108,19 @@ const PenulisManager: React.FC = () => {
       type: 'primary',
       onConfirm: async () => {
         try {
+          // Bentuk alamat yang komprehensif dari data instansi, kota, dan provinsi penulis
+          const addressParts = [];
+          if (p.institution) addressParts.push(p.institution);
+          if (p.city || p.province) {
+            addressParts.push(`${p.city || ''}, ${p.province || ''}`.trim().replace(/^,\s*|,\s*$/, ''));
+          }
+          const fullAddress = addressParts.join('\n');
+
           await addContact({
             name: p.name,
             wa_number: p.wa_number || undefined,
-            address: p.city ? `${p.city}, ${p.province || ''}` : p.province || undefined,
+            email: p.email || undefined,
+            address: fullAddress || undefined,
             type: 'customer',
             created_at: new Date().toISOString()
           });

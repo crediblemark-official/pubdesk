@@ -14,6 +14,9 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Migrasi ad-hoc untuk menambahkan kolom email ke contacts jika database sudah dibuat sebelumnya
+    let _ = conn.execute("ALTER TABLE contacts ADD COLUMN email TEXT", []);
+
     // Books table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS books (
