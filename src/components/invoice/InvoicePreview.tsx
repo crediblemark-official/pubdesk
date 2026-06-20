@@ -1,47 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
-import { InvoiceProfile, InvoiceItem } from '../../types';
+import { InvoiceProfile, InvoiceItem } from '../../types/invoice.types';
 import { formatPrice } from '../../utils/format';
-
-const evaluateItemFormula = (formulaStr: string, item: InvoiceItem): any => {
-  try {
-    let processed = formulaStr;
-    const tokenRegex = /\{([^}]+)\}/g;
-    
-    let match;
-    let containsString = false;
-    const keys: string[] = [];
-    while ((match = tokenRegex.exec(formulaStr)) !== null) {
-      keys.push(match[1]);
-    }
-    
-    keys.forEach(key => {
-      let val = item[key];
-      if (val === undefined || val === null) {
-        val = 0;
-      }
-      
-      if (typeof val === 'string' && isNaN(Number(val))) {
-        containsString = true;
-      }
-      
-      processed = processed.replace(new RegExp(`\\{${key}\\}`, 'g'), String(val));
-    });
-    
-    const mathOperators = /[\+\-\*\/\(\)]/;
-    if (containsString || !mathOperators.test(processed)) {
-      return processed;
-    }
-    
-    const safeMathExpr = processed.replace(/[^0-9\+\-\*\/\.\(\)\s]/g, '');
-    // eslint-disable-next-line no-new-func
-    const result = new Function(`return (${safeMathExpr});`)();
-    return typeof result === 'number' && !isNaN(result) ? result : 0;
-  } catch (e) {
-    console.error('Gagal mengevaluasi formula:', formulaStr, e);
-    return 0;
-  }
-};
+import { evaluateItemFormula } from '../../utils/invoice';
 
 interface InvoicePreviewProps {
   previewProfile?: InvoiceProfile;
@@ -168,6 +129,57 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
         <span style={{ color: '#1f2937' }}>{firstPart} </span>
         <span style={{ color: profile?.accentColor || '#1e70cd' }}>{secondPart}</span>
       </>
+    );
+  };
+
+  // Render watermark lunas/belum lunas/pending
+  const renderWatermark = () => {
+    if (!paymentStatus) return null;
+
+    let text = '';
+    let color = '';
+
+    switch (paymentStatus.toUpperCase()) {
+      case 'LUNAS':
+        text = 'LUNAS';
+        color = 'rgba(22, 163, 74, 0.08)'; // Hijau lembut
+        break;
+      case 'BELUM LUNAS':
+        text = 'BELUM LUNAS';
+        color = 'rgba(220, 38, 38, 0.08)'; // Merah lembut
+        break;
+      case 'PENDING':
+        text = 'PENDING';
+        color = 'rgba(217, 119, 6, 0.08)'; // Oranye lembut
+        break;
+      default:
+        return null;
+    }
+
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          top: '55%',
+          left: '50%',
+          transform: 'translate(-50%, -50%) rotate(-25deg)',
+          fontSize: '72px',
+          fontWeight: '900',
+          color: color,
+          border: `10px double ${color}`,
+          padding: '10px 30px',
+          borderRadius: '16px',
+          textTransform: 'uppercase',
+          letterSpacing: '8px',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          zIndex: 10,
+          fontFamily: '"Montserrat", sans-serif'
+        }}
+      >
+        {text}
+      </div>
     );
   };
 
@@ -691,6 +703,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
             </svg>
           </div>
 
+          {renderWatermark()}
         </div>
       </div>
     </div>
