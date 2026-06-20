@@ -414,6 +414,16 @@ fn update_file(state: State<'_, AppState>, file: File) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn write_binary_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
+    use std::fs::File as StdFile;
+    use std::io::Write;
+
+    let mut file = StdFile::create(path).map_err(|e| e.to_string())?;
+    file.write_all(&bytes).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 fn create_physical_file(app_handle: tauri::AppHandle, filename: String, bytes: Vec<u8>, folder: String) -> Result<String, String> {
     use tauri::Manager;
     use std::fs::File as StdFile;
@@ -693,6 +703,7 @@ pub fn run() {
             delete_file,
             update_file,
             create_physical_file,
+            write_binary_file,
             open_file_physically,
             open_file_location_physically,
             start_oauth_server,

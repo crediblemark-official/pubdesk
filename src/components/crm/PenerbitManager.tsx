@@ -7,6 +7,8 @@ import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
 import { Badge } from '../../ui/atoms/Badge';
 import * as XLSX from 'xlsx';
+import { invoke } from '@tauri-apps/api/core';
+import { save } from '@tauri-apps/plugin-dialog';
 
 const getWhatsAppLink = (phone: string) => {
   let cleaned = phone.replace(/\D/g, '');
@@ -195,7 +197,7 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
     reader.readAsBinaryString(file);
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     try {
       if (penerbit.length === 0) {
         showToast('Tidak ada data penerbit untuk diekspor!', 'info');
@@ -231,7 +233,21 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
       ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
 
       XLSX.utils.book_append_sheet(wb, ws, "Mitra Penerbit");
-      XLSX.writeFile(wb, "Mitra_Penerbit_Export.xlsx");
+
+      const filePath = await save({
+        filters: [{
+          name: 'Excel Workbook',
+          extensions: ['xlsx']
+        }],
+        defaultPath: 'Mitra_Penerbit_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
       showToast('Data Mitra Penerbit berhasil diekspor ke Excel!', 'success');
     } catch (err) {
       console.error(err);
@@ -239,7 +255,7 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
     }
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
     try {
       const templateData = [
         {
@@ -270,7 +286,21 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
       ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
 
       XLSX.utils.book_append_sheet(wb, ws, "Template Mitra Penerbit");
-      XLSX.writeFile(wb, "Template_Mitra_Penerbit.xlsx");
+
+      const filePath = await save({
+        filters: [{
+          name: 'Excel Workbook',
+          extensions: ['xlsx']
+        }],
+        defaultPath: 'Template_Mitra_Penerbit.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
       showToast('Template Excel Mitra Penerbit berhasil diunduh!', 'success');
     } catch (err) {
       console.error(err);

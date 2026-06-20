@@ -7,6 +7,8 @@ import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
 import { Badge } from '../../ui/atoms/Badge';
 import * as XLSX from 'xlsx';
+import { invoke } from '@tauri-apps/api/core';
+import { save } from '@tauri-apps/plugin-dialog';
 
 const getWhatsAppLink = (phone: string) => {
   let cleaned = phone.replace(/\D/g, '');
@@ -183,7 +185,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
     reader.readAsBinaryString(file);
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     try {
       if (penulis.length === 0) {
         showToast('Tidak ada data penulis untuk diekspor!', 'info');
@@ -216,7 +218,21 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
       ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
 
       XLSX.utils.book_append_sheet(wb, ws, "Lead Penulis");
-      XLSX.writeFile(wb, "Lead_Penulis_Export.xlsx");
+
+      const filePath = await save({
+        filters: [{
+          name: 'Excel Workbook',
+          extensions: ['xlsx']
+        }],
+        defaultPath: 'Lead_Penulis_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
       showToast('Data Lead Penulis berhasil diekspor ke Excel!', 'success');
     } catch (err) {
       console.error(err);
@@ -224,7 +240,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
     }
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
     try {
       const templateData = [
         {
@@ -252,7 +268,21 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
       ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
 
       XLSX.utils.book_append_sheet(wb, ws, "Template Lead Penulis");
-      XLSX.writeFile(wb, "Template_Lead_Penulis.xlsx");
+
+      const filePath = await save({
+        filters: [{
+          name: 'Excel Workbook',
+          extensions: ['xlsx']
+        }],
+        defaultPath: 'Template_Lead_Penulis.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
       showToast('Template Excel Lead Penulis berhasil diunduh!', 'success');
     } catch (err) {
       console.error(err);
