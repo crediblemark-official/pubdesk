@@ -4,6 +4,25 @@ use rusqlite::{params, Connection};
 use crate::db::Database;
 use super::extractor::extract_text;
 use serde::{Deserialize, Serialize};
+use sha2::{Sha256, Digest};
+use std::fs::File as StdFile;
+use std::io::Read;
+
+fn calculate_sha256(path: &Path) -> Result<String, String> {
+    let mut file = StdFile::open(path).map_err(|e| e.to_string())?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0; 4096];
+    loop {
+        let count = file.read(&mut buffer).map_err(|e| e.to_string())?;
+        if count == 0 {
+            break;
+        }
+        hasher.update(&buffer[..count]);
+    }
+    let result = hasher.finalize();
+    Ok(format!("{:x}", result))
+}
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FileEntityInfo {
@@ -64,8 +83,12 @@ pub fn run_indexing_pipeline(db: &Database, file_id: i64) -> Result<(), String> 
     let text = extract_text(path)?;
     let text_lower = text.to_lowercase();
     
+    // Hitung SHA-256 hash
+    let hash_val = calculate_sha256(path)?;
+    
     // 2. Tahap Ekstraksi Entitas Cerdas (NER Heuristik)
     let mut entities = Vec::new();
+    entities.push(("hash".to_string(), hash_val.clone()));
     
     // 2a. Deteksi Judul Buku Master
     if let Ok(mut stmt_books) = db.conn.prepare("SELECT id, title FROM books") {
@@ -141,6 +164,11 @@ pub fn run_indexing_pipeline(db: &Database, file_id: i64) -> Result<(), String> 
         params![auto_type, file_id]
     );
 
+    // Tambahkan tag otomatis berdasarkan tipe berkas dan status draft awal
+    let auto_tag = format!("#{}", auto_type);
+    let _ = db.add_file_tag(file_id, &auto_tag);
+    let _ = db.add_file_tag(file_id, "#draft");
+
     // 3. Tahap Pembuatan Vektor Teks (TF-IDF Vectorizer)
     let tf_idf = compute_tf_idf_vector(&text_lower);
     let vector_json = serde_json::to_string(&tf_idf).unwrap_or_default();
@@ -156,6 +184,20 @@ pub fn run_indexing_pipeline(db: &Database, file_id: i64) -> Result<(), String> 
     let mut max_similarity: f32 = 0.0;
     
     let _ = db.conn.execute("DELETE FROM file_relations WHERE source_file_id = ?1 OR target_file_id = ?1", params![file_id]);
+
+    // Cari duplikat persis menggunakan hash
+    if let Ok(mut stmt_dup) = db.conn.prepare(
+        "SELECT DISTINCT file_id FROM file_entities WHERE entity_type = 'hash' AND entity_value = ?1 AND file_id != ?2"
+    ) {
+        if let Ok(dup_rows) = stmt_dup.query_map(params![hash_val, file_id], |row| row.get::<_, i64>(0)) {
+            for dup_id in dup_rows.flatten() {
+                let _ = db.conn.execute(
+                    "INSERT OR IGNORE INTO file_relations (source_file_id, target_file_id, relation_type, confidence) VALUES (?1, ?2, ?3, ?4)",
+                    params![file_id, dup_id, "duplicate_of", 1.0]
+                );
+            }
+        }
+    }
 
     for (other_id, other_vector) in all_embeddings {
         let similarity = calculate_cosine_similarity(&tf_idf, &other_vector);

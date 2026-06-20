@@ -197,6 +197,56 @@ async fn remove_watch_folder(
     Ok(())
 }
 
+#[tauri::command]
+async fn add_file_tag(
+    state: State<'_, AppState>,
+    file_id: i64,
+    tag: String
+) -> Result<(), String> {
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.add_file_tag(file_id, &tag).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn remove_file_tag(
+    state: State<'_, AppState>,
+    file_id: i64,
+    tag: String
+) -> Result<(), String> {
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.remove_file_tag(file_id, &tag).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_file_tags(
+    state: State<'_, AppState>,
+    file_id: i64
+) -> Result<Vec<String>, String> {
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_file_tags(file_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_all_tags(
+    state: State<'_, AppState>
+) -> Result<Vec<String>, String> {
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_all_tags().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_all_file_tags(
+    state: State<'_, AppState>
+) -> Result<std::collections::HashMap<i64, Vec<String>>, String> {
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_all_file_tags().map_err(|e| e.to_string())
+}
+
 // Books commands
 #[tauri::command]
 fn get_books(state: State<'_, AppState>) -> Result<Vec<Book>, String> {
@@ -454,7 +504,12 @@ pub fn run() {
             get_file_metadata,
             get_related_files,
             record_file_access,
-            global_semantic_search
+            global_semantic_search,
+            add_file_tag,
+            remove_file_tag,
+            get_file_tags,
+            get_all_tags,
+            get_all_file_tags
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -91,6 +91,11 @@ interface AppContextType {
   loadWatchFolders: () => Promise<void>;
   addWatchFolder: (path: string) => Promise<string>;
   removeWatchFolder: (id: number) => Promise<void>;
+  addFileTag: (fileId: number, tag: string) => Promise<void>;
+  removeFileTag: (fileId: number, tag: string) => Promise<void>;
+  getFileTags: (fileId: number) => Promise<string[]>;
+  getAllTags: () => Promise<string[]>;
+  getAllFileTags: () => Promise<Record<number, string[]>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -622,6 +627,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     await loadFiles();
   };
 
+  const addFileTag = async (fileId: number, tag: string) => {
+    await invoke('add_file_tag', { fileId, tag });
+  };
+
+  const removeFileTag = async (fileId: number, tag: string) => {
+    await invoke('remove_file_tag', { fileId, tag });
+  };
+
+  const getFileTags = async (fileId: number): Promise<string[]> => {
+    return await invoke<string[]>('get_file_tags', { fileId });
+  };
+
+  const getAllTags = async (): Promise<string[]> => {
+    return await invoke<string[]>('get_all_tags');
+  };
+
+  const getAllFileTags = async (): Promise<Record<number, string[]>> => {
+    return await invoke<Record<number, string[]>>('get_all_file_tags');
+  };
+
   return (
     <AppContext.Provider value={{
       appState,
@@ -686,6 +711,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       loadWatchFolders,
       addWatchFolder,
       removeWatchFolder,
+      addFileTag,
+      removeFileTag,
+      getFileTags,
+      getAllTags,
+      getAllFileTags,
     }}>
       {children}
     </AppContext.Provider>

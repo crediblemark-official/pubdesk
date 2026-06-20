@@ -7,9 +7,44 @@ interface FileManagerProps {
 }
 
 export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
-  const { files, deleteFile, updateFile, selectedFileId, setSelectedFileId, showToast, fileCategory, showConfirm, fileLayoutMode, currentFolderId, navigateFolder, refreshAccessToken, gdriveAccounts, refreshAccountToken } = useAppContext();
+  const { 
+    files, 
+    deleteFile, 
+    updateFile, 
+    selectedFileId, 
+    setSelectedFileId, 
+    showToast, 
+    fileCategory, 
+    showConfirm, 
+    fileLayoutMode, 
+    currentFolderId, 
+    navigateFolder, 
+    refreshAccessToken, 
+    gdriveAccounts, 
+    refreshAccountToken,
+    getAllTags,
+    getAllFileTags
+  } = useAppContext();
 
   const [searchResults, setSearchResults] = React.useState<any[]>([]);
+  const [allTags, setAllTags] = React.useState<string[]>([]);
+  const [fileTags, setFileTags] = React.useState<Record<number, string[]>>({});
+  const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
+
+  const fetchTagsData = async () => {
+    try {
+      const tags = await getAllTags();
+      setAllTags(tags);
+      const fileTagsMap = await getAllFileTags();
+      setFileTags(fileTagsMap);
+    } catch (err) {
+      console.error("Gagal mengambil data tag:", err);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchTagsData();
+  }, [files]);
 
   React.useEffect(() => {
     const performSearch = async () => {
@@ -452,11 +487,73 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
       }
     }
 
-    return matchesCategory && matchesFolder;
+    // Filter by selected tag
+    let matchesTag = true;
+    if (selectedTag) {
+      const tagsForFile = fileTags[file.id] || [];
+      matchesTag = tagsForFile.includes(selectedTag);
+    }
+
+    return matchesCategory && matchesFolder && matchesTag;
   });
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      {/* Baris Filter Tag */}
+      {allTags.length > 0 && (
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          padding: '12px 16px',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-panel)',
+          overflowX: 'auto',
+          alignItems: 'center',
+          flexShrink: 0
+        }}>
+          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '4px', whiteSpace: 'nowrap' }}>
+            🏷️ Filter Tag:
+          </span>
+          <button
+            onClick={() => setSelectedTag(null)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              background: selectedTag === null ? 'var(--accent)' : 'var(--bg-card)',
+              color: selectedTag === null ? '#ffffff' : 'var(--text-secondary)',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Semua
+          </button>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '20px',
+                border: 'none',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                background: selectedTag === tag ? 'var(--accent)' : 'var(--bg-card)',
+                color: selectedTag === tag ? '#ffffff' : 'var(--text-secondary)',
+                transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Daftar Berkas */}
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)', padding: fileLayoutMode === 'grid' ? '16px' : '0' }}>
         {filteredFiles.length === 0 ? (
@@ -559,6 +656,17 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                     {file.filename}
                   </span>
 
+                  {/* Tags in Grid */}
+                  {fileTags[file.id] && fileTags[file.id].length > 0 && (
+                    <div style={{ display: 'flex', gap: '3px', marginTop: '2px', justifyContent: 'center', flexWrap: 'wrap', width: '100%', overflow: 'hidden', maxHeight: '14px' }}>
+                      {fileTags[file.id].slice(0, 2).map(tag => (
+                        <span key={tag} style={{ fontSize: '8px', background: 'rgba(255,255,255,0.08)', color: 'var(--text-secondary)', padding: '0px 4px', borderRadius: '3px', whiteSpace: 'nowrap' }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Cache Status Badge */}
                   {file.status === 'Tersimpan' && (
                     <span style={{
@@ -641,9 +749,21 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
                   >
                     <td style={{ padding: '10px 12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {renderFileIcon(file, 'small')}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {file.filename}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {file.filename}
+                        </span>
+                        {/* Tags */}
+                        {fileTags[file.id] && fileTags[file.id].length > 0 && (
+                          <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap' }}>
+                            {fileTags[file.id].map(tag => (
+                              <span key={tag} style={{ fontSize: '9px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '1px 5px', borderRadius: '3px' }}>
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td style={{ padding: '10px 12px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>
                       {getDisplayType(file)}

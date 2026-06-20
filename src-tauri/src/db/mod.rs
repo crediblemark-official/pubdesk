@@ -371,4 +371,85 @@ impl Database {
             .execute("DELETE FROM files WHERE path = ?1", params![path])?;
         Ok(())
     }
+
+    // Tags Management
+    #[allow(dead_code)]
+    pub fn add_file_tag(&self, file_id: i64, tag: &str) -> Result<(), DbError> {
+        self.conn.execute(
+            "INSERT OR IGNORE INTO tags (name) VALUES (?1)",
+            params![tag],
+        )?;
+        
+        let tag_id: i64 = self.conn.query_row(
+            "SELECT id FROM tags WHERE name = ?1",
+            params![tag],
+            |row| row.get(0),
+        )?;
+
+        self.conn.execute(
+            "INSERT OR IGNORE INTO file_tags (file_id, tag_id) VALUES (?1, ?2)",
+            params![file_id, tag_id],
+        )?;
+        Ok(())
+    }
+
+    #[allow(dead_code)]
+    pub fn remove_file_tag(&self, file_id: i64, tag: &str) -> Result<(), DbError> {
+        let tag_id_res = self.conn.query_row(
+            "SELECT id FROM tags WHERE name = ?1",
+            params![tag],
+            |row| row.get::<_, i64>(0),
+        );
+        if let Ok(tag_id) = tag_id_res {
+            self.conn.execute(
+                "DELETE FROM file_tags WHERE file_id = ?1 AND tag_id = ?2",
+                params![file_id, tag_id],
+            )?;
+        }
+        Ok(())
+    }
+
+    #[allow(dead_code)]
+    pub fn get_file_tags(&self, file_id: i64) -> Result<Vec<String>, DbError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT t.name FROM tags t 
+             JOIN file_tags ft ON t.id = ft.tag_id 
+             WHERE ft.file_id = ?1"
+        )?;
+        let rows = stmt.query_map(params![file_id], |row| row.get(0))?;
+        let mut tags = Vec::new();
+        for r in rows {
+            tags.push(r?);
+        }
+        Ok(tags)
+    }
+
+    #[allow(dead_code)]
+    pub fn get_all_tags(&self) -> Result<Vec<String>, DbError> {
+        let mut stmt = self.conn.prepare("SELECT name FROM tags ORDER BY name ASC")?;
+        let rows = stmt.query_map([], |row| row.get(0))?;
+        let mut tags = Vec::new();
+        for r in rows {
+            tags.push(r?);
+        }
+        Ok(tags)
+    }
+
+    #[allow(dead_code)]
+    pub fn get_all_file_tags(&self) -> Result<std::collections::HashMap<i64, Vec<String>>, DbError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT ft.file_id, t.name FROM file_tags ft 
+             JOIN tags t ON ft.tag_id = t.id"
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+        })?;
+        
+        let mut map = std::collections::HashMap::new();
+        for r in rows {
+            let (file_id, tag_name) = r?;
+            map.entry(file_id).or_insert_with(Vec::new).push(tag_name);
+        }
+        Ok(map)
+    }
 }

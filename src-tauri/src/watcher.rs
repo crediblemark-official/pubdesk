@@ -4,6 +4,27 @@ use notify::event::{CreateKind, ModifyKind, RemoveKind, RenameMode};
 use tauri::{AppHandle, Emitter, Manager};
 use crate::db::File;
 use crate::AppState;
+use std::sync::OnceLock;
+use std::sync::Mutex;
+use std::collections::HashMap;
+use std::time::Instant;
+
+fn get_last_processed() -> &'static Mutex<HashMap<String, Instant>> {
+    static LAST_PROCESSED: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
+    LAST_PROCESSED.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn should_process_path(path_str: &str) -> bool {
+    let mut map = get_last_processed().lock().unwrap();
+    let now = Instant::now();
+    if let Some(&last_time) = map.get(path_str) {
+        if now.duration_since(last_time).as_millis() < 1000 {
+            return false;
+        }
+    }
+    map.insert(path_str.to_string(), now);
+    true
+}
 
 pub struct WatcherManager {
     watcher: Option<RecommendedWatcher>,
@@ -52,8 +73,11 @@ fn handle_watcher_event(app_handle: &AppHandle, event: Event) {
         EventKind::Create(CreateKind::File) | EventKind::Create(CreateKind::Any) => {
             for path in event.paths {
                 if path.is_file() {
-                    if let Ok(true) = process_created_file(app_handle, &path) {
-                        changed = true;
+                    let path_str = path.to_string_lossy().to_string();
+                    if should_process_path(&path_str) {
+                        if let Ok(true) = process_created_file(app_handle, &path) {
+                            changed = true;
+                        }
                     }
                 }
             }
@@ -61,8 +85,11 @@ fn handle_watcher_event(app_handle: &AppHandle, event: Event) {
         EventKind::Modify(ModifyKind::Data(_)) | EventKind::Modify(ModifyKind::Any) => {
             for path in event.paths {
                 if path.is_file() {
-                    if let Ok(true) = process_modified_file(app_handle, &path) {
-                        changed = true;
+                    let path_str = path.to_string_lossy().to_string();
+                    if should_process_path(&path_str) {
+                        if let Ok(true) = process_modified_file(app_handle, &path) {
+                            changed = true;
+                        }
                     }
                 }
             }
