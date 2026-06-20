@@ -23,7 +23,22 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
   const { loadInvoiceToForm } = useInvoiceContext();
   
 
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'LUNAS' | 'BELUM LUNAS' | 'PENDING'>('ALL');
+  const [sortField, setSortField] = useState<'date' | 'invoiceNo' | 'customerName' | 'total' | 'status'>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status') => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const renderSortIcon = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status') => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? ' ▴' : ' ▾';
+  };
   
   // Format harga Rupiah
   const formatPrice = (amount: number) => {
@@ -49,22 +64,55 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
     };
   };
 
-  // Filter & Search Invoices
+  // Filter, Search & Sort Invoices
   const filteredInvoices = useMemo(() => {
-    return invoices.filter((inv) => {
+    const filtered = invoices.filter((inv) => {
       const metadata = getInvoiceMetadata(inv);
       const invoiceNoLower = (metadata.invoiceNo || '').toLowerCase();
       const customerNameLower = (metadata.customerName || '').toLowerCase();
       const searchLower = searchQuery.toLowerCase();
       
-      const matchesSearch = invoiceNoLower.includes(searchLower) || customerNameLower.includes(searchLower);
-      
-      const status = metadata.paymentStatus || 'PENDING';
-      const matchesStatus = statusFilter === 'ALL' || status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
+      return invoiceNoLower.includes(searchLower) || customerNameLower.includes(searchLower);
     });
-  }, [invoices, searchQuery, statusFilter]);
+
+    return [...filtered].sort((a, b) => {
+      const metaA = getInvoiceMetadata(a);
+      const metaB = getInvoiceMetadata(b);
+
+      let valA: any = '';
+      let valB: any = '';
+
+      switch (sortField) {
+        case 'date':
+          valA = metaA.invoiceDate || a.created_at;
+          valB = metaB.invoiceDate || b.created_at;
+          break;
+        case 'invoiceNo':
+          valA = metaA.invoiceNo || '';
+          valB = metaB.invoiceNo || '';
+          break;
+        case 'customerName':
+          valA = metaA.customerName || '';
+          valB = metaB.customerName || '';
+          break;
+        case 'total':
+          valA = a.total;
+          valB = b.total;
+          break;
+        case 'status':
+          valA = metaA.paymentStatus || 'PENDING';
+          valB = metaB.paymentStatus || 'PENDING';
+          break;
+        default:
+          valA = a.created_at;
+          valB = b.created_at;
+      }
+
+      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [invoices, searchQuery, sortField, sortDirection]);
 
 
 
@@ -232,33 +280,40 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '12px 16px', fontWeight: '600', width: '15%' }}>Tanggal</th>
-              <th style={{ padding: '12px 16px', fontWeight: '600', width: '20%' }}>No. Invoice</th>
-              <th style={{ padding: '12px 16px', fontWeight: '600', width: '25%' }}>Pelanggan</th>
-              <th style={{ padding: '12px 16px', fontWeight: '600', width: '15%', textAlign: 'right' }}>Total</th>
-              <th style={{ padding: '6px 12px', fontWeight: '600', width: '12%', textAlign: 'center' }}>
-                <select
-                  value={statusFilter}
-                  onChange={(e: any) => setStatusFilter(e.target.value)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-secondary)',
-                    fontWeight: '600',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    textAlign: 'center',
-                    textAlignLast: 'center',
-                    width: '100%',
-                    padding: '6px 0'
-                  }}
-                >
-                  <option value="ALL" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>Status (Semua)</option>
-                  <option value="LUNAS" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>LUNAS</option>
-                  <option value="BELUM LUNAS" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>BELUM LUNAS</option>
-                  <option value="PENDING" style={{ color: 'var(--text-primary)', background: 'var(--bg-card)' }}>PENDING</option>
-                </select>
+              <th 
+                onClick={() => handleSort('date')}
+                style={{ padding: '12px 16px', fontWeight: '600', width: '15%', cursor: 'pointer', userSelect: 'none' }}
+                title="Urutkan berdasarkan Tanggal"
+              >
+                Tanggal{renderSortIcon('date')}
+              </th>
+              <th 
+                onClick={() => handleSort('invoiceNo')}
+                style={{ padding: '12px 16px', fontWeight: '600', width: '20%', cursor: 'pointer', userSelect: 'none' }}
+                title="Urutkan berdasarkan Nomor Invoice"
+              >
+                No. Invoice{renderSortIcon('invoiceNo')}
+              </th>
+              <th 
+                onClick={() => handleSort('customerName')}
+                style={{ padding: '12px 16px', fontWeight: '600', width: '25%', cursor: 'pointer', userSelect: 'none' }}
+                title="Urutkan berdasarkan Nama Pelanggan"
+              >
+                Pelanggan{renderSortIcon('customerName')}
+              </th>
+              <th 
+                onClick={() => handleSort('total')}
+                style={{ padding: '12px 16px', fontWeight: '600', width: '15%', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
+                title="Urutkan berdasarkan Total Nominal"
+              >
+                Total{renderSortIcon('total')}
+              </th>
+              <th 
+                onClick={() => handleSort('status')}
+                style={{ padding: '12px 16px', fontWeight: '600', width: '12%', textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                title="Urutkan berdasarkan Status Pembayaran"
+              >
+                Status{renderSortIcon('status')}
               </th>
               <th style={{ padding: '12px 16px', fontWeight: '600', width: '13%', textAlign: 'center' }}>Aksi</th>
             </tr>
