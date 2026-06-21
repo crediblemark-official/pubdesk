@@ -10,8 +10,10 @@ import { SearchableSelect } from '../../ui/atoms/SearchableSelect';
 import { Button } from '../../ui/atoms/Button';
 import { DatePicker } from '../../ui/atoms/DatePicker';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
+import { useAuth } from '../../contexts/AuthContext';
 
 const TaskFormPage: React.FC = () => {
+  const { currentUser } = useAuth();
   const { showToast, setActiveModule, selectedTaskId, appState, setDirectAddNewModule } = useAppContext();
   const { tim, naskah, penulis, addNaskah } = useDataMasterContext();
   const { addTask, updateTask, tasks } = useWorkflowContext();
@@ -20,6 +22,7 @@ const TaskFormPage: React.FC = () => {
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
   const isEdit = appState.activeModule === 'edit-tugas';
+  const isAdmin = currentUser?.tim_role.toLowerCase() === 'admin';
 
   // Form states
   const [naskahId, setNaskahId] = useState('');
@@ -98,7 +101,7 @@ const TaskFormPage: React.FC = () => {
       }
     } else {
       setNaskahId('');
-      setPicName('');
+      setPicName(currentUser && currentUser.tim_role.toLowerCase() !== 'admin' ? currentUser.tim_name : '');
       setDueDate('');
       setPriority('Normal');
       setStatus('Belum Mulai');
@@ -109,7 +112,7 @@ const TaskFormPage: React.FC = () => {
       setSelectedCustomerId('');
       setJudulPesananInput('');
     }
-  }, [isEdit, selectedTaskId, tasks]);
+  }, [isEdit, selectedTaskId, tasks, currentUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -451,6 +454,7 @@ const TaskFormPage: React.FC = () => {
                     value={picName}
                     onChange={e => setPicName(e.target.value)}
                     placeholder="Masukkan nama penanggung jawab..."
+                    disabled={!isAdmin}
                     fullWidth
                   />
                 ) : (
@@ -459,25 +463,28 @@ const TaskFormPage: React.FC = () => {
                     value={picName}
                     onChange={e => setPicName(e.target.value)}
                     options={picOptions}
+                    disabled={!isAdmin}
                     fullWidth
                   />
                 )}
-                <button
-                  type="button"
-                  onClick={() => setUseManualPic(!useManualPic)}
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--accent)',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    padding: 0,
-                    width: 'fit-content'
-                  }}
-                >
-                  {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
-                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setUseManualPic(!useManualPic)}
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--accent)',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      padding: 0,
+                      width: 'fit-content'
+                    }}
+                  >
+                    {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
+                  </button>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

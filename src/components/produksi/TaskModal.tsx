@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task } from '../../types/workflow.types';
 import { useAppContext } from '../../contexts/AppContext';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
@@ -9,6 +9,7 @@ import { TextArea } from '../../ui/atoms/TextArea';
 import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
 import { DatePicker } from '../../ui/atoms/DatePicker';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface TaskModalProps {
   task?: Task; // if provided, it's edit mode
@@ -17,21 +18,29 @@ interface TaskModalProps {
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
+  const { currentUser } = useAuth();
   const { showToast } = useAppContext();
   const { tim } = useDataMasterContext();
   const { addTask, updateTask } = useWorkflowContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEdit = !!task;
+  const isAdmin = currentUser?.tim_role.toLowerCase() === 'admin';
   const [useManualPic, setUseManualPic] = useState(false);
 
   // Form states
   const [naskahId, setNaskahId] = useState(task?.naskah_id || '');
   const [stepName, setStepName] = useState(task?.step_name || '');
-  const [picName, setPicName] = useState(task?.pic_name || '');
+  const [picName, setPicName] = useState(task?.pic_name || (currentUser && currentUser.tim_role.toLowerCase() !== 'admin' ? currentUser.tim_name : ''));
   const [dueDate, setDueDate] = useState(task?.due_date ? task.due_date.split('T')[0] : '');
   const [priority, setPriority] = useState(task?.priority || 'Normal');
   const [status, setStatus] = useState(task?.status || 'Belum Mulai');
   const [notes, setNotes] = useState(task?.notes || '');
+
+  useEffect(() => {
+    if (!isEdit && currentUser && currentUser.tim_role.toLowerCase() !== 'admin') {
+      setPicName(currentUser.tim_name);
+    }
+  }, [currentUser, isEdit]);
 
   const statusOptions = [
     { value: 'Belum Mulai', label: 'Belum Mulai' },
@@ -133,6 +142,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
               value={picName}
               onChange={e => setPicName(e.target.value)}
               placeholder="Masukkan nama penanggung jawab..."
+              disabled={!isAdmin}
               fullWidth
             />
           ) : (
@@ -140,25 +150,28 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
               value={picName}
               onChange={e => setPicName(e.target.value)}
               options={picOptions}
+              disabled={!isAdmin}
               fullWidth
             />
           )}
-          <button
-            type="button"
-            onClick={() => setUseManualPic(!useManualPic)}
-            style={{
-              fontSize: '12px',
-              color: 'var(--accent)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              textAlign: 'left',
-              padding: 0,
-              width: 'fit-content'
-            }}
-          >
-            {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setUseManualPic(!useManualPic)}
+              style={{
+                fontSize: '12px',
+                color: 'var(--accent)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                textAlign: 'left',
+                padding: 0,
+                width: 'fit-content'
+              }}
+            >
+              {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
+            </button>
+          )}
         </div>
 
         <DatePicker 
