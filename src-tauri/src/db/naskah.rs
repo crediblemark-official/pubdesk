@@ -102,10 +102,34 @@ impl Database {
     // Naskah CRUD
     pub fn add_naskah(&self, n: &Naskah) -> Result<i64, DbError> {
         let now = chrono::Local::now().to_rfc3339();
+        
+        // Auto-generate naskah_id_code jika kosong atau None
+        let final_id_code = match &n.naskah_id_code {
+            Some(code) if !code.trim().is_empty() => code.clone(),
+            _ => {
+                let mut stmt = self.conn.prepare("SELECT naskah_id_code FROM naskah WHERE naskah_id_code LIKE 'NSK-%'")?;
+                let codes: Vec<String> = stmt.query_map([], |row| row.get::<_, Option<String>>(0))?
+                    .filter_map(|r| r.ok().flatten())
+                    .collect();
+                
+                let mut max_num = 0;
+                for c in codes {
+                    if let Some(num_str) = c.strip_prefix("NSK-") {
+                        if let Ok(num) = num_str.parse::<i32>() {
+                            if num > max_num {
+                                max_num = num;
+                            }
+                        }
+                    }
+                }
+                format!("NSK-{:03}", max_num + 1)
+            }
+        };
+
         self.conn.execute(
             "INSERT INTO naskah (naskah_id_code, title, penulis_id, penerbit_id, genre, total_pages, synopsis, order_type, copies, book_size, legal_type, assigned_team_ids, initial_request, revised_request, shipping_address, store_links, status, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)",
             params![
-                n.naskah_id_code,
+                final_id_code,
                 n.title,
                 n.penulis_id,
                 n.penerbit_id,
@@ -127,7 +151,7 @@ impl Database {
             ]
         )?;
         let id = self.conn.last_insert_rowid();
-        self.log_activity("naskah", Some(id), "CREATE", &format!("Menambahkan naskah '{}'", n.title))?;
+        self.log_activity("naskah", Some(id), "CREATE", &format!("Menambahkan naskah '{}' dengan kode ID '{}'", n.title, final_id_code))?;
         Ok(id)
     }
 

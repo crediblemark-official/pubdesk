@@ -64,17 +64,7 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
         setStoreLinks([]);
       }
     } else {
-      // Auto-generate Kode ID: NSK-XXX
-      const maxNum = naskah.reduce((max, n) => {
-        const match = n.naskah_id_code?.match(/NSK-(\d+)/);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          return num > max ? num : max;
-        }
-        return max;
-      }, 0);
-      const nextCode = `NSK-${String(maxNum + 1).padStart(3, '0')}`;
-      setNaskahIdCode(nextCode);
+      setNaskahIdCode('[Otomatis]');
       setTitle('');
       setPenulisId(undefined);
       setPenerbitId(undefined);
@@ -99,7 +89,7 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
 
     onSubmit({
       id: initialData?.id,
-      naskah_id_code: naskahIdCode.trim() || undefined,
+      naskah_id_code: initialData ? naskahIdCode.trim() : undefined,
       title: title.trim(),
       penulis_id: penulisId || undefined,
       penerbit_id: penerbitId || undefined,
