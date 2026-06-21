@@ -45,7 +45,6 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di workflow_template_steps (step {}): {}", order, e)))?;
     }
 
-    // ─── 3. Penulis (disimpan di tabel contacts dan penulis dengan ID yang sama untuk kompatibilitas) ───
     let penulis_data = vec![
         ("Ahmad Fauzi", "081234567890"),
         ("Siti Nurhaliza", "082345678901"),
@@ -53,16 +52,16 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     ];
     let mut penulis_ids = Vec::new();
     println!("[SAMPLE SEED] Menyisipkan penulis...");
-    for (i, (name, wa)) in penulis_data.iter().enumerate() {
-        let id = (i + 1) as i64; // Use explicit IDs starting from 1
-        
-        // Insert into contacts with explicit ID
+    for (name, wa) in &penulis_data {
+        // Insert into contacts without explicit ID, let SQLite generate it
         conn.execute(
-            "INSERT INTO contacts (id, name, wa_number, type, created_at) VALUES (?1, ?2, ?3, 'penulis', ?4)",
-            params![id, name, wa, now]
+            "INSERT INTO contacts (name, wa_number, type, created_at) VALUES (?1, ?2, 'penulis', ?3)",
+            params![name, wa, now]
         ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di contacts/penulis ({}): {}", name, e)))?;
         
-        // Insert into penulis with the same explicit ID
+        let id = conn.last_insert_rowid();
+        
+        // Insert into penulis with the same generated ID
         conn.execute(
             "INSERT INTO penulis (id, name, wa_number, created_at) VALUES (?1, ?2, ?3, ?4)",
             params![id, name, wa, now]
