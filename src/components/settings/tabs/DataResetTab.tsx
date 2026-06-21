@@ -23,16 +23,23 @@ const DataResetTab: React.FC = () => {
     return localStorage.getItem('splash_logo') || '📚';
   });
 
+  const [publisherName, setPublisherName] = useState<string>(() => {
+    return localStorage.getItem('publisher_name') || '';
+  });
+
   const handleSaveLogo = () => {
     localStorage.setItem('splash_logo', splashLogo);
-    showToast('Logo Splash Screen berhasil disimpan!', 'success');
+    localStorage.setItem('publisher_name', publisherName.trim());
+    showToast('Kustomisasi aplikasi berhasil disimpan!', 'success');
   };
 
   const handleResetLogo = () => {
     setSplashLogo('📚');
     setLogoType('emoji');
+    setPublisherName('');
     localStorage.setItem('splash_logo', '📚');
-    showToast('Logo Splash Screen dikembalikan ke bawaan!', 'success');
+    localStorage.setItem('publisher_name', '');
+    showToast('Kustomisasi aplikasi dikembalikan ke bawaan!', 'success');
   };
 
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,7 +276,7 @@ const DataResetTab: React.FC = () => {
   return (
     <div style={{ maxWidth: '700px' }}>
       <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 8px 0' }}>
-        Data & Reset
+        Kustomisasi & Data
       </h2>
       <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: '0 0 24px 0' }}>
         Kelola ekspor data, pemulihan data sample, dan reset data workflow.
@@ -315,7 +322,7 @@ const DataResetTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Kustomisasi Logo Splash Screen */}
+      {/* Kustomisasi Logo & Nama Aplikasi */}
       <div style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border)',
@@ -324,11 +331,35 @@ const DataResetTab: React.FC = () => {
         marginBottom: '16px'
       }}>
         <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-primary)' }}>
-          🎨 Logo Splash Screen
+          🎨 Logo & Nama Aplikasi
         </h3>
         <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-          Sesuaikan logo yang tampil saat aplikasi pertama kali dimuat. Anda dapat mengetik emoji atau mengunggah berkas gambar kustom.
+          Sesuaikan logo dan nama aplikasi yang tampil pada layar splash serta halaman login.
         </p>
+
+        {/* Input Nama Penerbit */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '6px' }}>
+            Nama Penerbit
+          </label>
+          <input
+            type="text"
+            value={publisherName}
+            onChange={(e) => setPublisherName(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border)',
+              borderRadius: '6px',
+              color: 'var(--text-primary)',
+              fontSize: '13px',
+              width: '100%',
+              maxWidth: '300px',
+              boxSizing: 'border-box'
+            }}
+            placeholder="Masukkan nama penerbit (misal: KBM)"
+          />
+        </div>
 
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           {/* Preview Tampil Apa Adanya */}

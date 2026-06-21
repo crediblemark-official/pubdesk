@@ -6,6 +6,8 @@ const SplashScreen: React.FC = () => {
   const [splashLogo, setSplashLogo] = useState('📚');
   const [logoType, setLogoType] = useState<'emoji' | 'image'>('emoji');
 
+  const [appName, setAppName] = useState('PubDesk');
+
   useEffect(() => {
     const savedLogo = localStorage.getItem('splash_logo');
     if (savedLogo) {
@@ -15,6 +17,12 @@ const SplashScreen: React.FC = () => {
       } else {
         setLogoType('emoji');
       }
+    }
+    const publisherName = localStorage.getItem('publisher_name');
+    if (publisherName && publisherName.trim()) {
+      setAppName(`PubDesk - ${publisherName.trim()}`);
+    } else {
+      setAppName('PubDesk');
     }
   }, []);
 
@@ -89,7 +97,7 @@ const SplashScreen: React.FC = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
-            PubDesk
+            {appName}
           </h1>
           <p style={{
             fontSize: '11px',

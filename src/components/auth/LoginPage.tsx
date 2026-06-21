@@ -33,6 +33,8 @@ const LoginPage: React.FC = () => {
   const [splashLogo, setSplashLogo] = useState('📚');
   const [logoType, setLogoType] = useState<'emoji' | 'image'>('emoji');
 
+  const [appName, setAppName] = useState('PubDesk');
+
   useEffect(() => {
     const savedLogo = localStorage.getItem('splash_logo');
     if (savedLogo) {
@@ -42,6 +44,12 @@ const LoginPage: React.FC = () => {
       } else {
         setLogoType('emoji');
       }
+    }
+    const publisherName = localStorage.getItem('publisher_name');
+    if (publisherName && publisherName.trim()) {
+      setAppName(`PubDesk - ${publisherName.trim()}`);
+    } else {
+      setAppName('PubDesk');
     }
   }, []);
 
@@ -108,7 +116,7 @@ const LoginPage: React.FC = () => {
           color: 'var(--text-primary)',
           margin: '0 0 8px 0',
         }}>
-          PubDesk
+          {appName}
         </h1>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
           Pilih identitas Anda untuk memulai sesi kerja

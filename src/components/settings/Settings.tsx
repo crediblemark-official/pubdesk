@@ -13,7 +13,7 @@ const SETTINGS_TABS = [
   { key: 'local-folders', label: 'Folder Lokal Dipantau', icon: '📁' },
   { key: 'google-drive', label: 'Google Drive', icon: '☁️' },
   { key: 'google-apps-script', label: 'Google Apps Script', icon: '☁️' },
-  { key: 'data-reset', label: 'Data & Reset', icon: '🔄' },
+  { key: 'data-reset', label: 'Kustomisasi & Data', icon: '🎨' },
 ];
 
 /**
