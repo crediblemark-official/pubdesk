@@ -5,7 +5,7 @@ import { useUniqueValues } from '../../hooks/useUniqueValues';
 import { StatCard } from '../../ui/molecules/StatCard';
 import { Button } from '../../ui/atoms/Button';
 import { Badge } from '../../ui/atoms/Badge';
-import { FilterBar, FilterGroup, FilterDivider } from '../../ui/molecules/FilterBar';
+import { FilterBar, FilterGroup, FilterChip } from '../../ui/molecules/FilterBar';
 import { tableStyles } from '../../ui/molecules/DataTable';
 
 interface Legalitas {
@@ -89,59 +89,115 @@ const LaporanOperasional: React.FC = () => {
     <div className="module-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: 'var(--bg-dark)' }}>
       {/* Filter Bar Terstandar (Full Width, No Header) */}
       <FilterBar style={{ borderRadius: 0, border: 'none', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
-        <FilterGroup>
-          <Badge 
-            label={periode === 'Semua' ? 'Periode' : `Periode: ${periode}`} 
-            variant={periode === 'Semua' ? 'neutral' : 'accent'} 
-            style={{ marginRight: '4px' }} 
-          />
-          <select value={periode} onChange={e => setPeriode(e.target.value)} className="compact-select" style={{ minWidth: '110px' }}>
-            <option value="Semua">Semua Waktu</option>
-            <option value="Bulan Ini">Bulan Ini</option>
-            <option value="Tahun Ini">Tahun Ini</option>
-          </select>
-        </FilterGroup>
+        <FilterGroup label="🔍 Filter:">
+          {/* 1. Filter Periode */}
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <FilterChip
+              label={`📅 Periode: ${periode === 'Semua' ? 'Semua Waktu' : periode} ▾`}
+              active={periode !== 'Semua'}
+              onClick={() => {}}
+            />
+            <select
+              value={periode}
+              onChange={(e) => setPeriode(e.target.value)}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer',
+                appearance: 'none',
+              }}
+            >
+              <option value="Semua">Semua Waktu</option>
+              <option value="Bulan Ini">Bulan Ini</option>
+              <option value="Tahun Ini">Tahun Ini</option>
+            </select>
+          </div>
 
-        <FilterDivider />
+          {/* 2. Filter PIC */}
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <FilterChip
+              label={`👤 PIC: ${filterPic === '' ? 'Semua PIC' : filterPic} ▾`}
+              active={filterPic !== ''}
+              onClick={() => {}}
+            />
+            <select
+              value={filterPic}
+              onChange={(e) => setFilterPic(e.target.value)}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer',
+                appearance: 'none',
+              }}
+            >
+              <option value="">Semua PIC</option>
+              {uniquePics.map(pic => (
+                <option key={pic as string} value={pic as string}>{pic as string}</option>
+              ))}
+            </select>
+          </div>
 
-        <FilterGroup>
-          <Badge 
-            label={filterPic === '' ? 'PIC' : `PIC: ${filterPic}`} 
-            variant={filterPic === '' ? 'neutral' : 'accent'} 
-            style={{ marginRight: '4px' }} 
-          />
-          <select value={filterPic} onChange={e => setFilterPic(e.target.value)} className="compact-select" style={{ minWidth: '100px' }}>
-            <option value="">Semua PIC</option>
-            {uniquePics.map(pic => <option key={pic as string} value={pic as string}>{pic}</option>)}
-          </select>
-        </FilterGroup>
+          {/* 3. Filter Penerbit */}
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <FilterChip
+              label={`🏢 Penerbit: ${filterPenerbit === '' ? 'Semua Penerbit' : filterPenerbit === 'penerbit_a' ? 'Penerbit A' : filterPenerbit} ▾`}
+              active={filterPenerbit !== ''}
+              onClick={() => {}}
+            />
+            <select
+              value={filterPenerbit}
+              onChange={(e) => setFilterPenerbit(e.target.value)}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer',
+                appearance: 'none',
+              }}
+            >
+              <option value="">Semua Penerbit</option>
+              <option value="penerbit_a">Penerbit A</option>
+            </select>
+          </div>
 
-        <FilterDivider />
-
-        <FilterGroup>
-          <Badge 
-            label={filterPenerbit === '' ? 'Penerbit' : `Penerbit: ${filterPenerbit === 'penerbit_a' ? 'Penerbit A' : filterPenerbit}`} 
-            variant={filterPenerbit === '' ? 'neutral' : 'accent'} 
-            style={{ marginRight: '4px' }} 
-          />
-          <select value={filterPenerbit} onChange={e => setFilterPenerbit(e.target.value)} className="compact-select" style={{ minWidth: '120px' }}>
-            <option value="">Semua Penerbit</option>
-            <option value="penerbit_a">Penerbit A</option>
-          </select>
-        </FilterGroup>
-
-        <FilterDivider />
-
-        <FilterGroup>
-          <Badge 
-            label={filterStatus === '' ? 'Status' : `Status: ${filterStatus}`} 
-            variant={filterStatus === '' ? 'neutral' : 'accent'} 
-            style={{ marginRight: '4px' }} 
-          />
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="compact-select" style={{ minWidth: '110px' }}>
-            <option value="">Semua Status</option>
-            {uniqueStatuses.map(s => <option key={s as string} value={s as string}>{s}</option>)}
-          </select>
+          {/* 4. Filter Status */}
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <FilterChip
+              label={`📋 Status: ${filterStatus === '' ? 'Semua Status' : filterStatus} ▾`}
+              active={filterStatus !== ''}
+              onClick={() => {}}
+            />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer',
+                appearance: 'none',
+              }}
+            >
+              <option value="">Semua Status</option>
+              {uniqueStatuses.map(s => (
+                <option key={s as string} value={s as string}>{s as string}</option>
+              ))}
+            </select>
+          </div>
         </FilterGroup>
 
         <div style={{ flex: 1 }}></div>
