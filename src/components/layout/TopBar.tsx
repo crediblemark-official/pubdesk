@@ -48,8 +48,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
     loadBooks,
     loadContacts,
     loadInvoices,
-    loadServices,
-    connectedUser
+    loadServices
   } = useAppContext();
 
   const { 
@@ -175,6 +174,8 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
       showToast(`Gagal menghentikan sesi kerja: ${err.message || String(err)}`, 'error');
     }
   };
+
+  const motivationalQuotes = "✦ Kerja keras mengalahkan bakat ketika bakat tidak bekerja keras ✦ Satu-satunya cara untuk melakukan pekerjaan hebat adalah dengan mencintai apa yang Anda lakukan ✦ Disiplin adalah jembatan antara tujuan dan pencapaian ✦ Jangan menunggu kesempatan, ciptakan kesempatan itu sendiri ✦ Keberhasilan bukanlah kunci dari kebahagiaan. Kebahagiaan adalah kunci dari keberhasilan ✦ Mulailah dari mana Anda berada. Gunakan apa yang Anda miliki. Lakukan apa yang Anda bisa ✦";
 
   const activeActions = activeModule ? importExportActions[activeModule] : undefined;
 
@@ -392,7 +393,11 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
               style={{ display: 'flex', alignItems: 'center', cursor: 'text', userSelect: 'none', width: '100%', padding: '0 8px' }}
             >
               {activeModule === 'files' ? (
-                fileCategory === 'gdrive' ? renderGBriveBreadcrumbs() : <span className="top-bar-path-text">/home/{connectedUser?.name ? connectedUser.name.toLowerCase().replace(/\s+/g, '') : 'rasyiqi'}</span>
+                fileCategory === 'gdrive' ? renderGBriveBreadcrumbs() : (
+                  <div className="marquee-container" onClick={(e) => e.stopPropagation()}>
+                    <span className="marquee-content">{motivationalQuotes}</span>
+                  </div>
+                )
               ) : (
                 <span className="top-bar-path-text" style={{ color: 'var(--text-secondary)' }}>{searchHint}</span>
               )}
@@ -427,14 +432,10 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
             </div>
           )
         ) : (
-          <div className="top-bar-gnome-pathbar">
-            <span className="top-bar-path-text">/home/{connectedUser?.name ? connectedUser.name.toLowerCase().replace(/\s+/g, '') : 'rasyiqi'}</span>
-            <button className="top-bar-path-clear" aria-label="Clear path">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+          <div className="top-bar-gnome-pathbar" style={{ paddingRight: '12px' }}>
+            <div className="marquee-container">
+              <span className="marquee-content">{motivationalQuotes}</span>
+            </div>
           </div>
         )}
 

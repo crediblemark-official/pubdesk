@@ -788,3 +788,34 @@ body {
   animation: pulse 2s infinite;
 }
 
+@keyframes marquee {
+  0% {
+    transform: translate3d(100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: marquee 35s linear infinite;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  letter-spacing: 0.2px;
+}
+
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
+}
