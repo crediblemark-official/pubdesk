@@ -143,11 +143,10 @@ impl Database {
     pub fn get_task_history(&self, task_id: i64) -> Result<Vec<TaskHistory>, DbError> {
         let mut stmt = self.conn.prepare(
             r#"SELECT h.id, h.task_id, h.old_status, h.new_status, h.changed_by, h.changed_at, h.notes,
-                      n.title, ws.step_name
+                      n.title, t.step_name
                FROM task_history h
                JOIN tasks t ON h.task_id = t.id
-               JOIN naskah n ON t.naskah_id = n.id
-               JOIN workflow_steps ws ON t.step_id = ws.id
+               LEFT JOIN naskah n ON t.naskah_id = n.id
                WHERE h.task_id = ?1
                ORDER BY h.changed_at DESC"#
         )?;
@@ -176,11 +175,10 @@ impl Database {
     pub fn get_all_task_history(&self) -> Result<Vec<TaskHistory>, DbError> {
         let mut stmt = self.conn.prepare(
             r#"SELECT h.id, h.task_id, h.old_status, h.new_status, h.changed_by, h.changed_at, h.notes,
-                      n.title, ws.step_name
+                      n.title, t.step_name
                FROM task_history h
                JOIN tasks t ON h.task_id = t.id
-               JOIN naskah n ON t.naskah_id = n.id
-               JOIN workflow_steps ws ON t.step_id = ws.id
+               LEFT JOIN naskah n ON t.naskah_id = n.id
                ORDER BY h.changed_at DESC
                LIMIT 100"#
         )?;
@@ -204,6 +202,58 @@ impl Database {
             histories.push(h?);
         }
         Ok(histories)
+    }
+
+    pub fn update_task_status(&self, task_id: i64, new_status: &str, notes: Option<&str>, proof_path_or_link: Option<&str>) -> Result<(), DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        
+        // Dapatkan task lama terlebih dahulu
+        let mut stmt = self.conn.prepare("SELECT id, status FROM tasks WHERE id = ?1")?;
+        let mut rows = stmt.query(params![task_id])?;
+        
+        let old_status: Option<String> = if let Some(row) = rows.next()? {
+            Some(row.get(1)?)
+        } else {
+            None
+        };
+
+        let start_date: Option<String>;
+        let completed_date: Option<String>;
+        if new_status == "Proses" {
+            start_date = Some(now.clone());
+            completed_date = None;
+        } else if new_status == "Selesai" {
+            start_date = None; // Pertahankan yang sudah ada
+            completed_date = Some(now.clone());
+        } else {
+            start_date = None;
+            completed_date = None;
+        }
+
+        // Update task
+        self.conn.execute(
+            r#"UPDATE tasks 
+                SET status = ?1,
+                    notes = COALESCE(?2, notes),
+                    proof_path_or_link = COALESCE(?3, proof_path_or_link),
+                    start_date = CASE WHEN ?4 IS NOT NULL THEN ?4 ELSE start_date END,
+                    completed_date = CASE WHEN ?5 IS NOT NULL THEN ?5 ELSE completed_date END,
+                    updated_at = ?6
+                WHERE id = ?7"#,
+            params![new_status, notes, proof_path_or_link, start_date, completed_date, now, task_id]
+        )?;
+
+        // Tambahkan riwayat jika status berubah
+        if let Some(old) = old_status {
+            if old != new_status {
+                self.conn.execute(
+                    "INSERT INTO task_history (task_id, old_status, new_status, changed_by, changed_at, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                    params![task_id, old, new_status, "User", now, notes]
+                )?;
+            }
+        }
+
+        Ok(())
     }
 
     pub fn import_alur_naskah_batch(&mut self, payloads: Vec<ImportTaskPayload>) -> Result<usize, DbError> {
@@ -236,6 +286,144 @@ impl Database {
 
         tx.commit()?;
         Ok(count)
+    }
+
+    // Task Blockers
+    pub fn get_task_blockers(&self, task_id: Option<i64>) -> Result<Vec<TaskBlocker>, DbError> {
+        let sql = if let Some(tid) = task_id {
+            "SELECT id, task_id, naskah_id, blocker_type, description, status, created_at, resolved_at 
+             FROM task_blockers 
+             WHERE task_id = ?1
+             ORDER BY created_at DESC"
+        } else {
+            "SELECT id, task_id, naskah_id, blocker_type, description, status, created_at, resolved_at 
+             FROM task_blockers 
+             WHERE status = 'open'
+             ORDER BY created_at DESC"
+        };
+        
+        let mut stmt = self.conn.prepare(sql)?;
+        let iter = if let Some(tid) = task_id {
+            stmt.query_map(params![tid], |row| {
+                Ok(TaskBlocker {
+                    id: row.get(0)?,
+                    task_id: row.get(1)?,
+                    naskah_id: row.get(2)?,
+                    blocker_type: row.get(3)?,
+                    description: row.get(4)?,
+                    status: row.get(5)?,
+                    created_at: row.get(6)?,
+                    resolved_at: row.get(7)?,
+                })
+            })?
+        } else {
+            stmt.query_map([], |row| {
+                Ok(TaskBlocker {
+                    id: row.get(0)?,
+                    task_id: row.get(1)?,
+                    naskah_id: row.get(2)?,
+                    blocker_type: row.get(3)?,
+                    description: row.get(4)?,
+                    status: row.get(5)?,
+                    created_at: row.get(6)?,
+                    resolved_at: row.get(7)?,
+                })
+            })?
+        };
+
+        let mut blockers = Vec::new();
+        for b in iter {
+            blockers.push(b?);
+        }
+        Ok(blockers)
+    }
+
+    pub fn add_task_blocker(&self, blocker: &TaskBlocker) -> Result<i64, DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        self.conn.execute(
+            "INSERT INTO task_blockers (task_id, naskah_id, blocker_type, description, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![blocker.task_id, blocker.naskah_id, blocker.blocker_type, blocker.description, "open", now]
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    pub fn resolve_task_blocker(&self, id: i64) -> Result<(), DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        self.conn.execute(
+            "UPDATE task_blockers SET status = 'resolved', resolved_at = ?1 WHERE id = ?2",
+            params![now, id]
+        )?;
+        Ok(())
+    }
+
+    // Task Approvals
+    pub fn get_task_approvals(&self, task_id: Option<i64>) -> Result<Vec<TaskApproval>, DbError> {
+        let sql = if let Some(tid) = task_id {
+            "SELECT id, task_id, approval_type, status, requested_at, decided_at, decided_by, notes 
+             FROM task_approvals 
+             WHERE task_id = ?1
+             ORDER BY requested_at DESC"
+        } else {
+            "SELECT id, task_id, approval_type, status, requested_at, decided_at, decided_by, notes 
+             FROM task_approvals 
+             WHERE status = 'pending'
+             ORDER BY requested_at DESC"
+        };
+        
+        let mut stmt = self.conn.prepare(sql)?;
+        let iter = if let Some(tid) = task_id {
+            stmt.query_map(params![tid], |row| {
+                Ok(TaskApproval {
+                    id: row.get(0)?,
+                    task_id: row.get(1)?,
+                    approval_type: row.get(2)?,
+                    status: row.get(3)?,
+                    requested_at: row.get(4)?,
+                    decided_at: row.get(5)?,
+                    decided_by: row.get(6)?,
+                    notes: row.get(7)?,
+                })
+            })?
+        } else {
+            stmt.query_map([], |row| {
+                Ok(TaskApproval {
+                    id: row.get(0)?,
+                    task_id: row.get(1)?,
+                    approval_type: row.get(2)?,
+                    status: row.get(3)?,
+                    requested_at: row.get(4)?,
+                    decided_at: row.get(5)?,
+                    decided_by: row.get(6)?,
+                    notes: row.get(7)?,
+                })
+            })?
+        };
+
+        let mut approvals = Vec::new();
+        for a in iter {
+            approvals.push(a?);
+        }
+        Ok(approvals)
+    }
+
+    pub fn request_approval(&self, approval: &TaskApproval) -> Result<i64, DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        self.conn.execute(
+            "INSERT INTO task_approvals (task_id, approval_type, status, requested_at, notes) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![approval.task_id, approval.approval_type, "pending", now, approval.notes]
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    pub fn decide_approval(&self, id: i64, status: &str, notes: Option<&str>, decided_by: Option<&str>) -> Result<(), DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        self.conn.execute(
+            "UPDATE task_approvals 
+             SET status = ?1, decided_at = ?2, decided_by = ?3, notes = COALESCE(?4, notes) 
+             WHERE id = ?5",
+            params![status, now, decided_by.unwrap_or("User"), notes, id]
+        )?;
+        Ok(())
     }
 }
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import { Task, TaskHistory } from '../../types/workflow.types';
+import { Task } from '../../types/workflow.types';
 import { useAppContext } from '../../contexts/AppContext';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
 
 interface UpdateStatusModalProps {
   task: Task;
@@ -11,6 +11,7 @@ interface UpdateStatusModalProps {
 
 const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({ task, onClose, onSuccess }) => {
   const { showToast } = useAppContext();
+  const { updateTaskStatus } = useWorkflowContext();
   const [status, setStatus] = useState(task.status || 'Belum Mulai');
   const [notes, setNotes] = useState('');
   const [proof, setProof] = useState(task.proof_path_or_link || '');
@@ -34,29 +35,7 @@ const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({ task, onClose, on
 
     setIsSubmitting(true);
     try {
-      // 1. Update the task
-      const updatedTask: Task = {
-        ...task,
-        status,
-        proof_path_or_link: proof,
-        notes: notes ? notes : task.notes, // keep old notes if empty or append? In this UI, replace for now.
-      };
-      
-      await invoke('update_task', { task: updatedTask });
-
-      // 2. Add task history if status changed
-      if (status !== task.status) {
-        const history: TaskHistory = {
-          task_id: task.id!,
-          old_status: task.status,
-          new_status: status,
-          changed_by: 'PIC Aktif', // Dummy name until auth system is in place
-          changed_at: new Date().toISOString(),
-          notes: notes,
-        };
-        await invoke('add_task_history', { history });
-      }
-
+      await updateTaskStatus(task.id!, status, notes, proof);
       showToast('Status berhasil diupdate!', 'success');
       onSuccess();
     } catch (err) {

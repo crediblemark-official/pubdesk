@@ -11,16 +11,18 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const { fileCategory, setFileCategory } = useFileState();
 
   const menuItems = [
+    { id: 'pekerjaan-saya' as const, label: 'Pekerjaan Saya', icon: '📋' },
+    { id: 'produksi-parent' as const, label: 'Produksi Naskah', icon: '🏭' },
+    { id: 'import-data' as const, label: 'Import Excel Lama', icon: '📥' },
+    { id: 'laporan-operasional' as const, label: 'Laporan Operasional', icon: '📈' },
     { id: 'invoice' as const, label: 'Invoice', icon: '🧾' },
-    { id: 'extractor' as const, label: 'Pre-order Extractor', icon: '📥' },
     { id: 'files' as const, label: 'Smart Folders', icon: '📁' },
     { id: 'master-data-parent' as const, label: 'Master Data', icon: '🗃️' },
-    { id: 'produksi-parent' as const, label: 'Produksi', icon: '🏭' },
+    { id: 'extractor' as const, label: 'Pre-order Extractor', icon: '📥' },
     { id: 'ledger' as const, label: 'Buku Besar', icon: '📊' },
   ];
 
   const bottomItems = [
-    { id: 'import-data' as const, label: 'Import Excel Lama', icon: '📥' },
     { id: 'activity-log' as const, label: 'Activity Log', icon: '📋' },
     { id: 'settings' as const, label: 'Pengaturan', icon: '⚙️' },
   ];
@@ -31,28 +33,25 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       {/* Menu */}
       <nav style={{ flex: 1, overflow: 'auto', padding: '8px' }}>
         {menuItems.map((item) => {
-          const isActive = item.id === 'invoice'
-            ? (appState.activeModule === 'invoice' || appState.activeModule === 'invoice-manager' || appState.activeModule === 'invoice-insight')
-            : item.id === 'master-data-parent'
-            ? (
-                appState.activeModule === 'kontak' ||
-                appState.activeModule === 'penerbit' ||
-                appState.activeModule === 'naskah' ||
-                appState.activeModule === 'tim' ||
-                appState.activeModule === 'legalitas' ||
-                appState.activeModule === 'services'
-              )
-            : item.id === 'produksi-parent'
-            ? (
-                appState.activeModule === 'pekerjaan-saya' ||
-                appState.activeModule === 'produksi-board' ||
-                appState.activeModule === 'produksi-list' ||
-                appState.activeModule === 'produksi-kendala' ||
-                appState.activeModule === 'produksi-approval' ||
-                appState.activeModule === 'produksi-timeline' ||
-                appState.activeModule === 'laporan-operasional'
-              )
-            : appState.activeModule === item.id;
+        const isActive = item.id === 'invoice'
+          ? (appState.activeModule === 'invoice' || appState.activeModule === 'invoice-manager' || appState.activeModule === 'invoice-insight')
+          : item.id === 'master-data-parent'
+          ? (
+              appState.activeModule === 'kontak' ||
+              appState.activeModule === 'penerbit' ||
+              appState.activeModule === 'naskah' ||
+              appState.activeModule === 'tim' ||
+              appState.activeModule === 'legalitas' ||
+              appState.activeModule === 'services'
+            )
+          : item.id === 'produksi-parent'
+          ? (
+              appState.activeModule === 'produksi-board' ||
+              appState.activeModule === 'produksi-list' ||
+              appState.activeModule === 'produksi-kendala' ||
+              appState.activeModule === 'produksi-approval'
+            )
+          : appState.activeModule === item.id;
           const showSubmenu = item.id === 'files' && !collapsed;
           const showInvoiceSubmenu = item.id === 'invoice' && !collapsed;
           const showMasterDataSubmenu = item.id === 'master-data-parent' && !collapsed;
@@ -97,19 +96,16 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                       setActiveModule('kontak');
                     }
                   } else if (item.id === 'produksi-parent') {
-                    const isAnySubActive = [
-                      'pekerjaan-saya',
-                      'produksi-board',
-                      'produksi-list',
-                      'produksi-kendala',
-                      'produksi-approval',
-                      'produksi-timeline',
-                      'laporan-operasional'
-                    ].includes(appState.activeModule);
-                    
-                    if (!isAnySubActive) {
-                      setActiveModule('pekerjaan-saya');
-                    }
+            const isAnySubActive = [
+              'produksi-board',
+              'produksi-list',
+              'produksi-kendala',
+              'produksi-approval'
+            ].includes(appState.activeModule);
+            
+            if (!isAnySubActive) {
+              setActiveModule('produksi-board');
+            }
                   } else {
                     setActiveModule(item.id);
                     if (item.id === 'files') {
@@ -240,59 +236,56 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               )}
 
               {showProduksiSubmenu && (
-                <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
-                  {[
-                    { module: 'pekerjaan-saya' as const, label: 'Pekerjaan Saya', icon: '📋' },
-                    { module: 'produksi-board' as const, label: 'Board Produksi', icon: '🎨' },
-                    { module: 'produksi-list' as const, label: 'Daftar Tugas', icon: '📄' },
-                    { module: 'produksi-kendala' as const, label: 'Revisi & Kendala', icon: '⚠️' },
-                    { module: 'produksi-approval' as const, label: 'Approval', icon: '✅' },
-                    { module: 'produksi-timeline' as const, label: 'Timeline Produksi', icon: '⏳' },
-                    { module: 'laporan-operasional' as const, label: 'Laporan Operasional', icon: '📈' },
-                  ].map((sub) => {
-                    const isSubActive = appState.activeModule === sub.module;
-                    return (
-                      <button
-                        key={sub.module}
-                        onClick={() => {
-                          setActiveModule(sub.module);
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '6px 10px',
-                          border: 'none',
-                          borderRadius: '6px',
-                          background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
-                          color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: isSubActive ? '600' : '400',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          transition: 'all 0.15s ease'
-                        }}
-                        onMouseOver={(e) => {
-                          if (!isSubActive) {
-                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
-                            e.currentTarget.style.color = 'var(--text-primary)';
-                          }
-                        }}
-                        onMouseOut={(e) => {
-                          if (!isSubActive) {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = 'var(--text-secondary)';
-                          }
-                        }}
-                      >
-                        <span style={{ fontSize: '14px' }}>{sub.icon}</span>
-                        <span>{sub.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+        <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
+          {[
+            { module: 'produksi-board' as const, label: 'Board Produksi', icon: '🎨' },
+            { module: 'produksi-list' as const, label: 'Daftar Tugas', icon: '📄' },
+            { module: 'produksi-kendala' as const, label: 'Revisi & Kendala', icon: '⚠️' },
+            { module: 'produksi-approval' as const, label: 'Approval', icon: '✅' },
+          ].map((sub) => {
+            const isSubActive = appState.activeModule === sub.module;
+            return (
+              <button
+                key={sub.module}
+                onClick={() => {
+                  setActiveModule(sub.module);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px 10px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+                  color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: isSubActive ? '600' : '400',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseOver={(e) => {
+                  if (!isSubActive) {
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isSubActive) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }
+                }}
+              >
+                <span style={{ fontSize: '14px' }}>{sub.icon}</span>
+                <span>{sub.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
               {showSubmenu && (
                 <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>

@@ -1,25 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import React from 'react';
 import { TaskHistory } from '../../types/workflow.types';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
+import { useAppContext } from '../../contexts/AppContext';
 
 const ProduksiTimeline: React.FC = () => {
-  const [histories, setHistories] = useState<TaskHistory[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setIsLoading(true);
-      try {
-        const data = await invoke<TaskHistory[]>('get_all_task_history');
-        setHistories(data || []);
-      } catch (err) {
-        console.error('Failed to fetch history:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchHistory();
-  }, []);
+  const { taskHistories, isLoading } = useWorkflowContext();
 
   const getStatusColor = (status: string | null | undefined) => {
     switch (status) {
@@ -44,14 +29,14 @@ const ProduksiTimeline: React.FC = () => {
       <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', flex: 1, padding: '24px', overflowY: 'auto' }}>
         {isLoading ? (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>Memuat timeline...</div>
-        ) : histories.length === 0 ? (
+        ) : taskHistories.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>Belum ada riwayat produksi.</div>
         ) : (
           <div style={{ position: 'relative', paddingLeft: '24px' }}>
             {/* Garis vertikal timeline */}
             <div style={{ position: 'absolute', left: '7px', top: '0', bottom: '0', width: '2px', background: 'var(--border)' }}></div>
             
-            {histories.map((h, index) => (
+            {taskHistories.map((h, index) => (
               <div key={index} style={{ position: 'relative', marginBottom: '24px', paddingLeft: '24px' }}>
                 {/* Dot */}
                 <div style={{ 

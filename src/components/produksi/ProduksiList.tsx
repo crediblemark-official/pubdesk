@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import React, { useState } from 'react';
 import { Task } from '../../types/workflow.types';
 import TaskModal from './TaskModal';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
+import { useAppContext } from '../../contexts/AppContext';
 
 const ProduksiList: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { tasks, isLoading, setSelectedTaskId } = useWorkflowContext();
+  const { setRightPanelVisible } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Modal State
@@ -16,22 +17,6 @@ const ProduksiList: React.FC = () => {
   const [filterPic, setFilterPic] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterDeadline, setFilterDeadline] = useState('');
-
-  const fetchTasks = async () => {
-    setIsLoading(true);
-    try {
-      const data = await invoke<Task[]>('get_tasks');
-      setTasks(data || []);
-    } catch (err) {
-      console.error('Failed to fetch tasks:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
 
   const filteredTasks = tasks.filter(t => {
     if (searchTerm && !(t.naskah_title || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -115,7 +100,16 @@ const ProduksiList: React.FC = () => {
                 }
               };
               return (
-                <div key={task.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '70px 85px 2fr 1fr 1fr 100px 100px 100px 120px 80px', gap: '12px', alignItems: 'center', fontSize: '13px', color: 'var(--text-primary)', overflowX: 'auto' }}>
+                <div 
+                  key={task.id} 
+                  style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '70px 85px 2fr 1fr 1fr 100px 100px 100px 120px 80px', gap: '12px', alignItems: 'center', fontSize: '13px', color: 'var(--text-primary)', overflowX: 'auto', cursor: 'pointer' }}
+                  onDoubleClick={() => {
+                    if (task.id) {
+                      setSelectedTaskId(task.id);
+                      setRightPanelVisible(true);
+                    }
+                  }}
+                >
                   <div style={{ color: 'var(--text-secondary)' }}>#{task.id}</div>
                   <div style={{ color: 'var(--text-secondary)' }}>#{task.naskah_id}</div>
                   <div style={{ fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={task.naskah_title || ''}>
@@ -152,7 +146,6 @@ const ProduksiList: React.FC = () => {
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            fetchTasks();
           }}
         />
       )}

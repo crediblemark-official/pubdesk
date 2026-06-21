@@ -767,6 +767,55 @@ async fn get_all_task_history(state: State<'_, AppState>) -> Result<Vec<TaskHist
 }
 
 #[tauri::command]
+async fn update_task_status(state: State<'_, AppState>, task_id: i64, new_status: String, notes: Option<String>, proof_path_or_link: Option<String>) -> Result<(), String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.update_task_status(task_id, &new_status, notes.as_deref(), proof_path_or_link.as_deref()).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_task_blockers(state: State<'_, AppState>, task_id: Option<i64>) -> Result<Vec<TaskBlocker>, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_task_blockers(task_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_task_blocker(state: State<'_, AppState>, blocker: TaskBlocker) -> Result<i64, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.add_task_blocker(&blocker).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn resolve_task_blocker(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.resolve_task_blocker(id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_task_approvals(state: State<'_, AppState>, task_id: Option<i64>) -> Result<Vec<TaskApproval>, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_task_approvals(task_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn request_approval(state: State<'_, AppState>, approval: TaskApproval) -> Result<i64, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.request_approval(&approval).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn decide_approval(state: State<'_, AppState>, id: i64, status: String, notes: Option<String>, decided_by: Option<String>) -> Result<(), String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.decide_approval(id, &status, notes.as_deref(), decided_by.as_deref()).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn read_file_bytes(path: String) -> Result<Vec<u8>, String> {
     std::fs::read(&path).map_err(|e| e.to_string())
 }
@@ -875,6 +924,13 @@ pub fn run() {
             add_task_history,
             get_task_history,
             get_all_task_history,
+            update_task_status,
+            get_task_blockers,
+            add_task_blocker,
+            resolve_task_blocker,
+            get_task_approvals,
+            request_approval,
+            decide_approval,
             read_file_bytes,
             import_alur_naskah_batch,
             seed_sample_data,

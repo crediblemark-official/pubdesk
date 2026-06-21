@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import React, { useState } from 'react';
 import { Task } from '../../types/workflow.types';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
+import { useAppContext } from '../../contexts/AppContext';
 
 const ProduksiBoard: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { tasks, isLoading, setSelectedTaskId } = useWorkflowContext();
+  const { setRightPanelVisible } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Filters
@@ -12,22 +13,6 @@ const ProduksiBoard: React.FC = () => {
   const [filterTahap, setFilterTahap] = useState('');
   const [filterPenerbit, setFilterPenerbit] = useState('');
   const [filterDeadline, setFilterDeadline] = useState('');
-
-  const fetchTasks = async () => {
-    setIsLoading(true);
-    try {
-      const data = await invoke<Task[]>('get_tasks');
-      setTasks(data || []);
-    } catch (err) {
-      console.error('Failed to fetch tasks:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
 
   const filteredTasks = tasks.filter(t => {
     if (searchTerm && !(t.naskah_title || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -89,7 +74,16 @@ const ProduksiBoard: React.FC = () => {
               </div>
               <div style={{ padding: '12px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {colTasks.map(task => (
-                  <div key={task.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', cursor: 'grab' }}>
+                  <div
+                    key={task.id}
+                    style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', cursor: 'pointer' }}
+                    onDoubleClick={() => {
+                      if (task.id) {
+                        setSelectedTaskId(task.id);
+                        setRightPanelVisible(true);
+                      }
+                    }}
+                  >
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>{task.naskah_title || `Naskah #${task.naskah_id}`}</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{task.step_name}</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>

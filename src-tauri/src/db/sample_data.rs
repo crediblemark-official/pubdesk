@@ -7,11 +7,15 @@ use crate::db::error::DbError;
 pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     let now = chrono::Local::now().to_rfc3339();
 
+    // Temporarily disable foreign key constraints
+    conn.execute("PRAGMA foreign_keys = OFF", [])?;
+
     // ─── 1. Cek apakah sudah ada data sample ───
     let existing_tasks: i64 = conn.query_row(
         "SELECT COUNT(*) FROM tasks", [], |row| row.get(0)
     )?;
     if existing_tasks > 0 {
+        conn.execute("PRAGMA foreign_keys = ON", [])?;
         return Ok("Data sample sudah ada. Reset terlebih dahulu jika ingin memuat ulang.".to_string());
     }
 
@@ -41,20 +45,30 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di workflow_template_steps (step {}): {}", order, e)))?;
     }
 
-    // ─── 3. Penulis (disimpan di tabel contacts dengan type='penulis') ───
+    // ─── 3. Penulis (disimpan di tabel contacts dan penulis dengan ID yang sama untuk kompatibilitas) ───
     let penulis_data = vec![
         ("Ahmad Fauzi", "081234567890"),
         ("Siti Nurhaliza", "082345678901"),
         ("Budi Santoso", "083456789012"),
     ];
     let mut penulis_ids = Vec::new();
-    println!("[SAMPLE SEED] Menyisipkan contacts (penulis)...");
-    for (name, wa) in &penulis_data {
+    println!("[SAMPLE SEED] Menyisipkan penulis...");
+    for (i, (name, wa)) in penulis_data.iter().enumerate() {
+        let id = (i + 1) as i64; // Use explicit IDs starting from 1
+        
+        // Insert into contacts with explicit ID
         conn.execute(
-            "INSERT INTO contacts (name, wa_number, type, created_at) VALUES (?1, ?2, 'penulis', ?3)",
-            params![name, wa, now]
+            "INSERT INTO contacts (id, name, wa_number, type, created_at) VALUES (?1, ?2, ?3, 'penulis', ?4)",
+            params![id, name, wa, now]
         ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di contacts/penulis ({}): {}", name, e)))?;
-        penulis_ids.push(conn.last_insert_rowid());
+        
+        // Insert into penulis with the same explicit ID
+        conn.execute(
+            "INSERT INTO penulis (id, name, wa_number, created_at) VALUES (?1, ?2, ?3, ?4)",
+            params![id, name, wa, now]
+        ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di penulis ({}): {}", name, e)))?;
+        
+        penulis_ids.push(id);
     }
 
     // ─── 4. Penerbit ───
@@ -188,6 +202,9 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         "INSERT INTO task_approvals (task_id, approval_type, status, requested_at, notes) VALUES (?1, ?2, 'Menunggu Approval', ?3, ?4)",
         params![task_ids[11], "ACC Cetak", now, "Menunggu persetujuan cetak dari penerbit sebelum naik cetak"]
     ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di task_approvals: {}", e)))?;
+
+    // Re-enable foreign key constraints
+    conn.execute("PRAGMA foreign_keys = ON", [])?;
 
     Ok(format!(
         "Sample data berhasil dimuat: {} naskah, {} tim, {} tugas, {} riwayat, 2 kendala, 1 approval",

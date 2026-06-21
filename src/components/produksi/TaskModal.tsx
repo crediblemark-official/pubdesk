@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 import { Task, TaskHistory } from '../../types/workflow.types';
 import { useAppContext } from '../../contexts/AppContext';
+import { useDataMasterContext } from '../../contexts/DataMasterContext';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
 
 interface TaskModalProps {
   task?: Task; // if provided, it's edit mode
@@ -11,8 +12,11 @@ interface TaskModalProps {
 
 const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   const { showToast } = useAppContext();
+  const { tim } = useDataMasterContext();
+  const { addTask, updateTask, loadTaskHistories } = useWorkflowContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEdit = !!task;
+  const [useManualPic, setUseManualPic] = useState(false);
 
   // Form states
   const [naskahId, setNaskahId] = useState(task?.naskah_id || '');
@@ -46,47 +50,19 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
           status,
           notes
         };
-        await invoke('update_task', { task: updatedTask });
-        
-        if (status !== task.status) {
-          const history: TaskHistory = {
-            task_id: task.id!,
-            old_status: task.status,
-            new_status: status,
-            changed_by: 'Admin',
-            changed_at: new Date().toISOString(),
-            notes: notes ? notes : `PIC diubah ke ${picName}, deadline ${dueDate}`,
-          };
-          await invoke('add_task_history', { history });
-        }
+        await updateTask(updatedTask);
         showToast('Tugas berhasil diupdate', 'success');
       } else {
         // Create mode
-        const newTask: Task = {
+        const newTask = {
           naskah_id: Number(naskahId),
           step_name: stepName,
           status: 'Belum Mulai',
           priority: priority,
           due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
-          created_at: new Date().toISOString(),
-          start_date: undefined,
-          completed_date: undefined,
-          notes: notes,
-          proof_path_or_link: undefined,
-          assigned_team_id: undefined,
+          notes: notes
         };
-        const newId = await invoke<number>('add_task', { task: newTask });
-        
-        const history: TaskHistory = {
-          task_id: newId,
-          old_status: undefined,
-          new_status: 'Belum Mulai',
-          changed_by: 'Admin',
-          changed_at: new Date().toISOString(),
-          notes: 'Tugas baru dibuat.',
-        };
-        await invoke('add_task_history', { history });
-        
+        await addTask(newTask);
         showToast('Tugas berhasil ditambahkan', 'success');
       }
       onSuccess();
@@ -122,7 +98,53 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label>Nama PIC</label>
-            <input type="text" value={picName} onChange={e => setPicName(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'white' }} />
+            {useManualPic ? (
+              <input
+                type="text"
+                value={picName}
+                onChange={e => setPicName(e.target.value)}
+                placeholder="Masukkan nama PIC..."
+                style={{
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-panel)',
+                  color: 'var(--text-primary)'
+                }}
+              />
+            ) : (
+              <select
+                value={picName}
+                onChange={e => setPicName(e.target.value)}
+                style={{
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-panel)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <option value="">Pilih PIC dari Tim...</option>
+                {tim.map(member => (
+                  <option key={member.id} value={member.nama}>{member.nama}</option>
+                ))}
+              </select>
+            )}
+            <button
+              type="button"
+              onClick={() => setUseManualPic(!useManualPic)}
+              style={{
+                fontSize: '12px',
+                color: 'var(--accent)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                textAlign: 'left',
+                padding: 0
+              }}
+            >
+              {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
+            </button>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

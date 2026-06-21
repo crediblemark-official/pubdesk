@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import React, { useState, useMemo } from 'react';
 import { Task } from '../../types/workflow.types';
 import UpdateStatusModal from './UpdateStatusModal';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
+import { useAppContext } from '../../contexts/AppContext';
 
 const ProduksiKendala: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { tasks, isLoading, setSelectedTaskId } = useWorkflowContext();
+  const { setRightPanelVisible } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Modal State
@@ -16,29 +17,20 @@ const ProduksiKendala: React.FC = () => {
   const [filterKendala, setFilterKendala] = useState('');
   const [filterPic, setFilterPic] = useState('');
 
-  const fetchTasks = async () => {
-    setIsLoading(true);
-    try {
-      const data = await invoke<Task[]>('get_tasks');
-      // Only keep tasks that are 'Menunggu Revisi' or have notes
-      setTasks(data?.filter(t => t.status === 'Menunggu Revisi' || t.notes) || []);
-    } catch (err) {
-      console.error('Failed to fetch tasks:', err);
-    } finally {
-      setIsLoading(false);
+  const filteredTasks = useMemo(() => {
+    // Only keep tasks that are 'Menunggu Revisi' or have notes
+    let filtered = tasks.filter(t => t.status === 'Menunggu Revisi' || t.notes);
+    if (searchTerm) {
+      filtered = filtered.filter(t => (t.naskah_title || '').toLowerCase().includes(searchTerm.toLowerCase()));
     }
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const filteredTasks = tasks.filter(t => {
-    if (searchTerm && !(t.naskah_title || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    if (filterPic && t.pic_name !== filterPic) return false;
-    if (filterStatus && t.status !== filterStatus) return false;
-    return true;
-  });
+    if (filterPic) {
+      filtered = filtered.filter(t => t.pic_name === filterPic);
+    }
+    if (filterStatus) {
+      filtered = filtered.filter(t => t.status === filterStatus);
+    }
+    return filtered;
+  }, [tasks, searchTerm, filterPic, filterStatus]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -97,7 +89,16 @@ const ProduksiKendala: React.FC = () => {
             filteredTasks.map(task => {
               const statusStyle = getStatusColor(task.status);
               return (
-                <div key={task.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '2fr 1fr 2fr 1fr 100px', gap: '16px', alignItems: 'center', fontSize: '14px', color: 'var(--text-primary)' }}>
+                <div
+                  key={task.id}
+                  style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '2fr 1fr 2fr 1fr 100px', gap: '16px', alignItems: 'center', fontSize: '14px', color: 'var(--text-primary)', cursor: 'pointer' }}
+                  onDoubleClick={() => {
+                    if (task.id) {
+                      setSelectedTaskId(task.id);
+                      setRightPanelVisible(true);
+                    }
+                  }}
+                >
                   <div style={{ fontWeight: '500' }}>{task.naskah_title || '-'}</div>
                   <div>{task.step_name}</div>
                   <div style={{ color: '#ef4444' }}>{task.notes || 'Menunggu Revisi'}</div>
@@ -105,7 +106,7 @@ const ProduksiKendala: React.FC = () => {
                     <span style={{ padding: '4px 10px', borderRadius: '12px', background: statusStyle.bg, color: statusStyle.text, fontSize: '11px', fontWeight: '600' }}>{task.status}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <button 
+                    <button
                       onClick={() => setSelectedTask(task)}
                       style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '12px' }}
                     >
@@ -120,12 +121,11 @@ const ProduksiKendala: React.FC = () => {
       </div>
 
       {selectedTask && (
-        <UpdateStatusModal 
+        <UpdateStatusModal
           task={selectedTask}
           onClose={() => setSelectedTask(null)}
           onSuccess={() => {
             setSelectedTask(null);
-            fetchTasks();
           }}
         />
       )}

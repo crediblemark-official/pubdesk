@@ -1,29 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import React, { useState } from 'react';
 import { Task } from '../../types/workflow.types';
 import UpdateStatusModal from './UpdateStatusModal';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
+import { useAppContext } from '../../contexts/AppContext';
 
 const PekerjaanSaya: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { tasks, isLoading, setSelectedTaskId } = useWorkflowContext();
+  const { setRightPanelVisible } = useAppContext();
   const [filter, setFilter] = useState<'Semua' | 'Hari Ini' | 'Terlambat' | 'Revisi' | 'Approval' | 'Selesai'>('Semua');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
-  const fetchTasks = async () => {
-    setIsLoading(true);
-    try {
-      const data = await invoke<Task[]>('get_tasks');
-      setTasks(data);
-    } catch (err) {
-      console.error('Error fetching tasks:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -163,9 +148,16 @@ const PekerjaanSaya: React.FC = () => {
                 <div key={task.id} style={{ 
                   borderBottom: '1px solid var(--border)', 
                   transition: 'background 0.2s',
+                  cursor: 'pointer'
                 }}
                 onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-panel)'}
                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                onDoubleClick={() => {
+                  if (task.id) {
+                    setSelectedTaskId(task.id);
+                    setRightPanelVisible(true);
+                  }
+                }}
                 >
                   {/* Baris Utama */}
                   <div style={{ 
@@ -175,8 +167,7 @@ const PekerjaanSaya: React.FC = () => {
                     gap: '16px', 
                     alignItems: 'center',
                     fontSize: '14px',
-                    color: 'var(--text-primary)',
-                    cursor: 'default'
+                    color: 'var(--text-primary)'
                   }}>
                     <div style={{ fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {task.naskah_title || `Naskah #${task.naskah_id}`}
@@ -264,7 +255,6 @@ const PekerjaanSaya: React.FC = () => {
           onClose={() => setSelectedTask(null)}
           onSuccess={() => {
             setSelectedTask(null);
-            fetchTasks();
           }}
         />
       )}

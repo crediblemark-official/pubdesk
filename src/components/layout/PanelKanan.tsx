@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useFileState } from '../../contexts/FileContext';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
 import InvoicePreview from '../invoice/InvoicePreview';
 import FilePreviewPanel from './PanelKanan/FilePreviewPanel';
 import ServicePreviewPanel from './PanelKanan/ServicePreviewPanel';
@@ -11,6 +12,7 @@ import NaskahPreviewPanel from './PanelKanan/NaskahPreviewPanel';
 import TimPreviewPanel from './PanelKanan/TimPreviewPanel';
 import LegalitasPreviewPanel from './PanelKanan/LegalitasPreviewPanel';
 import PelangganPreviewPanel from './PanelKanan/PelangganPreviewPanel';
+import TaskPreviewPanel from './PanelKanan/TaskPreviewPanel';
 
 /**
  * PanelKanan — orchestrator panel pratinjau di sisi kanan layar.
@@ -90,6 +92,14 @@ const PanelKanan: React.FC = () => {
 
     case 'pelanggan':
       return <PelangganPreviewPanel />;
+
+    case 'pekerjaan-saya':
+    case 'produksi-board':
+    case 'produksi-list':
+    case 'produksi-kendala':
+    case 'produksi-approval':
+    case 'produksi-timeline':
+      return <TaskPreviewPanel />;
 
     default:
       return (
