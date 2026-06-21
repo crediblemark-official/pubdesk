@@ -96,22 +96,72 @@ export function useSyncState({
 
       // 2. Books
       if (books.length > 0) {
-        const payload = books.map(b => ({
-          id: b.id,
-          title: b.title,
-          isbn: b.isbn || '',
-          regular_price: b.regular_price,
-          po_price: b.po_price,
-          weight_grams: b.weight_grams,
-          author_id: b.author_id || '',
-          cover_path: b.cover_path || '',
-          created_at: b.created_at || new Date().toISOString(),
-          updated_at: b.updated_at || b.created_at || new Date().toISOString()
-        }));
-        await googleAppsScriptService.upsertRecordsToCloud('Books', payload);
+        const processedBooks = [];
         for (const b of books) {
-          if (b.id) {
-            await invoke('update_sync_status', { tableName: 'books', id: b.id, syncStatus: 'synced', cloudFileUrl: b.cover_path || null });
+          let currentCoverPath = b.cover_path || '';
+          
+          // Jika cover_path berupa gambar base64, unggah ke Google Drive (Covers folder) terlebih dahulu
+          if (currentCoverPath.startsWith('data:')) {
+            try {
+              const match = currentCoverPath.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
+              if (match) {
+                const mimeType = match[1];
+                const base64Data = match[2];
+                const fileExt = mimeType.split('/')[1] || 'png';
+                const fileName = `Cover-${b.id || 'new'}-${b.title.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
+                
+                console.log(`[Sync Books] Mengunggah cover base64 ke Google Drive untuk: ${b.title}`);
+                const uploadResult = await googleAppsScriptService.uploadFileToCloud(
+                  fileName,
+                  base64Data,
+                  'Covers',
+                  mimeType
+                );
+                
+                if (uploadResult && uploadResult.file_url) {
+                  currentCoverPath = uploadResult.file_url;
+                  
+                  // Perbarui cover_path lokal di SQLite menjadi URL cloud
+                  if (b.id) {
+                    await invoke('update_book', {
+                      book: {
+                        ...b,
+                        cover_path: currentCoverPath
+                      }
+                    });
+                  }
+                }
+              }
+            } catch (uploadErr) {
+              console.error(`Gagal mengunggah cover untuk buku ${b.title}:`, uploadErr);
+              // Lanjutkan sinkronisasi meskipun upload cover gagal
+              currentCoverPath = '';
+            }
+          }
+          
+          processedBooks.push({
+            id: b.id,
+            title: b.title,
+            isbn: b.isbn || '',
+            regular_price: b.regular_price,
+            po_price: b.po_price,
+            weight_grams: b.weight_grams,
+            author_id: b.author_id || '',
+            cover_path: currentCoverPath,
+            created_at: b.created_at || new Date().toISOString(),
+            updated_at: b.updated_at || b.created_at || new Date().toISOString()
+          });
+        }
+
+        await googleAppsScriptService.upsertRecordsToCloud('Books', processedBooks);
+        for (const pb of processedBooks) {
+          if (pb.id) {
+            await invoke('update_sync_status', { 
+              tableName: 'books', 
+              id: pb.id, 
+              syncStatus: 'synced', 
+              cloudFileUrl: pb.cover_path || null 
+            });
           }
         }
         await loadBooks();
