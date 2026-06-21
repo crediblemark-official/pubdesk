@@ -120,14 +120,6 @@ const LaporanOperasional: React.FC = () => {
     <DataTablePage
       filterBar={
         <>
-          {/* StatCards Header - Berlatar Belakang var(--bg-card) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '12px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
-            <StatCard label="Naskah Aktif" value={activeTasks.length} color="#3b82f6" />
-            <StatCard label="Tugas Selesai" value={finishedTasks.length} color="#22c55e" />
-            <StatCard label="Tugas Overdue" value={overdueTasks.length} color="#ef4444" />
-            <StatCard label="Legalitas Diproses" value={prosesLegalitas.length} color="#a855f7" />
-          </div>
-
           <FilterBar>
             <FilterGroup label="🔍 Filter:">
               {/* Dropdown Kategori / Judul Filter */}
@@ -216,6 +208,14 @@ const LaporanOperasional: React.FC = () => {
               Export Excel
             </Button>
           </FilterBar>
+
+          {/* StatCards Header - Berlatar Belakang var(--bg-card) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '12px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+            <StatCard label="Naskah Aktif" value={activeTasks.length} color="#3b82f6" />
+            <StatCard label="Tugas Selesai" value={finishedTasks.length} color="#22c55e" />
+            <StatCard label="Tugas Overdue" value={overdueTasks.length} color="#ef4444" />
+            <StatCard label="Legalitas Diproses" value={prosesLegalitas.length} color="#a855f7" />
+          </div>
         </>
       }
     >
