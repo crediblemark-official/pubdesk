@@ -28,7 +28,6 @@ export type AppModule =
   | 'produksi-approval'
   | 'produksi-timeline'
   | 'laporan-operasional'
-  | 'import-data'
   | 'tambah-tugas'
   | 'edit-tugas'
   | 'produksi-parent'

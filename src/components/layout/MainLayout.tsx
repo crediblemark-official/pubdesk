@@ -41,8 +41,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoginPage from '../auth/LoginPage';
 
 
-// Modul Pengaturan Tambahan
-import ImportExcel from '../import/ImportExcel';
+
 
 
 const MainLayout = () => {
@@ -155,8 +154,7 @@ const MainLayout = () => {
         return <ProduksiTimeline searchQuery={fileSearchQuery} />;
       case 'laporan-operasional':
         return <LaporanOperasional />;
-      case 'import-data':
-        return <ImportExcel />;
+
       case 'ledger':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':

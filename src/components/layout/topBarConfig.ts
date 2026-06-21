@@ -28,7 +28,6 @@ export const MODULE_LABELS: Record<string, string> = {
   'tambah-tugas': 'Tambah Tugas Baru',
   'edit-tugas': 'Edit Tugas',
   'laporan-operasional': 'Laporan Operasional',
-  'import-data': 'Import Excel Lama',
   'activity-log': 'Activity Log',
 };
 

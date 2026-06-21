@@ -32,7 +32,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   const bottomItems = [
     { id: 'activity-log' as const, label: 'Activity Log', icon: '📋' },
-    { id: 'import-data' as const, label: 'Import Excel Lama', icon: '📥' },
     { id: 'settings' as const, label: 'Pengaturan', icon: '⚙️' },
   ];
 
