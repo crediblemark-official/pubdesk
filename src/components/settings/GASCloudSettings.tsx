@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { googleAppsScriptService } from '../../services/googleAppsScript';
+import { useAppContext } from '../../contexts/AppContext';
+import { useDataMasterContext } from '../../contexts/DataMasterContext';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
 
 interface GASCloudSettingsProps {
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -9,6 +12,11 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
   const [urlInput, setUrlInput] = useState('');
   const [tokenInput, setTokenInput] = useState('');
   const [testing, setTesting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  const { syncAllDataToCloud, services } = useAppContext();
+  const { penulis, penerbit, naskah, tim, legalitas } = useDataMasterContext();
+  const { tasks } = useWorkflowContext();
 
   useEffect(() => {
     const { url, token } = googleAppsScriptService.getSettings();
@@ -58,6 +66,39 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
     }
   };
 
+  const handleSyncAllData = async () => {
+    if (!googleAppsScriptService.isConfigured()) {
+      showToast('Harap simpan URL Google Apps Script terlebih dahulu!', 'error');
+      return;
+    }
+
+    setSyncing(true);
+    showToast('Memulai sinkronisasi seluruh data ke Google Sheets...', 'info');
+
+    try {
+      const result = await syncAllDataToCloud({
+        penulis,
+        penerbit,
+        naskah,
+        tim,
+        legalitas,
+        services,
+        tasks
+      });
+
+      if (result.success) {
+        showToast(result.message, 'success');
+      } else {
+        showToast(result.message, 'error');
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Gagal sinkronisasi data: ${err.message || String(err)}`, 'error');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -101,7 +142,7 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
             type="button"
             className="btn-primary compact-btn"
             onClick={handleSave}
-            disabled={testing}
+            disabled={testing || syncing}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
           >
             💾 Simpan Setelan
@@ -111,10 +152,39 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
             type="button"
             className="btn-secondary compact-btn"
             onClick={handleTestConnection}
-            disabled={testing}
+            disabled={testing || syncing}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
           >
             🔌 Uji Koneksi
+          </button>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            🔄 Sinkronisasi Data Manual
+          </h3>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.4' }}>
+            Anda dapat memicu sinkronisasi manual untuk mengunggah seluruh data master dan operasional lokal (SQLite) ke Google Sheets cloud. Tindakan ini berguna ketika menghubungkan aplikasi untuk pertama kalinya atau setelah bekerja offline.
+          </p>
+          <button
+            type="button"
+            className="btn-primary compact-btn"
+            onClick={handleSyncAllData}
+            disabled={syncing || testing}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '6px',
+              fontWeight: '600',
+              boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
+            }}
+          >
+            {syncing ? '⏳ Mensinkronkan...' : '🚀 Sinkronkan Semua Data ke Cloud'}
           </button>
         </div>
 

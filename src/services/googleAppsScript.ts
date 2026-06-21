@@ -118,14 +118,53 @@ export const googleAppsScriptService = {
    * Mengambil data list invoice yang tercatat di Google Sheets
    */
   async getInvoicesFromCloud() {
+    return this.getRecordsFromCloud('Invoices');
+  },
+
+  /**
+   * Mengirim batch records ke Google Sheets secara bulk
+   */
+  async upsertRecordsToCloud(sheetName: string, records: any[]) {
     const { url, token } = this.getSettings();
     if (!url) {
       throw new Error('URL Web App Google Apps Script belum dikonfigurasi.');
     }
 
-    const requestUrl = `${url}?auth_token=${encodeURIComponent(token)}&action=get_invoices`;
-    
-    // Melakukan request native menggunakan Rust backend (Bebas dari CORS block!)
+    const payload = {
+      auth_token: token,
+      action: 'upsert_records',
+      sheet_name: sheetName,
+      records: records
+    };
+
+    const responseText = await invoke<string>('call_gas_api', {
+      url,
+      method: 'POST',
+      payloadJson: JSON.stringify(payload)
+    });
+
+    const result = JSON.parse(responseText);
+    if (result.status === 'error') {
+      throw new Error(result.message || 'Terjadi kesalahan dari Google Apps Script');
+    }
+
+    return {
+      success: true,
+      message: result.message
+    };
+  },
+
+  /**
+   * Mengambil data seluruh baris dari sheet tertentu di Google Sheets
+   */
+  async getRecordsFromCloud(sheetName: string) {
+    const { url, token } = this.getSettings();
+    if (!url) {
+      throw new Error('URL Web App Google Apps Script belum dikonfigurasi.');
+    }
+
+    const requestUrl = `${url}?auth_token=${encodeURIComponent(token)}&action=get_records&sheet_name=${encodeURIComponent(sheetName)}`;
+
     const responseText = await invoke<string>('call_gas_api', {
       url: requestUrl,
       method: 'GET',
@@ -133,10 +172,79 @@ export const googleAppsScriptService = {
     });
 
     const data = JSON.parse(responseText);
-    if (data.status === 'error') {
+    if (data && data.status === 'error') {
       throw new Error(data.message || 'Terjadi kesalahan dari Google Apps Script');
     }
 
     return data as Array<Record<string, any>>;
+  },
+
+  /**
+   * Menghapus record tertentu berdasarkan ID di Google Sheets
+   */
+  async deleteRecordFromCloud(sheetName: string, id: number) {
+    const { url, token } = this.getSettings();
+    if (!url) {
+      throw new Error('URL Web App Google Apps Script belum dikonfigurasi.');
+    }
+
+    const payload = {
+      auth_token: token,
+      action: 'delete_record',
+      sheet_name: sheetName,
+      id: id
+    };
+
+    const responseText = await invoke<string>('call_gas_api', {
+      url,
+      method: 'POST',
+      payloadJson: JSON.stringify(payload)
+    });
+
+    const result = JSON.parse(responseText);
+    if (result.status === 'error') {
+      throw new Error(result.message || 'Terjadi kesalahan dari Google Apps Script');
+    }
+
+    return {
+      success: true,
+      message: result.message
+    };
+  },
+
+  /**
+   * Mengunggah file biner (Base64) ke Google Drive
+   */
+  async uploadFileToCloud(fileName: string, fileBase64: string, subfolder: string, mimeType: string) {
+    const { url, token } = this.getSettings();
+    if (!url) {
+      throw new Error('URL Web App Google Apps Script belum dikonfigurasi.');
+    }
+
+    const payload = {
+      auth_token: token,
+      action: 'upload_file',
+      file_name: fileName,
+      file_base_64: fileBase64,
+      subfolder: subfolder,
+      file_mime_type: mimeType
+    };
+
+    const responseText = await invoke<string>('call_gas_api', {
+      url,
+      method: 'POST',
+      payloadJson: JSON.stringify(payload)
+    });
+
+    const result = JSON.parse(responseText);
+    if (result.status === 'error') {
+      throw new Error(result.message || 'Terjadi kesalahan dari Google Apps Script');
+    }
+
+    return {
+      success: true,
+      file_url: result.file_url,
+      file_id: result.file_id
+    };
   }
 };

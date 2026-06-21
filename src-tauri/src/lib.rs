@@ -384,6 +384,20 @@ fn update_invoice_sync_status(
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn update_sync_status(
+    state: State<'_, AppState>,
+    table_name: String,
+    id: i64,
+    sync_status: String,
+    cloud_file_url: Option<String>,
+) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database not initialized")?;
+    db.update_sync_status(&table_name, id, &sync_status, cloud_file_url.as_deref())
+        .map_err(|e| e.to_string())
+}
+
 // Files commands
 #[tauri::command]
 fn get_files(state: State<'_, AppState>) -> Result<Vec<File>, String> {
@@ -934,7 +948,8 @@ pub fn run() {
             read_file_bytes,
             import_alur_naskah_batch,
             seed_sample_data,
-            reset_workflow_data
+            reset_workflow_data,
+            update_sync_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

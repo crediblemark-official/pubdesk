@@ -285,6 +285,42 @@ impl Database {
         Ok(())
     }
 
+    pub fn update_sync_status(
+        &self,
+        table_name: &str,
+        id: i64,
+        sync_status: &str,
+        cloud_file_url: Option<&str>,
+    ) -> Result<(), DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        
+        let allowed_tables = [
+            "contacts", "books", "projects", "files", "tags", 
+            "services", "penerbit", "naskah", "tim", "tasks", "legalitas", "invoices"
+        ];
+        if !allowed_tables.contains(&table_name) {
+            return Err(DbError::Other(format!("Table '{}' not allowed for sync", table_name)));
+        }
+
+        if table_name == "books" || table_name == "legalitas" || table_name == "tasks" || table_name == "invoices" {
+            let file_url = cloud_file_url.unwrap_or("");
+            let query = format!(
+                "UPDATE {} SET sync_status = ?1, cloud_file_url = ?2, updated_at = ?3 WHERE id = ?4",
+                table_name
+            );
+            self.conn.execute(&query, params![sync_status, file_url, now, id])?;
+        } else {
+            let query = format!(
+                "UPDATE {} SET sync_status = ?1, updated_at = ?2 WHERE id = ?3",
+                table_name
+            );
+            self.conn.execute(&query, params![sync_status, now, id])?;
+        }
+
+        self.log_activity(table_name, Some(id), "UPDATE", &format!("Memperbarui status sinkronisasi cloud ke '{}'", sync_status))?;
+        Ok(())
+    }
+
     pub fn update_invoice(&self, invoice: &Invoice) -> Result<(), DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(

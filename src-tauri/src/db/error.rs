@@ -13,6 +13,9 @@ pub enum DbError {
     
     #[error("Serialization error: {0}")]
     SerdeError(#[from] serde_json::Error),
+    
+    #[error("Other error: {0}")]
+    Other(String),
 }
 
 impl serde::Serialize for DbError {

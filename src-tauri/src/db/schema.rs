@@ -625,6 +625,23 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
     let _ = conn.execute("ALTER TABLE invoices ADD COLUMN remaining_amount REAL DEFAULT 0", []);
     let _ = conn.execute("ALTER TABLE invoices ADD COLUMN payment_notes TEXT", []);
 
+    // Migrasi sinkronisasi cloud Google Apps Script (GAS) v2
+    let _ = conn.execute("ALTER TABLE contacts ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE books ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE projects ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE files ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE tags ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE services ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE penerbit ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE naskah ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE tim ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE tasks ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN sync_status TEXT DEFAULT 'synced'", []);
+
+    let _ = conn.execute("ALTER TABLE books ADD COLUMN cloud_file_url TEXT", []);
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN cloud_file_url TEXT", []);
+    let _ = conn.execute("ALTER TABLE tasks ADD COLUMN cloud_file_url TEXT", []);
+
     Ok(())
 }
 
