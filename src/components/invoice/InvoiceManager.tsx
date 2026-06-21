@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useFileState } from '../../contexts/FileContext';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
@@ -8,6 +8,9 @@ import { getInvoiceMetadata, formatDateId } from '../../utils/invoice';
 import { StatusBadge } from '../../ui/atoms/Badge';
 import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
+import * as XLSX from 'xlsx';
+import { save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 
 interface InvoiceManagerProps {
   searchQuery?: string;
@@ -28,6 +31,8 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
     showConfirm, 
     showToast, 
     setActiveModule, 
+    registerImportExportActions,
+    addInvoice,
   } = useAppContext();
 
   const {
@@ -244,12 +249,248 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
     }
   };
 
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws) as any[];
+
+        if (data.length === 0) {
+          showToast('File Excel kosong!', 'error');
+          return;
+        }
+
+        let importedCount = 0;
+        let errorCount = 0;
+
+        for (const row of data) {
+          const invoiceNo = row["No. Invoice"] || row.NoInvoice || row.invoice_no;
+          const customerName = row["Nama Pelanggan"] || row.Pelanggan || row.customer_name;
+          if (!invoiceNo || !customerName) {
+            errorCount++;
+            continue;
+          }
+
+          const invoiceDate = row.Tanggal || row.tanggal || row.invoice_date || new Date().toISOString().split('T')[0];
+          const customerWa = row["WhatsApp Pelanggan"] || row.WhatsApp || row.wa || row.customer_wa || '';
+          const customerAddress = row["Alamat Pelanggan"] || row.Alamat || row.alamat || row.customer_address || '';
+          const invoiceHal = row["Hal / Judul"] || row.Hal || row.hal || row.subject || '';
+          const invoiceLampiran = row.Lampiran || row.lampiran || '';
+          const paymentStatus = row["Status Pembayaran"] || row.Status || row.status || 'BERMASALAH';
+          
+          const shipping_cost = parseFloat(row["Biaya Pengiriman"] || row.shipping_cost || '0');
+          const admin_fee = parseFloat(row["Biaya Admin"] || row.admin_fee || '0');
+          const total = parseFloat(row["Total Nominal"] || row.Total || row.total || '0');
+
+          // Parse Item Pesanan (misal: "Buku AI | 10 | 50000; Layanan Layout | 1 | 250000")
+          const itemsStr = row["Item Pesanan"] || row.items || '';
+          const items: any[] = [];
+          if (itemsStr) {
+            const parts = String(itemsStr).split(';');
+            for (const part of parts) {
+              const info = part.split('|');
+              if (info[0] && info[0].trim()) {
+                const title = info[0].trim();
+                const qty = parseInt(info[1] || '1', 10);
+                const price = parseFloat(info[2] || '0');
+                items.push({
+                  book_id: 0,
+                  item_title: title,
+                  quantity: isNaN(qty) ? 1 : qty,
+                  price: isNaN(price) ? 0 : price,
+                  discount: 0
+                });
+              }
+            }
+          }
+
+          const metadata = {
+            invoiceNo: String(invoiceNo).trim(),
+            invoiceDate: String(invoiceDate).trim(),
+            invoiceHal: String(invoiceHal).trim(),
+            invoiceLampiran: String(invoiceLampiran).trim(),
+            paymentStatus: String(paymentStatus).trim(),
+            customerName: String(customerName).trim(),
+            customerWa: String(customerWa).trim(),
+            customerAddress: String(customerAddress).trim(),
+            spesifikasiFasilitas: ''
+          };
+
+          try {
+            await addInvoice({
+              created_at: new Date().toISOString(),
+              items_json: JSON.stringify(items),
+              shipping_cost: isNaN(shipping_cost) ? 0 : shipping_cost,
+              admin_fee: isNaN(admin_fee) ? 0 : admin_fee,
+              total: isNaN(total) ? 0 : total,
+              file_path: JSON.stringify(metadata),
+              sync_status: 'pending'
+            });
+            importedCount++;
+          } catch (err) {
+            console.error('Gagal mengimpor invoice:', err);
+            errorCount++;
+          }
+        }
+
+        showToast(`Impor invoice berhasil! ${importedCount} data dimasukkan.${errorCount > 0 ? ` Gagal: ${errorCount}` : ''}`, 'success');
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal memproses file Excel!', 'error');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      if (invoices.length === 0) {
+        showToast('Tidak ada data invoice untuk diekspor!', 'info');
+        return;
+      }
+
+      const exportData = invoices.map((inv, idx) => {
+        const metadata = getInvoiceMetadata(inv);
+        let itemsDesc = '';
+        try {
+          const items = JSON.parse(inv.items_json) || [];
+          itemsDesc = items.map((it: any) => `${it.item_title} (${it.quantity}x @ ${it.price})`).join('; ');
+        } catch (e) {
+          itemsDesc = '';
+        }
+
+        return {
+          "No": idx + 1,
+          "ID Invoice": inv.id,
+          "No. Invoice": metadata.invoiceNo || 'DRAF',
+          "Tanggal": metadata.invoiceDate || inv.created_at.substring(0, 10),
+          "Nama Pelanggan": metadata.customerName || 'Umum',
+          "WhatsApp Pelanggan": metadata.customerWa || '',
+          "Alamat Pelanggan": metadata.customerAddress || '',
+          "Hal / Judul": metadata.invoiceHal || '',
+          "Lampiran": metadata.invoiceLampiran || '',
+          "Status Pembayaran": metadata.paymentStatus || 'BERMASALAH',
+          "Biaya Pengiriman": inv.shipping_cost,
+          "Biaya Admin": inv.admin_fee,
+          "Total Nominal": inv.total,
+          "Item Pesanan": itemsDesc,
+          "Status Sinkronisasi": inv.sync_status || 'pending',
+          "Tautan Cloud": inv.cloud_file_url || ''
+        };
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      const maxLens = Object.keys(exportData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...exportData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Daftar Invoice");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Daftar_Invoice_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Data Invoice berhasil diekspor ke Excel!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengekspor data invoice!', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const templateData = [
+        {
+          "No. Invoice": "INV/2026/001",
+          "Tanggal": "2026-06-21",
+          "Nama Pelanggan": "Budi Santoso",
+          "WhatsApp Pelanggan": "081234567890",
+          "Alamat Pelanggan": "Jl. Kaliurang Km 5, Sleman, Yogyakarta",
+          "Hal / Judul": "Cetak Buku Kecerdasan Buatan",
+          "Lampiran": "1 Berkas",
+          "Status Pembayaran": "LUNAS",
+          "Biaya Pengiriman": 15000,
+          "Biaya Admin": 2500,
+          "Total Nominal": 517500,
+          "Item Pesanan": "Buku AI | 10 | 50000"
+        }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(templateData);
+
+      const maxLens = Object.keys(templateData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...templateData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Template Invoice");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Template_Invoice.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Template Excel Invoice berhasil diunduh!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengunduh template!', 'error');
+    }
+  };
+
+  useEffect(() => {
+    const actions = {
+      onImport: () => document.getElementById('invoice-excel-import-input')?.click(),
+      onExport: handleExportExcel,
+      onDownloadTemplate: handleDownloadTemplate
+    };
+    registerImportExportActions('invoice-manager', actions);
+    return () => {
+      registerImportExportActions('invoice-manager', null);
+    };
+  }, [invoices, handleExportExcel, handleDownloadTemplate]);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
 
       <FilterBar>
+        <input
+          type="file"
+          id="invoice-excel-import-input"
+          accept=".xlsx, .xls"
+          style={{ display: 'none' }}
+          onChange={handleImportExcel}
+        />
         {/* Tombol Buat Invoice Baru */}
         <button
           className="btn-primary"
