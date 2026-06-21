@@ -39,7 +39,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         )?;
     }
 
-    // ─── 3. Penulis ───
+    // ─── 3. Penulis (disimpan di tabel contacts dengan type='penulis') ───
     let penulis_data = vec![
         ("Ahmad Fauzi", "081234567890"),
         ("Siti Nurhaliza", "082345678901"),
@@ -48,7 +48,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     let mut penulis_ids = Vec::new();
     for (name, wa) in &penulis_data {
         conn.execute(
-            "INSERT INTO penulis (nama, telepon, created_at) VALUES (?1, ?2, ?3)",
+            "INSERT INTO contacts (name, wa_number, type, created_at) VALUES (?1, ?2, 'penulis', ?3)",
             params![name, wa, now]
         )?;
         penulis_ids.push(conn.last_insert_rowid());
@@ -56,7 +56,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
 
     // ─── 4. Penerbit ───
     conn.execute(
-        "INSERT INTO penerbit (nama, created_at) VALUES (?1, ?2)",
+        "INSERT INTO penerbit (name, created_at) VALUES (?1, ?2)",
         params!["Pustaka Ilmu Nusantara", now]
     )?;
     let penerbit_id = conn.last_insert_rowid();
@@ -78,15 +78,15 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
 
     // ─── 6. Tim ───
     let tim_data = vec![
-        ("Ika Rahmawati", "Layouter", "Produksi"),
-        ("Dini Septiani", "Desainer Cover", "Produksi"),
-        ("Admin Produksi", "Admin Produksi", "Manajemen"),
+        ("Ika Rahmawati", "Layouter", "Tim Produksi"),
+        ("Dini Septiani", "Desainer Cover", "Tim Produksi"),
+        ("Admin Produksi", "Admin Produksi", "Tim Manajemen"),
     ];
     let mut tim_ids = Vec::new();
-    for (name, role, dept) in &tim_data {
+    for (name, role, notes) in &tim_data {
         conn.execute(
-            "INSERT INTO tim (name, role, department, created_at) VALUES (?1, ?2, ?3, ?4)",
-            params![name, role, dept, now]
+            "INSERT INTO tim (name, role, notes, created_at) VALUES (?1, ?2, ?3, ?4)",
+            params![name, role, notes, now]
         )?;
         tim_ids.push(conn.last_insert_rowid());
     }
