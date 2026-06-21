@@ -48,7 +48,41 @@ const SettingsHelpPanel: React.FC<{ tab: string }> = ({ tab }) => {
             'Data folder Google Drive akan dipetakan ke dalam database lokal.',
             'Disarankan menyetel ID Folder Induk agar aplikasi hanya memantau folder kerja tertentu.',
             'Gunakan tombol "Sinkronisasi Sekarang" untuk memperbarui daftar berkas secara manual.'
-          ]
+          ],
+          extra: (
+            <div style={{
+              marginTop: '16px',
+              borderTop: '1px solid var(--border)',
+              paddingTop: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)' }}>
+                ℹ️ Panduan Kredensial Produksi Jangka Panjang
+              </strong>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '12px 14px' }}>
+                  <p style={{ fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px 0', fontSize: '12px' }}>A. OAuth di Google Cloud Console:</p>
+                  <ol style={{ paddingLeft: '16px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <li>Buka Google Cloud Console dan buat project baru.</li>
+                    <li>Aktifkan <strong>Google Drive API</strong>.</li>
+                    <li>Konfigurasi OAuth consent screen (External, tambahkan email Anda sebagai Test User).</li>
+                    <li>Buat OAuth client ID tipe Desktop app, lalu salin Client ID & Client Secret ke setelan.</li>
+                  </ol>
+                </div>
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '12px 14px' }}>
+                  <p style={{ fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px 0', fontSize: '12px' }}>B. Refresh Token via OAuth Playground:</p>
+                  <ol style={{ paddingLeft: '16px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <li>Buka Google OAuth 2.0 Playground.</li>
+                    <li>Masukkan Client ID & Secret kustom Anda di setelan Playground (ikon Gear).</li>
+                    <li>Gunakan scope <code>drive.readonly</code>, lalu klik Authorize.</li>
+                    <li>Exchange code untuk mendapatkan Refresh Token, lalu salin ke setelan.</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          )
         };
       case 'google-apps-script':
         return {
@@ -122,6 +156,11 @@ const SettingsHelpPanel: React.FC<{ tab: string }> = ({ tab }) => {
           ))}
         </ul>
       </div>
+      {(content as any).extra && (
+        <div>
+          {(content as any).extra}
+        </div>
+      )}
     </div>
   );
 };

@@ -133,15 +133,6 @@ const LocalFoldersTab: React.FC = () => {
               </button>
             </form>
           </div>
-
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-            <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>💡 Tentang Folder Dipantau:</strong>
-            <ul style={{ margin: '8px 0 0 18px', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <li>Berkas yang terdeteksi di folder ini akan masuk ke menu <strong>Smart Folders</strong>.</li>
-              <li>Aplikasi secara otomatis mendeteksi perubahan berkas (tambah/ubah/hapus).</li>
-              <li>Proses indeks berjalan sepenuhnya di latar belakang secara offline-first.</li>
-            </ul>
-          </div>
         </div>
 
       </div>

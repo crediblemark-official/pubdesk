@@ -195,16 +195,6 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
               {syncing ? '⏳ Mensinkronkan...' : '🚀 Sinkronkan Semua Data ke Cloud'}
             </button>
           </div>
-
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-            <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Cara Memasang:</strong>
-            <ol style={{ margin: '8px 0 0 18px', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <li>Buka dokumen API & kode draf GAS di folder proyek <code>docs/google-apps-script/</code>.</li>
-              <li>Salin kodenya, tempel di menu <strong>Ekstensi {"→"} Apps Script</strong> di Google Sheets Anda.</li>
-              <li>Deploy sebagai <strong>Web App</strong> dengan akses <strong>"Anyone"</strong>.</li>
-              <li>Salin URL Web App dan simpan di atas. Masukkan token rahasia jika Anda menyetelnya di properti proyek Apps Script.</li>
-            </ol>
-          </div>
         </div>
 
       </div>

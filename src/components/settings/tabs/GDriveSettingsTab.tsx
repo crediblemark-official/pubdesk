@@ -408,33 +408,6 @@ const GDriveSettingsTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Panduan kredensial */}
-      <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-        <details>
-          <summary style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)', cursor: 'pointer', outline: 'none', userSelect: 'none' }}>
-            ℹ️ Panduan Mendapatkan Kredensial Google Drive Jangka Panjang (Produksi)
-          </summary>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <p style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>A. Membuat OAuth Credentials di Google Cloud Console:</p>
-            <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <li>Buka <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>Google Cloud Console</a> dan buat project baru.</li>
-              <li>Cari <strong>Google Drive API</strong> dan klik <strong>Enable</strong>.</li>
-              <li>Masuk ke <strong>OAuth consent screen</strong>, pilih External, isi form, dan tambahkan email Anda sebagai Test User.</li>
-              <li>Buka <strong>Credentials</strong> → <strong>Create Credentials</strong> → <strong>OAuth client ID</strong> → Desktop app.</li>
-              <li>Salin <strong>Client ID</strong> dan <strong>Client Secret</strong> ke kolom di atas.</li>
-            </ol>
-            <p style={{ fontWeight: '600', color: 'var(--text-primary)', marginTop: '10px', marginBottom: '4px' }}>B. Mendapatkan Refresh Token melalui OAuth Playground:</p>
-            <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <li>Buka <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>Google OAuth 2.0 Playground</a>.</li>
-              <li>Klik ikon Gear, centang <strong>Use your own OAuth credentials</strong>, masukkan Client ID & Secret.</li>
-              <li>Pilih scope <code>drive.readonly</code> di Step 1, klik <strong>Authorize APIs</strong>.</li>
-              <li>Di Step 2, klik <strong>Exchange authorization code for tokens</strong>.</li>
-              <li>Salin <strong>Refresh Token</strong> ke kolom input di atas.</li>
-            </ol>
-          </div>
-        </details>
-      </div>
-
       <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
     </div>
   );
