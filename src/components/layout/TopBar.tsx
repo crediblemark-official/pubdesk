@@ -391,7 +391,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
             <div
               className="top-bar-gnome-pathbar"
               onClick={() => setIsSearchFocused(true)}
-              style={{ display: 'flex', alignItems: 'center', cursor: 'text', userSelect: 'none', width: '100%', padding: '0 8px' }}
+              style={{ display: 'flex', alignItems: 'center', cursor: 'text', userSelect: 'none', padding: '0 8px' }}
             >
               {activeModule === 'files' ? (
                 fileCategory === 'gdrive' ? renderGBriveBreadcrumbs() : (
