@@ -2,6 +2,7 @@ use tauri::State;
 use crate::{AppState, WatcherState};
 use crate::db::{File, WatchFolder};
 use tauri::Emitter;
+use tauri::Manager;
 
 #[tauri::command]
 pub async fn get_files(state: State<'_, AppState>) -> Result<Vec<File>, String> {
