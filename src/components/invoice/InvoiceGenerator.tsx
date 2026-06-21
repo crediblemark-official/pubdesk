@@ -324,7 +324,7 @@ const InvoiceGenerator: React.FC = () => {
       </Accordion>
 
       {/* Aksi Utama */}
-      <div style={{ display: 'flex', gap: '12px' }}>
+      <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
         <button className="btn-primary" style={{ flex: 1 }} onClick={handleSaveInvoice}>
           {editingInvoiceId ? '💾 Perbarui & Catat' : '💾 Simpan & Catat'}
         </button>
