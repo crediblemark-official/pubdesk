@@ -383,7 +383,13 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
         onChange={handleImportExcel}
       />
 
-      <FilterBar>
+      <FilterBar
+        actions={
+          <Button variant="primary" size="sm" onClick={handleAddNew} icon="➕">
+            Tambah Pengajuan
+          </Button>
+        }
+      >
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>
           ⚖️ <strong style={{ color: 'var(--text-primary)' }}>{filteredData.length}</strong> pengajuan
         </span>
@@ -431,14 +437,6 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
             </FilterGroup>
           </>
         )}
-
-        <FilterDivider />
-
-        <FilterGroup label="">
-          <Button variant="primary" size="sm" onClick={handleAddNew} icon="➕">
-            Tambah Pengajuan
-          </Button>
-        </FilterGroup>
       </FilterBar>
 
       {/* Tabel */}

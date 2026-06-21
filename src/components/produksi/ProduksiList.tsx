@@ -233,7 +233,13 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
   return (
     <DataTablePage
       filterBar={
-        <FilterBar>
+        <FilterBar
+          actions={
+            <Button onClick={() => { setActiveModule('tambah-tugas'); }} variant="primary" size="sm" icon="➕">
+              Task
+            </Button>
+          }
+        >
           <input
             type="file"
             id="tasks-excel-import-input"
@@ -277,12 +283,6 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
               </FilterGroup>
             </>
           )}
-
-          <FilterDivider />
-
-          <Button onClick={() => { setActiveModule('tambah-tugas'); }} variant="primary" size="sm" icon="➕">
-            Task
-          </Button>
         </FilterBar>
       }
     >

@@ -445,7 +445,13 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
         onChange={handleImportExcel}
       />
 
-      <FilterBar>
+      <FilterBar
+        actions={
+          <Button onClick={handleAddNew} variant="primary" size="sm" icon="➕">
+            Tambah Naskah
+          </Button>
+        }
+      >
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>
           <strong style={{ color: 'var(--text-primary)' }}>{filteredOrders.length}</strong>
           {' '}dari{' '}
@@ -503,14 +509,6 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
             </FilterGroup>
           </>
         )}
-
-        <FilterDivider />
-
-        <FilterGroup label="">
-          <Button onClick={handleAddNew} variant="primary" size="sm" icon="➕">
-            Tambah Naskah
-          </Button>
-        </FilterGroup>
       </FilterBar>
 
       {/* Tabel */}

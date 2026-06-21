@@ -350,7 +350,13 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
         onChange={handleImportExcel}
       />
 
-      <FilterBar>
+      <FilterBar
+        actions={
+          <Button onClick={handleAddNew} variant="primary" size="sm" icon="➕">
+            Tambah Layanan
+          </Button>
+        }
+      >
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>
           <strong style={{ color: 'var(--text-primary)' }}>{filteredServices.length}</strong>
           {' '}layanan
@@ -380,14 +386,6 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
             </FilterGroup>
           </>
         )}
-
-        <FilterDivider />
-
-        <FilterGroup label="">
-          <Button onClick={handleAddNew} variant="primary" size="sm" icon="➕">
-            Tambah Layanan
-          </Button>
-        </FilterGroup>
       </FilterBar>
 
       {/* Tabel */}

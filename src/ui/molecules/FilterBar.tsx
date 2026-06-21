@@ -4,6 +4,7 @@ import { Chip } from '../atoms/Chip';
 interface FilterBarProps {
   children: React.ReactNode;
   style?: React.CSSProperties;
+  actions?: React.ReactNode;
 }
 
 interface FilterGroupProps {
@@ -15,25 +16,51 @@ interface FilterDividerProps {
   style?: React.CSSProperties;
 }
 
-export const FilterBar: React.FC<FilterBarProps> = ({ children, style }) => (
+export const FilterBar: React.FC<FilterBarProps> = ({ children, style, actions }) => (
   <div
     style={{
       display: 'flex',
-      gap: '20px',
-      padding: '10px 16px',
       borderBottom: '1px solid var(--border)',
       background: 'var(--bg-panel)',
       alignItems: 'center',
-      flexWrap: 'nowrap',
-      overflowX: 'auto',
-      overflowY: 'hidden',
+      justifyContent: 'space-between',
       flexShrink: 0,
       height: 44,
       boxSizing: 'border-box',
+      width: '100%',
       ...style,
     }}
   >
-    {children}
+    <div
+      style={{
+        display: 'flex',
+        gap: '20px',
+        padding: '10px 16px',
+        alignItems: 'center',
+        flexWrap: 'nowrap',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        flex: 1,
+        height: '100%',
+      }}
+    >
+      {children}
+    </div>
+    {actions && (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          height: '100%',
+          flexShrink: 0,
+          background: 'var(--bg-panel)',
+          borderLeft: '1px solid var(--border)',
+        }}
+      >
+        {actions}
+      </div>
+    )}
   </div>
 );
 

@@ -382,7 +382,13 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
         onChange={handleImportExcel}
       />
 
-      <FilterBar>
+      <FilterBar
+        actions={
+          <Button onClick={handleAddNew} variant="primary" size="sm" icon="➕">
+            Tambah Anggota Tim
+          </Button>
+        }
+      >
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>
           <strong style={{ color: 'var(--text-primary)' }}>{filteredMembers.length}</strong>
           {' '}dari{' '}
@@ -429,14 +435,6 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
             </FilterGroup>
           </>
         )}
-
-        <FilterDivider />
-
-        <FilterGroup label="">
-          <Button onClick={handleAddNew} variant="primary" size="sm" icon="➕">
-            Tambah Anggota Tim
-          </Button>
-        </FilterGroup>
       </FilterBar>
 
       {/* Tabel */}
