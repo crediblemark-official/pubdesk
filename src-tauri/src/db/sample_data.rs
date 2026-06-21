@@ -16,6 +16,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     }
 
     // ─── 2. Workflow Template ───
+    println!("[SAMPLE SEED] Menyisipkan workflow_templates...");
     conn.execute(
         "INSERT INTO workflow_templates (name, description, is_active, created_at) VALUES (?1, ?2, 1, ?3)",
         params!["Alur Produksi Standar", "Template alur kerja produksi naskah lengkap", now]
@@ -32,6 +33,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         (7, "Upload & Pengiriman", "Admin Upload", 2),
     ];
 
+    println!("[SAMPLE SEED] Menyisipkan workflow_template_steps...");
     for (order, name, role, duration) in &steps {
         conn.execute(
             "INSERT INTO workflow_template_steps (template_id, step_order, step_name, default_role, default_duration_days, is_required) VALUES (?1, ?2, ?3, ?4, ?5, 1)",
@@ -46,6 +48,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         ("Budi Santoso", "083456789012"),
     ];
     let mut penulis_ids = Vec::new();
+    println!("[SAMPLE SEED] Menyisipkan contacts (penulis)...");
     for (name, wa) in &penulis_data {
         conn.execute(
             "INSERT INTO contacts (name, wa_number, type, created_at) VALUES (?1, ?2, 'penulis', ?3)",
@@ -55,6 +58,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     }
 
     // ─── 4. Penerbit ───
+    println!("[SAMPLE SEED] Menyisipkan penerbit...");
     conn.execute(
         "INSERT INTO penerbit (name, created_at) VALUES (?1, ?2)",
         params!["Pustaka Ilmu Nusantara", now]
@@ -68,6 +72,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         ("Strategi Digital Marketing 2026", penulis_ids[2], penerbit_id),
     ];
     let mut naskah_ids = Vec::new();
+    println!("[SAMPLE SEED] Menyisipkan naskah...");
     for (title, pid, pubid) in &naskah_data {
         conn.execute(
             "INSERT INTO naskah (title, penulis_id, penerbit_id, status, created_at) VALUES (?1, ?2, ?3, 'Proses', ?4)",
@@ -83,6 +88,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         ("Admin Produksi", "Admin Produksi", "Tim Manajemen"),
     ];
     let mut tim_ids = Vec::new();
+    println!("[SAMPLE SEED] Menyisipkan tim...");
     for (name, role, notes) in &tim_data {
         conn.execute(
             "INSERT INTO tim (name, role, notes, created_at) VALUES (?1, ?2, ?3, ?4)",
@@ -114,6 +120,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     ];
 
     let mut task_ids = Vec::new();
+    println!("[SAMPLE SEED] Menyisipkan tasks...");
     for (naskah_idx, step_name, step_order, tim_idx, status, priority, start_off, due_off, notes) in &task_data {
         let start_date = chrono::Local::now() + chrono::Duration::days(*start_off);
         let due_date = chrono::Local::now() + chrono::Duration::days(*due_off);
@@ -154,6 +161,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         (task_ids[11], Some("Proses"), "Menunggu Approval", "Admin Produksi", "Mengajukan ACC cetak ke penerbit"),
     ];
 
+    println!("[SAMPLE SEED] Menyisipkan task_history...");
     for (tid, old_status, new_status, changed_by, notes) in &history_data {
         let changed_at = (chrono::Local::now() - chrono::Duration::days(1)).to_rfc3339();
         conn.execute(
@@ -163,6 +171,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     }
 
     // ─── 9. Task Blockers ───
+    println!("[SAMPLE SEED] Menyisipkan task_blockers...");
     conn.execute(
         "INSERT INTO task_blockers (task_id, naskah_id, blocker_type, description, status, created_at) VALUES (?1, ?2, ?3, ?4, 'Aktif', ?5)",
         params![task_ids[5], naskah_ids[1], "Menunggu revisi layout", "Layout margin terlalu sempit, perlu penyesuaian ulang sesuai template penerbit", now]
@@ -174,6 +183,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     )?;
 
     // ─── 10. Task Approvals ───
+    println!("[SAMPLE SEED] Menyisipkan task_approvals...");
     conn.execute(
         "INSERT INTO task_approvals (task_id, approval_type, status, requested_at, notes) VALUES (?1, ?2, 'Menunggu Approval', ?3, ?4)",
         params![task_ids[11], "ACC Cetak", now, "Menunggu persetujuan cetak dari penerbit sebelum naik cetak"]
