@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useFileState } from '../../contexts/FileContext';
 import { useAppContext } from '../../contexts/AppContext';
+import { useDataMasterContext } from '../../contexts/DataMasterContext';
+import { useWorkflowContext } from '../../contexts/WorkflowContext';
 import { parseModifiedBy } from '../../utils/gdrive';
 import { WindowControls } from './WindowControls';
 import {
@@ -34,11 +36,50 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
     currentFolderId,
     files
   } = useFileState();
-  const { importExportActions } = useAppContext();
+  
+  const { 
+    importExportActions,
+    syncAllDataToCloud,
+    services,
+    showToast
+  } = useAppContext();
+
+  const { penulis, penerbit, naskah, tim, legalitas } = useDataMasterContext();
+  const { tasks } = useWorkflowContext();
+
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const activeActions = activeModule ? importExportActions[activeModule] : undefined;
+
+  const handleSyncAllData = async () => {
+    setSyncing(true);
+    showToast('Memulai sinkronisasi seluruh data ke Google Sheets...', 'info');
+
+    try {
+      const result = await syncAllDataToCloud({
+        penulis,
+        penerbit,
+        naskah,
+        tim,
+        legalitas,
+        services,
+        tasks
+      });
+
+      if (result.success) {
+        showToast(result.message, 'success');
+      } else {
+        showToast(result.message, 'error');
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Gagal sinkronisasi data: ${err.message || String(err)}`, 'error');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   useEffect(() => {
     if (!isDropdownOpen) return;
@@ -246,10 +287,33 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
           </div>
         )}
 
-        <button className="top-bar-btn-close-path" aria-label="Close path editing">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
+        <button 
+          className="top-bar-btn-close-path" 
+          onClick={handleSyncAllData}
+          disabled={syncing}
+          title={syncing ? "Sedang mensinkronkan data ke GAS..." : "Sinkronkan semua data ke Google Sheets"}
+          aria-label="Sync data to Google Sheets"
+          style={{
+            color: syncing ? 'var(--accent)' : 'var(--text-secondary)',
+            cursor: syncing ? 'not-allowed' : 'pointer'
+          }}
+        >
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            style={{
+              animation: syncing ? 'spin 1.5s linear infinite' : 'none'
+            }}
+          >
+            <path d="M12 13V20" />
+            <path d="m9 16 3-3 3 3" />
+            <path d="M17.5 19A3.5 3.5 0 0 0 21 15.5c0-2.79-2.54-4.5-5-4.5-.42-1.89-1.78-3.5-4-3.5a5.5 5.5 0 0 0-5.38 4.63A4 4 0 0 0 7.5 20h10" />
           </svg>
         </button>
 
