@@ -3,7 +3,19 @@ import { useAppContext } from '../../contexts/AppContext';
 import { formatPrice } from '../../utils/format';
 import { getInvoiceMetadata } from '../../utils/invoice';
 
-const InvoiceInsight: React.FC = () => {
+interface InvoiceInsightProps {
+  hideHeader?: boolean;
+  padding?: string;
+  height?: string;
+  overflowY?: 'auto' | 'hidden' | 'scroll' | 'visible';
+}
+
+const InvoiceInsight: React.FC<InvoiceInsightProps> = ({
+  hideHeader = false,
+  padding = '20px',
+  height = '100%',
+  overflowY = 'auto'
+}) => {
   const { 
     invoices, 
     selectedInsightMetric, 
@@ -93,10 +105,12 @@ const InvoiceInsight: React.FC = () => {
   };
 
   return (
-    <div className="invoice-insight" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', gap: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>📊 Analisis & Statistik Invoice</h1>
-      </div>
+    <div className="invoice-insight" style={{ padding, display: 'flex', flexDirection: 'column', height, overflowY, gap: '20px' }}>
+      {!hideHeader && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+          <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>📊 Analisis & Statistik Invoice</h1>
+        </div>
+      )}
 
       {/* Ringkasan Statistik Kartu */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', flexShrink: 0 }}>

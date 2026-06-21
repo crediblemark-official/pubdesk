@@ -50,6 +50,7 @@ const PanelKanan: React.FC = () => {
     case 'invoice-manager':
       return <FilePreviewPanel selectedFileId={selectedFileId} />;
 
+    case 'invoice-parent':
     case 'invoice-insight':
       return (
         <InsightPanel

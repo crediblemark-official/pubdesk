@@ -25,7 +25,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     { id: 'produksi-parent' as const, label: 'Produksi Naskah', icon: '🏭' },
     { id: 'laporan-operasional' as const, label: 'Laporan Operasional', icon: '📈' },
     { id: 'invoice' as const, label: 'Invoice', icon: '🧾' },
-    { id: 'invoice-insight' as const, label: 'Invoice Insight', icon: '📊' },
     { id: 'files' as const, label: 'Smart Folders', icon: '📁' },
     { id: 'master-data-parent' as const, label: 'Master Data', icon: '🗃️' },
   ];

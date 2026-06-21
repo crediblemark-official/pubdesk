@@ -1,53 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
-import { getInvoiceMetadata } from '../../utils/invoice';
-import { formatPrice } from '../../utils/format';
-
-const STAT_CARDS = [
-  { key: 'total_count', label: 'Total Invoice', color: '#3b82f6', icon: '🧾' },
-  { key: 'total_nominal', label: 'Total Nominal', color: '#10b981', icon: '💰' },
-  { key: 'lunas', label: 'Lunas', color: '#22c55e', icon: '✅' },
-  { key: 'belum_lunas', label: 'Belum Lunas/Masalah', color: '#ef4444', icon: '🚨' },
-  { key: 'dp', label: 'DP (Down Payment)', color: '#8b5cf6', icon: '💳' },
-] as const;
+import InvoiceInsight from './InvoiceInsight';
 
 const DashboardInvoice: React.FC = () => {
-  const { invoices, setActiveModule } = useAppContext();
-
-  const stats = useMemo(() => {
-    let totalCount = invoices.length;
-    let totalNominal = 0;
-    let lunasCount = 0;
-    let lunasNominal = 0;
-    let belumLunasCount = 0;
-    let belumLunasNominal = 0;
-    let dpCount = 0;
-    let dpNominal = 0;
-
-    invoices.forEach(inv => {
-      totalNominal += inv.total;
-      const meta = getInvoiceMetadata(inv);
-      const status = (meta.paymentStatus || 'BELUM LUNAS').toUpperCase();
-      if (status === 'LUNAS') {
-        lunasCount++;
-        lunasNominal += inv.total;
-      } else if (status === 'DP') {
-        dpCount++;
-        dpNominal += inv.total;
-      } else {
-        belumLunasCount++;
-        belumLunasNominal += inv.total;
-      }
-    });
-
-    return {
-      total_count: `${totalCount} invoice`,
-      total_nominal: formatPrice(totalNominal),
-      lunas: `${lunasCount} (${formatPrice(lunasNominal)})`,
-      belum_lunas: `${belumLunasCount} (${formatPrice(belumLunasNominal)})`,
-      dp: `${dpCount} (${formatPrice(dpNominal)})`,
-    };
-  }, [invoices]);
+  const { setActiveModule } = useAppContext();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
@@ -65,74 +21,18 @@ const DashboardInvoice: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '16px' }}>🧾</span>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Dashboard Invoice</span>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Dashboard & Insight Invoice</span>
         </div>
         <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-          Kelola generator tagihan, cetak invoice PDF, dan ringkasan keuangan tagihan klien.
+          Analisis performa piutang, generator tagihan, cetak invoice PDF, dan ringkasan keuangan.
         </span>
       </div>
 
       {/* Konten Dashboard yang scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
         
-        {/* Grid Summary Info Cards terpadu tanpa space/gap dan siku */}
-        <div style={{ 
-          display: 'flex', 
-          flexWrap: 'wrap',
-          background: 'var(--bg-card)', 
-          borderBottom: '1px solid var(--border)', 
-          borderRadius: '0px', 
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          flexShrink: 0
-        }}>
-          {STAT_CARDS.map(card => {
-            const value = stats[card.key];
-            return (
-              <div
-                key={card.key}
-                style={{
-                  flex: '1 1 200px',
-                  minWidth: '180px',
-                  padding: '20px',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  borderRight: '1px solid var(--border)',
-                  borderBottom: '1px solid var(--border)',
-                  boxSizing: 'border-box'
-                }}
-              >
-                {/* Garis aksen warna kecil di sisi atas */}
-                <div style={{ 
-                  position: 'absolute', 
-                  top: 0, 
-                  left: 0, 
-                  right: 0, 
-                  height: '3px', 
-                  background: card.color 
-                }} />
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {card.label}
-                  </span>
-                  <span style={{ fontSize: '18px' }}>{card.icon}</span>
-                </div>
-
-                <div style={{ 
-                  fontSize: '18px', 
-                  fontWeight: '700', 
-                  color: 'var(--text-primary)',
-                  marginTop: '4px'
-                }}>
-                  {value}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/* Render InvoiceInsight di sini dengan menghilangkan header-nya agar menyatu */}
+        <InvoiceInsight hideHeader padding="24px 24px 0 24px" height="auto" overflowY="visible" />
 
         {/* Quick Actions / Navigasi */}
         <div style={{ 
@@ -156,13 +56,12 @@ const DashboardInvoice: React.FC = () => {
             {[
               { module: 'invoice' as const, label: 'Invoice Generator', desc: 'Buat invoice / kuitansi tagihan baru', icon: '✍️' },
               { module: 'invoice-manager' as const, label: 'Manajemen Invoice', desc: 'Daftar, ubah, dan hapus berkas invoice', icon: '🗃️' },
-              { module: 'invoice-insight' as const, label: 'Invoice Insight', desc: 'Analisis dan grafik performa piutang', icon: '📊' },
             ].map(act => (
               <button
                 key={act.module}
                 onClick={() => setActiveModule(act.module)}
                 style={{
-                  flex: '1 1 33.33%',
+                  flex: '1 1 50%',
                   minWidth: '180px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -206,7 +105,7 @@ const DashboardInvoice: React.FC = () => {
             💡 Informasi Modul Invoice
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.6' }}>
-            Modul Invoice digunakan untuk membuat tagihan resmi ke penulis/mitra. Data invoice terhubung langsung dengan Smart Folders agar dokumen kuitansi otomatis tersimpan dan mudah dibagikan. Pastikan status lunas diperbarui untuk menjaga keakuratan laporan keuangan di Invoice Insight.
+            Modul Invoice digunakan untuk membuat tagihan resmi ke penulis/mitra. Data invoice terhubung langsung dengan Smart Folders agar dokumen kuitansi otomatis tersimpan dan mudah dibagikan. Pastikan status lunas diperbarui untuk menjaga keakuratan laporan keuangan di analisis atas.
           </p>
           <div style={{ 
             padding: '12px', 
