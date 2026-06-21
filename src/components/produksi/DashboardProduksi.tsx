@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { useWorkflowContext } from '../../contexts/WorkflowContext';
 import { useAppContext } from '../../contexts/AppContext';
-import { StatCard } from '../../ui/molecules/StatCard';
 import { Badge, getStatusVariant } from '../../ui/atoms/Badge';
 import { formatDateLong } from '../../utils/format';
 import { Task } from '../../types/workflow.types';
@@ -102,27 +101,60 @@ const DashboardProduksi: React.FC = () => {
 
       {/* Konten Dashboard yang scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Grid Stat Cards */}
+        {/* Grid Stat Cards terpadu tanpa space (no gap) dan membulat (round) */}
       <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
-        gap: '16px', 
-        marginBottom: '24px' 
+        display: 'flex', 
+        background: 'var(--bg-card)', 
+        border: '1px solid var(--border)', 
+        borderRadius: '12px', 
+        overflow: 'hidden',
+        boxSizing: 'border-box'
       }}>
-        {STAT_CARDS.map(card => (
-          <div key={card.key} style={{ position: 'relative' }}>
-            <StatCard label={card.label} value={stats[card.key]} color={card.color} />
-            <span style={{ 
-              position: 'absolute', 
-              top: '12px', 
-              right: '12px', 
-              fontSize: '20px', 
-              opacity: 0.25 
-            }}>
-              {card.icon}
-            </span>
-          </div>
-        ))}
+        {STAT_CARDS.map((card, idx) => {
+          const isLast = idx === STAT_CARDS.length - 1;
+          const value = stats[card.key];
+          return (
+            <div 
+              key={card.key} 
+              style={{ 
+                flex: 1,
+                padding: '16px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                borderRight: isLast ? 'none' : '1px solid var(--border)',
+                transition: 'background 0.2s',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--bg-panel)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              {/* Garis aksen warna kecil di sisi atas */}
+              <div style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                height: '3px', 
+                background: card.color 
+              }} />
+              
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {card.label}
+                </span>
+                <span style={{ fontSize: '16px', opacity: 0.6 }}>{card.icon}</span>
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', marginTop: '8px' }}>
+                {value}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Section Utama */}
