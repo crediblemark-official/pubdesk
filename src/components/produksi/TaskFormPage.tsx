@@ -90,6 +90,16 @@ const TaskFormPage: React.FC = () => {
     }
   }, [naskahId, naskah]);
 
+  // Reset naskahId jika pelanggan berubah dan naskah yang terpilih tidak cocok dengan pelanggan tersebut
+  useEffect(() => {
+    if (naskahId && selectedCustomerId) {
+      const selected = naskah.find(n => n.id === Number(naskahId));
+      if (selected && selected.penulis_id !== Number(selectedCustomerId)) {
+        setNaskahId('');
+      }
+    }
+  }, [selectedCustomerId, naskahId, naskah]);
+
   // Load task data if in edit mode
   useEffect(() => {
     if (isEdit && selectedTaskId) {
