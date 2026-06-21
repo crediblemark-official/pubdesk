@@ -58,26 +58,6 @@ const HomeDashboard: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
-      {/* Header Bar Seragam */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '10px 16px',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--bg-panel)',
-        height: 44,
-        boxSizing: 'border-box',
-        flexShrink: 0
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>🏠</span>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Beranda Utama</span>
-        </div>
-        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-          Pusat kendali operasional, ringkasan data, dan akses cepat alur kerja.
-        </span>
-      </div>
 
       {/* Scrollable Container */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', boxSizing: 'border-box' }}>
