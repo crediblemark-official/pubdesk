@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Task } from '../../types/workflow.types';
+import { useUniqueValues } from '../../hooks/useUniqueValues';
 
 // Assuming Legalitas structure has status
 interface Legalitas {
@@ -73,8 +74,8 @@ const LaporanOperasional: React.FC = () => {
   });
   const bebanKerjaArr = Object.entries(bebanKerja).sort((a, b) => b[1] - a[1]);
 
-  const uniquePics = Array.from(new Set(tasks.map(t => t.pic_name).filter(Boolean)));
-  const uniqueStatuses = Array.from(new Set(tasks.map(t => t.status).filter(Boolean)));
+  const uniquePics = useUniqueValues(tasks, 'pic_name');
+  const uniqueStatuses = useUniqueValues(tasks, 'status');
 
   const handleExport = () => {
     // Simulasi ekspor

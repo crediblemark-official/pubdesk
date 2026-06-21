@@ -1,31 +1,13 @@
 import React, { useMemo } from 'react';
 import { useAppContext } from '../../../contexts/AppContext';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
-import { Badge } from '../../../ui/atoms/Badge';
+import { Badge, getStatusVariant } from '../../../ui/atoms/Badge';
 import { Button } from '../../../ui/atoms/Button';
+import { getWhatsAppLink } from '../../../utils/format';
 
 interface PenulisPreviewPanelProps {
   penulisId: number | null;
 }
-
-const followupVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'accent'> = {
-  'New': 'info',
-  'Contacted': 'warning',
-  'Interested': 'accent',
-  'Deal': 'success',
-  'Rejected': 'danger',
-  'Pelanggan': 'success'
-};
-
-const getWhatsAppLink = (phone: string) => {
-  let cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    cleaned = '62' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('62') && cleaned.length > 0) {
-    cleaned = '62' + cleaned;
-  }
-  return `https://wa.me/${cleaned}`;
-};
 
 const PenulisPreviewPanel: React.FC<PenulisPreviewPanelProps> = ({ penulisId }) => {
   const { contacts, addContact, showToast, showConfirm } = useAppContext();
@@ -171,7 +153,7 @@ const PenulisPreviewPanel: React.FC<PenulisPreviewPanelProps> = ({ penulisId }) 
               </span>
               <Badge 
                 label={penulisData.followup_status || 'New'}
-                variant={followupVariantMap[penulisData.followup_status || 'New'] || 'info'}
+                variant={getStatusVariant(penulisData.followup_status || 'New')}
               />
             </div>
           </div>
@@ -352,7 +334,7 @@ const PenulisPreviewPanel: React.FC<PenulisPreviewPanelProps> = ({ penulisId }) 
                   </div>
                   <Badge
                     label={n.status}
-                    variant={n.status === 'Selesai' ? 'success' : n.status === 'Sedang Dikerjakan' ? 'warning' : n.status === 'Batal' ? 'danger' : 'neutral'}
+                    variant={getStatusVariant(n.status)}
                   />
                 </div>
               ))}

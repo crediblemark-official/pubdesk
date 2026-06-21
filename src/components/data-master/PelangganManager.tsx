@@ -1,17 +1,179 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { Contact } from '../../types/contact.types';
 import { Button } from '../../ui/atoms/Button';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { FilterBar, FilterGroup, FilterDivider } from '../../ui/molecules/FilterBar';
 import PelangganForm from './PelangganForm';
+import * as XLSX from 'xlsx';
+import { save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 
 interface PelangganManagerProps {
   searchQuery?: string;
 }
 
 const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' }) => {
-  const { contacts, addContact, updateContact, deleteContact, showConfirm, showToast, setRightPanelVisible, selectedCustomerId, setSelectedCustomerId, addFile, files } = useAppContext();
+  const { contacts, addContact, updateContact, deleteContact, showConfirm, showToast, setRightPanelVisible, selectedCustomerId, setSelectedCustomerId, addFile, files, registerImportExportActions } = useAppContext();
+
+  useEffect(() => {
+    const actions = {
+      onImport: () => document.getElementById('pelanggan-excel-import-input')?.click(),
+      onExport: handleExportExcel,
+      onDownloadTemplate: handleDownloadTemplate
+    };
+    registerImportExportActions('pelanggan', actions);
+    return () => {
+      registerImportExportActions('pelanggan', null);
+    };
+  }, [contacts]);
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws) as any[];
+
+        if (data.length === 0) {
+          showToast('File Excel kosong!', 'error');
+          return;
+        }
+
+        let importedCount = 0;
+        let errorCount = 0;
+
+        for (const row of data) {
+          const name = row["Nama Pelanggan"] || row.Nama || row.nama || row.Name || row.name || row["Nama Lengkap"];
+          if (!name) {
+            errorCount++;
+            continue;
+          }
+
+          const wa_number = row["No WA"] || row["No. WA"] || row.WhatsApp || row.whatsapp || row.wa || row.Phone || row.phone;
+          const email = row.Email || row.email || row.Mail || row.mail;
+          const address = row.Alamat || row.alamat || row.Address || row.address;
+
+          try {
+            await addContact({
+              name: String(name).trim(),
+              wa_number: wa_number ? String(wa_number).trim() : undefined,
+              email: email ? String(email).trim() : undefined,
+              address: address ? String(address).trim() : undefined,
+              type: 'customer',
+              created_at: new Date().toISOString()
+            });
+            importedCount++;
+          } catch (err) {
+            console.error('Gagal mengimpor pelanggan:', err);
+            errorCount++;
+          }
+        }
+
+        showToast(`Impor pelanggan berhasil! ${importedCount} data dimasukkan.${errorCount > 0 ? ` Gagal: ${errorCount}` : ''}`, 'success');
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal memproses file Excel!', 'error');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      if (pelanggan.length === 0) {
+        showToast('Tidak ada data pelanggan untuk diekspor!', 'info');
+        return;
+      }
+
+      const exportData = pelanggan.map((p, idx) => ({
+        "No": idx + 1,
+        "Nama Pelanggan": p.name,
+        "No. WhatsApp": p.wa_number || '',
+        "Email": p.email || '',
+        "Alamat": p.address || '',
+        "Tanggal Dibuat": p.created_at ? p.created_at.substring(0, 10) : ''
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      const maxLens = Object.keys(exportData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...exportData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Pelanggan");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Pelanggan_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Data Pelanggan berhasil diekspor!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengekspor data pelanggan!', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const templateData = [
+        {
+          "Nama Pelanggan": "Rasyiqi",
+          "No WA": "081234567890",
+          "Email": "rasyiqi@example.com",
+          "Alamat": "Jl. Gajah Mada No. 10, Jakarta"
+        }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(templateData);
+
+      const maxLens = Object.keys(templateData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...templateData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Template Pelanggan");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Template_Pelanggan.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Template Excel Pelanggan berhasil diunduh!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengunduh template!', 'error');
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentContact, setCurrentContact] = useState<Contact | null>(null);
@@ -141,6 +303,13 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
 
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      <input
+        type="file"
+        id="pelanggan-excel-import-input"
+        accept=".xlsx, .xls"
+        style={{ display: 'none' }}
+        onChange={handleImportExcel}
+      />
 
       <FilterBar>
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>

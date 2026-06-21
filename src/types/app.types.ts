@@ -27,7 +27,9 @@ export type AppModule =
   | 'produksi-approval'
   | 'produksi-timeline'
   | 'laporan-operasional'
-  | 'import-data';
+  | 'import-data'
+  | 'tambah-tugas'
+  | 'edit-tugas';
 
 export interface AppState {
   activeModule: AppModule;

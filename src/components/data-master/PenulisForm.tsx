@@ -4,7 +4,10 @@ import { useAppContext } from '../../contexts/AppContext';
 import { TextField } from '../../ui/atoms/TextField';
 import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
+import { TextArea } from '../../ui/atoms/TextArea';
+import { Checkbox } from '../../ui/atoms/Checkbox';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
+import { formatWhatsAppNumber } from '../../utils/format';
 
 interface PenulisFormProps {
   initialData?: Penulis | null;
@@ -57,16 +60,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
     }
   }, [initialData]);
 
-  const formatWhatsAppNumber = (phone: string): string => {
-    let cleaned = phone.replace(/\D/g, '');
-    if (!cleaned) return '';
-    if (cleaned.startsWith('08')) {
-      cleaned = '62' + cleaned.substring(1);
-    } else if (cleaned.startsWith('8')) {
-      cleaned = '62' + cleaned;
-    }
-    return cleaned;
-  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +117,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
               />
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <TextField
                     label="Email"
                     type="email"
@@ -132,17 +126,15 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
                     onChange={(e) => setEmail(e.target.value)}
                     fullWidth
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    <input
-                      type="checkbox"
-                      checked={emailValid === 1}
-                      onChange={(e) => setEmailValid(e.target.checked ? 1 : 0)}
-                    />
-                    Email Valid / Aktif
-                  </label>
+                  <Checkbox
+                    label="Email Valid / Aktif"
+                    checked={emailValid === 1}
+                    onChange={(e) => setEmailValid(e.target.checked ? 1 : 0)}
+                    style={{ marginTop: '4px' }}
+                  />
                 </div>
 
-                <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <TextField
                     label="Nomor WhatsApp"
                     placeholder="Contoh: 08123456789"
@@ -151,42 +143,24 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
                     required
                     fullWidth
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    <input
-                      type="checkbox"
-                      checked={waValid === 1}
-                      onChange={(e) => setWaValid(e.target.checked ? 1 : 0)}
-                    />
-                    WhatsApp Valid / Aktif
-                  </label>
+                  <Checkbox
+                    label="WhatsApp Valid / Aktif"
+                    checked={waValid === 1}
+                    onChange={(e) => setWaValid(e.target.checked ? 1 : 0)}
+                    style={{ marginTop: '4px' }}
+                  />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Alamat Lengkap
-                </label>
-                <textarea
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    height: '80px',
-                    resize: 'vertical',
-                    boxSizing: 'border-box',
-                    lineHeight: '1.4'
-                  }}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Contoh: Jl. Diponegoro No. 12, Surabaya, Jawa Timur"
-                  required
-                />
-              </div>
+              <TextArea
+                label="Alamat Lengkap"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Contoh: Jl. Diponegoro No. 12, Surabaya, Jawa Timur"
+                required
+                style={{ height: '80px' }}
+                fullWidth
+              />
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <TextField
@@ -224,29 +198,14 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Catatan Tambahan
-                </label>
-                <textarea
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    height: '100px',
-                    resize: 'vertical',
-                    boxSizing: 'border-box'
-                  }}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Catatan tambahan..."
-                />
-              </div>
+              <TextArea
+                label="Catatan Tambahan"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Catatan tambahan..."
+                style={{ height: '100px' }}
+                fullWidth
+              />
             </div>
           </AccordionSection>
         </Accordion>

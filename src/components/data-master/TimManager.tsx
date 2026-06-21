@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { useAppContext } from '../../contexts/AppContext';
 import { Tim } from '../../types/data-master.types';
@@ -7,6 +7,9 @@ import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
 import { Badge } from '../../ui/atoms/Badge';
 import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
+import * as XLSX from 'xlsx';
+import { save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 
 interface TimManagerProps {
   searchQuery?: string;
@@ -28,7 +31,173 @@ const formatTanggal = (isoString: string) => {
 
 const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
   const { tim, addTim, updateTim, deleteTim } = useDataMasterContext();
-  const { showConfirm, showToast, setSelectedTimId, setRightPanelVisible, addFile, files } = useAppContext();
+  const { showConfirm, showToast, setSelectedTimId, setRightPanelVisible, addFile, files, registerImportExportActions } = useAppContext();
+
+  useEffect(() => {
+    const actions = {
+      onImport: () => document.getElementById('tim-excel-import-input')?.click(),
+      onExport: handleExportExcel,
+      onDownloadTemplate: handleDownloadTemplate
+    };
+    registerImportExportActions('tim', actions);
+    return () => {
+      registerImportExportActions('tim', null);
+    };
+  }, [tim]);
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws) as any[];
+
+        if (data.length === 0) {
+          showToast('File Excel kosong!', 'error');
+          return;
+        }
+
+        let importedCount = 0;
+        let errorCount = 0;
+
+        for (const row of data) {
+          const name = row.Nama || row.nama || row.Name || row.name || row["Nama Anggota"];
+          if (!name) {
+            errorCount++;
+            continue;
+          }
+
+          const role = row.Peran || row.peran || row.Role || row.role || 'Layouter';
+          const department = row.Divisi || row.divisi || row.Department || row.department || row.Departemen || row.departemen;
+          const weekly_target = parseInt(row["Target Mingguan"] || row.target || row.weekly_target || '0', 10);
+          const is_active_str = String(row.Status || row.status || 'Aktif').toLowerCase();
+          const is_active = (is_active_str.includes('non') || is_active_str.includes('pasif') || is_active_str === '0') ? 0 : 1;
+          const notes = row.Catatan || row.catatan || row.Notes || row.notes;
+
+          try {
+            await addTim({
+              name: String(name).trim(),
+              role: String(role).trim(),
+              department: department ? String(department).trim() : undefined,
+              is_active,
+              weekly_target: isNaN(weekly_target) ? 0 : weekly_target,
+              notes: notes ? String(notes).trim() : undefined,
+            });
+            importedCount++;
+          } catch (err) {
+            console.error('Gagal mengimpor anggota tim:', err);
+            errorCount++;
+          }
+        }
+
+        showToast(`Impor anggota tim berhasil! ${importedCount} data dimasukkan.${errorCount > 0 ? ` Gagal: ${errorCount}` : ''}`, 'success');
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal memproses file Excel!', 'error');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      if (tim.length === 0) {
+        showToast('Tidak ada anggota tim untuk diekspor!', 'info');
+        return;
+      }
+
+      const exportData = tim.map((l, idx) => ({
+        "No": idx + 1,
+        "Nama Anggota": l.name,
+        "Peran": l.role,
+        "Divisi/Departemen": l.department || '',
+        "Target Mingguan": l.weekly_target,
+        "Status": l.is_active === 1 ? 'Aktif' : 'Nonaktif',
+        "Catatan": l.notes || '',
+        "Tanggal Terdaftar": l.created_at ? l.created_at.substring(0, 10) : ''
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      const maxLens = Object.keys(exportData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...exportData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Daftar Tim");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Tim_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Data Anggota Tim berhasil diekspor!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengekspor data tim!', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const templateData = [
+        {
+          "Nama Anggota": "Hana Safitri",
+          "Peran": "Layouter",
+          "Divisi": "Produksi",
+          "Target Mingguan": 3,
+          "Status": "Aktif",
+          "Catatan": "Menguasai Adobe InDesign dan Affinity Publisher"
+        }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(templateData);
+
+      const maxLens = Object.keys(templateData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...templateData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Template Tim");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Template_Tim.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Template Excel Tim berhasil diunduh!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengunduh template!', 'error');
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentMember, setCurrentMember] = useState<Tim | null>(null);
@@ -186,6 +355,13 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
 
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      <input
+        type="file"
+        id="tim-excel-import-input"
+        accept=".xlsx, .xls"
+        style={{ display: 'none' }}
+        onChange={handleImportExcel}
+      />
 
       <FilterBar>
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>

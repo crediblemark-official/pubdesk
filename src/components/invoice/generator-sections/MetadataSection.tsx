@@ -1,12 +1,12 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
+import { DatePicker } from '../../../ui/atoms/DatePicker';
 
 interface MetadataSectionProps {
   rightPanelVisible: boolean;
 }
 
 export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisible }) => {
-  const dateRef = useRef<HTMLInputElement>(null);
   const {
     profiles,
     activeProfileId,
@@ -79,16 +79,12 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
           </div>
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Tanggal Invoice</label>
-          <div style={{ position: 'relative' }} onClick={() => dateRef.current?.showPicker()}>
-            <input
-              ref={dateRef}
-              type="date"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)', cursor: 'pointer' }}
-              value={invoiceDate}
-              onChange={(e) => setInvoiceDate(e.target.value)}
-            />
-          </div>
+          <DatePicker
+            label="Tanggal Invoice"
+            value={invoiceDate}
+            onChange={setInvoiceDate}
+            fullWidth
+          />
         </div>
       </div>
 

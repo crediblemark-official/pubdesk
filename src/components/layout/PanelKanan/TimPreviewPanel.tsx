@@ -1,61 +1,13 @@
 import React, { useMemo } from 'react';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { Badge } from '../../../ui/atoms/Badge';
+import { InfoRow } from '../../../ui/molecules/InfoRow';
+import { SectionCard } from '../../../ui/molecules/SectionCard';
 
 interface TimPreviewPanelProps {
   timId: number | null;
 }
 
-// Baris info — label + value
-const InfoRow = ({
-  label,
-  value,
-  noBorder = false,
-}: {
-  label: string;
-  value: React.ReactNode;
-  noBorder?: boolean;
-}) => (
-  <div style={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '8px',
-    ...(noBorder ? {} : { borderBottom: '1px solid var(--border)', paddingBottom: '8px' })
-  }}>
-    <span style={{ color: 'var(--text-secondary)', fontSize: '12px', flexShrink: 0 }}>{label}</span>
-    <strong style={{ color: 'var(--text-primary)', fontSize: '12px', textAlign: 'right' }}>{value}</strong>
-  </div>
-);
-
-// Kartu section standar
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div>
-    <h5 style={{
-      fontSize: '11px',
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: '0.8px',
-      color: 'var(--text-secondary)',
-      marginBottom: '8px'
-    }}>
-      {title}
-    </h5>
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      background: 'var(--bg-card)',
-      padding: '12px 14px',
-      borderRadius: '10px',
-      border: '1px solid var(--border)',
-    }}>
-      {children}
-    </div>
-  </div>
-);
-
-// Warna gradient per peran
 const ROLE_GRADIENT: Record<string, string> = {
   'Layouter': 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
   'Desainer Cover': 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
@@ -77,15 +29,9 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ timId }) => {
     return tim.find((l) => l.id === timId) || null;
   }, [tim, timId]);
 
-  // Hitung kelengkapan profil
   const completeness = useMemo(() => {
     if (!memberData) return 0;
-    const fields = [
-      memberData.name,
-      memberData.role,
-      memberData.department,
-      memberData.notes,
-    ];
+    const fields = [memberData.name, memberData.role, memberData.department, memberData.notes];
     const filled = fields.filter(Boolean).length;
     return Math.round((filled / fields.length) * 100);
   }, [memberData]);
@@ -93,14 +39,9 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ timId }) => {
   if (!timId || !memberData) {
     return (
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        background: 'var(--bg-panel)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '20px',
-        gap: '12px'
+        display: 'flex', flexDirection: 'column', height: '100%',
+        background: 'var(--bg-panel)', justifyContent: 'center', alignItems: 'center',
+        padding: '20px', gap: '12px',
       }}>
         <div style={{ fontSize: '40px', opacity: 0.3 }}>👥</div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center', fontWeight: '500', lineHeight: '1.5' }}>
@@ -112,163 +53,69 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ timId }) => {
 
   const nameInitial = memberData.name.charAt(0).toUpperCase();
   const gradient = ROLE_GRADIENT[memberData.role] || 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+  const completenessColor = completeness >= 80 ? '#22c55e' : completeness >= 50 ? '#f59e0b' : '#f87171';
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      background: 'var(--bg-panel)',
-      overflowY: 'auto'
-    }}>
-
-      {/* Header Inspektur — sticky */}
-      <div style={{
-        padding: '16px 20px',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--bg-card)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1,
-      }}>
-        {/* Avatar + nama + role */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', overflowY: 'auto' }}>
+      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)', position: 'sticky', top: 0, zIndex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '50%',
-            background: gradient,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontSize: '18px',
-            fontWeight: '700',
-            flexShrink: 0,
-            boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+            width: '44px', height: '44px', borderRadius: '50%',
+            background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#ffffff', fontSize: '18px', fontWeight: '700', flexShrink: 0,
+            boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
           }}>
             {nameInitial}
           </div>
-
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h4 style={{
-              fontSize: '14px',
-              fontWeight: '700',
-              color: 'var(--text-primary)',
-              margin: '0 0 6px 0',
-              lineHeight: '1.4',
-              wordBreak: 'break-word'
-            }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px 0', lineHeight: '1.4', wordBreak: 'break-word' }}>
               {memberData.name}
             </h4>
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{
-                padding: '1px 7px',
-                borderRadius: '4px',
-                fontSize: '10px',
-                fontWeight: '600',
-                background: 'rgba(99,102,241,0.12)',
-                color: '#818cf8'
-              }}>
+              <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: '600', background: 'rgba(99,102,241,0.12)', color: '#818cf8' }}>
                 {memberData.role}
               </span>
               {memberData.department && (
-                <span style={{
-                  padding: '1px 7px',
-                  borderRadius: '4px',
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  background: 'rgba(6,182,212,0.12)',
-                  color: '#22d3ee'
-                }}>
+                <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: '600', background: 'rgba(6,182,212,0.12)', color: '#22d3ee' }}>
                   {memberData.department}
                 </span>
               )}
-              <Badge
-                label={memberData.is_active === 1 ? 'Aktif' : 'Nonaktif'}
-                variant={memberData.is_active === 1 ? 'success' : 'neutral'}
-              />
+              <Badge label={memberData.is_active === 1 ? 'Aktif' : 'Nonaktif'} variant={memberData.is_active === 1 ? 'success' : 'neutral'} />
             </div>
           </div>
         </div>
 
-        {/* Progress kelengkapan profil */}
         <div style={{ marginTop: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
             <span>Kelengkapan Profil</span>
-            <span style={{ fontWeight: '600', color: completeness >= 80 ? '#22c55e' : completeness >= 50 ? '#f59e0b' : '#f87171' }}>
-              {completeness}%
-            </span>
+            <span style={{ fontWeight: '600', color: completenessColor }}>{completeness}%</span>
           </div>
           <div style={{ height: '4px', borderRadius: '2px', background: 'var(--border)', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: `${completeness}%`,
-              borderRadius: '2px',
-              background: completeness >= 80 ? '#22c55e' : completeness >= 50 ? '#f59e0b' : '#f87171',
-              transition: 'width 0.4s ease'
-            }} />
+            <div style={{ height: '100%', width: `${completeness}%`, borderRadius: '2px', background: completenessColor, transition: 'width 0.4s ease' }} />
           </div>
         </div>
       </div>
 
-      {/* Konten Detail */}
       <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-        {/* Catatan / Keahlian */}
         {memberData.notes && (
-          <div>
-            <h5 style={{
-              fontSize: '11px',
-              fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '0.8px',
-              color: 'var(--text-secondary)',
-              marginBottom: '8px'
-            }}>
-              Keahlian &amp; Catatan
-            </h5>
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--text-primary)',
-              lineHeight: '1.7',
-              background: 'var(--bg-card)',
-              padding: '12px 14px',
-              borderRadius: '10px',
-              border: '1px solid var(--border)',
-              fontStyle: 'italic',
-              opacity: 0.9
-            }}>
+          <SectionCard title="Keahlian &amp; Catatan">
+            <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.7', fontStyle: 'italic', opacity: 0.9 }}>
               &ldquo;{memberData.notes}&rdquo;
             </div>
-          </div>
+          </SectionCard>
         )}
 
-        {/* Profil Anggota */}
         <SectionCard title="👤 Profil Anggota">
           <InfoRow label="Peran / Jabatan" value={memberData.role} />
           <InfoRow label="Divisi" value={memberData.department || '—'} />
           <InfoRow
             label="Status"
-            value={
-              <Badge
-                label={memberData.is_active === 1 ? 'Aktif' : 'Nonaktif'}
-                variant={memberData.is_active === 1 ? 'success' : 'neutral'}
-              />
-            }
+            value={<Badge label={memberData.is_active === 1 ? 'Aktif' : 'Nonaktif'} variant={memberData.is_active === 1 ? 'success' : 'neutral'} />}
             noBorder
           />
         </SectionCard>
 
-        {/* Footer */}
-        <div style={{
-          borderTop: '1px solid var(--border)',
-          paddingTop: '12px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: '11px',
-          color: 'var(--text-secondary)'
-        }}>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>
           <span>ID: <strong style={{ fontFamily: 'monospace' }}>#{memberData.id}</strong></span>
           <span>
             Bergabung:{' '}
@@ -279,7 +126,6 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ timId }) => {
             </strong>
           </span>
         </div>
-
       </div>
     </div>
   );

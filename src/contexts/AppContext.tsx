@@ -33,6 +33,14 @@ export interface ConfirmOptions {
   onCancel?: () => void;
 }
 
+export interface ImportExportActions {
+  onImport?: () => void | Promise<void>;
+  onExport?: () => void | Promise<void>;
+  onDownloadTemplate?: () => void | Promise<void>;
+  label?: string;
+}
+
+
 interface AppContextType {
   appState: AppState;
   setActiveModule: (module: AppState['activeModule']) => void;
@@ -121,6 +129,10 @@ interface AppContextType {
   setSelectedTimId: (id: number | null) => void;
   selectedLegalitasId: number | null;
   setSelectedLegalitasId: (id: number | null) => void;
+  selectedTaskId: number | null;
+  setSelectedTaskId: (id: number | null) => void;
+  importExportActions: Record<string, ImportExportActions>;
+  registerImportExportActions: (module: string, actions: ImportExportActions | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -151,6 +163,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [selectedNaskahId, setSelectedNaskahId] = useState<number | null>(null);
   const [selectedTimId, setSelectedTimId] = useState<number | null>(null);
   const [selectedLegalitasId, setSelectedLegalitasId] = useState<number | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [importExportActions, setImportExportActions] = useState<Record<string, ImportExportActions>>({});
+
+  const registerImportExportActions = (module: string, actions: ImportExportActions | null) => {
+    setImportExportActions(prev => {
+      if (!actions) {
+        const next = { ...prev };
+        delete next[module];
+        return next;
+      }
+      return { ...prev, [module]: actions };
+    });
+  };
 
   const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
   const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
@@ -527,6 +552,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setSelectedCustomerId(null);
     setSelectedPenulisId(null);
     setSelectedPenerbitId(null);
+    setSelectedTaskId(null);
     setRightPanelVisible(false);
   };
 
@@ -862,6 +888,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSelectedTimId,
       selectedLegalitasId,
       setSelectedLegalitasId,
+      selectedTaskId,
+      setSelectedTaskId,
       addInvoice,
       updateInvoice,
       deleteInvoice,
@@ -911,6 +939,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       getAllFileTags,
       selectedInsightMetric,
       setSelectedInsightMetric,
+      importExportActions,
+      registerImportExportActions,
     }}>
       {children}
     </AppContext.Provider>

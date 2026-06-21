@@ -13,6 +13,29 @@ interface BadgeProps {
 
 // Mapping status string ke variant — digunakan untuk badge status berkas dan invoice
 const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
+  // Status task produksi
+  'Belum Mulai': 'neutral',
+  Proses: 'info',
+  Selesai: 'success',
+  'Menunggu Revisi': 'warning',
+  'Menunggu Approval': 'accent',
+  Terlambat: 'danger',
+  // Status naskah
+  'Belum Dimulai': 'neutral',
+  'Sedang Dikerjakan': 'warning',
+  Batal: 'danger',
+  // Status followup kontak
+  New: 'info',
+  Contacted: 'warning',
+  Interested: 'accent',
+  Deal: 'success',
+  Rejected: 'danger',
+  Pelanggan: 'success',
+  // Status kerjasama penerbit
+  Aktif: 'success',
+  Negosiasi: 'warning',
+  Pasif: 'neutral',
+  Berhenti: 'danger',
   // Status berkas
   Tersimpan: 'success',
   final: 'success',
@@ -20,13 +43,15 @@ const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
   review: 'warning',
   draft: 'neutral',
   Cloud: 'neutral',
-  Aktif: 'success',
   // Status invoice
   LUNAS: 'success',
   BERMASALAH: 'warning',
   'BELUM LUNAS': 'danger',
   DP: 'info',
 };
+
+export const getStatusVariant = (status: string): BadgeVariant =>
+  STATUS_VARIANT_MAP[status] ?? 'neutral';
 
 const VARIANT_STYLE_MAP: Record<BadgeVariant, React.CSSProperties> = {
   success: {

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Contact } from '../../types/contact.types';
 import { useAppContext } from '../../contexts/AppContext';
 import { TextField } from '../../ui/atoms/TextField';
+import { TextArea } from '../../ui/atoms/TextArea';
 import { Button } from '../../ui/atoms/Button';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
+import { formatWhatsAppNumber } from '../../utils/format';
 
 interface PelangganFormProps {
   initialData?: Contact | null;
@@ -34,16 +36,7 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
     }
   }, [initialData]);
 
-  const formatWhatsAppNumber = (phone: string): string => {
-    let cleaned = phone.replace(/\D/g, '');
-    if (!cleaned) return '';
-    if (cleaned.startsWith('08')) {
-      cleaned = '62' + cleaned.substring(1);
-    } else if (cleaned.startsWith('8')) {
-      cleaned = '62' + cleaned;
-    }
-    return cleaned;
-  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,30 +94,14 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Alamat Lengkap
-                </label>
-                <textarea
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    height: '80px',
-                    resize: 'vertical',
-                    boxSizing: 'border-box',
-                    lineHeight: '1.4'
-                  }}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Contoh: Jl. Diponegoro No. 12, Surabaya, Jawa Timur"
-                />
-              </div>
+              <TextArea
+                label="Alamat Lengkap"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Contoh: Jl. Diponegoro No. 12, Surabaya, Jawa Timur"
+                style={{ height: '80px' }}
+                fullWidth
+              />
             </div>
           </AccordionSection>
         </Accordion>

@@ -71,6 +71,7 @@ export interface Tim {
   role: string;
   department?: string; // Divisi/departemen: Produksi, Editorial, Desain, dst.
   is_active: number;
+  weekly_target?: number;
   notes?: string;
   created_at: string;
   updated_at?: string;
@@ -98,6 +99,12 @@ export interface Legalitas {
   tanggal_pengajuan?: string;
   keterangan?: string;
   status: string; // "Diajukan", "Selesai", dll.
+  nomor_dokumen?: string;
+  tanggal_keluar?: string;
+  tanggal_revisi?: string;
+  pic_id?: number;
+  rejection_reason?: string;
+  proof_path_or_link?: string;
   created_at: string;
   updated_at?: string;
 }

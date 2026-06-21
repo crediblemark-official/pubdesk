@@ -26,6 +26,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ children, style }) => (
       alignItems: 'center',
       flexWrap: 'nowrap',
       overflowX: 'auto',
+      overflowY: 'hidden',
       flexShrink: 0,
       height: 44,
       boxSizing: 'border-box',

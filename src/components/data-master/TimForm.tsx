@@ -4,6 +4,8 @@ import { useAppContext } from '../../contexts/AppContext';
 import { TextField } from '../../ui/atoms/TextField';
 import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
+import { TextArea } from '../../ui/atoms/TextArea';
+import { Checkbox } from '../../ui/atoms/Checkbox';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
 
 interface TimFormProps {
@@ -117,40 +119,21 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', marginTop: '8px' }}>
-                  <input
-                    type="checkbox"
-                    checked={isActive === 1}
-                    onChange={(e) => setIsActive(e.target.checked ? 1 : 0)}
-                  />
-                  Anggota Aktif (Siap Menerima Penugasan)
-                </label>
-              </div>
+              <Checkbox
+                label="Anggota Aktif (Siap Menerima Penugasan)"
+                checked={isActive === 1}
+                onChange={(e) => setIsActive(e.target.checked ? 1 : 0)}
+                style={{ marginTop: '4px' }}
+              />
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Keahlian &amp; Catatan
-                </label>
-                <textarea
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    height: '100px',
-                    resize: 'vertical',
-                    boxSizing: 'border-box'
-                  }}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Contoh: Ahli desain cover novel fantasi, mahir Adobe InDesign..."
-                />
-              </div>
+              <TextArea
+                label="Keahlian & Catatan"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Contoh: Ahli desain cover novel fantasi, mahir Adobe InDesign..."
+                style={{ height: '100px' }}
+                fullWidth
+              />
             </div>
           </AccordionSection>
         </Accordion>

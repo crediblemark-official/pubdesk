@@ -7,6 +7,8 @@ import { SearchableSelect } from '../../ui/atoms/SearchableSelect';
 import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
+import { DatePicker } from '../../ui/atoms/DatePicker';
+import { TextArea } from '../../ui/atoms/TextArea';
 
 interface LegalitasFormProps {
   initialData?: Legalitas | null;
@@ -177,37 +179,21 @@ const LegalitasForm: React.FC<LegalitasFormProps> = ({ initialData, onSubmit, on
                 />
               </div>
 
-              <TextField
+              <DatePicker
                 label="Tanggal Pengajuan"
-                type="date"
                 value={tanggalPengajuan}
-                onChange={(e) => setTanggalPengajuan(e.target.value)}
+                onChange={setTanggalPengajuan}
                 fullWidth
               />
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Keterangan
-                </label>
-                <textarea
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    height: '80px',
-                    resize: 'vertical',
-                    boxSizing: 'border-box'
-                  }}
-                  value={keterangan}
-                  onChange={(e) => setKeterangan(e.target.value)}
-                  placeholder="Catatan tambahan terkait pengajuan legalitas ini..."
-                />
-              </div>
+              <TextArea
+                label="Keterangan"
+                value={keterangan}
+                onChange={(e) => setKeterangan(e.target.value)}
+                placeholder="Catatan tambahan terkait pengajuan legalitas ini..."
+                style={{ height: '80px' }}
+                fullWidth
+              />
             </div>
           </AccordionSection>
         </Accordion>

@@ -2,67 +2,13 @@ import React, { useMemo } from 'react';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { useWorkflowContext } from '../../../contexts/WorkflowContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { Badge } from '../../../ui/atoms/Badge';
+import { Badge, getStatusVariant } from '../../../ui/atoms/Badge';
+import { InfoRow } from '../../../ui/molecules/InfoRow';
+import { SectionCard } from '../../../ui/molecules/SectionCard';
 
 interface NaskahPreviewPanelProps {
   naskahId: number | null;
 }
-
-const statusVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'accent'> = {
-  'Belum Dimulai': 'neutral',
-  'Sedang Dikerjakan': 'warning',
-  'Selesai': 'success',
-  'Batal': 'danger'
-};
-
-// Baris info — label + value dengan border bawah opsional
-const InfoRow = ({
-  label,
-  value,
-  noBorder = false,
-}: {
-  label: string;
-  value: React.ReactNode;
-  noBorder?: boolean;
-}) => (
-  <div style={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '8px',
-    ...(noBorder ? {} : { borderBottom: '1px solid var(--border)', paddingBottom: '8px' })
-  }}>
-    <span style={{ color: 'var(--text-secondary)', fontSize: '12px', flexShrink: 0 }}>{label}</span>
-    <strong style={{ color: 'var(--text-primary)', fontSize: '12px', textAlign: 'right' }}>{value}</strong>
-  </div>
-);
-
-// Kartu section standar
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div>
-    <h5 style={{
-      fontSize: '11px',
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: '0.8px',
-      color: 'var(--text-secondary)',
-      marginBottom: '8px'
-    }}>
-      {title}
-    </h5>
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      background: 'var(--bg-card)',
-      padding: '12px 14px',
-      borderRadius: '10px',
-      border: '1px solid var(--border)',
-    }}>
-      {children}
-    </div>
-  </div>
-);
 
 const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => {
   const { naskah, penulis, penerbit } = useDataMasterContext();
@@ -84,20 +30,12 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
     return penerbit.find((p) => p.id === naskahData.penerbit_id) || null;
   }, [naskahData, penerbit]);
 
-  // Kelengkapan data naskah (persentase field terisi)
   const completeness = useMemo(() => {
     if (!naskahData) return 0;
     const fields = [
-      naskahData.naskah_id_code,
-      naskahData.genre,
-      naskahData.total_pages,
-      naskahData.synopsis,
-      naskahData.book_size,
-      naskahData.legal_type,
-      naskahData.penulis_id,
-      naskahData.penerbit_id,
-      naskahData.order_type,
-      naskahData.copies,
+      naskahData.naskah_id_code, naskahData.genre, naskahData.total_pages,
+      naskahData.synopsis, naskahData.book_size, naskahData.legal_type,
+      naskahData.penulis_id, naskahData.penerbit_id, naskahData.order_type, naskahData.copies,
     ];
     const filled = fields.filter(Boolean).length;
     return Math.round((filled / fields.length) * 100);
@@ -106,14 +44,9 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
   if (!naskahId || !naskahData) {
     return (
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        background: 'var(--bg-panel)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '20px',
-        gap: '12px'
+        display: 'flex', flexDirection: 'column', height: '100%',
+        background: 'var(--bg-panel)', justifyContent: 'center', alignItems: 'center',
+        padding: '20px', gap: '12px',
       }}>
         <div style={{ fontSize: '40px', opacity: 0.3 }}>📚</div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center', fontWeight: '500', lineHeight: '1.5' }}>
@@ -124,153 +57,64 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
   }
 
   const titleInitial = naskahData.title.charAt(0).toUpperCase();
+  const completenessColor = completeness >= 80 ? '#22c55e' : completeness >= 50 ? '#f59e0b' : '#f87171';
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      background: 'var(--bg-panel)',
-      overflowY: 'auto'
-    }}>
-
-      {/* Header Inspektur */}
-      <div style={{
-        padding: '16px 20px',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--bg-card)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1,
-      }}>
-        {/* Profil singkat naskah */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', overflowY: 'auto' }}>
+      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)', position: 'sticky', top: 0, zIndex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '10px',
+            width: '44px', height: '44px', borderRadius: '10px',
             background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontSize: '18px',
-            fontWeight: '700',
-            flexShrink: 0,
-            boxShadow: '0 4px 10px rgba(99,102,241,0.3)'
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#ffffff', fontSize: '18px', fontWeight: '700', flexShrink: 0,
+            boxShadow: '0 4px 10px rgba(99,102,241,0.3)',
           }}>
             {titleInitial}
           </div>
-
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h4 style={{
-              fontSize: '14px',
-              fontWeight: '700',
-              color: 'var(--text-primary)',
-              margin: '0 0 6px 0',
-              lineHeight: '1.4',
-              wordBreak: 'break-word'
-            }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px 0', lineHeight: '1.4', wordBreak: 'break-word' }}>
               {naskahData.title}
             </h4>
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
               {naskahData.naskah_id_code && (
-                <span style={{
-                  padding: '1px 6px',
-                  borderRadius: '4px',
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  background: 'rgba(99,102,241,0.12)',
-                  color: '#818cf8',
-                  fontFamily: 'monospace'
-                }}>
+                <span style={{ padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '600', background: 'rgba(99,102,241,0.12)', color: '#818cf8', fontFamily: 'monospace' }}>
                   {naskahData.naskah_id_code}
                 </span>
               )}
               {naskahData.genre && (
-                <span style={{
-                  padding: '1px 6px',
-                  borderRadius: '4px',
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  background: 'rgba(6,182,212,0.12)',
-                  color: '#22d3ee',
-                  textTransform: 'uppercase'
-                }}>
+                <span style={{ padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '600', background: 'rgba(6,182,212,0.12)', color: '#22d3ee', textTransform: 'uppercase' }}>
                   {naskahData.genre}
                 </span>
               )}
-              <Badge
-                label={naskahData.status}
-                variant={statusVariantMap[naskahData.status] || 'neutral'}
-              />
+              <Badge label={naskahData.status} variant={getStatusVariant(naskahData.status)} />
             </div>
           </div>
         </div>
 
-        {/* Progress kelengkapan data */}
         <div style={{ marginTop: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
             <span>Kelengkapan Data</span>
-            <span style={{ fontWeight: '600', color: completeness >= 80 ? '#22c55e' : completeness >= 50 ? '#f59e0b' : '#f87171' }}>
-              {completeness}%
-            </span>
+            <span style={{ fontWeight: '600', color: completenessColor }}>{completeness}%</span>
           </div>
-          <div style={{
-            height: '4px',
-            borderRadius: '2px',
-            background: 'var(--border)',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${completeness}%`,
-              borderRadius: '2px',
-              background: completeness >= 80 ? '#22c55e' : completeness >= 50 ? '#f59e0b' : '#f87171',
-              transition: 'width 0.4s ease'
-            }} />
+          <div style={{ height: '4px', borderRadius: '2px', background: 'var(--border)', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${completeness}%`, borderRadius: '2px', background: completenessColor, transition: 'width 0.4s ease' }} />
           </div>
         </div>
       </div>
 
-      {/* Konten Detail */}
       <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-        {/* Sinopsis */}
         {naskahData.synopsis && (
-          <div>
-            <h5 style={{
-              fontSize: '11px',
-              fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '0.8px',
-              color: 'var(--text-secondary)',
-              marginBottom: '8px'
-            }}>
-              Sinopsis
-            </h5>
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--text-primary)',
-              lineHeight: '1.7',
-              background: 'var(--bg-card)',
-              padding: '12px 14px',
-              borderRadius: '10px',
-              border: '1px solid var(--border)',
-              fontStyle: 'italic',
-              opacity: 0.9
-            }}>
+          <SectionCard title="Sinopsis">
+            <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.7', fontStyle: 'italic', opacity: 0.9 }}>
               &ldquo;{naskahData.synopsis}&rdquo;
             </div>
-          </div>
+          </SectionCard>
         )}
 
-        {/* Identitas Naskah */}
         <SectionCard title="📖 Identitas Naskah">
           {naskahData.naskah_id_code && (
-            <InfoRow label="Kode ID" value={
-              <span style={{ fontFamily: 'monospace', color: '#818cf8' }}>{naskahData.naskah_id_code}</span>
-            } />
+            <InfoRow label="Kode ID" value={<span style={{ fontFamily: 'monospace', color: '#818cf8' }}>{naskahData.naskah_id_code}</span>} />
           )}
           <InfoRow label="Genre" value={naskahData.genre || '—'} />
           <InfoRow label="Jumlah Halaman" value={naskahData.total_pages ? `${naskahData.total_pages} hlm` : '—'} />
@@ -278,7 +122,6 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
           <InfoRow label="Legalitas" value={naskahData.legal_type || '—'} noBorder />
         </SectionCard>
 
-        {/* Toko Online / Distribusi */}
         {naskahData.store_links && (
           <SectionCard title="🌐 Toko Online / Distribusi">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -293,17 +136,10 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
                         target="_blank"
                         rel="noreferrer"
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '10px 14px',
-                          background: 'var(--bg-surface)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          textDecoration: 'none',
-                          color: 'var(--text-primary)',
-                          transition: 'background 0.2s ease',
-                          cursor: 'pointer'
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '10px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border)',
+                          borderRadius: '8px', textDecoration: 'none', color: 'var(--text-primary)',
+                          transition: 'background 0.2s ease', cursor: 'pointer',
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
@@ -324,7 +160,6 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
           </SectionCard>
         )}
 
-        {/* Penulis */}
         <SectionCard title="✍️ Penulis">
           {penulisData ? (
             <>
@@ -333,23 +168,17 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
                   width: '30px', height: '30px', borderRadius: '50%',
                   background: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: '12px', fontWeight: '700', flexShrink: 0
+                  color: '#fff', fontSize: '12px', fontWeight: '700', flexShrink: 0,
                 }}>
                   {penulisData.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{penulisData.name}</div>
-                  {penulisData.job && (
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>{penulisData.job}</div>
-                  )}
+                  {penulisData.job && <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>{penulisData.job}</div>}
                 </div>
               </div>
-              {penulisData.institution && (
-                <InfoRow label="Institusi" value={penulisData.institution} />
-              )}
-              {(penulisData.city || penulisData.province) && (
-                <InfoRow label="Lokasi" value={[penulisData.city, penulisData.province].filter(Boolean).join(', ')} />
-              )}
+              {penulisData.institution && <InfoRow label="Institusi" value={penulisData.institution} />}
+              {(penulisData.city || penulisData.province) && <InfoRow label="Lokasi" value={[penulisData.city, penulisData.province].filter(Boolean).join(', ')} />}
               {penulisData.wa_number && (
                 <InfoRow label="WhatsApp" value={
                   <span style={{ color: '#4ade80' }}>
@@ -366,9 +195,7 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
                   </span>
                 } />
               )}
-              {penulisData.followup_status && (
-                <InfoRow label="Status Followup" value={penulisData.followup_status} noBorder />
-              )}
+              {penulisData.followup_status && <InfoRow label="Status Followup" value={penulisData.followup_status} noBorder />}
             </>
           ) : (
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center', padding: '4px 0' }}>
@@ -377,7 +204,6 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
           )}
         </SectionCard>
 
-        {/* Penerbit */}
         <SectionCard title="🏢 Penerbit Mitra">
           {penerbitData ? (
             <>
@@ -386,20 +212,16 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
                   width: '30px', height: '30px', borderRadius: '8px',
                   background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: '12px', fontWeight: '700', flexShrink: 0
+                  color: '#fff', fontSize: '12px', fontWeight: '700', flexShrink: 0,
                 }}>
                   {penerbitData.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{penerbitData.name}</div>
-                  {penerbitData.cooperation_status && (
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>{penerbitData.cooperation_status}</div>
-                  )}
+                  {penerbitData.cooperation_status && <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>{penerbitData.cooperation_status}</div>}
                 </div>
               </div>
-              {(penerbitData.city || penerbitData.province) && (
-                <InfoRow label="Lokasi" value={[penerbitData.city, penerbitData.province].filter(Boolean).join(', ')} />
-              )}
+              {(penerbitData.city || penerbitData.province) && <InfoRow label="Lokasi" value={[penerbitData.city, penerbitData.province].filter(Boolean).join(', ')} />}
               {penerbitData.wa_number && (
                 <InfoRow label="WhatsApp" value={
                   <span style={{ color: '#4ade80' }}>
@@ -416,9 +238,7 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
                   </span>
                 } />
               )}
-              {penerbitData.notes && (
-                <InfoRow label="Catatan" value={penerbitData.notes} noBorder />
-              )}
+              {penerbitData.notes && <InfoRow label="Catatan" value={penerbitData.notes} noBorder />}
             </>
           ) : (
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center', padding: '4px 0' }}>
@@ -427,7 +247,6 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
           )}
         </SectionCard>
 
-        {/* Tasks Produksi */}
         <SectionCard title="🏭 Tasks Produksi">
           {(() => {
             const relatedTasks = tasks.filter((t) => t.naskah_id === naskahData.id);
@@ -438,112 +257,53 @@ const NaskahPreviewPanel: React.FC<NaskahPreviewPanelProps> = ({ naskahId }) => 
                 </div>
               );
             }
-
-            const getTaskStatusColor = (status: string) => {
-              switch (status) {
-                case 'Selesai':
-                  return { bg: '#dcfce7', text: '#166534' };
-                case 'Proses':
-                  return { bg: '#dbeafe', text: '#1e40af' };
-                case 'Menunggu Revisi':
-                  return { bg: '#fef3c7', text: '#92400e' };
-                case 'Menunggu Approval':
-                  return { bg: '#ede9fe', text: '#5b21b6' };
-                case 'Terlambat':
-                  return { bg: '#fee2e2', text: '#991b1b' };
-                default:
-                  return { bg: '#f1f5f9', text: '#475569' };
-              }
-            };
-
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {relatedTasks.map((task) => {
-                  const statusStyle = getTaskStatusColor(task.status);
-                  return (
-                    <div
-                      key={task.id}
-                      style={{
-                        padding: '10px 12px',
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'background 0.2s ease',
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = 'var(--bg-card)')
+                {relatedTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    style={{
+                      padding: '10px 12px', background: 'var(--bg-surface)',
+                      border: '1px solid var(--border)', borderRadius: '8px',
+                      cursor: 'pointer', transition: 'background 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+                    onClick={() => {
+                      if (task.id) {
+                        setSelectedTaskId(task.id);
+                        setRightPanelVisible(true);
+                        setActiveModule('produksi-list');
                       }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = 'var(--bg-surface)')
-                      }
-                      onClick={() => {
-                        if (task.id) {
-                          setSelectedTaskId(task.id);
-                          setRightPanelVisible(true);
-                          setActiveModule('produksi-list');
-                        }
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: '600', fontSize: '13px' }}>
-                            {task.step_name}
-                          </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                            {task.pic_name || '—'}
-                            {task.pic_name && task.due_date && ' · '}
-                            {task.due_date
-                              ? new Date(task.due_date).toLocaleDateString('id-ID')
-                              : '—'}
-                          </div>
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: '600', fontSize: '13px' }}>{task.step_name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                          {task.pic_name || '—'}
+                          {task.pic_name && task.due_date && ' · '}
+                          {task.due_date ? new Date(task.due_date).toLocaleDateString('id-ID') : '—'}
                         </div>
-                        <span
-                          style={{
-                            padding: '4px 10px',
-                            borderRadius: '12px',
-                            background: statusStyle.bg,
-                            color: statusStyle.text,
-                            fontSize: '11px',
-                            fontWeight: '600',
-                          }}
-                        >
-                          {task.status}
-                        </span>
                       </div>
+                      <Badge label={task.status} variant={getStatusVariant(task.status)} />
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             );
           })()}
         </SectionCard>
 
-        {/* Detail Produksi */}
         <SectionCard title="📦 Detail Penerbitan">
           <InfoRow label="Tipe Order" value={naskahData.order_type || '—'} />
           <InfoRow label="Jumlah Cetak" value={naskahData.copies ? `${naskahData.copies} eksemplar` : '—'} noBorder />
         </SectionCard>
 
-        {/* Footer */}
-        <div style={{
-          borderTop: '1px solid var(--border)',
-          paddingTop: '12px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: '11px',
-          color: 'var(--text-secondary)'
-        }}>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>
           <span>ID: <strong style={{ fontFamily: 'monospace' }}>#{naskahData.id}</strong></span>
           <span>Dibuat: <strong>{naskahData.created_at ? new Date(naskahData.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</strong></span>
         </div>
-
       </div>
     </div>
   );

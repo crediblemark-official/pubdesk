@@ -4,6 +4,8 @@ import { useAppContext } from '../../contexts/AppContext';
 import { TextField } from '../../ui/atoms/TextField';
 import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
+import { TextArea } from '../../ui/atoms/TextArea';
+import { Checkbox } from '../../ui/atoms/Checkbox';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
 
 interface PenerbitFormProps {
@@ -150,7 +152,7 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <TextField
                     label="Email Resmi"
                     type="email"
@@ -159,17 +161,15 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
                     onChange={(e) => setEmail(e.target.value)}
                     fullWidth
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    <input
-                      type="checkbox"
-                      checked={emailValid === 1}
-                      onChange={(e) => setEmailValid(e.target.checked ? 1 : 0)}
-                    />
-                    Email Valid / Aktif
-                  </label>
+                  <Checkbox
+                    label="Email Valid / Aktif"
+                    checked={emailValid === 1}
+                    onChange={(e) => setEmailValid(e.target.checked ? 1 : 0)}
+                    style={{ marginTop: '4px' }}
+                  />
                 </div>
 
-                <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <TextField
                     label="Nomor WhatsApp PIC"
                     placeholder="Contoh: 08123456789"
@@ -177,41 +177,23 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
                     onChange={(e) => setWaNumber(e.target.value)}
                     fullWidth
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    <input
-                      type="checkbox"
-                      checked={waValid === 1}
-                      onChange={(e) => setWaValid(e.target.checked ? 1 : 0)}
-                    />
-                    WhatsApp Valid / PIC Aktif
-                  </label>
+                  <Checkbox
+                    label="WhatsApp Valid / PIC Aktif"
+                    checked={waValid === 1}
+                    onChange={(e) => setWaValid(e.target.checked ? 1 : 0)}
+                    style={{ marginTop: '4px' }}
+                  />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                  Alamat Lengkap Kantor
-                </label>
-                <textarea
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    height: '80px',
-                    resize: 'vertical',
-                    boxSizing: 'border-box',
-                    lineHeight: '1.4'
-                  }}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Contoh: Jl. Ringroad Utara No. 12, Sleman, Yogyakarta"
-                />
-              </div>
+              <TextArea
+                label="Alamat Lengkap Kantor"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Contoh: Jl. Ringroad Utara No. 12, Sleman, Yogyakarta"
+                style={{ height: '80px' }}
+                fullWidth
+              />
             </div>
           </AccordionSection>
 
@@ -256,30 +238,14 @@ const PenerbitForm: React.FC<PenerbitFormProps> = ({ initialData, onSubmit, onCa
           </AccordionSection>
 
           <AccordionSection index={3} title="📝 Catatan Kemitraan" expandedSection={expandedSection} onToggle={setExpandedSection}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                Catatan / MoU / Kesepakatan Khusus
-              </label>
-              <textarea
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                  outline: 'none',
-                  height: '80px',
-                  resize: 'vertical',
-                  boxSizing: 'border-box',
-                  lineHeight: '1.4'
-                }}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Tulis detail kesepakatan harga cetak, nomor kontrak, atau PIC penting..."
-              />
-            </div>
+            <TextArea
+              label="Catatan / MoU / Kesepakatan Khusus"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Tulis detail kesepakatan harga cetak, nomor kontrak, atau PIC penting..."
+              style={{ height: '80px' }}
+              fullWidth
+            />
           </AccordionSection>
         </Accordion>
 

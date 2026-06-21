@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { Service } from '../../types/service.types';
 import { formatPrice } from '../../utils/format';
@@ -6,6 +6,9 @@ import ServiceForm from './ServiceForm';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
 import { FilterBar, FilterGroup, FilterDivider } from '../../ui/molecules/FilterBar';
+import * as XLSX from 'xlsx';
+import { save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 
 const getCategoryLabel = (cat: string) => {
   switch (cat) {
@@ -24,7 +27,170 @@ interface ServiceManagerProps {
 }
 
 const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => {
-  const { services, addService, updateService, deleteService, showToast, selectedServiceId, setSelectedServiceId, addFile, files, showConfirm, setRightPanelVisible } = useAppContext();
+  const { services, addService, updateService, deleteService, showToast, selectedServiceId, setSelectedServiceId, addFile, files, showConfirm, setRightPanelVisible, registerImportExportActions } = useAppContext();
+
+  useEffect(() => {
+    const actions = {
+      onImport: () => document.getElementById('services-excel-import-input')?.click(),
+      onExport: handleExportExcel,
+      onDownloadTemplate: handleDownloadTemplate
+    };
+    registerImportExportActions('services', actions);
+    return () => {
+      registerImportExportActions('services', null);
+    };
+  }, [services]);
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws) as any[];
+
+        if (data.length === 0) {
+          showToast('File Excel kosong!', 'error');
+          return;
+        }
+
+        let importedCount = 0;
+        let errorCount = 0;
+
+        for (const row of data) {
+          const name = row["Nama Layanan"] || row.Nama || row.nama || row.Name || row.name;
+          if (!name) {
+            errorCount++;
+            continue;
+          }
+
+          const price = parseFloat(row.Tarif || row.Harga || row.harga || row.Price || row.price || '0');
+          const description = row.Deskripsi || row.deskripsi || row.Description || row.description;
+          const category_raw = String(row.Kategori || row.kategori || row.Category || row.category || 'other').toLowerCase();
+          
+          let category = 'other';
+          if (category_raw.includes('penerbitan')) category = 'penerbitan';
+          else if (category_raw.includes('desain') || category_raw.includes('layout')) category = 'desain_layout';
+          else if (category_raw.includes('haki')) category = 'haki';
+          else if (category_raw.includes('isbn')) category = 'isbn';
+          else if (category_raw.includes('mitra')) category = 'mitra';
+
+          try {
+            await addService({
+              name: String(name).trim(),
+              price: isNaN(price) ? 0 : price,
+              description: description ? String(description).trim() : undefined,
+              category
+            });
+            importedCount++;
+          } catch (err) {
+            console.error('Gagal mengimpor layanan:', err);
+            errorCount++;
+          }
+        }
+
+        showToast(`Impor layanan berhasil! ${importedCount} data dimasukkan.${errorCount > 0 ? ` Gagal: ${errorCount}` : ''}`, 'success');
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal memproses file Excel!', 'error');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      if (services.length === 0) {
+        showToast('Tidak ada layanan untuk diekspor!', 'info');
+        return;
+      }
+
+      const exportData = services.map((s, idx) => ({
+        "No": idx + 1,
+        "Nama Layanan": s.name,
+        "Kategori": getCategoryLabel(s.category),
+        "Tarif": s.price,
+        "Deskripsi": s.description || ''
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      const maxLens = Object.keys(exportData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...exportData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Layanan");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Layanan_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Data Layanan berhasil diekspor!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengekspor data layanan!', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const templateData = [
+        {
+          "Nama Layanan": "Layout Buku Standar",
+          "Kategori": "Desain & Layout",
+          "Tarif": 350000,
+          "Deskripsi": "Layout standar menggunakan Adobe InDesign untuk ukuran A5, maksimal 200 halaman."
+        }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(templateData);
+
+      const maxLens = Object.keys(templateData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...templateData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Template Layanan");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Template_Layanan.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Template Excel Layanan berhasil diunduh!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengunduh template!', 'error');
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentService, setCurrentService] = useState<Service | null>(null);
@@ -148,6 +314,13 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
 
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      <input
+        type="file"
+        id="services-excel-import-input"
+        accept=".xlsx, .xls"
+        style={{ display: 'none' }}
+        onChange={handleImportExcel}
+      />
 
       <FilterBar>
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>

@@ -1,54 +1,55 @@
 import React from 'react';
 import { useWorkflowContext } from '../../contexts/WorkflowContext';
 
-const ProduksiTimeline: React.FC = () => {
+const STATUS_COLOR_MAP: Record<string, string> = {
+  Selesai: '#22c55e',
+  Proses: '#3b82f6',
+  'Menunggu Revisi': '#f59e0b',
+  'Menunggu Approval': '#8b5cf6',
+  Terlambat: '#ef4444',
+};
+
+const getStatusColor = (status: string | null | undefined): string =>
+  STATUS_COLOR_MAP[status ?? ''] ?? '#64748b';
+
+const ProduksiTimeline: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) => {
   const { taskHistories, isLoading } = useWorkflowContext();
 
-  const getStatusColor = (status: string | null | undefined) => {
-    switch (status) {
-      case 'Selesai': return '#22c55e';
-      case 'Proses': return '#3b82f6';
-      case 'Menunggu Revisi': return '#f59e0b';
-      case 'Menunggu Approval': return '#8b5cf6';
-      case 'Terlambat': return '#ef4444';
-      default: return '#64748b'; // Belum Mulai / null
-    }
-  };
+  const filteredHistories = React.useMemo(() => {
+    if (!searchQuery) return taskHistories;
+    const lowerQuery = searchQuery.toLowerCase();
+    return taskHistories.filter(h =>
+      (h.naskah_title || '').toLowerCase().includes(lowerQuery) ||
+      (h.step_name || '').toLowerCase().includes(lowerQuery) ||
+      (h.changed_by || '').toLowerCase().includes(lowerQuery)
+    );
+  }, [taskHistories, searchQuery]);
 
   return (
     <div className="module-content" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '28px', fontWeight: '700' }}>Produksi Naskah &gt; Timeline Produksi</h2>
-        <p style={{ margin: '6px 0 0 0', color: 'var(--text-secondary)', fontSize: '15px' }}>
-          Riwayat kronologis seluruh aktivitas perubahan tugas dan status produksi.
-        </p>
-      </div>
-
       <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', flex: 1, padding: '24px', overflowY: 'auto' }}>
         {isLoading ? (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>Memuat timeline...</div>
-        ) : taskHistories.length === 0 ? (
+        ) : filteredHistories.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>Belum ada riwayat produksi.</div>
         ) : (
           <div style={{ position: 'relative', paddingLeft: '24px' }}>
-            {/* Garis vertikal timeline */}
-            <div style={{ position: 'absolute', left: '7px', top: '0', bottom: '0', width: '2px', background: 'var(--border)' }}></div>
-            
-            {taskHistories.map((h, index) => (
+            <div style={{ position: 'absolute', left: '7px', top: '0', bottom: '0', width: '2px', background: 'var(--border)' }} />
+
+            {filteredHistories.map((h, index) => (
               <div key={index} style={{ position: 'relative', marginBottom: '24px', paddingLeft: '24px' }}>
-                {/* Dot */}
-                <div style={{ 
-                  position: 'absolute', 
-                  left: '-22px', 
-                  top: '4px', 
-                  width: '12px', 
-                  height: '12px', 
-                  borderRadius: '50%', 
+                <div style={{
+                  position: 'absolute',
+                  left: '-22px',
+                  top: '4px',
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
                   background: getStatusColor(h.new_status),
                   border: '2px solid var(--bg-card)',
-                  boxShadow: '0 0 0 1px var(--border)'
-                }}></div>
-                
+                  boxShadow: '0 0 0 1px var(--border)',
+                }} />
+
                 <div style={{ background: 'var(--bg-panel)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>

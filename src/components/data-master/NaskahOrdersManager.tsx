@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { useAppContext } from '../../contexts/AppContext';
 import { Naskah } from '../../types/data-master.types';
@@ -7,6 +7,9 @@ import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
 import { Badge } from '../../ui/atoms/Badge';
 import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
+import * as XLSX from 'xlsx';
+import { save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 
 interface NaskahOrdersManagerProps {
   searchQuery?: string;
@@ -23,7 +26,224 @@ const STATUS_LIST = ['Belum Dimulai', 'Sedang Dikerjakan', 'Selesai', 'Batal'];
 
 const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery = '' }) => {
   const { naskah, penulis, penerbit, addNaskah, updateNaskah, deleteNaskah } = useDataMasterContext();
-  const { showConfirm, showToast, setSelectedNaskahId, setRightPanelVisible, addFile, files } = useAppContext();
+  const { showConfirm, showToast, setSelectedNaskahId, setRightPanelVisible, addFile, files, registerImportExportActions } = useAppContext();
+
+  useEffect(() => {
+    const actions = {
+      onImport: () => document.getElementById('naskah-excel-import-input')?.click(),
+      onExport: handleExportExcel,
+      onDownloadTemplate: handleDownloadTemplate
+    };
+    registerImportExportActions('naskah', actions);
+    return () => {
+      registerImportExportActions('naskah', null);
+    };
+  }, [naskah, penulis, penerbit]);
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws) as any[];
+
+        if (data.length === 0) {
+          showToast('File Excel kosong!', 'error');
+          return;
+        }
+
+        let importedCount = 0;
+        let errorCount = 0;
+
+        for (const row of data) {
+          const title = row["Judul Naskah"] || row.Judul || row.judul || row.Title || row.title;
+          if (!title) {
+            errorCount++;
+            continue;
+          }
+
+          // Lookup penulis_id by name
+          let penulis_id: number | undefined = undefined;
+          const penulisName = row.Penulis || row["Nama Penulis"] || row.penulis || row.Author || row.author;
+          if (penulisName) {
+            const foundPenulis = penulis.find(p => p.name.toLowerCase() === String(penulisName).trim().toLowerCase());
+            if (foundPenulis) {
+              penulis_id = foundPenulis.id;
+            }
+          }
+
+          // Lookup penerbit_id by name
+          let penerbit_id: number | undefined = undefined;
+          const penerbitName = row.Penerbit || row["Nama Penerbit"] || row.penerbit || row.Publisher || row.publisher;
+          if (penerbitName) {
+            const foundPenerbit = penerbit.find(p => p.name.toLowerCase() === String(penerbitName).trim().toLowerCase());
+            if (foundPenerbit) {
+              penerbit_id = foundPenerbit.id;
+            }
+          }
+
+          const genre = row.Genre || row.genre || row.Kategori || row.kategori;
+          const total_pages = parseInt(row.Halaman || row.halaman || row.Pages || row.pages || '0', 10);
+          const copies = parseInt(row.Eksemplar || row.eksemplar || row.Copies || row.copies || '0', 10);
+          const book_size = row["Ukuran Buku"] || row["Ukuran"] || row.book_size || row.size;
+          const order_type = row["Tipe Pesanan"] || row["Jenis Pesanan"] || row.order_type;
+          const legal_type = row["Tipe Legalitas"] || row["Legalitas"] || row.legal_type;
+          const status = row.Status || row.status || 'Belum Dimulai';
+
+          try {
+            const newId = await addNaskah({
+              title: String(title).trim(),
+              penulis_id,
+              penerbit_id,
+              genre: genre ? String(genre).trim() : undefined,
+              total_pages: isNaN(total_pages) ? undefined : total_pages,
+              copies: isNaN(copies) ? undefined : copies,
+              book_size: book_size ? String(book_size).trim() : undefined,
+              order_type: order_type ? String(order_type).trim() : undefined,
+              legal_type: legal_type ? String(legal_type).trim() : undefined,
+            });
+
+            if (newId && status && String(status).trim() !== 'Belum Dimulai') {
+              await updateNaskah({
+                id: newId,
+                title: String(title).trim(),
+                penulis_id,
+                penerbit_id,
+                genre: genre ? String(genre).trim() : undefined,
+                total_pages: isNaN(total_pages) ? undefined : total_pages,
+                copies: isNaN(copies) ? undefined : copies,
+                book_size: book_size ? String(book_size).trim() : undefined,
+                order_type: order_type ? String(order_type).trim() : undefined,
+                legal_type: legal_type ? String(legal_type).trim() : undefined,
+                status: String(status).trim(),
+                created_at: new Date().toISOString()
+              });
+            }
+            importedCount++;
+          } catch (err) {
+            console.error('Gagal mengimpor baris naskah:', err);
+            errorCount++;
+          }
+        }
+
+        showToast(`Impor naskah berhasil! ${importedCount} data dimasukkan.${errorCount > 0 ? ` Gagal: ${errorCount}` : ''}`, 'success');
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal memproses file Excel!', 'error');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      if (naskah.length === 0) {
+        showToast('Tidak ada naskah untuk diekspor!', 'info');
+        return;
+      }
+
+      const exportData = naskah.map((o, idx) => ({
+        "No": idx + 1,
+        "Kode Naskah": o.naskah_id_code || '',
+        "Judul Naskah": o.title,
+        "Penulis": getPenulisName(o.penulis_id),
+        "Penerbit": getPenerbitName(o.penerbit_id),
+        "Genre": o.genre || '',
+        "Halaman": o.total_pages || 0,
+        "Tipe Pesanan": o.order_type || '',
+        "Eksemplar": o.copies || 0,
+        "Ukuran Buku": o.book_size || '',
+        "Tipe Legalitas": o.legal_type || '',
+        "Alamat Pengiriman": o.shipping_address || '',
+        "Status": o.status || 'Belum Dimulai',
+        "Tanggal Dibuat": o.created_at ? o.created_at.substring(0, 10) : ''
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      const maxLens = Object.keys(exportData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...exportData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Daftar Naskah");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Naskah_Orders_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Data Naskah berhasil diekspor!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengekspor data naskah!', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const templateData = [
+        {
+          "Judul Naskah": "Lentera Senja",
+          "Penulis": "Budi Santoso",
+          "Penerbit": "PT. Aksara Nusantara",
+          "Genre": "Novel Fiksi",
+          "Halaman": 240,
+          "Tipe Pesanan": "Cetak Aja",
+          "Eksemplar": 1000,
+          "Ukuran Buku": "14x20 cm",
+          "Tipe Legalitas": "ISBN",
+          "Status": "Belum Dimulai"
+        }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(templateData);
+
+      const maxLens = Object.keys(templateData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...templateData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Template Naskah");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Template_Naskah_Orders.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Template Excel Naskah berhasil diunduh!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengunduh template!', 'error');
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<Naskah | null>(null);
@@ -198,6 +418,13 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
 
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      <input
+        type="file"
+        id="naskah-excel-import-input"
+        accept=".xlsx, .xls"
+        style={{ display: 'none' }}
+        onChange={handleImportExcel}
+      />
 
       <FilterBar>
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>

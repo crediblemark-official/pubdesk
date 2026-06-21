@@ -49,7 +49,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               appState.activeModule === 'produksi-board' ||
               appState.activeModule === 'produksi-list' ||
               appState.activeModule === 'produksi-kendala' ||
-              appState.activeModule === 'produksi-approval'
+              appState.activeModule === 'produksi-approval' ||
+              appState.activeModule === 'tambah-tugas' ||
+              appState.activeModule === 'edit-tugas'
             )
           : appState.activeModule === item.id;
           const showSubmenu = item.id === 'files' && !collapsed;
@@ -238,6 +240,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               {showProduksiSubmenu && (
                 <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
                   {[
+                    { module: 'tambah-tugas' as const, label: 'Tambah Tugas Baru', icon: '➕' },
                     { module: 'produksi-board' as const, label: 'Board Produksi', icon: '🎨' },
                     { module: 'produksi-list' as const, label: 'Daftar Tugas', icon: '📄' },
                     { module: 'produksi-kendala' as const, label: 'Revisi & Kendala', icon: '⚠️' },

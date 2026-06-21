@@ -1,32 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { useAppContext } from '../../contexts/AppContext';
 import { Penerbit } from '../../types/data-master.types';
 import PenerbitForm from './PenerbitForm';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
-import { Badge } from '../../ui/atoms/Badge';
+import { Badge, getStatusVariant } from '../../ui/atoms/Badge';
 import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
+import { getWhatsAppLink } from '../../utils/format';
 import * as XLSX from 'xlsx';
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
-
-const getWhatsAppLink = (phone: string) => {
-  let cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    cleaned = '62' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('62') && cleaned.length > 0) {
-    cleaned = '62' + cleaned;
-  }
-  return `https://wa.me/${cleaned}`;
-};
-
-const coopVariantMap: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'accent'> = {
-  'Aktif': 'success',
-  'Negosiasi': 'warning',
-  'Pasif': 'neutral',
-  'Berhenti': 'danger'
-};
 
 interface PenerbitManagerProps {
   searchQuery?: string;
@@ -41,8 +25,11 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
     setSelectedPenerbitId, 
     setRightPanelVisible,
     addFile,
-    files
+    files,
+    registerImportExportActions
   } = useAppContext();
+
+
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentPenerbit, setCurrentPenerbit] = useState<Penerbit | null>(null);
@@ -339,6 +326,18 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
     }
   };
 
+  useEffect(() => {
+    const actions = {
+      onImport: () => document.getElementById('penerbit-excel-import-input')?.click(),
+      onExport: handleExportExcel,
+      onDownloadTemplate: handleDownloadTemplate
+    };
+    registerImportExportActions('penerbit', actions);
+    return () => {
+      registerImportExportActions('penerbit', null);
+    };
+  }, [penerbit, handleExportExcel, handleDownloadTemplate]);
+
   if (isEditing) {
     return (
       <PenerbitForm
@@ -367,46 +366,6 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
         <FilterDivider />
 
         <FilterGroup label="">
-          <Button
-            onClick={handleDownloadTemplate}
-            variant="secondary"
-            size="sm"
-            title="Unduh Template Excel"
-            icon={
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="12" y1="18" x2="12" y2="12" />
-                <polyline points="9 15 12 18 15 15" />
-              </svg>
-            }
-          />
-          <Button
-            onClick={() => document.getElementById('penerbit-excel-import-input')?.click()}
-            variant="secondary"
-            size="sm"
-            title="Impor data Penerbit dari Excel"
-            icon={
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            }
-          />
-          <Button
-            onClick={handleExportExcel}
-            variant="secondary"
-            size="sm"
-            title="Ekspor data Penerbit ke Excel"
-            icon={
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            }
-          />
           <Button
             onClick={handleAddNew}
             variant="primary"
@@ -577,7 +536,7 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
                   <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
                     <Badge
                       label={p.cooperation_status || 'Aktif'}
-                      variant={coopVariantMap[p.cooperation_status || 'Aktif']}
+                      variant={getStatusVariant(p.cooperation_status || 'Aktif')}
                     />
                   </td>
                   <td style={{ padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', position: 'sticky', right: 0, background: 'var(--bg-card)', zIndex: 2, boxShadow: '-2px 0 4px rgba(0,0,0,0.06)' }}>

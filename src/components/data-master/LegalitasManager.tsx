@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { useAppContext } from '../../contexts/AppContext';
 import { Legalitas } from '../../types/data-master.types';
@@ -7,6 +7,9 @@ import { Badge } from '../../ui/atoms/Badge';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
 import LegalitasForm from './LegalitasForm';
+import * as XLSX from 'xlsx';
+import { save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 
 interface LegalitasManagerProps {
   searchQuery?: string;
@@ -16,7 +19,185 @@ const TIPE_LEGALITAS = ['E-ISBN', 'ISBN', 'QRCBN', 'QRSBN', 'HAKI'];
 
 const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' }) => {
   const { legalitas, naskah, addLegalitas, updateLegalitas, deleteLegalitas } = useDataMasterContext();
-  const { showConfirm, showToast, setRightPanelVisible, selectedLegalitasId, setSelectedLegalitasId, addFile, files } = useAppContext();
+  const { showConfirm, showToast, setRightPanelVisible, selectedLegalitasId, setSelectedLegalitasId, addFile, files, registerImportExportActions } = useAppContext();
+
+  useEffect(() => {
+    const actions = {
+      onImport: () => document.getElementById('legalitas-excel-import-input')?.click(),
+      onExport: handleExportExcel,
+      onDownloadTemplate: handleDownloadTemplate
+    };
+    registerImportExportActions('legalitas', actions);
+    return () => {
+      registerImportExportActions('legalitas', null);
+    };
+  }, [legalitas, naskah]);
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws) as any[];
+
+        if (data.length === 0) {
+          showToast('File Excel kosong!', 'error');
+          return;
+        }
+
+        let importedCount = 0;
+        let errorCount = 0;
+
+        for (const row of data) {
+          const judul_buku = row["Judul Buku"] || row.Judul || row.judul || row.Title || row.title || row.judul_buku;
+          if (!judul_buku) {
+            errorCount++;
+            continue;
+          }
+
+          const nama_penulis = row["Nama Penulis"] || row.Penulis || row.penulis || row.Author || row.author || row.nama_penulis || 'Anonim';
+          const tipe = row.Tipe || row.tipe || row.Type || row.type || 'E-ISBN';
+          const tanggal_pengajuan = row["Tanggal Pengajuan"] || row.tanggal_pengajuan || row.date || row.Date;
+          const keterangan = row.Keterangan || row.keterangan || row.Notes || row.notes;
+          const status = row.Status || row.status || 'Diajukan';
+          const nomor_dokumen = row["Nomor Dokumen"] || row.nomor_dokumen || row.document_number;
+
+          // Lookup naskah_id if possible
+          let naskah_id: number | undefined = undefined;
+          const foundNaskah = naskah.find(n => n.title.toLowerCase() === String(judul_buku).trim().toLowerCase());
+          if (foundNaskah) {
+            naskah_id = foundNaskah.id;
+          }
+
+          try {
+            await addLegalitas({
+              judul_buku: String(judul_buku).trim(),
+              nama_penulis: String(nama_penulis).trim(),
+              tipe: String(tipe).trim(),
+              tanggal_pengajuan: tanggal_pengajuan ? String(tanggal_pengajuan).trim() : undefined,
+              keterangan: keterangan ? String(keterangan).trim() : undefined,
+              status: String(status).trim(),
+              nomor_dokumen: nomor_dokumen ? String(nomor_dokumen).trim() : undefined,
+              naskah_id
+            });
+            importedCount++;
+          } catch (err) {
+            console.error('Gagal mengimpor legalitas:', err);
+            errorCount++;
+          }
+        }
+
+        showToast(`Impor data legalitas berhasil! ${importedCount} data dimasukkan.${errorCount > 0 ? ` Gagal: ${errorCount}` : ''}`, 'success');
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal memproses file Excel!', 'error');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      if (legalitas.length === 0) {
+        showToast('Tidak ada data legalitas untuk diekspor!', 'info');
+        return;
+      }
+
+      const exportData = legalitas.map((l, idx) => ({
+        "No": idx + 1,
+        "Judul Buku": l.judul_buku,
+        "Nama Penulis": l.nama_penulis,
+        "Tipe": l.tipe,
+        "Tanggal Pengajuan": l.tanggal_pengajuan ? l.tanggal_pengajuan.substring(0, 10) : '',
+        "Status": l.status,
+        "Nomor Dokumen": l.nomor_dokumen || '',
+        "Tanggal Keluar": l.tanggal_keluar || '',
+        "Rejection Reason": l.rejection_reason || '',
+        "Keterangan": l.keterangan || ''
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      const maxLens = Object.keys(exportData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...exportData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Legalitas");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Legalitas_Export.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Data Legalitas berhasil diekspor!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengekspor data legalitas!', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const templateData = [
+        {
+          "Judul Buku": "Fisika Modern",
+          "Nama Penulis": "Dr. Albert",
+          "Tipe": "ISBN",
+          "Tanggal Pengajuan": "2026-06-20",
+          "Keterangan": "Pengajuan mendesak untuk akreditasi",
+          "Status": "Diajukan",
+          "Nomor Dokumen": ""
+        }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(templateData);
+
+      const maxLens = Object.keys(templateData[0] || {}).map(key => {
+        return Math.max(
+          key.length,
+          ...templateData.map(row => String((row as any)[key] || '').length)
+        );
+      });
+      ws['!cols'] = maxLens.map(len => ({ wch: Math.min(len + 3, 50) }));
+
+      XLSX.utils.book_append_sheet(wb, ws, "Template Legalitas");
+
+      const filePath = await save({
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
+        defaultPath: 'Template_Legalitas.xlsx'
+      });
+
+      if (!filePath) return;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const bytes = new Uint8Array(wbout);
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      showToast('Template Excel Legalitas berhasil diunduh!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengunduh template!', 'error');
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentLegalitas, setCurrentLegalitas] = useState<Legalitas | null>(null);
@@ -174,6 +355,13 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
 
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      <input
+        type="file"
+        id="legalitas-excel-import-input"
+        accept=".xlsx, .xls"
+        style={{ display: 'none' }}
+        onChange={handleImportExcel}
+      />
 
       <FilterBar>
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>

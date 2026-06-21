@@ -28,6 +28,7 @@ import ProduksiList from '../produksi/ProduksiList';
 import ProduksiKendala from '../produksi/ProduksiKendala';
 import ProduksiApproval from '../produksi/ProduksiApproval';
 import ProduksiTimeline from '../produksi/ProduksiTimeline';
+import TaskFormPage from '../produksi/TaskFormPage';
 import LaporanOperasional from '../laporan/LaporanOperasional';
 
 // Modul Pengaturan Tambahan
@@ -120,17 +121,17 @@ const MainLayout = () => {
       case 'activity-log':
         return <ActivityLog />;
       case 'pekerjaan-saya':
-        return <PekerjaanSaya />;
+        return <PekerjaanSaya searchQuery={fileSearchQuery} />;
       case 'produksi-board':
-        return <ProduksiBoard />;
+        return <ProduksiBoard searchQuery={fileSearchQuery} />;
       case 'produksi-list':
-        return <ProduksiList />;
+        return <ProduksiList searchQuery={fileSearchQuery} />;
       case 'produksi-kendala':
-        return <ProduksiKendala />;
+        return <ProduksiKendala searchQuery={fileSearchQuery} />;
       case 'produksi-approval':
-        return <ProduksiApproval />;
+        return <ProduksiApproval searchQuery={fileSearchQuery} />;
       case 'produksi-timeline':
-        return <ProduksiTimeline />;
+        return <ProduksiTimeline searchQuery={fileSearchQuery} />;
       case 'laporan-operasional':
         return <LaporanOperasional />;
       case 'import-data':
@@ -139,6 +140,9 @@ const MainLayout = () => {
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':
         return <Settings />;
+      case 'tambah-tugas':
+      case 'edit-tugas':
+        return <TaskFormPage />;
       default:
         return <InvoiceGenerator />;
     }

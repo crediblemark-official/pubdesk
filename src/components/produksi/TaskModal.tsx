@@ -8,6 +8,7 @@ import { TextField } from '../../ui/atoms/TextField';
 import { TextArea } from '../../ui/atoms/TextArea';
 import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
+import { DatePicker } from '../../ui/atoms/DatePicker';
 
 interface TaskModalProps {
   task?: Task; // if provided, it's edit mode
@@ -160,11 +161,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
           </button>
         </div>
 
-        <TextField 
-          type="date" 
+        <DatePicker 
           label="Deadline" 
           value={dueDate} 
-          onChange={e => setDueDate(e.target.value)} 
+          onChange={setDueDate} 
           fullWidth
         />
 
