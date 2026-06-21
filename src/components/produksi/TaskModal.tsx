@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types/workflow.types';
 import { useAppContext } from '../../contexts/AppContext';
-import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { useWorkflowContext } from '../../contexts/WorkflowContext';
 import { Modal } from '../../ui/molecules/Modal';
 import { TextField } from '../../ui/atoms/TextField';
@@ -20,24 +19,20 @@ interface TaskModalProps {
 const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   const { currentUser } = useAuth();
   const { showToast } = useAppContext();
-  const { tim } = useDataMasterContext();
   const { addTask, updateTask } = useWorkflowContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEdit = !!task;
-  const isAdmin = currentUser?.tim_role.toLowerCase().includes('admin');
-  const [useManualPic, setUseManualPic] = useState(false);
-
   // Form states
   const [naskahId, setNaskahId] = useState(task?.naskah_id || '');
   const [stepName, setStepName] = useState(task?.step_name || '');
-  const [picName, setPicName] = useState(task?.pic_name || (currentUser && !currentUser.tim_role.toLowerCase().includes('admin') ? currentUser.tim_name : ''));
+  const [picName, setPicName] = useState(task?.pic_name || (currentUser ? currentUser.tim_name : ''));
   const [dueDate, setDueDate] = useState(task?.due_date ? task.due_date.split('T')[0] : '');
   const [priority, setPriority] = useState(task?.priority || 'Normal');
   const [status, setStatus] = useState(task?.status || 'Belum Mulai');
   const [notes, setNotes] = useState(task?.notes || '');
 
   useEffect(() => {
-    if (!isEdit && currentUser && !currentUser.tim_role.toLowerCase().includes('admin')) {
+    if (!isEdit && currentUser) {
       setPicName(currentUser.tim_name);
     }
   }, [currentUser, isEdit]);
@@ -58,10 +53,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
     { value: 'Rendah', label: 'Rendah' }
   ];
 
-  const picOptions = [
-    { value: '', label: 'Pilih Penanggung Jawab (PJ) dari Tim...' },
-    ...tim.map(member => ({ value: member.name, label: member.name }))
-  ];
+
 
   const modalTitle = isEdit ? 'Edit Tugas' : 'Tambah Tugas Baru';
 
@@ -89,7 +81,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
           status: 'Belum Mulai',
           priority: priority,
           due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
-          notes: notes
+          notes: notes,
+          assigned_team_id: currentUser?.tim_id
         };
         await addTask(newTask);
         showToast('Tugas berhasil ditambahkan', 'success');
@@ -134,45 +127,19 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
           </>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Penanggung Jawab (PJ)</label>
-          {useManualPic ? (
-            <TextField
-              type="text"
-              value={picName}
-              onChange={e => setPicName(e.target.value)}
-              placeholder="Masukkan nama penanggung jawab..."
-              disabled={!isAdmin}
-              fullWidth
-            />
-          ) : (
-            <Select
-              value={picName}
-              onChange={e => setPicName(e.target.value)}
-              options={picOptions}
-              disabled={!isAdmin}
-              fullWidth
-            />
-          )}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => setUseManualPic(!useManualPic)}
-              style={{
-                fontSize: '12px',
-                color: 'var(--accent)',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-                padding: 0,
-                width: 'fit-content'
-              }}
-            >
-              {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
-            </button>
-          )}
-        </div>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+           <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Penanggung Jawab (PJ)</label>
+           <div style={{ 
+             padding: '10px 14px', 
+             background: 'var(--bg-panel)', 
+             border: '1px solid var(--border)', 
+             borderRadius: '8px', 
+             fontSize: '14px', 
+             color: 'var(--text-secondary)' 
+           }}>
+             👤 {isEdit ? (picName || '-') : (currentUser?.tim_name || '-')} {!isEdit && '(Sesuai Sesi Aktif)'}
+           </div>
+         </div>
 
         <DatePicker 
           label="Deadline" 

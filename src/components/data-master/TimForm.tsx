@@ -70,15 +70,28 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
     { value: 'Admin', label: '🗂️ Admin' },
     { value: 'Fotografer', label: '📷 Fotografer' },
     { value: 'Illustrator', label: '✏️ Illustrator' },
+    { value: 'Kepala Kantor', label: '👔 Kepala Kantor' },
+    { value: 'HRD', label: '👥 HRD' },
+    { value: 'Direktur', label: '📈 Direktur / Pimpinan' },
+    { value: 'Staf Umum', label: '🛠️ Staf Umum' },
+    { value: 'Staf Gudang', label: '📦 Staf Gudang' },
+    { value: 'Admin Master', label: '🔑 Admin Master' },
   ];
 
   const departmentOptions = [
+    { value: 'Admin Master', label: 'Admin Master' },
     { value: 'Produksi', label: 'Produksi' },
     { value: 'Editorial', label: 'Editorial' },
     { value: 'Desain', label: 'Desain' },
     { value: 'Marketing', label: 'Marketing' },
     { value: 'Keuangan', label: 'Keuangan' },
     { value: 'Administrasi', label: 'Administrasi' },
+    { value: 'Manajemen / Direksi', label: 'Manajemen / Direksi' },
+    { value: 'HRD / Kepegawaian', label: 'HRD / Kepegawaian' },
+    { value: 'Operasional / Umum', label: 'Operasional / Umum' },
+    { value: 'Distribusi / Logistik', label: 'Distribusi / Logistik' },
+    { value: 'Kepala Kantor', label: 'Kepala Kantor' },
+    { value: 'Gudang', label: 'Gudang' },
   ];
 
   return (

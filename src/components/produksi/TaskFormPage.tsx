@@ -15,14 +15,12 @@ import { useAuth } from '../../contexts/AuthContext';
 const TaskFormPage: React.FC = () => {
   const { currentUser } = useAuth();
   const { showToast, setActiveModule, selectedTaskId, appState, setDirectAddNewModule } = useAppContext();
-  const { tim, naskah, penulis, addNaskah } = useDataMasterContext();
+  const { naskah, penulis, addNaskah } = useDataMasterContext();
   const { addTask, updateTask, tasks } = useWorkflowContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [useManualPic, setUseManualPic] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
   const isEdit = appState.activeModule === 'edit-tugas';
-  const isAdmin = currentUser?.tim_role.toLowerCase().includes('admin');
 
   // Form states
   const [naskahId, setNaskahId] = useState('');
@@ -53,10 +51,6 @@ const TaskFormPage: React.FC = () => {
     { value: 'Urgent', label: 'Urgent' }
   ];
 
-  const picOptions = [
-    { value: '', label: 'Pilih Penanggung Jawab (PJ) dari Tim...' },
-    ...tim.map(member => ({ value: member.name, label: member.name }))
-  ];
 
   const penulisOptions = [
     { value: '', label: '-- Pilih Pelanggan / Penulis --' },
@@ -101,7 +95,7 @@ const TaskFormPage: React.FC = () => {
       }
     } else {
       setNaskahId('');
-      setPicName(currentUser && !currentUser.tim_role.toLowerCase().includes('admin') ? currentUser.tim_name : '');
+      setPicName(currentUser ? currentUser.tim_name : '');
       setDueDate('');
       setPriority('Normal');
       setStatus('Belum Mulai');
@@ -179,7 +173,8 @@ const TaskFormPage: React.FC = () => {
             status: 'Belum Mulai',
             priority: priority,
             due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
-            notes: notes
+            notes: notes,
+            assigned_team_id: currentUser?.tim_id
           };
           await addTask(newTask);
           successCount++;
@@ -447,44 +442,19 @@ const TaskFormPage: React.FC = () => {
               )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {useManualPic ? (
-                  <TextField
-                    label="Penanggung Jawab (PJ)"
-                    type="text"
-                    value={picName}
-                    onChange={e => setPicName(e.target.value)}
-                    placeholder="Masukkan nama penanggung jawab..."
-                    disabled={!isAdmin}
-                    fullWidth
-                  />
-                ) : (
-                  <Select
-                    label="Penanggung Jawab (PJ)"
-                    value={picName}
-                    onChange={e => setPicName(e.target.value)}
-                    options={picOptions}
-                    disabled={!isAdmin}
-                    fullWidth
-                  />
-                )}
-                {isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => setUseManualPic(!useManualPic)}
-                    style={{
-                      fontSize: '12px',
-                      color: 'var(--accent)',
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      padding: 0,
-                      width: 'fit-content'
-                    }}
-                  >
-                    {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
-                  </button>
-                )}
+                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                  Penanggung Jawab (PJ)
+                </label>
+                <div style={{ 
+                  padding: '10px 14px', 
+                  background: 'var(--bg-panel)', 
+                  border: '1px solid var(--border)', 
+                  borderRadius: '8px', 
+                  fontSize: '14px', 
+                  color: 'var(--text-secondary)' 
+                }}>
+                  👤 {isEdit ? (picName || '-') : (currentUser?.tim_name || '-')} {!isEdit && '(Sesuai Sesi Aktif)'}
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

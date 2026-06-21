@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuth } from '../../contexts/AuthContext';
+import { Modal } from '../../ui/molecules/Modal';
 
 interface TimMember {
   id?: number;
@@ -32,6 +33,10 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [splashLogo, setSplashLogo] = useState('📚');
   const [logoType, setLogoType] = useState<'emoji' | 'image'>('emoji');
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [selectedAdminForPin, setSelectedAdminForPin] = useState<TimMember | null>(null);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState<string | null>(null);
 
   const [appName, setAppName] = useState('PubDesk');
 
@@ -70,14 +75,45 @@ const LoginPage: React.FC = () => {
 
   const handleLogin = async (member: TimMember) => {
     if (!member.id) return;
-    setLoggingIn(member.id);
-    setError(null);
+    const isMemberAdmin = member.role.toLowerCase().includes('admin') || 
+                          (member.department && member.department.toLowerCase().includes('admin'));
+    
+    if (isMemberAdmin) {
+      setSelectedAdminForPin(member);
+      setPinInput('');
+      setPinError(null);
+      setShowPinModal(true);
+    } else {
+      setLoggingIn(member.id);
+      setError(null);
+      try {
+        await login(member.id);
+      } catch (e) {
+        setError('Gagal login. Silakan coba lagi.');
+        console.error(e);
+      } finally {
+        setLoggingIn(null);
+      }
+    }
+  };
+
+  const handlePinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPinError(null);
+    if (pinInput !== '123456') {
+      setPinError('PIN keamanan admin salah!');
+      return;
+    }
+
+    if (!selectedAdminForPin || !selectedAdminForPin.id) return;
+
+    setLoggingIn(selectedAdminForPin.id);
     try {
-      await login(member.id);
-    } catch (e) {
-      setError('Gagal login. Silakan coba lagi.');
-      console.error(e);
-    } finally {
+      await login(selectedAdminForPin.id);
+      setShowPinModal(false);
+    } catch (err) {
+      setPinError('Gagal login. Silakan coba lagi.');
+      console.error(err);
       setLoggingIn(null);
     }
   };
@@ -280,6 +316,87 @@ const LoginPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {showPinModal && selectedAdminForPin && (
+        <Modal
+          open={showPinModal}
+          onClose={() => {
+            setShowPinModal(false);
+            setSelectedAdminForPin(null);
+          }}
+          title="Verifikasi PIN Admin"
+          width="360px"
+        >
+          <form onSubmit={handlePinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+              Anda mencoba masuk sebagai <strong>{selectedAdminForPin.name}</strong> ({selectedAdminForPin.role}). Masukkan PIN Admin untuk melanjutkan:
+            </p>
+            <input
+              type="password"
+              placeholder="Masukkan 6 digit PIN..."
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              maxLength={6}
+              autoFocus
+              style={{
+                width: '100%',
+                height: '42px',
+                background: 'var(--bg-dark)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                color: 'var(--text-primary)',
+                fontSize: '16px',
+                textAlign: 'center',
+                letterSpacing: '6px',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+            />
+            {pinError && (
+              <span style={{ fontSize: '12px', color: '#ef4444', textAlign: 'center' }}>
+                ⚠️ {pinError}
+              </span>
+            )}
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '6px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPinModal(false);
+                  setSelectedAdminForPin(null);
+                }}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                style={{
+                  background: 'var(--accent)',
+                  border: 'none',
+                  color: 'white',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Masuk
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };
