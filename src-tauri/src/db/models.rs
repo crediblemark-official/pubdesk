@@ -552,6 +552,8 @@ pub struct Task {
     pub naskah_title: Option<String>,
     #[serde(default)]
     pub pic_name: Option<String>,
+    #[serde(default)]
+    pub penulis_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

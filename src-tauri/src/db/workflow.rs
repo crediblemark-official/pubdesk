@@ -61,10 +61,11 @@ impl Database {
             "SELECT t.id, t.naskah_id, t.step_name, t.step_order, t.assigned_team_id, \
              t.status, t.priority, t.start_date, t.due_date, t.completed_date, \
              t.notes, t.proof_path_or_link, t.created_at, t.updated_at, \
-             n.title AS naskah_title, tim.name AS pic_name \
+             n.title AS naskah_title, tim.name AS pic_name, p.name AS penulis_name \
              FROM tasks t \
              LEFT JOIN naskah n ON t.naskah_id = n.id \
-             LEFT JOIN tim ON t.assigned_team_id = tim.id"
+             LEFT JOIN tim ON t.assigned_team_id = tim.id \
+             LEFT JOIN penulis p ON n.penulis_id = p.id"
         )?;
         let rows = stmt.query_map([], |row| {
             Ok(Task {
@@ -84,6 +85,7 @@ impl Database {
                 updated_at: row.get(13)?,
                 naskah_title: row.get(14)?,
                 pic_name: row.get(15)?,
+                penulis_name: row.get(16)?,
             })
         })?;
         let mut res = Vec::new();

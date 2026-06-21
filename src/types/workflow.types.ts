@@ -35,6 +35,7 @@ export interface Task {
   // Custom joined fields for frontend display
   naskah_title?: string;
   pic_name?: string;
+  penulis_name?: string;
 }
 
 export interface TaskHistory {

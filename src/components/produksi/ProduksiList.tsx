@@ -124,6 +124,7 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
         "No": idx + 1,
         "ID Task": t.id,
         "Judul Naskah": t.naskah_title || '',
+        "Penulis": t.penulis_name || '',
         "Nama Langkah": t.step_name,
         "Urutan Langkah": t.step_order || '',
         "PIC": t.pic_name || '',
@@ -264,8 +265,8 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
       }
     >
       <DataTable>
-        <DataTableHeader columns={['ID Task', 'ID Naskah', 'Judul', 'Tahap', 'PJ', 'Mulai', 'Deadline', 'Selesai', 'Status']} />
-        <DataTableBody isLoading={isLoading} isEmpty={filteredTasks.length === 0} colSpan={10} emptyMessage="Tidak ada data tugas">
+        <DataTableHeader columns={['ID Task', 'ID Naskah', 'Judul', 'Penulis', 'Tahap', 'PJ', 'Mulai', 'Deadline', 'Selesai', 'Status']} />
+        <DataTableBody isLoading={isLoading} isEmpty={filteredTasks.length === 0} colSpan={11} emptyMessage="Tidak ada data tugas">
           {filteredTasks.map(task => (
             <HoverRow
               key={task.id}
@@ -274,6 +275,7 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
               <td style={tableStyles.tdMuted}>#{task.id}</td>
               <td style={tableStyles.tdMuted}>#{task.naskah_id}</td>
               <td style={tableStyles.tdTitle}>{task.naskah_title || '-'}</td>
+              <td style={tableStyles.td}>{task.penulis_name || '-'}</td>
               <td style={tableStyles.td}>{task.step_name}</td>
               <td style={tableStyles.td}>{task.pic_name || '-'}</td>
               <td style={tableStyles.tdMuted}>{formatDateLong(task.start_date)}</td>
