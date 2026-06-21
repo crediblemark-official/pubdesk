@@ -854,3 +854,22 @@ body {
     gap: 8px;
   }
 }
+
+/* Sesi Kerja Terkunci (Read-Only Mode) */
+.session-locked input,
+.session-locked textarea,
+.session-locked select,
+.session-locked button[type="submit"],
+.session-locked .btn-primary,
+.session-locked .btn-success,
+.session-locked .btn-danger,
+.session-locked button.btn-danger,
+.session-locked button.btn-primary,
+.session-locked button.btn-success,
+.session-locked .btn-action {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  user-select: none !important;
+}
+
