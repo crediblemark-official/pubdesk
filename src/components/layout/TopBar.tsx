@@ -48,7 +48,8 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
     loadBooks,
     loadContacts,
     loadInvoices,
-    loadServices
+    loadServices,
+    connectedUser
   } = useAppContext();
 
   const { 
@@ -391,7 +392,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
               style={{ display: 'flex', alignItems: 'center', cursor: 'text', userSelect: 'none', width: '100%', padding: '0 8px' }}
             >
               {activeModule === 'files' ? (
-                fileCategory === 'gdrive' ? renderGBriveBreadcrumbs() : <span className="top-bar-path-text">/home/rasyiqi</span>
+                fileCategory === 'gdrive' ? renderGBriveBreadcrumbs() : <span className="top-bar-path-text">/home/{connectedUser?.name ? connectedUser.name.toLowerCase().replace(/\s+/g, '') : 'rasyiqi'}</span>
               ) : (
                 <span className="top-bar-path-text" style={{ color: 'var(--text-secondary)' }}>{searchHint}</span>
               )}
@@ -427,7 +428,7 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
           )
         ) : (
           <div className="top-bar-gnome-pathbar">
-            <span className="top-bar-path-text">/home/rasyiqi</span>
+            <span className="top-bar-path-text">/home/{connectedUser?.name ? connectedUser.name.toLowerCase().replace(/\s+/g, '') : 'rasyiqi'}</span>
             <button className="top-bar-path-clear" aria-label="Clear path">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
