@@ -48,13 +48,10 @@ function bytesToBase64(bytes: number[] | Uint8Array): string {
 function parseGasResponse(responseText: string): any {
   const trimmed = responseText.trim();
   if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
-    const preview = trimmed.substring(0, 200);
-    console.error('[GAS] Response bukan JSON:', preview);
-    throw new Error(
-      trimmed.toLowerCase().includes('<html') || trimmed.startsWith('<')
-        ? 'Google Apps Script mengembalikan halaman HTML — kemungkinan URL sudah kadaluwarsa atau perlu di-deploy ulang.'
-        : `Response tidak valid dari server: ${preview}`
-    );
+    const preview = trimmed.substring(0, 150);
+    console.error('[GAS] Response bukan JSON (raw):', trimmed.substring(0, 500));
+    // Sertakan preview di error message untuk debugging langsung dari UI
+    throw new Error(`[GAS Debug] Response: ${preview}`);
   }
   return JSON.parse(trimmed);
 }
@@ -64,17 +61,10 @@ export const googleAppsScriptService = {
    * Mendapatkan konfigurasi URL dan Token dari localStorage
    */
   getSettings() {
-    const savedUrl = localStorage.getItem(STORAGE_KEYS.URL);
-    // Jika URL tersimpan bukan DEFAULT_URL saat ini (deployment lama), reset ke default terbaru
-    const url = (!savedUrl || savedUrl !== DEFAULT_URL && savedUrl.includes('AKfycbxiHG'))
-      ? DEFAULT_URL
-      : savedUrl;
-    // Simpan URL terbaru jika terjadi auto-reset
-    if (url === DEFAULT_URL && savedUrl !== DEFAULT_URL) {
-      localStorage.setItem(STORAGE_KEYS.URL, DEFAULT_URL);
-    }
+    // Selalu paksa pakai DEFAULT_URL (deployment terbaru), simpan ke localStorage
+    localStorage.setItem(STORAGE_KEYS.URL, DEFAULT_URL);
     const token = localStorage.getItem(STORAGE_KEYS.TOKEN) || DEFAULT_TOKEN;
-    return { url, token };
+    return { url: DEFAULT_URL, token };
   },
 
   /**
