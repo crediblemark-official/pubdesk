@@ -31,6 +31,7 @@ const LaporanOperasional: React.FC = () => {
   const [filterPenerbit, setFilterPenerbit] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [activeFilterType, setActiveFilterType] = useState<'periode' | 'pic' | 'penerbit' | 'status'>('periode');
+  const [showFilterTypeDropdown, setShowFilterTypeDropdown] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -132,27 +133,73 @@ const LaporanOperasional: React.FC = () => {
                     '📋 Status'
                   } ▾`}
                   active={true}
-                  onClick={() => {}}
+                  onClick={() => setShowFilterTypeDropdown(!showFilterTypeDropdown)}
                 />
-                <select
-                  value={activeFilterType}
-                  onChange={(e) => setActiveFilterType(e.target.value as any)}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: 0,
-                    cursor: 'pointer',
-                    appearance: 'none',
-                  }}
-                >
-                  <option value="periode">📅 Periode</option>
-                  <option value="pic">👤 PIC</option>
-                  <option value="penerbit">🏢 Penerbit</option>
-                  <option value="status">📋 Status</option>
-                </select>
+                {showFilterTypeDropdown && (
+                  <>
+                    <div 
+                      onClick={() => setShowFilterTypeDropdown(false)}
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 999,
+                        background: 'transparent'
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '28px',
+                      left: 0,
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                      zIndex: 1000,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minWidth: '120px',
+                      padding: '4px 0'
+                    }}>
+                      {[
+                        { value: 'periode', label: '📅 Periode' },
+                        { value: 'pic', label: '👤 PIC' },
+                        { value: 'penerbit', label: '🏢 Penerbit' },
+                        { value: 'status', label: '📋 Status' }
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            setActiveFilterType(opt.value as any);
+                            setShowFilterTypeDropdown(false);
+                          }}
+                          style={{
+                            background: activeFilterType === opt.value ? 'var(--bg-panel)' : 'transparent',
+                            border: 'none',
+                            color: activeFilterType === opt.value ? 'var(--text-primary)' : 'var(--text-secondary)',
+                            padding: '6px 12px',
+                            textAlign: 'left',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            width: '100%',
+                            transition: 'background 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (activeFilterType !== opt.value) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (activeFilterType !== opt.value) e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>:</span>
