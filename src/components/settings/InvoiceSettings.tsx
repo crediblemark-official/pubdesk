@@ -3,7 +3,7 @@ import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { useAppContext } from '../../contexts/AppContext';
 import { InvoiceProfile, InvoiceTableColumn } from '../../types/invoice.types';
 import { invoiceTemplates } from '../../data/invoiceTemplates';
-import InvoicePreview from '../invoice/InvoicePreview';
+
 import { SettingsFormContext } from './invoice/SettingsFormContext';
 import DesignSection from './invoice/DesignSection';
 import HeaderSection from './invoice/HeaderSection';
@@ -21,9 +21,10 @@ const InvoiceSettings: React.FC = () => {
     setActiveProfileId,
     addOrUpdateProfile,
     deleteProfile,
-    setProfiles
+    setProfiles,
+    setTempPreviewProfile
   } = useInvoiceContext();
-  const { showToast, showConfirm, addFile, files, rightPanelVisible } = useAppContext();
+  const { showToast, showConfirm, addFile, files } = useAppContext();
 
   const [selectedProfileId, setSelectedProfileId] = useState<string>(activeProfileId);
   const [isEditingNew, setIsEditingNew] = useState<boolean>(false);
@@ -290,6 +291,60 @@ const InvoiceSettings: React.FC = () => {
     showCompanyContact
   };
 
+  // Sinkronisasikan profil yang sedang diedit ke preview global di PanelKanan
+  useEffect(() => {
+    setTempPreviewProfile(currentEditingProfile);
+    return () => {
+      setTempPreviewProfile(null);
+    };
+  }, [
+    isEditingNew,
+    selectedProfileId,
+    profileName,
+    companyName,
+    companyTagline,
+    invoiceTitleText,
+    accentColor,
+    accentColorDark,
+    headerBgColor,
+    headerPrimaryColor,
+    headerSecondaryColor,
+    footerBgColor,
+    footerPrimaryColor,
+    footerSecondaryColor,
+    defaultHal,
+    defaultLampiran,
+    salamPembuka,
+    actionLabel,
+    tableType,
+    notes,
+    showSpesifikasi,
+    defaultSpesifikasi,
+    signatureOffice,
+    signatureLocation,
+    signatureRole,
+    signatureName,
+    showBankInfo,
+    bankName,
+    bankAccountNo,
+    bankAccountOwner,
+    companyLogo,
+    signatureImg,
+    headerType,
+    tableColumns,
+    shippingType,
+    watermarkColor,
+    watermarkOpacity,
+    invoiceNoFormat,
+    companyWebsite,
+    companyEmail,
+    companyYoutube,
+    companyInstagram,
+    companyPhone,
+    showCompanyContact,
+    setTempPreviewProfile
+  ]);
+
   const handleSave = () => {
     if (!profileName.trim()) {
       showToast('Nama Profil tidak boleh kosong!', 'error');
@@ -468,8 +523,8 @@ const InvoiceSettings: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? 'minmax(0, 1.25fr) minmax(300px, 1fr)' : '1fr', gap: '16px', alignItems: 'start' }}>
-      {/* Kolom Kiri: Form Editor */}
+    <div style={{ width: '100%' }}>
+      {/* Form Editor */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         
         {/* Panel Kelola Profil */}
@@ -660,18 +715,6 @@ const InvoiceSettings: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Kolom Kanan: Panel Realtime Preview */}
-      {rightPanelVisible && (
-        <div style={{ position: 'sticky', top: '16px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'calc(100vh - 100px)', minHeight: '400px' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
-            👁️ Realtime Preview
-          </h3>
-          <div style={{ flex: 1, border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
-            <InvoicePreview previewProfile={currentEditingProfile} />
-          </div>
-        </div>
-      )}
 
       {/* Modal Pilih Template */}
       {showTemplateModal && (

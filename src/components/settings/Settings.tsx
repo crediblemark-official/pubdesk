@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { TabBar } from '../../ui/molecules/TabBar';
 import InvoiceSettings from './InvoiceSettings';
@@ -22,7 +22,15 @@ const SETTINGS_TABS = [
  * ada di file tab masing-masing di subfolder tabs/.
  */
 const Settings: React.FC = () => {
-  const { activeSettingsTab, setActiveSettingsTab, showToast } = useAppContext();
+  const { activeSettingsTab, setActiveSettingsTab, showToast, setRightPanelVisible } = useAppContext();
+
+  // Buka PanelKanan secara otomatis saat masuk ke modul Pengaturan, dan tutup saat keluar
+  useEffect(() => {
+    setRightPanelVisible(true);
+    return () => {
+      setRightPanelVisible(false);
+    };
+  }, [setRightPanelVisible]);
 
   const renderTab = () => {
     switch (activeSettingsTab) {

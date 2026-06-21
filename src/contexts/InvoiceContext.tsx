@@ -71,6 +71,8 @@ interface InvoiceContextType {
   editingInvoiceId: number | null;
   setEditingInvoiceId: (id: number | null) => void;
   loadInvoiceToForm: (invoice: any) => void;
+  tempPreviewProfile: InvoiceProfile | null;
+  setTempPreviewProfile: (profile: InvoiceProfile | null) => void;
 }
 
 const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
@@ -100,6 +102,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [spesifikasiFasilitas, setSpesifikasiFasilitas] = useState('Sesuai poster paket yang diambil');
   const [bankAccountInfo, setBankAccountInfo] = useState('');
   const [editingInvoiceId, setEditingInvoiceId] = useState<number | null>(null);
+  const [tempPreviewProfile, setTempPreviewProfile] = useState<InvoiceProfile | null>(null);
 
   // Load profiles from localStorage on mount
   useEffect(() => {
@@ -372,6 +375,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       editingInvoiceId,
       setEditingInvoiceId,
       loadInvoiceToForm,
+      tempPreviewProfile,
+      setTempPreviewProfile,
     }}>
       {children}
     </InvoiceContext.Provider>
