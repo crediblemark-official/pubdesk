@@ -1,6 +1,33 @@
 use super::{Database, DbError};
 use crate::db::models::*;
-use rusqlite::params;
+use rusqlite::{params, Row};
+
+// Helper functions to map rows
+fn map_row_to_task_blocker(row: &Row) -> Result<TaskBlocker, rusqlite::Error> {
+    Ok(TaskBlocker {
+        id: row.get(0)?,
+        task_id: row.get(1)?,
+        naskah_id: row.get(2)?,
+        blocker_type: row.get(3)?,
+        description: row.get(4)?,
+        status: row.get(5)?,
+        created_at: row.get(6)?,
+        resolved_at: row.get(7)?,
+    })
+}
+
+fn map_row_to_task_approval(row: &Row) -> Result<TaskApproval, rusqlite::Error> {
+    Ok(TaskApproval {
+        id: row.get(0)?,
+        task_id: row.get(1)?,
+        approval_type: row.get(2)?,
+        status: row.get(3)?,
+        requested_at: row.get(4)?,
+        decided_at: row.get(5)?,
+        decided_by: row.get(6)?,
+        notes: row.get(7)?,
+    })
+}
 
 impl Database {
     // ==========================================
@@ -290,7 +317,7 @@ impl Database {
 
     // Task Blockers
     pub fn get_task_blockers(&self, task_id: Option<i64>) -> Result<Vec<TaskBlocker>, DbError> {
-        let sql = if let Some(tid) = task_id {
+        let sql = if let Some(_tid) = task_id {
             "SELECT id, task_id, naskah_id, blocker_type, description, status, created_at, resolved_at 
              FROM task_blockers 
              WHERE task_id = ?1
@@ -304,31 +331,9 @@ impl Database {
         
         let mut stmt = self.conn.prepare(sql)?;
         let iter = if let Some(tid) = task_id {
-            stmt.query_map(params![tid], |row| {
-                Ok(TaskBlocker {
-                    id: row.get(0)?,
-                    task_id: row.get(1)?,
-                    naskah_id: row.get(2)?,
-                    blocker_type: row.get(3)?,
-                    description: row.get(4)?,
-                    status: row.get(5)?,
-                    created_at: row.get(6)?,
-                    resolved_at: row.get(7)?,
-                })
-            })?
+            stmt.query_map(params![tid], map_row_to_task_blocker)?
         } else {
-            stmt.query_map([], |row| {
-                Ok(TaskBlocker {
-                    id: row.get(0)?,
-                    task_id: row.get(1)?,
-                    naskah_id: row.get(2)?,
-                    blocker_type: row.get(3)?,
-                    description: row.get(4)?,
-                    status: row.get(5)?,
-                    created_at: row.get(6)?,
-                    resolved_at: row.get(7)?,
-                })
-            })?
+            stmt.query_map([], map_row_to_task_blocker)?
         };
 
         let mut blockers = Vec::new();
@@ -358,7 +363,7 @@ impl Database {
 
     // Task Approvals
     pub fn get_task_approvals(&self, task_id: Option<i64>) -> Result<Vec<TaskApproval>, DbError> {
-        let sql = if let Some(tid) = task_id {
+        let sql = if let Some(_tid) = task_id {
             "SELECT id, task_id, approval_type, status, requested_at, decided_at, decided_by, notes 
              FROM task_approvals 
              WHERE task_id = ?1
@@ -372,31 +377,9 @@ impl Database {
         
         let mut stmt = self.conn.prepare(sql)?;
         let iter = if let Some(tid) = task_id {
-            stmt.query_map(params![tid], |row| {
-                Ok(TaskApproval {
-                    id: row.get(0)?,
-                    task_id: row.get(1)?,
-                    approval_type: row.get(2)?,
-                    status: row.get(3)?,
-                    requested_at: row.get(4)?,
-                    decided_at: row.get(5)?,
-                    decided_by: row.get(6)?,
-                    notes: row.get(7)?,
-                })
-            })?
+            stmt.query_map(params![tid], map_row_to_task_approval)?
         } else {
-            stmt.query_map([], |row| {
-                Ok(TaskApproval {
-                    id: row.get(0)?,
-                    task_id: row.get(1)?,
-                    approval_type: row.get(2)?,
-                    status: row.get(3)?,
-                    requested_at: row.get(4)?,
-                    decided_at: row.get(5)?,
-                    decided_by: row.get(6)?,
-                    notes: row.get(7)?,
-                })
-            })?
+            stmt.query_map([], map_row_to_task_approval)?
         };
 
         let mut approvals = Vec::new();
