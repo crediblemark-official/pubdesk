@@ -30,6 +30,8 @@ import ProduksiApproval from '../produksi/ProduksiApproval';
 import ProduksiTimeline from '../produksi/ProduksiTimeline';
 import TaskFormPage from '../produksi/TaskFormPage';
 import LaporanOperasional from '../laporan/LaporanOperasional';
+import DashboardProduksi from '../produksi/DashboardProduksi';
+import DashboardMasterData from '../data-master/DashboardMasterData';
 
 // Modul Pengaturan Tambahan
 import ImportExcel from '../import/ImportExcel';
@@ -122,6 +124,10 @@ const MainLayout = () => {
         return <ActivityLog />;
       case 'pekerjaan-saya':
         return <PekerjaanSaya searchQuery={fileSearchQuery} />;
+      case 'produksi-parent':
+        return <DashboardProduksi />;
+      case 'master-data-parent':
+        return <DashboardMasterData />;
       case 'produksi-board':
         return <ProduksiBoard searchQuery={fileSearchQuery} />;
       case 'produksi-list':

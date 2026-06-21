@@ -29,7 +29,9 @@ export type AppModule =
   | 'laporan-operasional'
   | 'import-data'
   | 'tambah-tugas'
-  | 'edit-tugas';
+  | 'edit-tugas'
+  | 'produksi-parent'
+  | 'master-data-parent';
 
 export interface AppState {
   activeModule: AppModule;

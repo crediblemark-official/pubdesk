@@ -15,8 +15,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     return {
       files: active === 'files',
       invoice: ['invoice', 'invoice-manager', 'invoice-insight'].includes(active),
-      'master-data-parent': ['kontak', 'penerbit', 'naskah', 'tim', 'legalitas', 'services'].includes(active),
-      'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'tambah-tugas', 'edit-tugas'].includes(active)
+      'master-data-parent': ['kontak', 'penerbit', 'naskah', 'tim', 'legalitas', 'services', 'master-data-parent'].includes(active),
+      'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'tambah-tugas', 'edit-tugas', 'produksi-parent'].includes(active)
     };
   });
 
@@ -50,7 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               appState.activeModule === 'naskah' ||
               appState.activeModule === 'tim' ||
               appState.activeModule === 'legalitas' ||
-              appState.activeModule === 'services'
+              appState.activeModule === 'services' ||
+              appState.activeModule === 'master-data-parent'
             )
           : item.id === 'produksi-parent'
           ? (
@@ -59,7 +60,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               appState.activeModule === 'produksi-kendala' ||
               appState.activeModule === 'produksi-approval' ||
               appState.activeModule === 'tambah-tugas' ||
-              appState.activeModule === 'edit-tugas'
+              appState.activeModule === 'edit-tugas' ||
+              appState.activeModule === 'produksi-parent'
             )
           : appState.activeModule === item.id;
           const isExpandable = item.id === 'files' || item.id === 'invoice' || item.id === 'master-data-parent' || item.id === 'produksi-parent';
@@ -101,29 +103,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                       setActiveModule('invoice');
                     }
                   } else if (item.id === 'master-data-parent') {
-                    const isAnySubActive = [
-                      'kontak',
-                      'penerbit',
-                      'naskah',
-                      'tim',
-                      'legalitas',
-                      'services'
-                    ].includes(appState.activeModule);
-                    
-                    if (!isAnySubActive) {
-                      setActiveModule('kontak');
-                    }
+                    setActiveModule('master-data-parent');
                   } else if (item.id === 'produksi-parent') {
-                    const isAnySubActive = [
-                      'produksi-board',
-                      'produksi-list',
-                      'produksi-kendala',
-                      'produksi-approval'
-                    ].includes(appState.activeModule);
-                    
-                    if (!isAnySubActive) {
-                      setActiveModule('produksi-board');
-                    }
+                    setActiveModule('produksi-parent');
                   } else {
                     setActiveModule(item.id);
                     if (item.id === 'files') {
