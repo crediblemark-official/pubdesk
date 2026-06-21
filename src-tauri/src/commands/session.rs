@@ -127,38 +127,80 @@ pub async fn call_gas_api(
     method: String,
     payload_json: Option<String>,
 ) -> Result<String, String> {
-    // Buat client yang mengikuti redirect (GAS selalu redirect sebelum memproses)
-    let client = reqwest::Client::builder()
+    // Untuk GAS: POST diproses server, lalu server redirect 302 ke URL echo.
+    // Kita perlu: 1) POST tanpa follow redirect, 2) ambil Location, 3) GET ke Location.
+    // Untuk GET: langsung follow redirect.
+    let client_no_redirect = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .map_err(|e| format!("Gagal membuat HTTP client: {}", e))?;
+
+    let client_follow = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::limited(10))
         .build()
         .map_err(|e| format!("Gagal membuat HTTP client: {}", e))?;
 
-    let response = if method.to_uppercase() == "POST" {
+    if method.to_uppercase() == "POST" {
         let body = payload_json.unwrap_or_default();
-        client.post(&url)
+        // Step 1: POST tanpa follow redirect
+        let post_resp = client_no_redirect
+            .post(&url)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .body(body)
             .send()
             .await
-            .map_err(|e| format!("Request POST gagal: {}", e))?
+            .map_err(|e| format!("Request POST gagal: {}", e))?;
+
+        let post_status = post_resp.status();
+
+        // Step 2: Jika redirect (302/303), ambil Location dan GET ke sana
+        if post_status.is_redirection() {
+            let location = post_resp
+                .headers()
+                .get("location")
+                .and_then(|v| v.to_str().ok())
+                .ok_or_else(|| "GAS redirect tanpa Location header".to_string())?
+                .to_string();
+
+            let get_resp = client_follow
+                .get(&location)
+                .header("Accept", "application/json")
+                .send()
+                .await
+                .map_err(|e| format!("Request GET ke redirect URL gagal: {}", e))?;
+
+            let text = get_resp.text().await
+                .map_err(|e| format!("Gagal membaca response redirect: {}", e))?;
+            return Ok(text);
+        }
+
+        // Tidak ada redirect — baca response POST langsung
+        if !post_status.is_success() {
+            let text = post_resp.text().await.unwrap_or_default();
+            return Err(format!("POST gagal status {}: {}", post_status, &text[..text.len().min(300)]));
+        }
+        let text = post_resp.text().await
+            .map_err(|e| format!("Gagal membaca response POST: {}", e))?;
+        Ok(text)
     } else {
-        client.get(&url)
+        // GET: langsung follow redirect
+        let resp = client_follow
+            .get(&url)
             .header("Accept", "application/json")
             .send()
             .await
-            .map_err(|e| format!("Request GET gagal: {}", e))?
-    };
+            .map_err(|e| format!("Request GET gagal: {}", e))?;
 
-    let status = response.status();
-    let text = response.text().await
-        .map_err(|e| format!("Gagal membaca response text: {}", e))?;
+        let status = resp.status();
+        let text = resp.text().await
+            .map_err(|e| format!("Gagal membaca response GET: {}", e))?;
 
-    if !status.is_success() {
-        return Err(format!("Server merespons dengan status {}: {}", status, &text[..text.len().min(500)]));
+        if !status.is_success() {
+            return Err(format!("GET gagal status {}: {}", status, &text[..text.len().min(300)]));
+        }
+        Ok(text)
     }
-
-    Ok(text)
 }
 
 #[tauri::command]
