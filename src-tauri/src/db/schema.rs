@@ -678,6 +678,9 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
     let _ = conn.execute("ALTER TABLE activity_log ADD COLUMN new_value TEXT", []);
     let _ = conn.execute("ALTER TABLE activity_log ADD COLUMN module TEXT", []);
 
+    // Migrasi kolom pin ke tabel tim — untuk autentikasi login anggota tim
+    let _ = conn.execute("ALTER TABLE tim ADD COLUMN pin TEXT", []);
+
     Ok(())
 }
 
