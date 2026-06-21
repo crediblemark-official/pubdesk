@@ -745,9 +745,10 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
               )}
             </div>
           </div>
+        </div>
 
-          <div className="top-bar-gnome-separator" />
-
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto', flexShrink: 0 }}>
+          <div className="top-bar-gnome-separator" style={{ margin: 0 }} />
           <WindowControls />
         </div>
       </div>
