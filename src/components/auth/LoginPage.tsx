@@ -215,18 +215,18 @@ const LoginPage: React.FC = () => {
                   style={{
                     flex: '1 1 200px',
                     minWidth: '180px',
-                    padding: '20px 16px',
+                    padding: '12px 16px',
                     display: 'flex',
-                    flexDirection: 'column',
+                    flexDirection: 'row',
                     alignItems: 'center',
-                    gap: '10px',
+                    gap: '12px',
                     border: 'none',
                     borderRight: '1px solid var(--border)',
                     borderBottom: '1px solid var(--border)',
                     background: isLoggingIn ? 'var(--bg-panel)' : 'transparent',
                     cursor: loggingIn !== null ? 'wait' : 'pointer',
                     transition: 'background 0.15s ease',
-                    textAlign: 'center',
+                    textAlign: 'left',
                     boxSizing: 'border-box',
                     opacity: loggingIn !== null && !isLoggingIn ? 0.5 : 1,
                   }}
@@ -239,27 +239,27 @@ const LoginPage: React.FC = () => {
                 >
                   {/* Avatar */}
                   <div style={{
-                    width: '52px',
-                    height: '52px',
+                    width: '40px',
+                    height: '40px',
                     borderRadius: '50%',
                     background: color,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '18px',
+                    fontSize: '14px',
                     fontWeight: '700',
                     color: '#ffffff',
                     flexShrink: 0,
                     position: 'relative',
                   }}>
                     {isLoggingIn ? (
-                      <span style={{ fontSize: '20px', animation: 'spin 1s linear infinite' }}>⌛</span>
+                      <span style={{ fontSize: '16px', animation: 'spin 1s linear infinite' }}>⌛</span>
                     ) : (
                       getInitials(member.name)
                     )}
                   </div>
                   {/* Info */}
-                  <div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
                     <div style={{
                       fontSize: '13px',
                       fontWeight: '600',
@@ -271,19 +271,9 @@ const LoginPage: React.FC = () => {
                     <div style={{
                       fontSize: '11px',
                       color: 'var(--text-secondary)',
-                      marginBottom: '2px',
                     }}>
                       {member.role}
                     </div>
-                    {member.department && (
-                      <div style={{
-                        fontSize: '10px',
-                        color: color,
-                        fontWeight: '500',
-                      }}>
-                        {member.department}
-                      </div>
-                    )}
                   </div>
                 </button>
               );
