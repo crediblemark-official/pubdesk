@@ -153,9 +153,7 @@ body {
 }
 
 .top-bar-gnome-pathbar {
-  flex: 0 1 auto;
-  width: auto;
-  max-width: 450px;
+  flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -834,6 +832,7 @@ body {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* Responsive Top Bar */
