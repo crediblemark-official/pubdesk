@@ -281,7 +281,7 @@ const GDriveSettingsTab: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', alignItems: 'stretch' }}>
 
         {/* Akun terhubung */}

@@ -274,7 +274,7 @@ const DataResetTab: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '700px' }}>
+    <div style={{ width: '100%' }}>
       <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 8px 0' }}>
         Kustomisasi & Data
       </h2>
