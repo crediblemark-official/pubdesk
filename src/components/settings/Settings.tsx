@@ -46,11 +46,16 @@ const Settings: React.FC = () => {
       className="settings-module"
       style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)', color: 'var(--text-primary)' }}
     >
-      {/* Header & Tab Bar */}
-      <div style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', padding: '12px 16px 0 16px', display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
-        <h1 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-          ⚙️ Pengaturan
-        </h1>
+
+      {/* Tab Bar Sub-Header */}
+      <div style={{
+        background: 'var(--bg-panel)',
+        borderBottom: '1px solid var(--border)',
+        padding: '0 16px',
+        display: 'flex',
+        alignItems: 'center',
+        flexShrink: 0
+      }}>
         <TabBar
           tabs={SETTINGS_TABS}
           activeTab={activeSettingsTab}
