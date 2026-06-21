@@ -127,18 +127,29 @@ pub async fn call_gas_api(
     method: String,
     payload_json: Option<String>,
 ) -> Result<String, String> {
+    println!("[GAS API] Memulai call: {} {}", method, url);
+    if let Some(ref payload) = payload_json {
+        println!("[GAS API] Panjang payload: {} bytes, pratinjau: {}", payload.len(), &payload[..payload.len().min(150)]);
+    }
+
     // Untuk GAS: POST diproses server, lalu server redirect 302 ke URL echo.
     // Kita perlu: 1) POST tanpa follow redirect, 2) ambil Location, 3) GET ke Location.
     // Untuk GET: langsung follow redirect.
     let client_no_redirect = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .build()
-        .map_err(|e| format!("Gagal membuat HTTP client: {}", e))?;
+        .map_err(|e| {
+            println!("[GAS API] Gagal membuat HTTP client no-redirect: {}", e);
+            format!("Gagal membuat HTTP client: {}", e)
+        })?;
 
     let client_follow = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::limited(10))
         .build()
-        .map_err(|e| format!("Gagal membuat HTTP client: {}", e))?;
+        .map_err(|e| {
+            println!("[GAS API] Gagal membuat HTTP client follow: {}", e);
+            format!("Gagal membuat HTTP client: {}", e)
+        })?;
 
     if method.to_uppercase() == "POST" {
         let body = payload_json.unwrap_or_default();
@@ -150,9 +161,13 @@ pub async fn call_gas_api(
             .body(body)
             .send()
             .await
-            .map_err(|e| format!("Request POST gagal: {}", e))?;
+            .map_err(|e| {
+                println!("[GAS API] POST ke {} gagal: {}", url, e);
+                format!("Request POST gagal: {}", e)
+            })?;
 
         let post_status = post_resp.status();
+        println!("[GAS API] Status respon POST awal: {}", post_status);
 
         // Step 2: Jika redirect (302/303), ambil Location dan GET ke sana
         if post_status.is_redirection() {
@@ -160,28 +175,48 @@ pub async fn call_gas_api(
                 .headers()
                 .get("location")
                 .and_then(|v| v.to_str().ok())
-                .ok_or_else(|| "GAS redirect tanpa Location header".to_string())?
+                .ok_or_else(|| {
+                    println!("[GAS API] Deteksi redirect tetapi header Location kosong");
+                    "GAS redirect tanpa Location header".to_string()
+                })?
                 .to_string();
+
+            println!("[GAS API] Mengikuti redirect ke Location: {}", location);
 
             let get_resp = client_follow
                 .get(&location)
                 .header("Accept", "application/json")
                 .send()
                 .await
-                .map_err(|e| format!("Request GET ke redirect URL gagal: {}", e))?;
+                .map_err(|e| {
+                    println!("[GAS API] GET ke redirect URL gagal: {}", e);
+                    format!("Request GET ke redirect URL gagal: {}", e)
+                })?;
+
+            let get_status = get_resp.status();
+            println!("[GAS API] Status respon redirect GET: {}", get_status);
 
             let text = get_resp.text().await
-                .map_err(|e| format!("Gagal membaca response redirect: {}", e))?;
+                .map_err(|e| {
+                    println!("[GAS API] Gagal membaca teks respon redirect: {}", e);
+                    format!("Gagal membaca response redirect: {}", e)
+                })?;
+            println!("[GAS API] Sukses. Panjang respon: {} karakter", text.len());
             return Ok(text);
         }
 
         // Tidak ada redirect — baca response POST langsung
         if !post_status.is_success() {
             let text = post_resp.text().await.unwrap_or_default();
+            println!("[GAS API] POST gagal tanpa redirect, status: {}, respon: {}", post_status, text);
             return Err(format!("POST gagal status {}: {}", post_status, &text[..text.len().min(300)]));
         }
         let text = post_resp.text().await
-            .map_err(|e| format!("Gagal membaca response POST: {}", e))?;
+            .map_err(|e| {
+                println!("[GAS API] Gagal membaca teks respon POST langsung: {}", e);
+                format!("Gagal membaca response POST: {}", e)
+            })?;
+        println!("[GAS API] Sukses (Tanpa redirect). Panjang respon: {} karakter", text.len());
         Ok(text)
     } else {
         // GET: langsung follow redirect
@@ -190,15 +225,25 @@ pub async fn call_gas_api(
             .header("Accept", "application/json")
             .send()
             .await
-            .map_err(|e| format!("Request GET gagal: {}", e))?;
+            .map_err(|e| {
+                println!("[GAS API] Request GET ke {} gagal: {}", url, e);
+                format!("Request GET gagal: {}", e)
+            })?;
 
         let status = resp.status();
+        println!("[GAS API] Status respon GET: {}", status);
+
         let text = resp.text().await
-            .map_err(|e| format!("Gagal membaca response GET: {}", e))?;
+            .map_err(|e| {
+                println!("[GAS API] Gagal membaca teks respon GET: {}", e);
+                format!("Gagal membaca response GET: {}", e)
+            })?;
 
         if !status.is_success() {
+            println!("[GAS API] GET gagal dengan status: {}, respon: {}", status, text);
             return Err(format!("GET gagal status {}: {}", status, &text[..text.len().min(300)]));
         }
+        println!("[GAS API] Sukses GET. Panjang respon: {} karakter", text.len());
         Ok(text)
     }
 }

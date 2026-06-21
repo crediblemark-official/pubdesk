@@ -48,9 +48,10 @@ function bytesToBase64(bytes: number[] | Uint8Array): string {
 function parseGasResponse(responseText: string): any {
   const trimmed = responseText.trim();
   if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+    const preview = trimmed.substring(0, 150);
     console.error('[GAS] Response bukan JSON:', trimmed.substring(0, 500));
     throw new Error(
-      'Gagal terhubung ke Google Apps Script. Pastikan bun tauri dev sudah di-restart setelah perubahan terbaru.'
+      `Gagal terhubung ke Google Apps Script (Bukan JSON). Respons: "${preview}"`
     );
   }
   return JSON.parse(trimmed);
