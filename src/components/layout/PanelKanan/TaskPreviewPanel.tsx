@@ -1,7 +1,57 @@
 import React from 'react';
 import { useWorkflowContext } from '../../../contexts/WorkflowContext';
+import { Badge } from '../../../ui/atoms/Badge';
 import UpdateStatusModal from '../../produksi/UpdateStatusModal';
 import TaskModal from '../../produksi/TaskModal';
+
+// Baris info — label + value dengan border bawah opsional
+const InfoRow = ({
+  label,
+  value,
+  noBorder = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  noBorder?: boolean;
+}) => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '8px',
+    ...(noBorder ? {} : { borderBottom: '1px solid var(--border)', paddingBottom: '8px' })
+  }}>
+    <span style={{ color: 'var(--text-secondary)', fontSize: '12px', flexShrink: 0 }}>{label}</span>
+    <strong style={{ color: 'var(--text-primary)', fontSize: '12px', textAlign: 'right' }}>{value}</strong>
+  </div>
+);
+
+// Kartu section standar
+const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div>
+    <h5 style={{
+      fontSize: '11px',
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: '0.8px',
+      color: 'var(--text-secondary)',
+      marginBottom: '8px'
+    }}>
+      {title}
+    </h5>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      background: 'var(--bg-card)',
+      padding: '12px 14px',
+      borderRadius: '10px',
+      border: '1px solid var(--border)',
+    }}>
+      {children}
+    </div>
+  </div>
+);
 
 const TaskPreviewPanel: React.FC = () => {
   const { tasks, selectedTaskId } = useWorkflowContext();
@@ -20,23 +70,22 @@ const TaskPreviewPanel: React.FC = () => {
     );
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeVariant = (status: string): 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'accent' => {
     switch (status) {
-      case 'Selesai': return { bg: '#dcfce7', text: '#166534' };
-      case 'Proses': return { bg: '#dbeafe', text: '#1e40af' };
-      case 'Menunggu Revisi': return { bg: '#fef3c7', text: '#92400e' };
-      case 'Menunggu Approval': return { bg: '#ede9fe', text: '#5b21b6' };
-      case 'Terlambat': return { bg: '#fee2e2', text: '#991b1b' };
-      default: return { bg: '#f1f5f9', text: '#475569' };
+      case 'Selesai': return 'success';
+      case 'Proses': return 'info';
+      case 'Menunggu Revisi': return 'warning';
+      case 'Menunggu Approval': return 'accent';
+      case 'Terlambat': return 'danger';
+      default: return 'neutral';
     }
   };
 
-  const statusStyle = getStatusColor(selectedTask.status);
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', padding: '20px', overflowY: 'auto' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', padding: '20px', overflowY: 'auto', gap: '16px' }}>
+      {/* Header */}
+      <div>
+        <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>
           Detail Task
         </h2>
         <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>
@@ -44,61 +93,34 @@ const TaskPreviewPanel: React.FC = () => {
         </p>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-        <span style={{ padding: '4px 12px', borderRadius: '12px', background: statusStyle.bg, color: statusStyle.text, fontSize: '12px', fontWeight: '600' }}>
-          {selectedTask.status}
-        </span>
-        <span style={{ padding: '4px 12px', borderRadius: '12px', background: 'var(--bg-card)', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500', border: '1px solid var(--border)' }}>
-          {selectedTask.step_name}
-        </span>
+      {/* Status & Step Badges */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <Badge label={selectedTask.status} variant={getStatusBadgeVariant(selectedTask.status)} />
+        <Badge label={selectedTask.step_name} variant="neutral" />
       </div>
 
-      <div style={{ display: 'grid', gap: '16px', marginBottom: '20px' }}>
-        <div style={{ background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>PIC</div>
-          <div style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: '500' }}>
-            {selectedTask.pic_name || '-'}
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div style={{ background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Tanggal Mulai</div>
-            <div style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
-              {selectedTask.start_date ? new Date(selectedTask.start_date).toLocaleDateString('id-ID') : '-'}
-            </div>
-          </div>
-
-          <div style={{ background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Deadline</div>
-            <div style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
-              {selectedTask.due_date ? new Date(selectedTask.due_date).toLocaleDateString('id-ID') : '-'}
-            </div>
-          </div>
-        </div>
-
+      {/* Info Section */}
+      <SectionCard title="Informasi Task">
+        <InfoRow label="PIC" value={selectedTask.pic_name || '-'} />
+        <InfoRow label="Tanggal Mulai" value={selectedTask.start_date ? new Date(selectedTask.start_date).toLocaleDateString('id-ID') : '-'} />
+        <InfoRow label="Deadline" value={selectedTask.due_date ? new Date(selectedTask.due_date).toLocaleDateString('id-ID') : '-'} />
         {selectedTask.completed_date && (
-          <div style={{ background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Tanggal Selesai</div>
-            <div style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
-              {new Date(selectedTask.completed_date).toLocaleDateString('id-ID')}
-            </div>
-          </div>
+          <InfoRow label="Tanggal Selesai" value={new Date(selectedTask.completed_date).toLocaleDateString('id-ID')} />
         )}
-      </div>
+      </SectionCard>
 
+      {/* Catatan */}
       {selectedTask.notes && (
-        <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Catatan</h3>
-          <div style={{ background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+        <SectionCard title="Catatan">
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
             {selectedTask.notes}
-          </div>
-        </div>
+          </p>
+        </SectionCard>
       )}
 
+      {/* Bukti / File */}
       {selectedTask.proof_path_or_link && (
-        <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Bukti / File</h3>
+        <SectionCard title="Bukti / File">
           <a
             href={selectedTask.proof_path_or_link}
             target="_blank"
@@ -106,20 +128,24 @@ const TaskPreviewPanel: React.FC = () => {
             style={{
               display: 'block',
               padding: '10px 14px',
-              background: 'var(--bg-card)',
+              background: 'var(--bg-surface)',
               borderRadius: '6px',
               border: '1px solid var(--border)',
               color: 'var(--accent)',
               textDecoration: 'none',
               fontSize: '13px',
-              wordBreak: 'break-all'
+              wordBreak: 'break-all',
+              transition: 'background 0.2s ease'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
           >
             {selectedTask.proof_path_or_link}
           </a>
-        </div>
+        </SectionCard>
       )}
 
+      {/* Action Buttons */}
       <div style={{ marginTop: 'auto', display: 'flex', gap: '10px' }}>
         <button
           onClick={() => setShowUpdateModal(true)}
@@ -132,8 +158,11 @@ const TaskPreviewPanel: React.FC = () => {
             borderRadius: '6px',
             cursor: 'pointer',
             fontSize: '13px',
-            fontWeight: '600'
+            fontWeight: '600',
+            transition: 'opacity 0.2s ease'
           }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
         >
           Update Status
         </button>
@@ -148,13 +177,17 @@ const TaskPreviewPanel: React.FC = () => {
             borderRadius: '6px',
             cursor: 'pointer',
             fontSize: '13px',
-            fontWeight: '500'
+            fontWeight: '500',
+            transition: 'background 0.2s ease'
           }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
         >
           Edit Task
         </button>
       </div>
 
+      {/* Modals */}
       {showUpdateModal && (
         <UpdateStatusModal
           task={selectedTask}
