@@ -188,6 +188,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       const payload = {
         ...l,
+        weekly_target: l.weekly_target ?? 0,
         created_at: new Date().toISOString()
       };
       const id = await invoke<number>('add_tim', { tim: payload });
@@ -201,7 +202,11 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const updateTim = async (l: Tim) => {
     try {
-      await invoke('update_tim', { tim: l });
+      const payload = {
+        ...l,
+        weekly_target: l.weekly_target ?? 0
+      };
+      await invoke('update_tim', { tim: payload });
       await loadTim();
     } catch (err) {
       console.error('Gagal mengupdate tim:', err);
