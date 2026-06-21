@@ -47,6 +47,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
   }, [directAddNewModule]);
   
   // State filter
+  const [filterType, setFilterType] = useState<'type' | 'status'>('type');
   const [statusFilter, setStatusFilter] = useState('');
   const [contactTypeFilter, setContactTypeFilter] = useState<'all' | 'penulis' | 'customer'>('all');
 
@@ -326,7 +327,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
     const isCustomerOnly = id < 0;
     
     showConfirm({
-      title: isCustomerOnly ? 'Hapus Pelanggan' : 'Hapus Kontak',
+      title: 'Hapus Pelanggan',
       message: isCustomerOnly 
         ? `Apakah Anda yakin ingin menghapus pelanggan "${name}"?`
         : `Apakah Anda yakin ingin menghapus kontak "${name}"?`,
@@ -527,23 +528,44 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
       
       <FilterBar>
-        <FilterGroup label="👤 Tipe Kontak:">
-          <FilterChip label="Semua" active={contactTypeFilter === 'all'} onClick={() => setContactTypeFilter('all')} />
-          <FilterChip label={`Penulis (${combinedPenulis.filter(p => !p.is_customer_only).length})`} active={contactTypeFilter === 'penulis'} onClick={() => setContactTypeFilter('penulis')} />
-          <FilterChip label={`Pelanggan (${combinedPenulis.filter(p => p.is_customer).length})`} active={contactTypeFilter === 'customer'} onClick={() => setContactTypeFilter('customer')} />
+        <FilterGroup label="🔍 FILTER:">
+          <FilterChip 
+            label="Tipe Kontak" 
+            active={filterType === 'type'} 
+            onClick={() => { setFilterType('type'); setContactTypeFilter('all'); setStatusFilter(''); }} 
+          />
+          <FilterChip 
+            label="Status" 
+            active={filterType === 'status'} 
+            onClick={() => { setFilterType('status'); setContactTypeFilter('all'); setStatusFilter(''); }} 
+          />
         </FilterGroup>
 
-        <FilterDivider />
+        {filterType === 'type' && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="👤 TIPE KONTAK:">
+              <FilterChip label="Semua" active={contactTypeFilter === 'all'} onClick={() => setContactTypeFilter('all')} />
+              <FilterChip label={`Penulis (${combinedPenulis.filter(p => !p.is_customer_only).length})`} active={contactTypeFilter === 'penulis'} onClick={() => setContactTypeFilter('penulis')} />
+              <FilterChip label={`Pelanggan (${combinedPenulis.filter(p => p.is_customer).length})`} active={contactTypeFilter === 'customer'} onClick={() => setContactTypeFilter('customer')} />
+            </FilterGroup>
+          </>
+        )}
 
-        <FilterGroup label="📋 Status:">
-          <FilterChip label="Semua" active={statusFilter === ''} onClick={() => setStatusFilter('')} />
-          <FilterChip label="Baru (New)" active={statusFilter === 'New'} onClick={() => setStatusFilter('New')} />
-          <FilterChip label="Sudah Dihubungi" active={statusFilter === 'Contacted'} onClick={() => setStatusFilter('Contacted')} />
-          <FilterChip label="Tertarik" active={statusFilter === 'Interested'} onClick={() => setStatusFilter('Interested')} />
-          <FilterChip label="Deal (Naskah)" active={statusFilter === 'Deal'} onClick={() => setStatusFilter('Deal')} />
-          <FilterChip label="Menolak" active={statusFilter === 'Rejected'} onClick={() => setStatusFilter('Rejected')} />
-          <FilterChip label="🤝 Pelanggan" active={statusFilter === 'Pelanggan'} onClick={() => setStatusFilter('Pelanggan')} />
-        </FilterGroup>
+        {filterType === 'status' && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="📋 STATUS:">
+              <FilterChip label="Semua" active={statusFilter === ''} onClick={() => setStatusFilter('')} />
+              <FilterChip label="Baru (New)" active={statusFilter === 'New'} onClick={() => setStatusFilter('New')} />
+              <FilterChip label="Sudah Dihubungi" active={statusFilter === 'Contacted'} onClick={() => setStatusFilter('Contacted')} />
+              <FilterChip label="Tertarik" active={statusFilter === 'Interested'} onClick={() => setStatusFilter('Interested')} />
+              <FilterChip label="Deal (Naskah)" active={statusFilter === 'Deal'} onClick={() => setStatusFilter('Deal')} />
+              <FilterChip label="Menolak" active={statusFilter === 'Rejected'} onClick={() => setStatusFilter('Rejected')} />
+              <FilterChip label="🤝 Pelanggan" active={statusFilter === 'Pelanggan'} onClick={() => setStatusFilter('Pelanggan')} />
+            </FilterGroup>
+          </>
+        )}
 
         <FilterDivider />
 

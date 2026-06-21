@@ -224,6 +224,7 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // Filter state — badge multi-select untuk status
+  const [filterType, setFilterType] = useState<'status' | 'department'>('status');
   const [activeStatuses, setActiveStatuses] = useState<string[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState('');
 
@@ -391,16 +392,36 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
 
         <FilterDivider />
 
-        <FilterGroup label="👤 Status:">
-          <FilterChip label="Semua" active={activeStatuses.length === 0} onClick={() => setActiveStatuses([])} />
-          <FilterChip label={`Aktif (${totalAktif})`} active={activeStatuses.includes('Aktif')} inactiveColor="#22c55e" onClick={() => toggleStatus('Aktif')} />
-          <FilterChip label={`Nonaktif (${totalNonaktif})`} active={activeStatuses.includes('Nonaktif')} inactiveColor="var(--text-secondary)" onClick={() => toggleStatus('Nonaktif')} />
+        <FilterGroup label="🔍 FILTER:">
+          <FilterChip 
+            label="Status" 
+            active={filterType === 'status'} 
+            onClick={() => { setFilterType('status'); setDepartmentFilter(''); }} 
+          />
+          {departments.length > 0 && (
+            <FilterChip 
+              label="Divisi" 
+              active={filterType === 'department'} 
+              onClick={() => { setFilterType('department'); setActiveStatuses([]); }} 
+            />
+          )}
         </FilterGroup>
 
-        {departments.length > 0 && (
+        {filterType === 'status' && (
           <>
             <FilterDivider />
-            <FilterGroup label="🏢 Divisi:">
+            <FilterGroup label="👤 STATUS:">
+              <FilterChip label="Semua" active={activeStatuses.length === 0} onClick={() => setActiveStatuses([])} />
+              <FilterChip label={`Aktif (${totalAktif})`} active={activeStatuses.includes('Aktif')} inactiveColor="#22c55e" onClick={() => toggleStatus('Aktif')} />
+              <FilterChip label={`Nonaktif (${totalNonaktif})`} active={activeStatuses.includes('Nonaktif')} inactiveColor="var(--text-secondary)" onClick={() => toggleStatus('Nonaktif')} />
+            </FilterGroup>
+          </>
+        )}
+
+        {filterType === 'department' && departments.length > 0 && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="🏢 DIVISI:">
               <FilterChip label="Semua" active={departmentFilter === ''} onClick={() => setDepartmentFilter('')} />
               {departments.map((d) => (
                 <FilterChip key={d} label={d} active={departmentFilter === d} onClick={() => setDepartmentFilter(d)} />

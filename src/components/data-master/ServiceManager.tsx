@@ -5,7 +5,7 @@ import { formatPrice } from '../../utils/format';
 import ServiceForm from './ServiceForm';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
 import { Button } from '../../ui/atoms/Button';
-import { FilterBar, FilterGroup, FilterDivider } from '../../ui/molecules/FilterBar';
+import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
 import * as XLSX from 'xlsx';
 import { save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
@@ -219,14 +219,19 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
     }
   }, [directAddNewModule]);
 
+  const [filterType, setFilterType] = useState<'category'>('category');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'penerbitan' | 'desain_layout' | 'haki' | 'isbn' | 'mitra' | 'other'>('all');
+
   const filteredServices = useMemo(() => {
-    if (!searchQuery) return services;
-    const q = searchQuery.toLowerCase();
-    return services.filter(s =>
-      s.name.toLowerCase().includes(q) ||
-      (s.description || '').toLowerCase().includes(q)
-    );
-  }, [services, searchQuery]);
+    return services.filter((s) => {
+      const q = searchQuery.toLowerCase();
+      const matchSearch = !q ||
+        s.name.toLowerCase().includes(q) ||
+        (s.description || '').toLowerCase().includes(q);
+      const matchCategory = categoryFilter === 'all' ? true : s.category === categoryFilter;
+      return matchSearch && matchCategory;
+    });
+  }, [services, searchQuery, categoryFilter]);
 
   const handleAddNew = () => {
     setCurrentService(null);
@@ -350,6 +355,31 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
           <strong style={{ color: 'var(--text-primary)' }}>{filteredServices.length}</strong>
           {' '}layanan
         </span>
+
+        <FilterDivider />
+
+        <FilterGroup label="🔍 FILTER:">
+          <FilterChip 
+            label="Kategori" 
+            active={filterType === 'category'} 
+            onClick={() => { setFilterType('category'); setCategoryFilter('all'); }} 
+          />
+        </FilterGroup>
+
+        {filterType === 'category' && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="🛠️ KATEGORI:">
+              <FilterChip label="Semua" active={categoryFilter === 'all'} onClick={() => setCategoryFilter('all')} />
+              <FilterChip label="Layanan Penerbitan" active={categoryFilter === 'penerbitan'} onClick={() => setCategoryFilter('penerbitan')} />
+              <FilterChip label="Desain & Layout" active={categoryFilter === 'desain_layout'} onClick={() => setCategoryFilter('desain_layout')} />
+              <FilterChip label="Pendaftaran HAKI" active={categoryFilter === 'haki'} onClick={() => setCategoryFilter('haki')} />
+              <FilterChip label="Pengajuan ISBN" active={categoryFilter === 'isbn'} onClick={() => setCategoryFilter('isbn')} />
+              <FilterChip label="Layanan Mitra" active={categoryFilter === 'mitra'} onClick={() => setCategoryFilter('mitra')} />
+              <FilterChip label="Lainnya" active={categoryFilter === 'other'} onClick={() => setCategoryFilter('other')} />
+            </FilterGroup>
+          </>
+        )}
 
         <FilterDivider />
 

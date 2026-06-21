@@ -270,6 +270,7 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // Filter badge state (bisa multi-pilih status)
+  const [filterType, setFilterType] = useState<'status' | 'genre'>('status');
   const [activeStatuses, setActiveStatuses] = useState<string[]>([]);
   const [genreFilter, setGenreFilter] = useState('');
 
@@ -454,27 +455,47 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
 
         <FilterDivider />
 
-        <FilterGroup label="🚦 Status:">
-          <FilterChip label="Semua" active={activeStatuses.length === 0} onClick={() => setActiveStatuses([])} />
-          {STATUS_LIST.map((status) => {
-            const variant = statusVariantMap[status] || 'neutral';
-            const colorMap: Record<string, string> = { success: '#22c55e', warning: '#e6a817', danger: '#ef4444', info: '#3b82f6' };
-            return (
-              <FilterChip
-                key={status}
-                label={`${status} (${statusCounts[status]})`}
-                active={activeStatuses.includes(status)}
-                inactiveColor={colorMap[variant] ?? undefined}
-                onClick={() => toggleStatus(status)}
-              />
-            );
-          })}
+        <FilterGroup label="🔍 FILTER:">
+          <FilterChip 
+            label="Status" 
+            active={filterType === 'status'} 
+            onClick={() => { setFilterType('status'); setGenreFilter(''); }} 
+          />
+          {genres.length > 0 && (
+            <FilterChip 
+              label="Genre" 
+              active={filterType === 'genre'} 
+              onClick={() => { setFilterType('genre'); setActiveStatuses([]); }} 
+            />
+          )}
         </FilterGroup>
 
-        {genres.length > 0 && (
+        {filterType === 'status' && (
           <>
             <FilterDivider />
-            <FilterGroup label="📂 Genre:">
+            <FilterGroup label="🚦 STATUS:">
+              <FilterChip label="Semua" active={activeStatuses.length === 0} onClick={() => setActiveStatuses([])} />
+              {STATUS_LIST.map((status) => {
+                const variant = statusVariantMap[status] || 'neutral';
+                const colorMap: Record<string, string> = { success: '#22c55e', warning: '#e6a817', danger: '#ef4444', info: '#3b82f6' };
+                return (
+                  <FilterChip
+                    key={status}
+                    label={`${status} (${statusCounts[status]})`}
+                    active={activeStatuses.includes(status)}
+                    inactiveColor={colorMap[variant] ?? undefined}
+                    onClick={() => toggleStatus(status)}
+                  />
+                );
+              })}
+            </FilterGroup>
+          </>
+        )}
+
+        {filterType === 'genre' && genres.length > 0 && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="📂 GENRE:">
               <FilterChip label="Semua" active={genreFilter === ''} onClick={() => setGenreFilter('')} />
               {genres.map((g) => (
                 <FilterChip key={g} label={g} active={genreFilter === g} onClick={() => setGenreFilter(g)} />

@@ -7,7 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { StatCard } from '../../ui/molecules/StatCard';
 import { Button } from '../../ui/atoms/Button';
 import { Badge } from '../../ui/atoms/Badge';
-import { FilterBar, FilterGroup, FilterChip } from '../../ui/molecules/FilterBar';
+import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
 import { DataTablePage, tableStyles } from '../../ui/molecules/DataTable';
 
 interface Legalitas {
@@ -121,49 +121,45 @@ const LaporanOperasional: React.FC = () => {
       filterBar={
         <>
           <FilterBar>
-            <FilterGroup label="🔍 Filter:">
-              {/* Dropdown Kategori / Judul Filter */}
-              <div style={{ display: 'inline-block' }}>
-                <select
-                  value={activeFilterType}
-                  onChange={(e) => setActiveFilterType(e.target.value as any)}
-                  style={{
-                    borderRadius: '20px',
-                    border: 'none',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    background: 'var(--accent, #3b82f6)',
-                    color: '#ffffff',
-                    padding: '4px 12px 4px 8px',
-                    fontSize: '12px',
-                    height: '24px',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    appearance: 'none',
-                    textAlign: 'center',
-                  }}
-                >
-                  <option value="periode" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>📅 Periode ▾</option>
-                  <option value="pic" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>👤 PIC ▾</option>
-                  <option value="penerbit" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>🏢 Penerbit ▾</option>
-                  <option value="status" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>📋 Status ▾</option>
-                </select>
-              </div>
+            <FilterGroup label="🔍 FILTER:">
+              <FilterChip 
+                label="Periode" 
+                active={activeFilterType === 'periode'} 
+                onClick={() => { setActiveFilterType('periode'); setPeriode('Bulan Ini'); setFilterPic(''); setFilterPenerbit(''); setFilterStatus(''); }} 
+              />
+              <FilterChip 
+                label="PIC" 
+                active={activeFilterType === 'pic'} 
+                onClick={() => { setActiveFilterType('pic'); setPeriode('Semua'); setFilterPic(''); setFilterPenerbit(''); setFilterStatus(''); }} 
+              />
+              <FilterChip 
+                label="Penerbit" 
+                active={activeFilterType === 'penerbit'} 
+                onClick={() => { setActiveFilterType('penerbit'); setPeriode('Semua'); setFilterPic(''); setFilterPenerbit(''); setFilterStatus(''); }} 
+              />
+              <FilterChip 
+                label="Status" 
+                active={activeFilterType === 'status'} 
+                onClick={() => { setActiveFilterType('status'); setPeriode('Semua'); setFilterPic(''); setFilterPenerbit(''); setFilterStatus(''); }} 
+              />
+            </FilterGroup>
 
-              <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>:</span>
-
-              {/* Opsi Nilai Filter Horizontal (Bukan Dropdown) */}
-              {activeFilterType === 'periode' && (
-                <>
+            {activeFilterType === 'periode' && (
+              <>
+                <FilterDivider />
+                <FilterGroup label="📅 PERIODE:">
                   <FilterChip label="Semua Waktu" active={periode === 'Semua'} onClick={() => setPeriode('Semua')} />
                   <FilterChip label="Bulan Ini" active={periode === 'Bulan Ini'} onClick={() => setPeriode('Bulan Ini')} />
                   <FilterChip label="Tahun Ini" active={periode === 'Tahun Ini'} onClick={() => setPeriode('Tahun Ini')} />
-                </>
-              )}
+                </FilterGroup>
+              </>
+            )}
 
-              {activeFilterType === 'pic' && (
-                <>
-                  <FilterChip label="Semua PIC" active={filterPic === ''} onClick={() => setFilterPic('')} />
+            {activeFilterType === 'pic' && (
+              <>
+                <FilterDivider />
+                <FilterGroup label="👤 PIC:">
+                  <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
                   {uniquePics.map(pic => (
                     <FilterChip
                       key={pic as string}
@@ -172,19 +168,25 @@ const LaporanOperasional: React.FC = () => {
                       onClick={() => setFilterPic(pic as string)}
                     />
                   ))}
-                </>
-              )}
+                </FilterGroup>
+              </>
+            )}
 
-              {activeFilterType === 'penerbit' && (
-                <>
-                  <FilterChip label="Semua Penerbit" active={filterPenerbit === ''} onClick={() => setFilterPenerbit('')} />
+            {activeFilterType === 'penerbit' && (
+              <>
+                <FilterDivider />
+                <FilterGroup label="🏢 PENERBIT:">
+                  <FilterChip label="Semua" active={filterPenerbit === ''} onClick={() => setFilterPenerbit('')} />
                   <FilterChip label="Penerbit A" active={filterPenerbit === 'penerbit_a'} onClick={() => setFilterPenerbit('penerbit_a')} />
-                </>
-              )}
+                </FilterGroup>
+              </>
+            )}
 
-              {activeFilterType === 'status' && (
-                <>
-                  <FilterChip label="Semua Status" active={filterStatus === ''} onClick={() => setFilterStatus('')} />
+            {activeFilterType === 'status' && (
+              <>
+                <FilterDivider />
+                <FilterGroup label="📋 STATUS:">
+                  <FilterChip label="Semua" active={filterStatus === ''} onClick={() => setFilterStatus('')} />
                   {uniqueStatuses.map(s => (
                     <FilterChip
                       key={s as string}
@@ -193,9 +195,9 @@ const LaporanOperasional: React.FC = () => {
                       onClick={() => setFilterStatus(s as string)}
                     />
                   ))}
-                </>
-              )}
-            </FilterGroup>
+                </FilterGroup>
+              </>
+            )}
 
             <div style={{ flex: 1 }}></div>
 

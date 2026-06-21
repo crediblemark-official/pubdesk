@@ -42,7 +42,8 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
     }
   }, [directAddNewModule]);
 
-  // State filter status kerja sama
+  // State filter
+  const [filterType, setFilterType] = useState<'status'>('status');
   const [coopFilter, setCoopFilter] = useState<'all' | 'Aktif' | 'Negosiasi' | 'Pasif' | 'Berhenti'>('all');
 
   // Filter data penerbit
@@ -363,15 +364,26 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
       
       <FilterBar>
-        <FilterGroup label="🤝 Status Kerja Sama:">
-          <FilterChip label={`Semua (${penerbit.length})`} active={coopFilter === 'all'} onClick={() => setCoopFilter('all')} />
-          <FilterChip label={`Aktif (${penerbit.filter(p => (p.cooperation_status || 'Aktif') === 'Aktif').length})`} active={coopFilter === 'Aktif'} onClick={() => setCoopFilter('Aktif')} />
-          <FilterChip label={`Negosiasi (${penerbit.filter(p => p.cooperation_status === 'Negosiasi').length})`} active={coopFilter === 'Negosiasi'} onClick={() => setCoopFilter('Negosiasi')} />
-          <FilterChip label={`Pasif (${penerbit.filter(p => p.cooperation_status === 'Pasif').length})`} active={coopFilter === 'Pasif'} onClick={() => setCoopFilter('Pasif')} />
-          <FilterChip label={`Berhenti (${penerbit.filter(p => p.cooperation_status === 'Berhenti').length})`} active={coopFilter === 'Berhenti'} onClick={() => setCoopFilter('Berhenti')} />
+        <FilterGroup label="🔍 FILTER:">
+          <FilterChip 
+            label="Status Kerja Sama" 
+            active={filterType === 'status'} 
+            onClick={() => { setFilterType('status'); setCoopFilter('all'); }} 
+          />
         </FilterGroup>
 
-        <FilterDivider />
+        {filterType === 'status' && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="🤝 STATUS:">
+              <FilterChip label={`Semua (${penerbit.length})`} active={coopFilter === 'all'} onClick={() => setCoopFilter('all')} />
+              <FilterChip label={`Aktif (${penerbit.filter(p => (p.cooperation_status || 'Aktif') === 'Aktif').length})`} active={coopFilter === 'Aktif'} onClick={() => setCoopFilter('Aktif')} />
+              <FilterChip label={`Negosiasi (${penerbit.filter(p => p.cooperation_status === 'Negosiasi').length})`} active={coopFilter === 'Negosiasi'} onClick={() => setCoopFilter('Negosiasi')} />
+              <FilterChip label={`Pasif (${penerbit.filter(p => p.cooperation_status === 'Pasif').length})`} active={coopFilter === 'Pasif'} onClick={() => setCoopFilter('Pasif')} />
+              <FilterChip label={`Berhenti (${penerbit.filter(p => p.cooperation_status === 'Berhenti').length})`} active={coopFilter === 'Berhenti'} onClick={() => setCoopFilter('Berhenti')} />
+            </FilterGroup>
+          </>
+        )}
 
         <FilterGroup label="">
           <Button

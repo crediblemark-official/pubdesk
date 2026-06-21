@@ -221,6 +221,7 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
     }
   }, [directAddNewModule]);
 
+  const [filterType, setFilterType] = useState<'type' | 'status'>('type');
   const [activeTipe, setActiveTipe] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState('');
 
@@ -389,26 +390,47 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
 
         <FilterDivider />
 
-        <FilterGroup label="📄 Tipe:">
-          <FilterChip label="Semua" active={activeTipe.length === 0} onClick={() => setActiveTipe([])} />
-          {TIPE_LEGALITAS.map((t) => (
-            <FilterChip
-              key={t}
-              label={`${t} (${tipeCounts[t] || 0})`}
-              active={activeTipe.includes(t)}
-              onClick={() => toggleTipe(t)}
-            />
-          ))}
+        <FilterGroup label="🔍 FILTER:">
+          <FilterChip 
+            label="Tipe" 
+            active={filterType === 'type'} 
+            onClick={() => { setFilterType('type'); setStatusFilter(''); }} 
+          />
+          <FilterChip 
+            label="Status" 
+            active={filterType === 'status'} 
+            onClick={() => { setFilterType('status'); setActiveTipe([]); }} 
+          />
         </FilterGroup>
 
-        <FilterDivider />
+        {filterType === 'type' && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="📄 TIPE:">
+              <FilterChip label="Semua" active={activeTipe.length === 0} onClick={() => setActiveTipe([])} />
+              {TIPE_LEGALITAS.map((t) => (
+                <FilterChip
+                  key={t}
+                  label={`${t} (${tipeCounts[t] || 0})`}
+                  active={activeTipe.includes(t)}
+                  onClick={() => toggleTipe(t)}
+                />
+              ))}
+            </FilterGroup>
+          </>
+        )}
 
-        <FilterGroup label="📋 Status:">
-          <FilterChip label="Semua" active={statusFilter === ''} onClick={() => setStatusFilter('')} />
-          {statuses.map((s) => (
-            <FilterChip key={s} label={s} active={statusFilter === s} onClick={() => setStatusFilter(s)} />
-          ))}
-        </FilterGroup>
+        {filterType === 'status' && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="📋 STATUS:">
+              <FilterChip label="Semua" active={statusFilter === ''} onClick={() => setStatusFilter('')} />
+              {statuses.map((s) => (
+                <FilterChip key={s} label={s} active={statusFilter === s} onClick={() => setStatusFilter(s)} />
+              ))}
+            </FilterGroup>
+          </>
+        )}
 
         <FilterDivider />
 
