@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useFileState } from '../../contexts/FileContext';
 
@@ -9,6 +9,16 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const { appState, setActiveModule, connectedUser } = useAppContext();
   const { fileCategory, setFileCategory } = useFileState();
+
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(() => {
+    const active = appState.activeModule;
+    return {
+      files: active === 'files',
+      invoice: ['invoice', 'invoice-manager', 'invoice-insight'].includes(active),
+      'master-data-parent': ['kontak', 'penerbit', 'naskah', 'tim', 'legalitas', 'services'].includes(active),
+      'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'tambah-tugas', 'edit-tugas'].includes(active)
+    };
+  });
 
   const menuItems = [
     { id: 'pekerjaan-saya' as const, label: 'Pekerjaan Saya', icon: '📋' },
@@ -52,10 +62,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               appState.activeModule === 'edit-tugas'
             )
           : appState.activeModule === item.id;
-          const showSubmenu = item.id === 'files' && !collapsed;
-          const showInvoiceSubmenu = item.id === 'invoice' && !collapsed;
-          const showMasterDataSubmenu = item.id === 'master-data-parent' && !collapsed;
-          const showProduksiSubmenu = item.id === 'produksi-parent' && !collapsed;
+          const isExpandable = item.id === 'files' || item.id === 'invoice' || item.id === 'master-data-parent' || item.id === 'produksi-parent';
+          const isExpanded = expandedMenus[item.id];
+          const showSubmenu = item.id === 'files' && !collapsed && isExpanded;
+          const showInvoiceSubmenu = item.id === 'invoice' && !collapsed && isExpanded;
+          const showMasterDataSubmenu = item.id === 'master-data-parent' && !collapsed && isExpanded;
+          const showProduksiSubmenu = item.id === 'produksi-parent' && !collapsed && isExpanded;
           return (
             <div key={item.id}>
               <button
@@ -71,13 +83,19 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                   fontSize: '14px', 
                   display: 'flex', 
                   alignItems: 'center', 
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  gap: collapsed ? '0' : '12px',
+                  justifyContent: collapsed ? 'center' : 'space-between',
                   marginBottom: '4px',
                   fontWeight: isActive ? '600' : '400',
                   transition: 'all 0.15s ease'
                 }}
                 onClick={() => {
+                  if (isExpandable) {
+                    setExpandedMenus(prev => ({
+                      ...prev,
+                      [item.id]: !prev[item.id]
+                    }));
+                  }
+
                   if (item.id === 'invoice') {
                     if (appState.activeModule !== 'invoice' && appState.activeModule !== 'invoice-manager' && appState.activeModule !== 'invoice-insight') {
                       setActiveModule('invoice');
@@ -126,12 +144,25 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                   }
                 }}
               >
-                <span style={{ fontSize: '18px' }}>{item.icon}</span>
-                {!collapsed && <span>{item.label}</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '12px' }}>
+                  <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                  {!collapsed && <span>{item.label}</span>}
+                </div>
+                {!collapsed && isExpandable && (
+                  <span style={{ 
+                    fontSize: '9px', 
+                    opacity: 0.7, 
+                    transition: 'transform 0.2s', 
+                    transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                    display: 'inline-block'
+                  }}>
+                    ▶
+                  </span>
+                )}
               </button>
 
               {showInvoiceSubmenu && (
-                <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
+                <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { module: 'invoice' as const, label: 'Invoice Generator', icon: '✍️' },
                     { module: 'invoice-manager' as const, label: 'Manajemen Invoice', icon: '🗃️' },
@@ -146,7 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                         style={{
                           width: '100%',
-                          padding: '6px 10px',
+                          padding: '4px 8px',
                           border: 'none',
                           borderRadius: '6px',
                           background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
@@ -182,7 +213,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               )}
 
               {showMasterDataSubmenu && (
-                <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
+                <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { module: 'kontak' as const, label: 'Kontak', icon: '👤' },
                     { module: 'penerbit' as const, label: 'Penerbit', icon: '🏢' },
@@ -200,7 +231,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                         style={{
                           width: '100%',
-                          padding: '6px 10px',
+                          padding: '4px 8px',
                           border: 'none',
                           borderRadius: '6px',
                           background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
@@ -236,7 +267,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               )}
 
               {showProduksiSubmenu && (
-                <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
+                <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { module: 'tambah-tugas' as const, label: 'Tambah Tugas Baru', icon: '➕' },
                     { module: 'produksi-board' as const, label: 'Board Produksi', icon: '🎨' },
@@ -253,7 +284,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                         style={{
                           width: '100%',
-                          padding: '6px 10px',
+                          padding: '4px 8px',
                           border: 'none',
                           borderRadius: '6px',
                           background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
@@ -289,7 +320,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               )}
 
               {showSubmenu && (
-                <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
+                <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { cat: 'all' as const, label: 'Semua Berkas', icon: '📂' },
                     { cat: 'invoice' as const, label: 'Dokumen Invoice', icon: '🧾' },
@@ -312,7 +343,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                         style={{
                           width: '100%',
-                          padding: '6px 10px',
+                          padding: '4px 8px',
                           border: 'none',
                           borderRadius: '6px',
                           background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
