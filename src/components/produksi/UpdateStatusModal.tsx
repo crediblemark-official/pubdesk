@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Task } from '../../types/workflow.types';
 import { useAppContext } from '../../contexts/AppContext';
 import { useWorkflowContext } from '../../contexts/WorkflowContext';
+import { Modal } from '../../ui/molecules/Modal';
+import { TextField } from '../../ui/atoms/TextField';
+import { TextArea } from '../../ui/atoms/TextArea';
+import { Select } from '../../ui/atoms/Select';
+import { Button } from '../../ui/atoms/Button';
 
 interface UpdateStatusModalProps {
   task: Task;
@@ -18,12 +23,12 @@ const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({ task, onClose, on
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const statusOptions = [
-    'Belum Mulai',
-    'Proses',
-    'Menunggu Revisi',
-    'Menunggu Approval',
-    'Selesai',
-    'Terlambat'
+    { value: 'Belum Mulai', label: 'Belum Mulai' },
+    { value: 'Proses', label: 'Proses' },
+    { value: 'Menunggu Revisi', label: 'Menunggu Revisi' },
+    { value: 'Menunggu Approval', label: 'Menunggu Approval' },
+    { value: 'Selesai', label: 'Selesai' },
+    { value: 'Terlambat', label: 'Terlambat' }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,101 +52,57 @@ const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({ task, onClose, on
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        background: 'var(--bg-panel)',
-        borderRadius: '12px',
-        width: '100%',
-        maxWidth: '500px',
-        border: '1px solid var(--border)',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
-        {/* Header */}
-        <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)' }}>Update Status Pekerjaan</h3>
-            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              {task.naskah_title || `Naskah #${task.naskah_id}`} - {task.step_name}
-            </div>
-          </div>
-          <button 
-            onClick={onClose}
-            style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text-secondary)' }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Body */}
-        <form onSubmit={handleSubmit} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          <div className="form-group">
-            <label style={{ display: 'block', fontSize: '13px', marginBottom: '8px', color: 'var(--text-primary)' }}>Status Saat Ini</label>
-            <select 
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            >
-              {statusOptions.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label style={{ display: 'block', fontSize: '13px', marginBottom: '8px', color: 'var(--text-primary)' }}>Bukti Pekerjaan (URL / Path)</label>
-            <input 
-              type="text" 
-              value={proof}
-              onChange={(e) => setProof(e.target.value)}
-              placeholder="Misal: link Google Drive atau path file"
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            />
-          </div>
-
-          <div className="form-group">
-            <label style={{ display: 'block', fontSize: '13px', marginBottom: '8px', color: 'var(--text-primary)' }}>Catatan / Kendala</label>
-            <textarea 
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Tambahkan informasi progres, alasan keterlambatan, dsb."
-              rows={4}
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', resize: 'vertical' }}
-            />
-          </div>
-
-          {/* Footer */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
-            <button 
-              type="button" 
-              onClick={onClose}
-              style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer' }}
-            >
-              Batal
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="btn-primary"
-              style={{ padding: '8px 16px' }}
-            >
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
-            </button>
-          </div>
-        </form>
+    <Modal open={true} onClose={onClose} title="Update Status Pekerjaan" width="500px">
+      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '-8px', marginBottom: '8px' }}>
+        {task.naskah_title || `Naskah #${task.naskah_id}`} - {task.step_name}
       </div>
-    </div>
+      
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        
+        <Select
+          label="Status Saat Ini"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          options={statusOptions}
+          fullWidth
+        />
+
+        <TextField
+          label="Bukti Pekerjaan (URL / Path)"
+          value={proof}
+          onChange={(e) => setProof(e.target.value)}
+          placeholder="Misal: link Google Drive atau path file"
+          fullWidth
+        />
+
+        <TextArea
+          label="Catatan / Kendala"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Tambahkan informasi progres, alasan keterlambatan, dsb."
+          rows={4}
+          fullWidth
+        />
+
+        {/* Footer */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+          <Button
+            type="button"
+            onClick={onClose}
+            variant="secondary"
+          >
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            loading={isSubmitting}
+            variant="primary"
+          >
+            {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };
 

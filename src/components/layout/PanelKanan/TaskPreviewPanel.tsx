@@ -1,6 +1,7 @@
 import React from 'react';
 import { useWorkflowContext } from '../../../contexts/WorkflowContext';
 import { Badge } from '../../../ui/atoms/Badge';
+import { Button } from '../../../ui/atoms/Button';
 import UpdateStatusModal from '../../produksi/UpdateStatusModal';
 import TaskModal from '../../produksi/TaskModal';
 
@@ -147,44 +148,20 @@ const TaskPreviewPanel: React.FC = () => {
 
       {/* Action Buttons */}
       <div style={{ marginTop: 'auto', display: 'flex', gap: '10px' }}>
-        <button
+        <Button
+          fullWidth
           onClick={() => setShowUpdateModal(true)}
-          style={{
-            flex: 1,
-            padding: '10px',
-            background: 'var(--accent)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '600',
-            transition: 'opacity 0.2s ease'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+          variant="primary"
         >
           Update Status
-        </button>
-        <button
+        </Button>
+        <Button
+          fullWidth
           onClick={() => setShowEditModal(true)}
-          style={{
-            flex: 1,
-            padding: '10px',
-            background: 'transparent',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border)',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '500',
-            transition: 'background 0.2s ease'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+          variant="secondary"
         >
           Edit Task
-        </button>
+        </Button>
       </div>
 
       {/* Modals */}

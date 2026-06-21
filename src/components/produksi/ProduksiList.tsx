@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Task } from '../../types/workflow.types';
 import TaskModal from './TaskModal';
 import { useWorkflowContext } from '../../contexts/WorkflowContext';
 import { useAppContext } from '../../contexts/AppContext';
+import { Badge } from '../../ui/atoms/Badge';
+import { Button } from '../../ui/atoms/Button';
+import { FilterBar, FilterGroup, FilterChip, FilterDivider } from '../../ui/molecules/FilterBar';
+import { TableEmptyState } from '../../ui/molecules/EmptyState';
 
 const ProduksiList: React.FC = () => {
   const { tasks, isLoading, setSelectedTaskId } = useWorkflowContext();
@@ -16,132 +20,205 @@ const ProduksiList: React.FC = () => {
   // Filters
   const [filterPic, setFilterPic] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filterDeadline, setFilterDeadline] = useState('');
 
-  const filteredTasks = tasks.filter(t => {
-    if (searchTerm && !(t.naskah_title || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    if (filterPic && t.pic_name !== filterPic) return false;
-    if (filterStatus && t.status !== filterStatus) return false;
-    return true;
-  });
+  // Unique PICs and statuses
+  const uniquePics = useMemo(() => Array.from(new Set(tasks.map(t => t.pic_name).filter(Boolean))), [tasks]);
+  const uniqueStatuses = useMemo(() => Array.from(new Set(tasks.map(t => t.status).filter(Boolean))), [tasks]);
 
-  const getStatusColor = (status: string) => {
+  // Filtered tasks
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(t => {
+      if (searchTerm && !(t.naskah_title || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (filterPic && t.pic_name !== filterPic) return false;
+      if (filterStatus && t.status !== filterStatus) return false;
+      return true;
+    });
+  }, [tasks, searchTerm, filterPic, filterStatus]);
+
+  const getStatusVariant = (status: string) => {
     switch (status) {
-      case 'Selesai': return { bg: '#dcfce7', text: '#166534' };
-      case 'Proses': return { bg: '#dbeafe', text: '#1e40af' };
-      case 'Menunggu Revisi': return { bg: '#fef3c7', text: '#92400e' };
-      case 'Menunggu Approval': return { bg: '#ede9fe', text: '#5b21b6' };
-      case 'Terlambat': return { bg: '#fee2e2', text: '#991b1b' };
-      default: return { bg: '#f1f5f9', text: '#475569' }; // Belum Mulai
+      case 'Selesai': return 'success';
+      case 'Proses': return 'info';
+      case 'Menunggu Revisi': return 'warning';
+      case 'Menunggu Approval': return 'accent';
+      case 'Terlambat': return 'danger';
+      default: return 'neutral';
     }
   };
 
-  const uniquePics = Array.from(new Set(tasks.map(t => t.pic_name).filter(Boolean)));
-  const uniqueStatus = Array.from(new Set(tasks.map(t => t.status).filter(Boolean)));
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    try {
+      return new Date(dateStr).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return '-';
+    }
+  };
 
   return (
-    <div className="module-content" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div className="module-content" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '28px', fontWeight: '700' }}>Produksi Naskah &gt; Daftar Tugas</h2>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', minWidth: '200px' }}>
-          <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}>🔍</span>
-          <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
+      <FilterBar>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '200px' }}>
+          <span style={{ position: 'relative', left: '12px', fontSize: '14px' }}>🔍</span>
+          <input
+            type="text"
+            placeholder="Cari..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 12px 8px 36px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              fontSize: '13px'
+            }}
+          />
         </div>
-        <select value={filterPic} onChange={e => setFilterPic(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}>
-          <option value="">[PIC]</option>
-          {uniquePics.map(pic => <option key={pic as string} value={pic as string}>{pic}</option>)}
-        </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}>
-          <option value="">[Status]</option>
-          {uniqueStatus.map(status => <option key={status as string} value={status as string}>{status}</option>)}
-        </select>
-        <select value={filterDeadline} onChange={e => setFilterDeadline(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}>
-          <option value="">[Deadline]</option>
-        </select>
-        <div style={{ flex: 1 }}></div>
-        <button 
-          onClick={() => { setSelectedTask(undefined); setIsModalOpen(true); }}
-          style={{ padding: '8px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
-        >
-          + Task
-        </button>
-      </div>
 
-      <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '70px 85px 2fr 1fr 1fr 100px 100px 100px 120px 80px', gap: '12px', fontWeight: '600', color: 'var(--text-secondary)', fontSize: '13px', overflowX: 'auto' }}>
-          <div>ID Task</div>
-          <div>ID Naskah</div>
-          <div>Judul</div>
-          <div>Tahap</div>
-          <div>PIC</div>
-          <div>Mulai</div>
-          <div>Deadline</div>
-          <div>Selesai</div>
-          <div>Status</div>
-          <div style={{ textAlign: 'right' }}>Aksi</div>
-        </div>
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          {isLoading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat...</div>
-          ) : filteredTasks.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Tidak ada data tugas.</div>
-          ) : (
-            filteredTasks.map(task => {
-              const statusStyle = getStatusColor(task.status);
-              const formatDate = (dateStr?: string) => {
-                if (!dateStr) return '-';
-                try {
-                  return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                } catch {
-                  return '-';
-                }
-              };
-              return (
-                <div 
-                  key={task.id} 
-                  style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '70px 85px 2fr 1fr 1fr 100px 100px 100px 120px 80px', gap: '12px', alignItems: 'center', fontSize: '13px', color: 'var(--text-primary)', overflowX: 'auto', cursor: 'pointer' }}
-                  onDoubleClick={() => {
-                    if (task.id) {
-                      setSelectedTaskId(task.id);
-                      setRightPanelVisible(true);
-                    }
-                  }}
-                >
-                  <div style={{ color: 'var(--text-secondary)' }}>#{task.id}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>#{task.naskah_id}</div>
-                  <div style={{ fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={task.naskah_title || ''}>
-                    {task.naskah_title || '-'}
-                  </div>
-                  <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.step_name}</div>
-                  <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.pic_name || '-'}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{formatDate(task.start_date)}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{formatDate(task.due_date)}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{formatDate(task.completed_date)}</div>
-                  <div>
-                    <span style={{ padding: '4px 10px', borderRadius: '12px', background: statusStyle.bg, color: statusStyle.text, fontSize: '11px', fontWeight: '600', display: 'inline-block', textAlign: 'center', width: '100%' }}>
-                      {task.status}
-                    </span>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <button 
-                      onClick={() => { setSelectedTask(task); setIsModalOpen(true); }}
-                      style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '12px' }}
-                    >
-                      Detail
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+        <FilterDivider />
+
+        <FilterGroup label="PIC:">
+          <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
+          {uniquePics.map(pic => (
+            <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
+          ))}
+        </FilterGroup>
+
+        <FilterDivider />
+
+        <FilterGroup label="Status:">
+          <FilterChip label="Semua" active={filterStatus === ''} onClick={() => setFilterStatus('')} />
+          {uniqueStatuses.map(status => (
+            <FilterChip key={status as string} label={status as string} active={filterStatus === status} onClick={() => setFilterStatus(status as string)} />
+          ))}
+        </FilterGroup>
+
+        <FilterDivider />
+
+        <Button onClick={() => { setSelectedTask(undefined); setIsModalOpen(true); }} variant="primary" size="sm" icon="➕">
+          Task
+        </Button>
+      </FilterBar>
+
+      {/* Table Container */}
+      <div style={{ flex: 1, overflowX: 'auto', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+        <table style={{ minWidth: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+            <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>ID Task</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>ID Naskah</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Judul</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Tahap</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>PIC</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Mulai</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Deadline</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Selesai</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Status</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', position: 'sticky', right: 0, background: 'var(--bg-panel)', zIndex: 3, boxShadow: '-2px 0 4px rgba(0,0,0,0.06)' }}>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <TableEmptyState colSpan={10} icon="⏳" message="Memuat..." />
+            ) : filteredTasks.length === 0 ? (
+              <TableEmptyState colSpan={10} icon="📝" message="Tidak ada data tugas" />
+            ) : (
+              filteredTasks.map(task => {
+                const handleClick = () => {
+                  if (task.id) {
+                    setSelectedTaskId(task.id);
+                    setRightPanelVisible(true);
+                  }
+                };
+
+                return (
+                  <tr
+                    key={task.id}
+                    style={{
+                      borderBottom: '1px solid var(--border)',
+                      cursor: 'pointer',
+                      transition: 'background 0.1s ease',
+                      color: 'var(--text-primary)'
+                    }}
+                    onClick={handleClick}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,0,0,0.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      #{task.id}
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      #{task.naskah_id}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '300px' }}>
+                      {task.naskah_title || '-'}
+                    </td>
+                    <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                      {task.step_name}
+                    </td>
+                    <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                      {task.pic_name || '-'}
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      {formatDate(task.start_date)}
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      {formatDate(task.due_date)}
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      {formatDate(task.completed_date)}
+                    </td>
+                    <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                      <Badge
+                        label={task.status}
+                        variant={getStatusVariant(task.status)}
+                      />
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', position: 'sticky', right: 0, background: 'var(--bg-card)', zIndex: 2, boxShadow: '-2px 0 4px rgba(0,0,0,0.06)' }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTask(task);
+                          setIsModalOpen(true);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          fontSize: '16px',
+                          lineHeight: 1,
+                          marginRight: '4px'
+                        }}
+                        title="Detail"
+                      >
+                        ✏️
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
 
       {isModalOpen && (
-        <TaskModal 
+        <TaskModal
           task={selectedTask}
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {

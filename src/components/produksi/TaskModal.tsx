@@ -3,6 +3,11 @@ import { Task } from '../../types/workflow.types';
 import { useAppContext } from '../../contexts/AppContext';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { useWorkflowContext } from '../../contexts/WorkflowContext';
+import { Modal } from '../../ui/molecules/Modal';
+import { TextField } from '../../ui/atoms/TextField';
+import { TextArea } from '../../ui/atoms/TextArea';
+import { Select } from '../../ui/atoms/Select';
+import { Button } from '../../ui/atoms/Button';
 
 interface TaskModalProps {
   task?: Task; // if provided, it's edit mode
@@ -28,13 +33,27 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   const [notes, setNotes] = useState(task?.notes || '');
 
   const statusOptions = [
-    'Belum Mulai',
-    'Proses',
-    'Menunggu Revisi',
-    'Menunggu Approval',
-    'Selesai',
-    'Batal'
+    { value: 'Belum Mulai', label: 'Belum Mulai' },
+    { value: 'Proses', label: 'Proses' },
+    { value: 'Menunggu Revisi', label: 'Menunggu Revisi' },
+    { value: 'Menunggu Approval', label: 'Menunggu Approval' },
+    { value: 'Selesai', label: 'Selesai' },
+    { value: 'Batal', label: 'Batal' }
   ];
+
+  const priorityOptions = [
+    { value: 'Normal', label: 'Normal' },
+    { value: 'Tinggi', label: 'Tinggi' },
+    { value: 'Urgent', label: 'Urgent' },
+    { value: 'Rendah', label: 'Rendah' }
+  ];
+
+  const picOptions = [
+    { value: '', label: 'Pilih PIC dari Tim...' },
+    ...tim.map(member => ({ value: member.name, label: member.name }))
+  ];
+
+  const modalTitle = isEdit ? 'Edit Tugas' : 'Tambah Tugas Baru';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,116 +94,125 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   };
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-    }}>
-      <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '12px', width: '400px', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
-        <h3 style={{ margin: '0 0 16px 0' }}>{isEdit ? 'Edit Tugas' : 'Tambah Tugas Baru'}</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {!isEdit && (
-            <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label>ID Naskah</label>
-                <input required type="number" value={naskahId} onChange={e => setNaskahId(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'white' }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label>Nama Tahap Workflow</label>
-                <input required type="text" value={stepName} onChange={e => setStepName(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'white' }} />
-              </div>
-            </>
+    <Modal open={true} onClose={onClose} title={modalTitle} width="500px">
+      {isEdit && task && (
+        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '-8px', marginBottom: '8px' }}>
+          {task.naskah_title || `Naskah #${task.naskah_id}`} - {task.step_name}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        
+        {!isEdit && (
+          <>
+            <TextField 
+              required 
+              type="number" 
+              label="ID Naskah" 
+              value={naskahId} 
+              onChange={e => setNaskahId(e.target.value)} 
+              fullWidth
+            />
+            <TextField 
+              required 
+              type="text" 
+              label="Nama Tahap Workflow" 
+              value={stepName} 
+              onChange={e => setStepName(e.target.value)} 
+              fullWidth
+            />
+          </>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama PIC</label>
+          {useManualPic ? (
+            <TextField
+              type="text"
+              value={picName}
+              onChange={e => setPicName(e.target.value)}
+              placeholder="Masukkan nama PIC..."
+              fullWidth
+            />
+          ) : (
+            <Select
+              value={picName}
+              onChange={e => setPicName(e.target.value)}
+              options={picOptions}
+              fullWidth
+            />
           )}
+          <button
+            type="button"
+            onClick={() => setUseManualPic(!useManualPic)}
+            style={{
+              fontSize: '12px',
+              color: 'var(--accent)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+              padding: 0,
+              width: 'fit-content'
+            }}
+          >
+            {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
+          </button>
+        </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label>Nama PIC</label>
-            {useManualPic ? (
-              <input
-                type="text"
-                value={picName}
-                onChange={e => setPicName(e.target.value)}
-                placeholder="Masukkan nama PIC..."
-                style={{
-                  padding: '8px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-panel)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            ) : (
-              <select
-                value={picName}
-                onChange={e => setPicName(e.target.value)}
-                style={{
-                  padding: '8px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-panel)',
-                  color: 'var(--text-primary)'
-                }}
-              >
-                <option value="">Pilih PIC dari Tim...</option>
-                {tim.map(member => (
-                  <option key={member.id} value={member.name}>{member.name}</option>
-                ))}
-              </select>
-            )}
-            <button
-              type="button"
-              onClick={() => setUseManualPic(!useManualPic)}
-              style={{
-                fontSize: '12px',
-                color: 'var(--accent)',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-                padding: 0
-              }}
-            >
-              {useManualPic ? 'Pilih dari Tim' : 'Masukkan Manual'}
-            </button>
-          </div>
+        <TextField 
+          type="date" 
+          label="Deadline" 
+          value={dueDate} 
+          onChange={e => setDueDate(e.target.value)} 
+          fullWidth
+        />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label>Deadline</label>
-            <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'white' }} />
-          </div>
+        <Select
+          label="Prioritas"
+          value={priority}
+          onChange={e => setPriority(e.target.value)}
+          options={priorityOptions}
+          fullWidth
+        />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label>Prioritas</label>
-            <select value={priority} onChange={e => setPriority(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'white' }}>
-              <option value="Normal">Normal</option>
-              <option value="Tinggi">Tinggi</option>
-              <option value="Urgent">Urgent</option>
-              <option value="Rendah">Rendah</option>
-            </select>
-          </div>
+        {isEdit && (
+          <Select
+            label="Status"
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+            options={statusOptions}
+            fullWidth
+          />
+        )}
 
-          {isEdit && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label>Status</label>
-              <select value={status} onChange={e => setStatus(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'white' }}>
-                {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            </div>
-          )}
+        <TextArea
+          label="Catatan"
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          rows={4}
+          fullWidth
+        />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label>Catatan</label>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'white' }} />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer' }}>Batal</button>
-            <button type="submit" disabled={isSubmitting} style={{ padding: '8px 16px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
-              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Footer */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+          <Button 
+            type="button" 
+            onClick={onClose}
+            variant="secondary"
+          >
+            Batal
+          </Button>
+          <Button 
+            type="submit" 
+            loading={isSubmitting}
+            variant="primary"
+          >
+            {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };
 
