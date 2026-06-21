@@ -149,7 +149,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [appState, setAppState] = useState<AppState>({
-    activeModule: 'invoice'
+    activeModule: 'home'
   });
 
   const [books, setBooks] = useState<Book[]>([]);

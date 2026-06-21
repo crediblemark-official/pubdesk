@@ -34,6 +34,7 @@ import DashboardProduksi from '../produksi/DashboardProduksi';
 import DashboardMasterData from '../data-master/DashboardMasterData';
 import DashboardInvoice from '../invoice/DashboardInvoice';
 import DashboardFiles from '../files/DashboardFiles';
+import HomeDashboard from '../home/HomeDashboard';
 
 // Modul Auth Lokal
 import { useAuth } from '../../contexts/AuthContext';
@@ -101,6 +102,8 @@ const MainLayout = () => {
 
   const renderModule = () => {
     switch (appState.activeModule) {
+      case 'home':
+        return <HomeDashboard />;
       case 'invoice':
         return <InvoiceGenerator />;
       case 'invoice-manager':

@@ -1,4 +1,5 @@
 export const MODULE_LABELS: Record<string, string> = {
+  'home': 'Beranda Utama',
   'invoice': 'Invoice Generator',
   'invoice-manager': 'Manajemen Invoice',
   'invoice-insight': 'Invoice Insight',

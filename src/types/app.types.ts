@@ -3,6 +3,7 @@
  */
 
 export type AppModule =
+  | 'home'
   | 'invoice'
   | 'invoice-manager'
   | 'invoice-insight'

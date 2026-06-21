@@ -21,6 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   });
 
   const menuItems = [
+    { id: 'home' as const, label: 'Beranda', icon: '🏠' },
     { id: 'pekerjaan-saya' as const, label: 'Pekerjaan Saya', icon: '📋' },
     { id: 'produksi-parent' as const, label: 'Produksi Naskah', icon: '🏭' },
     { id: 'laporan-operasional' as const, label: 'Laporan Operasional', icon: '📈' },
