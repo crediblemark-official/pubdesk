@@ -20,7 +20,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     conn.execute(
         "INSERT INTO workflow_templates (name, description, is_active, created_at) VALUES (?1, ?2, 1, ?3)",
         params!["Alur Produksi Standar", "Template alur kerja produksi naskah lengkap", now]
-    )?;
+    ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di workflow_templates: {}", e)))?;
     let template_id = conn.last_insert_rowid();
 
     let steps = vec![
@@ -38,7 +38,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         conn.execute(
             "INSERT INTO workflow_template_steps (template_id, step_order, step_name, default_role, default_duration_days, is_required) VALUES (?1, ?2, ?3, ?4, ?5, 1)",
             params![template_id, order, name, role, duration]
-        )?;
+        ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di workflow_template_steps (step {}): {}", order, e)))?;
     }
 
     // ─── 3. Penulis (disimpan di tabel contacts dengan type='penulis') ───
@@ -53,7 +53,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         conn.execute(
             "INSERT INTO contacts (name, wa_number, type, created_at) VALUES (?1, ?2, 'penulis', ?3)",
             params![name, wa, now]
-        )?;
+        ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di contacts/penulis ({}): {}", name, e)))?;
         penulis_ids.push(conn.last_insert_rowid());
     }
 
@@ -62,7 +62,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     conn.execute(
         "INSERT INTO penerbit (name, created_at) VALUES (?1, ?2)",
         params!["Pustaka Ilmu Nusantara", now]
-    )?;
+    ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di penerbit: {}", e)))?;
     let penerbit_id = conn.last_insert_rowid();
 
     // ─── 5. Naskah ───
@@ -77,7 +77,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         conn.execute(
             "INSERT INTO naskah (title, penulis_id, penerbit_id, status, created_at) VALUES (?1, ?2, ?3, 'Proses', ?4)",
             params![title, pid, pubid, now]
-        )?;
+        ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di naskah ({}): {}", title, e)))?;
         naskah_ids.push(conn.last_insert_rowid());
     }
 
@@ -93,7 +93,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         conn.execute(
             "INSERT INTO tim (name, role, notes, created_at) VALUES (?1, ?2, ?3, ?4)",
             params![name, role, notes, now]
-        )?;
+        ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di tim ({}): {}", name, e)))?;
         tim_ids.push(conn.last_insert_rowid());
     }
 
@@ -145,7 +145,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
                 notes,
                 now
             ]
-        )?;
+        ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di tasks (step {}): {}", step_name, e)))?;
         task_ids.push(conn.last_insert_rowid());
     }
 
@@ -167,7 +167,7 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
         conn.execute(
             "INSERT INTO task_history (task_id, old_status, new_status, changed_by, changed_at, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             params![tid, old_status, new_status, changed_by, changed_at, notes]
-        )?;
+        ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di task_history (task_id {}): {}", tid, e)))?;
     }
 
     // ─── 9. Task Blockers ───
@@ -175,19 +175,19 @@ pub fn seed_sample_data(conn: &Connection) -> Result<String, DbError> {
     conn.execute(
         "INSERT INTO task_blockers (task_id, naskah_id, blocker_type, description, status, created_at) VALUES (?1, ?2, ?3, ?4, 'Aktif', ?5)",
         params![task_ids[5], naskah_ids[1], "Menunggu revisi layout", "Layout margin terlalu sempit, perlu penyesuaian ulang sesuai template penerbit", now]
-    )?;
+    ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di task_blockers 1: {}", e)))?;
 
     conn.execute(
         "INSERT INTO task_blockers (task_id, naskah_id, blocker_type, description, status, created_at) VALUES (?1, ?2, ?3, ?4, 'Aktif', ?5)",
         params![task_ids[6], naskah_ids[1], "Menunggu revisi cover", "Warna cover tidak sesuai guideline penerbit, perlu revisi palet warna", now]
-    )?;
+    ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di task_blockers 2: {}", e)))?;
 
     // ─── 10. Task Approvals ───
     println!("[SAMPLE SEED] Menyisipkan task_approvals...");
     conn.execute(
         "INSERT INTO task_approvals (task_id, approval_type, status, requested_at, notes) VALUES (?1, ?2, 'Menunggu Approval', ?3, ?4)",
         params![task_ids[11], "ACC Cetak", now, "Menunggu persetujuan cetak dari penerbit sebelum naik cetak"]
-    )?;
+    ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Gagal di task_approvals: {}", e)))?;
 
     Ok(format!(
         "Sample data berhasil dimuat: {} naskah, {} tim, {} tugas, {} riwayat, 2 kendala, 1 approval",
