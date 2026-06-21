@@ -18,7 +18,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
   
   const { 
     importExportActions,
-    syncAllDataToCloud,
+    syncModuleDataToCloud,
     services,
     showToast,
     loadFiles,
@@ -75,12 +75,25 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
     }
   };
 
-  const handleSyncAllData = async () => {
+  const handleSyncModuleData = async () => {
+    if (!activeModule) return;
+    
+    // Validasi modul yang mendukung sinkronisasi
+    const syncableModules = [
+      'kontak', 'books', 'services', 'files', 'invoice', 
+      'invoice-manager', 'penerbit', 'naskah', 'tim', 'legalitas',
+      'produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'tambah-tugas', 'edit-tugas'
+    ];
+    if (!syncableModules.includes(activeModule)) {
+      showToast('Halaman ini tidak mendukung sinkronisasi data.', 'info');
+      return;
+    }
+
     setSyncing(true);
-    showToast('Memulai sinkronisasi seluruh data ke Google Sheets...', 'info');
+    showToast('Memulai sinkronisasi data halaman ini ke Google Sheets...', 'info');
 
     try {
-      const result = await syncAllDataToCloud({
+      const result = await syncModuleDataToCloud(activeModule, {
         penulis,
         penerbit,
         naskah,
@@ -145,13 +158,20 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
 
       <button 
         className="top-bar-btn" 
-        onClick={handleSyncAllData}
-        disabled={syncing}
-        title={syncing ? "Sedang mensinkronkan data ke GAS..." : "Sinkronkan semua data ke Google Sheets"}
+        onClick={handleSyncModuleData}
+        disabled={syncing || !activeModule}
+        title={
+          !activeModule 
+            ? "Pilih halaman untuk melakukan sinkronisasi" 
+            : syncing 
+              ? "Sedang menyelaraskan data halaman ini..." 
+              : "Sinkronkan data halaman ini ke Google Sheets"
+        }
         aria-label="Sync data to Google Sheets"
         style={{
           color: syncing ? 'var(--accent)' : 'var(--text-secondary)',
-          cursor: syncing ? 'not-allowed' : 'pointer'
+          cursor: (syncing || !activeModule) ? 'not-allowed' : 'pointer',
+          opacity: activeModule ? 1 : 0.4
         }}
       >
         <svg 

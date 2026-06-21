@@ -122,6 +122,22 @@ function initSheet(sheetName) {
     sheet.appendRow(headers);
     sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
     sheet.setFrozenRows(1);
+  } else {
+    // Migrasi skema otomatis jika ada kolom baru di SHEETS_CONFIG
+    const configHeaders = SHEETS_CONFIG[sheetName];
+    if (configHeaders) {
+      const lastCol = sheet.getLastColumn();
+      const actualHeaders = lastCol > 0 
+        ? sheet.getRange(1, 1, 1, lastCol).getValues()[0]
+        : [];
+      const missingHeaders = configHeaders.filter(h => actualHeaders.indexOf(h) === -1);
+      if (missingHeaders.length > 0) {
+        const startCol = actualHeaders.length + 1;
+        sheet.getRange(1, startCol, 1, missingHeaders.length)
+          .setValues([missingHeaders])
+          .setFontWeight("bold");
+      }
+    }
   }
   return sheet;
 }
@@ -207,7 +223,7 @@ function doPost(e) {
       }
 
       const sheet = initSheet(sheetName);
-      const headers = SHEETS_CONFIG[sheetName];
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
       const dataRange = sheet.getDataRange();
       const values = dataRange.getValues();
       
@@ -276,7 +292,7 @@ function doPost(e) {
       if (!sheetName || id === undefined) throw new Error("Parameter 'sheet_name' dan 'id' wajib diisi");
 
       const sheet = initSheet(sheetName);
-      const headers = SHEETS_CONFIG[sheetName];
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
       const values = sheet.getDataRange().getValues();
       const idColIndex = headers.indexOf("id");
 
@@ -307,7 +323,7 @@ function doPost(e) {
 
       // Simpan data ke sheet Invoices
       const sheet = initSheet("Invoices");
-      const headers = SHEETS_CONFIG["Invoices"];
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
       const dataRange = sheet.getDataRange();
       const values = dataRange.getValues();
       const idColIndex = headers.indexOf("id");

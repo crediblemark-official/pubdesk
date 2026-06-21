@@ -132,6 +132,15 @@ interface AppContextType {
     services: any[];
     tasks: any[];
   }) => Promise<{ success: boolean; message: string }>;
+  syncModuleDataToCloud: (moduleName: string, dataMaster: {
+    penulis: any[];
+    penerbit: any[];
+    naskah: any[];
+    tim: any[];
+    legalitas: any[];
+    services: any[];
+    tasks: any[];
+  }) => Promise<{ success: boolean; message: string }>;
   directAddNewModule: string | null;
   setDirectAddNewModule: (module: string | null) => void;
 }
@@ -313,6 +322,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       registerImportExportActions: ui.registerImportExportActions,
       updateSyncStatus: syncState.updateSyncStatus,
       syncAllDataToCloud: syncState.syncAllDataToCloud,
+      syncModuleDataToCloud: syncState.syncModuleDataToCloud,
       directAddNewModule,
       setDirectAddNewModule,
     }}>
