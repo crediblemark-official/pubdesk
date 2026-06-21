@@ -14,7 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     const active = appState.activeModule;
     return {
       files: ['files', 'files-parent'].includes(active),
-      invoice: ['invoice', 'invoice-manager', 'invoice-insight', 'invoice-parent'].includes(active),
+      invoice: ['invoice', 'invoice-manager', 'invoice-parent'].includes(active),
       'master-data-parent': ['kontak', 'penerbit', 'naskah', 'tim', 'legalitas', 'services', 'master-data-parent'].includes(active),
       'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'tambah-tugas', 'edit-tugas', 'produksi-parent'].includes(active)
     };
@@ -25,6 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     { id: 'produksi-parent' as const, label: 'Produksi Naskah', icon: '🏭' },
     { id: 'laporan-operasional' as const, label: 'Laporan Operasional', icon: '📈' },
     { id: 'invoice' as const, label: 'Invoice', icon: '🧾' },
+    { id: 'invoice-insight' as const, label: 'Invoice Insight', icon: '📊' },
     { id: 'files' as const, label: 'Smart Folders', icon: '📁' },
     { id: 'master-data-parent' as const, label: 'Master Data', icon: '🗃️' },
   ];
@@ -42,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       <nav style={{ flex: 1, overflow: 'auto', padding: '8px' }}>
         {menuItems.map((item) => {
         const isActive = item.id === 'invoice'
-          ? (appState.activeModule === 'invoice' || appState.activeModule === 'invoice-manager' || appState.activeModule === 'invoice-insight' || appState.activeModule === 'invoice-parent')
+          ? (appState.activeModule === 'invoice' || appState.activeModule === 'invoice-manager' || appState.activeModule === 'invoice-parent')
           : item.id === 'files'
           ? (appState.activeModule === 'files' || appState.activeModule === 'files-parent')
           : item.id === 'master-data-parent'
@@ -147,7 +148,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                   {[
                     { module: 'invoice' as const, label: 'Invoice Generator', icon: '✍️' },
                     { module: 'invoice-manager' as const, label: 'Manajemen Invoice', icon: '🗃️' },
-                    { module: 'invoice-insight' as const, label: 'Invoice Insight', icon: '📊' },
                   ].map((sub) => {
                     const isSubActive = appState.activeModule === sub.module;
                     return (
