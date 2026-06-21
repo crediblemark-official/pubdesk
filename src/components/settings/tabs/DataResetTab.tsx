@@ -274,320 +274,332 @@ const DataResetTab: React.FC = () => {
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 8px 0' }}>
-        Kustomisasi & Data
-      </h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: '0 0 24px 0' }}>
-        Kelola ekspor data, pemulihan data sample, dan reset data workflow.
-      </p>
-
-      {/* Export Semua Data ke Excel */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        padding: '20px',
-        marginBottom: '16px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-primary)' }}>
-              📥 Export Semua Data ke Excel
-            </h3>
-            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Ekspor seluruh data dari database (Naskah, Tugas, Tim, Kontak, Penerbit, Buku, Invoice, Layanan, dan Legalitas) 
-              ke dalam satu file Excel (.xlsx) dengan masing-masing tabel berada di sheet yang terpisah.
-            </p>
-          </div>
-          <button
-            onClick={handleExportAll}
-            disabled={isExporting}
-            style={{
-              padding: '8px 20px',
-              background: '#22c55e',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '600',
-              cursor: isExporting ? 'wait' : 'pointer',
-              fontSize: '13px',
-              whiteSpace: 'nowrap',
-              marginLeft: '16px',
-              opacity: isExporting ? 0.7 : 1
-            }}
-          >
-            {isExporting ? 'Mengekspor...' : 'Export ke Excel'}
-          </button>
-        </div>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div>
+        <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 8px 0' }}>
+          Kustomisasi & Data
+        </h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: '0' }}>
+          Kelola kustomisasi identitas aplikasi serta ekspor, pemulihan, dan pembersihan database.
+        </p>
       </div>
 
-      {/* Kustomisasi Logo & Nama Aplikasi */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        padding: '20px',
-        marginBottom: '16px'
-      }}>
-        <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-primary)' }}>
-          🎨 Logo & Nama Aplikasi
-        </h3>
-        <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-          Sesuaikan logo dan nama aplikasi yang tampil pada layar splash serta halaman login.
-        </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', alignItems: 'start' }}>
+        
+        {/* Kolom Kiri: Kustomisasi Logo & Nama Penerbit */}
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: '12px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}>
+          <div>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-primary)' }}>
+              🎨 Logo & Nama Penerbit
+            </h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              Sesuaikan logo dan nama penerbit yang tampil pada layar splash serta halaman login.
+            </p>
 
-        {/* Input Nama Penerbit */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '6px' }}>
-            Nama Penerbit
-          </label>
-          <input
-            type="text"
-            value={publisherName}
-            onChange={(e) => setPublisherName(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              background: 'var(--bg-panel)',
-              border: '1px solid var(--border)',
-              borderRadius: '6px',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              width: '100%',
-              maxWidth: '300px',
-              boxSizing: 'border-box'
-            }}
-            placeholder="Masukkan nama penerbit (misal: KBM)"
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          {/* Preview Tampil Apa Adanya */}
-          <div style={{
-            width: '120px',
-            height: '120px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: logoType === 'emoji' ? '64px' : 'unset',
-            overflow: 'hidden',
-            border: '1px dashed var(--border)',
-            borderRadius: '8px',
-            background: 'var(--bg-panel)'
-          }}>
-            {logoType === 'emoji' ? (
-              splashLogo
-            ) : (
-              <img src={splashLogo} alt="Custom Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-            )}
-          </div>
-
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => setLogoType('emoji')}
-                style={{
-                  padding: '4px 12px',
-                  background: logoType === 'emoji' ? 'var(--accent)' : 'transparent',
-                  color: logoType === 'emoji' ? '#fff' : 'var(--text-primary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
-                Gunakan Emoji
-              </button>
-              <button
-                onClick={() => document.getElementById('splash-logo-file-input')?.click()}
-                style={{
-                  padding: '4px 12px',
-                  background: logoType === 'image' ? 'var(--accent)' : 'transparent',
-                  color: logoType === 'image' ? '#fff' : 'var(--text-primary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
-                Unggah Gambar
-              </button>
-              <input
-                type="file"
-                id="splash-logo-file-input"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleLogoFileChange}
-              />
-            </div>
-
-            {logoType === 'emoji' ? (
+            {/* Input Nama Penerbit */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '6px' }}>
+                Nama Penerbit
+              </label>
               <input
                 type="text"
-                value={splashLogo.startsWith('data:image') ? '📚' : splashLogo}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSplashLogo(val || '📚');
-                }}
-                maxLength={4}
+                value={publisherName}
+                onChange={(e) => setPublisherName(e.target.value)}
                 style={{
-                  padding: '6px 12px',
+                  padding: '8px 12px',
                   background: 'var(--bg-panel)',
                   border: '1px solid var(--border)',
                   borderRadius: '6px',
                   color: 'var(--text-primary)',
                   fontSize: '13px',
-                  width: '120px'
+                  width: '100%',
+                  boxSizing: 'border-box'
                 }}
-                placeholder="Emoji / Teks"
+                placeholder="Masukkan nama penerbit (misal: KBM)"
               />
-            ) : (
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                Berkas gambar kustom aktif (maks. 2MB)
-              </span>
-            )}
+            </div>
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-              <button
-                onClick={handleSaveLogo}
-                style={{
-                  padding: '6px 16px',
-                  background: '#22c55e',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                Simpan Logo
-              </button>
-              <button
-                onClick={handleResetLogo}
-                style={{
-                  padding: '6px 12px',
-                  background: 'transparent',
-                  color: '#ef4444',
-                  border: '1px solid #ef4444',
-                  borderRadius: '6px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                Reset Default
-              </button>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Preview Tampil Apa Adanya */}
+              <div style={{
+                width: '120px',
+                height: '120px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: logoType === 'emoji' ? '64px' : 'unset',
+                overflow: 'hidden',
+                border: '1px dashed var(--border)',
+                borderRadius: '8px',
+                background: 'var(--bg-panel)',
+                flexShrink: 0
+              }}>
+                {logoType === 'emoji' ? (
+                  splashLogo
+                ) : (
+                  <img src={splashLogo} alt="Custom Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                )}
+              </div>
+
+              <div style={{ flex: 1, minWidth: '200px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => setLogoType('emoji')}
+                    style={{
+                      padding: '4px 12px',
+                      background: logoType === 'emoji' ? 'var(--accent)' : 'transparent',
+                      color: logoType === 'emoji' ? '#fff' : 'var(--text-primary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Gunakan Emoji
+                  </button>
+                  <button
+                    onClick={() => document.getElementById('splash-logo-file-input')?.click()}
+                    style={{
+                      padding: '4px 12px',
+                      background: logoType === 'image' ? 'var(--accent)' : 'transparent',
+                      color: logoType === 'image' ? '#fff' : 'var(--text-primary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Unggah Gambar
+                  </button>
+                  <input
+                    type="file"
+                    id="splash-logo-file-input"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleLogoFileChange}
+                  />
+                </div>
+
+                {logoType === 'emoji' ? (
+                  <input
+                    type="text"
+                    value={splashLogo.startsWith('data:image') ? '📚' : splashLogo}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSplashLogo(val || '📚');
+                    }}
+                    maxLength={4}
+                    style={{
+                      padding: '6px 12px',
+                      background: 'var(--bg-panel)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '6px',
+                      color: 'var(--text-primary)',
+                      fontSize: '13px',
+                      width: '120px'
+                    }}
+                    placeholder="Emoji / Teks"
+                  />
+                ) : (
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    Berkas gambar kustom aktif (maks. 2MB)
+                  </span>
+                )}
+
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <button
+                    onClick={handleSaveLogo}
+                    style={{
+                      padding: '6px 16px',
+                      background: '#22c55e',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Simpan Logo
+                  </button>
+                  <button
+                    onClick={handleResetLogo}
+                    style={{
+                      padding: '6px 12px',
+                      background: 'transparent',
+                      color: '#ef4444',
+                      border: '1px solid #ef4444',
+                      borderRadius: '6px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Reset Default
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Muat Data Sample */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        padding: '20px',
-        marginBottom: '16px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-primary)' }}>
-              📦 Muat Data Sample
-            </h3>
-            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Menyisipkan data contoh: 3 naskah, 3 tim, 12 tugas dengan berbagai status,
-              riwayat perubahan, kendala, dan approval. Cocok untuk demo dan pengujian.
-            </p>
-          </div>
-          <button
-            onClick={handleSeed}
-            disabled={isSeeding}
-            style={{
-              padding: '8px 20px',
-              background: 'var(--accent)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '600',
-              cursor: isSeeding ? 'wait' : 'pointer',
-              fontSize: '13px',
-              whiteSpace: 'nowrap',
-              marginLeft: '16px',
-              opacity: isSeeding ? 0.7 : 1
-            }}
-          >
-            {isSeeding ? 'Memuat...' : 'Muat Sample'}
-          </button>
-        </div>
-      </div>
-
-      {/* Reset Data Workflow */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: `1px solid ${confirmReset ? '#ef4444' : 'var(--border)'}`,
-        borderRadius: '12px',
-        padding: '20px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: confirmReset ? '#ef4444' : 'var(--text-primary)' }}>
-              🗑️ Reset Data Workflow
-            </h3>
-            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Menghapus semua data tugas, riwayat, kendala, approval, dan template workflow.
-              <br />
-              <strong style={{ color: 'var(--text-primary)' }}>Data master (naskah, tim, penulis, penerbit) tidak akan terhapus.</strong>
-            </p>
-            {confirmReset && (
-              <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#ef4444', fontWeight: '600' }}>
-                ⚠️ Klik sekali lagi untuk mengonfirmasi penghapusan.
-              </p>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '8px', marginLeft: '16px', flexShrink: 0 }}>
-            {confirmReset && (
+        {/* Kolom Kanan: Aksi Data (Export, Seed, Reset) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Export Semua Data ke Excel */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: '12px',
+            padding: '20px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ flex: 1, minWidth: '240px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-primary)' }}>
+                  📥 Export Semua Data ke Excel
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  Ekspor seluruh data dari database (Naskah, Tugas, Tim, Kontak, Penerbit, Buku, Invoice, Layanan, dan Legalitas) 
+                  ke dalam satu file Excel (.xlsx) dengan masing-masing tabel berada di sheet terpisah.
+                </p>
+              </div>
               <button
-                onClick={() => setConfirmReset(false)}
+                onClick={handleExportAll}
+                disabled={isExporting}
                 style={{
-                  padding: '8px 16px',
-                  background: 'transparent',
-                  color: 'var(--text-secondary)',
-                  border: '1px solid var(--border)',
+                  padding: '8px 20px',
+                  background: '#22c55e',
+                  color: '#fff',
+                  border: 'none',
                   borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '13px'
+                  fontWeight: '600',
+                  cursor: isExporting ? 'wait' : 'pointer',
+                  fontSize: '13px',
+                  whiteSpace: 'nowrap',
+                  opacity: isExporting ? 0.7 : 1,
+                  alignSelf: 'center'
                 }}
               >
-                Batal
+                {isExporting ? 'Mengekspor...' : 'Export ke Excel'}
               </button>
-            )}
-            <button
-              onClick={handleReset}
-              disabled={isResetting}
-              style={{
-                padding: '8px 20px',
-                background: confirmReset ? '#ef4444' : 'transparent',
-                color: confirmReset ? '#fff' : '#ef4444',
-                border: confirmReset ? 'none' : '1px solid #ef4444',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: isResetting ? 'wait' : 'pointer',
-                fontSize: '13px',
-                whiteSpace: 'nowrap',
-                opacity: isResetting ? 0.7 : 1
-              }}
-            >
-              {isResetting ? 'Menghapus...' : confirmReset ? 'Ya, Hapus Semua' : 'Reset Data'}
-            </button>
+            </div>
           </div>
+
+          {/* Muat Data Sample */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: '12px',
+            padding: '20px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ flex: 1, minWidth: '240px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-primary)' }}>
+                  📦 Muat Data Sample
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  Menyisipkan data contoh: 3 naskah, 3 tim, 12 tugas dengan berbagai status,
+                  riwayat perubahan, kendala, dan approval. Cocok untuk demo dan pengujian.
+                </p>
+              </div>
+              <button
+                onClick={handleSeed}
+                disabled={isSeeding}
+                style={{
+                  padding: '8px 20px',
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: isSeeding ? 'wait' : 'pointer',
+                  fontSize: '13px',
+                  whiteSpace: 'nowrap',
+                  opacity: isSeeding ? 0.7 : 1,
+                  alignSelf: 'center'
+                }}
+              >
+                {isSeeding ? 'Memuat...' : 'Muat Sample'}
+              </button>
+            </div>
+          </div>
+
+          {/* Reset Data Workflow */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: `1px solid ${confirmReset ? '#ef4444' : 'var(--border)'}`,
+            borderRadius: '12px',
+            padding: '20px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ flex: 1, minWidth: '240px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: confirmReset ? '#ef4444' : 'var(--text-primary)' }}>
+                  🗑️ Reset Data Workflow
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  Menghapus semua data tugas, riwayat, kendala, approval, dan template workflow.
+                  <br />
+                  <strong style={{ color: 'var(--text-primary)' }}>Data master tidak akan terhapus.</strong>
+                </p>
+                {confirmReset && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#ef4444', fontWeight: '600' }}>
+                    ⚠️ Klik sekali lagi untuk mengonfirmasi penghapusan.
+                  </p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignSelf: 'center' }}>
+                {confirmReset && (
+                  <button
+                    onClick={() => setConfirmReset(false)}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px'
+                    }}
+                  >
+                    Batal
+                  </button>
+                )}
+                <button
+                  onClick={handleReset}
+                  disabled={isResetting}
+                  style={{
+                    padding: '8px 20px',
+                    background: confirmReset ? '#ef4444' : 'transparent',
+                    color: confirmReset ? '#fff' : '#ef4444',
+                    border: confirmReset ? 'none' : '1px solid #ef4444',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: isResetting ? 'wait' : 'pointer',
+                    fontSize: '13px',
+                    whiteSpace: 'nowrap',
+                    opacity: isResetting ? 0.7 : 1
+                  }}
+                >
+                  {isResetting ? 'Menghapus...' : confirmReset ? 'Ya, Hapus Semua' : 'Reset Data'}
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default DataResetTab;

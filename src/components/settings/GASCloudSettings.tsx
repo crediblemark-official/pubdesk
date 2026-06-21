@@ -101,102 +101,112 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div>
-          <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            ☁️ Integrasi Google Apps Script (Cloud Sheets & Drive)
-          </h2>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.4' }}>
-            Hubungkan PubDesk dengan Google Sheets (sebagai cloud database) dan Google Drive (sebagai cloud storage) melalui Web App Google Apps Script.
-          </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', alignItems: 'start' }}>
+        
+        {/* Kolom Kiri: Form Integrasi */}
+        <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+              ☁️ Integrasi Google Apps Script (Cloud Sheets & Drive)
+            </h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.4' }}>
+              Hubungkan PubDesk dengan Google Sheets (sebagai cloud database) dan Google Drive (sebagai cloud storage) melalui Web App Google Apps Script.
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div className="compact-form-group">
-              <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>URL Web App Google Apps Script</label>
-              <input
-                type="text"
-                className="compact-input"
-                placeholder="https://script.google.com/macros/s/.../exec"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
-              />
-            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="compact-form-group">
+                <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>URL Web App Google Apps Script</label>
+                <input
+                  type="text"
+                  className="compact-input"
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
+                />
+              </div>
 
-            <div className="compact-form-group">
-              <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Token Keamanan (Pre-shared Key)</label>
-              <input
-                type="password"
-                className="compact-input"
-                placeholder="Masukkan token rahasia..."
-                value={tokenInput}
-                onChange={(e) => setTokenInput(e.target.value)}
-                style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
-              />
+              <div className="compact-form-group">
+                <label className="compact-label" style={{ color: 'var(--text-primary)', fontWeight: '600' }}>Token Keamanan (Pre-shared Key)</label>
+                <input
+                  type="password"
+                  className="compact-input"
+                  placeholder="Masukkan token rahasia..."
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
+                />
+              </div>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+            <button
+              type="button"
+              className="btn-primary compact-btn"
+              onClick={handleSave}
+              disabled={testing || syncing}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+            >
+              💾 Simpan Setelan
+            </button>
+
+            <button
+              type="button"
+              className="btn-secondary compact-btn"
+              onClick={handleTestConnection}
+              disabled={testing || syncing}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+            >
+              🔌 Uji Koneksi
+            </button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-          <button
-            type="button"
-            className="btn-primary compact-btn"
-            onClick={handleSave}
-            disabled={testing || syncing}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
-          >
-            💾 Simpan Setelan
-          </button>
+        {/* Kolom Kanan: Sinkronisasi & Panduan */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="compact-panel" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              🔄 Sinkronisasi Data Manual
+            </h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.4' }}>
+              Anda dapat memicu sinkronisasi manual untuk mengunggah seluruh data master dan operasional lokal (SQLite) ke Google Sheets cloud. Tindakan ini berguna ketika menghubungkan aplikasi untuk pertama kalinya atau setelah bekerja offline.
+            </p>
+            <button
+              type="button"
+              className="btn-primary compact-btn"
+              onClick={handleSyncAllData}
+              disabled={syncing || testing}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                cursor: 'pointer',
+                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                border: 'none',
+                padding: '10px 16px',
+                borderRadius: '6px',
+                fontWeight: '600',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)',
+                width: '100%',
+                justifyContent: 'center'
+              }}
+            >
+              {syncing ? '⏳ Mensinkronkan...' : '🚀 Sinkronkan Semua Data ke Cloud'}
+            </button>
+          </div>
 
-          <button
-            type="button"
-            className="btn-secondary compact-btn"
-            onClick={handleTestConnection}
-            disabled={testing || syncing}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
-          >
-            🔌 Uji Koneksi
-          </button>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', background: 'var(--bg-panel)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Cara Memasang:</strong>
+            <ol style={{ margin: '8px 0 0 18px', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <li>Buka dokumen API & kode draf GAS di folder proyek <code>docs/google-apps-script/</code>.</li>
+              <li>Salin kodenya, tempel di menu <strong>Ekstensi {"→"} Apps Script</strong> di Google Sheets Anda.</li>
+              <li>Deploy sebagai <strong>Web App</strong> dengan akses <strong>"Anyone"</strong>.</li>
+              <li>Salin URL Web App dan simpan di atas. Masukkan token rahasia jika Anda menyetelnya di properti proyek Apps Script.</li>
+            </ol>
+          </div>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            🔄 Sinkronisasi Data Manual
-          </h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.4' }}>
-            Anda dapat memicu sinkronisasi manual untuk mengunggah seluruh data master dan operasional lokal (SQLite) ke Google Sheets cloud. Tindakan ini berguna ketika menghubungkan aplikasi untuk pertama kalinya atau setelah bekerja offline.
-          </p>
-          <button
-            type="button"
-            className="btn-primary compact-btn"
-            onClick={handleSyncAllData}
-            disabled={syncing || testing}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              cursor: 'pointer',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: '6px',
-              fontWeight: '600',
-              boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
-            }}
-          >
-            {syncing ? '⏳ Mensinkronkan...' : '🚀 Sinkronkan Semua Data ke Cloud'}
-          </button>
-        </div>
-
-        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <strong>Cara Memasang:</strong>
-          <ol style={{ margin: '6px 0 0 18px', padding: 0 }}>
-            <li>Buka dokumen API & kode draf GAS di folder proyek <code>docs/google-apps-script/</code>.</li>
-            <li>Salin kodenya, tempel di menu <strong>Ekstensi {"→"} Apps Script</strong> di Google Sheets Anda.</li>
-            <li>Deploy sebagai <strong>Web App</strong> dengan akses <strong>"Anyone"</strong>.</li>
-            <li>Salin URL Web App dan simpan di atas. Masukkan token rahasia jika Anda menyetelnya di properti proyek Apps Script.</li>
-          </ol>
-        </div>
       </div>
     </div>
   );
