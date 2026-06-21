@@ -415,7 +415,12 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
           <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Nama Penerbit</th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>WhatsApp PIC</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px', color: '#25D366' }}>
+                  <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.993L2 22l5.23-1.371a9.936 9.936 0 0 0 4.78 1.23h.004c5.502 0 9.985-4.479 9.986-9.987A9.99 9.99 0 0 0 12.012 2zm5.823 13.917c-.32.901-1.854 1.76-2.548 1.86-.633.093-1.463.153-4.225-.992-3.528-1.463-5.795-5.066-5.971-5.301-.177-.235-1.428-1.9-1.428-3.621 0-1.721.899-2.569 1.22-2.909.32-.34.698-.425.932-.425h.663c.213 0 .49.081.745.698l1.042 2.531c.085.204.149.442.011.714-.138.273-.208.442-.415.684-.208.243-.438.541-.627.725-.208.204-.425.425-.181.842.244.417 1.082 1.785 2.316 2.884 1.588 1.413 2.923 1.854 3.328 2.054.404.2.643.167.884-.112.243-.279 1.042-1.213 1.32-1.626.276-.412.553-.34.931-.2.378.14 2.404 1.134 2.511 1.189.106.055.176.262.083.524z"/>
+                </svg>
+                WhatsApp PIC
+              </th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Email Resmi</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Sosial Media</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Provinsi / Kota</th>
@@ -489,7 +494,7 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
                           onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
                           onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                         >
-                          💬 {p.wa_number} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
+                          {p.wa_number} <span style={{ fontSize: '10px', opacity: 0.7 }}>↗</span>
                         </a>
                         <span title={p.wa_valid ? 'WA Valid' : 'WA Tidak Valid'} style={{
                           fontSize: '10px',
