@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Task } from '../../types/workflow.types';
+import { invoke } from '@tauri-apps/api/core';
+import { Task, WorkflowTemplate, WorkflowTemplateStep } from '../../types/workflow.types';
 import { useAppContext } from '../../contexts/AppContext';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { useWorkflowContext } from '../../contexts/WorkflowContext';
@@ -30,6 +31,8 @@ const TaskFormPage: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [selectedSteps, setSelectedSteps] = useState<string[]>([]);
   const [customStepsInput, setCustomStepsInput] = useState('');
+  const [templates, setTemplates] = useState<WorkflowTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
 
   const statusOptions = [
     { value: 'Belum Mulai', label: 'Belum Mulai' },
@@ -81,8 +84,44 @@ const TaskFormPage: React.FC = () => {
       setNotes('');
       setSelectedSteps([]);
       setCustomStepsInput('');
+      setSelectedTemplateId('');
     }
   }, [isEdit, selectedTaskId, tasks]);
+
+  // Memuat daftar template workflow saat komponen di-mount
+  useEffect(() => {
+    if (!isEdit) {
+      invoke<WorkflowTemplate[]>('get_workflow_templates')
+        .then(data => setTemplates(data || []))
+        .catch(err => console.error('Gagal memuat template workflow:', err));
+    }
+  }, [isEdit]);
+
+  // Sinkronisasi checkbox grid ketika template dipilih
+  useEffect(() => {
+    if (selectedTemplateId) {
+      invoke<WorkflowTemplateStep[]>('get_workflow_template_steps', { templateId: Number(selectedTemplateId) })
+        .then(stepsData => {
+          if (stepsData && stepsData.length > 0) {
+            const standardStepValues = ['Penulisan', 'Editing', 'Layouting', 'Desain Cover', 'Proofreading', 'Legalitas', 'Cetak', 'Distribusi'];
+            const newSelected: string[] = [];
+            const newCustom: string[] = [];
+
+            stepsData.forEach(s => {
+              if (standardStepValues.includes(s.step_name)) {
+                newSelected.push(s.step_name);
+              } else {
+                newCustom.push(s.step_name);
+              }
+            });
+
+            setSelectedSteps(newSelected);
+            setCustomStepsInput(newCustom.join(', '));
+          }
+        })
+        .catch(err => console.error('Gagal memuat langkah template:', err));
+    }
+  }, [selectedTemplateId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,6 +245,16 @@ const TaskFormPage: React.FC = () => {
                     fullWidth
                   />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Select
+                      label="Gunakan Rumus Workflow (Opsional)"
+                      value={selectedTemplateId}
+                      onChange={e => setSelectedTemplateId(e.target.value)}
+                      options={[
+                        { value: '', label: '-- Pilih Rumus Workflow --' },
+                        ...templates.map(t => ({ value: String(t.id), label: t.name }))
+                      ]}
+                      fullWidth
+                    />
                     <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>
                       Tahap Workflow (Pilih beberapa)
                     </label>

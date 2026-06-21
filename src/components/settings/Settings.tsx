@@ -6,6 +6,7 @@ import GASCloudSettings from './GASCloudSettings';
 import GDriveSettingsTab from './tabs/GDriveSettingsTab';
 import LocalFoldersTab from './tabs/LocalFoldersTab';
 import DataResetTab from './tabs/DataResetTab';
+import WorkflowTemplatesTab from './tabs/WorkflowTemplatesTab';
 
 // Definisi tab — urutan dan label
 const SETTINGS_TABS = [
@@ -13,6 +14,7 @@ const SETTINGS_TABS = [
   { key: 'local-folders', label: 'Folder Lokal Dipantau', icon: '📁' },
   { key: 'google-drive', label: 'Google Drive', icon: '☁️' },
   { key: 'google-apps-script', label: 'Google Apps Script', icon: '☁️' },
+  { key: 'workflow-templates', label: 'Rumus Workflow', icon: '⚙️' },
   { key: 'data-reset', label: 'Kustomisasi & Data', icon: '🎨' },
 ];
 
@@ -42,6 +44,8 @@ const Settings: React.FC = () => {
         return <GDriveSettingsTab />;
       case 'google-apps-script':
         return <GASCloudSettings showToast={showToast} />;
+      case 'workflow-templates':
+        return <WorkflowTemplatesTab />;
       case 'data-reset':
         return <DataResetTab />;
       default:
