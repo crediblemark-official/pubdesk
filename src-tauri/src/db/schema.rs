@@ -615,6 +615,7 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS work_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tim_id INTEGER,
             start_time TEXT NOT NULL,
             end_time TEXT,
             duration_seconds INTEGER DEFAULT 0,
@@ -624,7 +625,8 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
-    // Migrasi ad-hoc untuk tabel legalitas & invoices
+    // Migrasi ad-hoc untuk tabel legalitas & invoices & work_hours
+    let _ = conn.execute("ALTER TABLE work_hours ADD COLUMN tim_id INTEGER", []);
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN nomor_dokumen TEXT", []);
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN tanggal_keluar TEXT", []);
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN tanggal_revisi TEXT", []);

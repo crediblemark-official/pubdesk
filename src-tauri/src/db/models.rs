@@ -649,6 +649,7 @@ pub struct ImportTaskPayload {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkSession {
     pub id: Option<i64>,
+    pub tim_id: Option<i64>,
     pub start_time: String,
     pub end_time: Option<String>,
     pub duration_seconds: i64,

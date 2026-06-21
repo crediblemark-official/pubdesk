@@ -390,36 +390,37 @@ impl Database {
     }
 
     // Work Session management
-    pub fn start_work_session(&self, start_time: &str) -> Result<i64, DbError> {
+    pub fn start_work_session(&self, tim_id: i64, start_time: &str) -> Result<i64, DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "INSERT INTO work_hours (start_time, end_time, duration_seconds, notes, created_at) VALUES (?1, NULL, 0, NULL, ?2)",
-            params![start_time, now]
+            "INSERT INTO work_hours (tim_id, start_time, end_time, duration_seconds, notes, created_at) VALUES (?1, ?2, NULL, 0, NULL, ?3)",
+            params![tim_id, start_time, now]
         )?;
         Ok(self.conn.last_insert_rowid())
     }
 
-    pub fn stop_work_session(&self, id: i64, end_time: &str, duration_seconds: i64, notes: Option<&str>) -> Result<(), DbError> {
+    pub fn stop_work_session(&self, id: i64, tim_id: i64, end_time: &str, duration_seconds: i64, notes: Option<&str>) -> Result<(), DbError> {
         self.conn.execute(
-            "UPDATE work_hours SET end_time = ?1, duration_seconds = ?2, notes = ?3 WHERE id = ?4",
-            params![end_time, duration_seconds, notes, id]
+            "UPDATE work_hours SET end_time = ?1, duration_seconds = ?2, notes = ?3 WHERE id = ?4 AND tim_id = ?5",
+            params![end_time, duration_seconds, notes, id, tim_id]
         )?;
         Ok(())
     }
 
-    pub fn get_active_work_session(&self) -> Result<Option<WorkSession>, DbError> {
+    pub fn get_active_work_session(&self, tim_id: i64) -> Result<Option<WorkSession>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours WHERE end_time IS NULL ORDER BY id DESC LIMIT 1"
+            "SELECT id, tim_id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours WHERE tim_id = ?1 AND end_time IS NULL ORDER BY id DESC LIMIT 1"
         )?;
         
-        let mut rows = stmt.query_map([], |row| {
+        let mut rows = stmt.query_map(params![tim_id], |row| {
             Ok(WorkSession {
                 id: Some(row.get(0)?),
-                start_time: row.get(1)?,
-                end_time: row.get(2)?,
-                duration_seconds: row.get(3)?,
-                notes: row.get(4)?,
-                created_at: row.get(5)?,
+                tim_id: row.get(1)?,
+                start_time: row.get(2)?,
+                end_time: row.get(3)?,
+                duration_seconds: row.get(4)?,
+                notes: row.get(5)?,
+                created_at: row.get(6)?,
             })
         })?;
 
@@ -430,19 +431,20 @@ impl Database {
         }
     }
 
-    pub fn get_work_sessions(&self, limit: i64) -> Result<Vec<WorkSession>, DbError> {
+    pub fn get_work_sessions(&self, tim_id: i64, limit: i64) -> Result<Vec<WorkSession>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours ORDER BY id DESC LIMIT ?1"
+            "SELECT id, tim_id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours WHERE tim_id = ?1 ORDER BY id DESC LIMIT ?2"
         )?;
         
-        let rows = stmt.query_map(params![limit], |row| {
+        let rows = stmt.query_map(params![tim_id, limit], |row| {
             Ok(WorkSession {
                 id: Some(row.get(0)?),
-                start_time: row.get(1)?,
-                end_time: row.get(2)?,
-                duration_seconds: row.get(3)?,
-                notes: row.get(4)?,
-                created_at: row.get(5)?,
+                tim_id: row.get(1)?,
+                start_time: row.get(2)?,
+                end_time: row.get(3)?,
+                duration_seconds: row.get(4)?,
+                notes: row.get(5)?,
+                created_at: row.get(6)?,
             })
         })?;
 

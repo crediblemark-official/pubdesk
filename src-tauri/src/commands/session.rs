@@ -54,30 +54,46 @@ pub async fn get_current_user(state: State<'_, AppState>) -> Result<Option<AppSe
 
 #[tauri::command]
 pub async fn start_work_session(state: State<'_, AppState>, start_time: String) -> Result<i64, String> {
+    let current_tim_id = {
+        let active = state.active_session.lock().unwrap();
+        active.as_ref().map(|s| s.tim_id).ok_or_else(|| "Pengguna belum login".to_string())?
+    };
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
-    db.start_work_session(&start_time).map_err(|e| e.to_string())
+    db.start_work_session(current_tim_id, &start_time).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn stop_work_session(state: State<'_, AppState>, id: i64, end_time: String, duration_seconds: i64, notes: Option<String>) -> Result<(), String> {
+    let current_tim_id = {
+        let active = state.active_session.lock().unwrap();
+        active.as_ref().map(|s| s.tim_id).ok_or_else(|| "Pengguna belum login".to_string())?
+    };
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
-    db.stop_work_session(id, &end_time, duration_seconds, notes.as_deref()).map_err(|e| e.to_string())
+    db.stop_work_session(id, current_tim_id, &end_time, duration_seconds, notes.as_deref()).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn get_active_work_session(state: State<'_, AppState>) -> Result<Option<WorkSession>, String> {
+    let current_tim_id = {
+        let active = state.active_session.lock().unwrap();
+        active.as_ref().map(|s| s.tim_id).ok_or_else(|| "Pengguna belum login".to_string())?
+    };
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
-    db.get_active_work_session().map_err(|e| e.to_string())
+    db.get_active_work_session(current_tim_id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn get_work_sessions(state: State<'_, AppState>, limit: i64) -> Result<Vec<WorkSession>, String> {
+    let current_tim_id = {
+        let active = state.active_session.lock().unwrap();
+        active.as_ref().map(|s| s.tim_id).ok_or_else(|| "Pengguna belum login".to_string())?
+    };
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
-    db.get_work_sessions(limit).map_err(|e| e.to_string())
+    db.get_work_sessions(current_tim_id, limit).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
