@@ -194,23 +194,21 @@ const LaporanOperasional: React.FC = () => {
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat laporan...</div>
         ) : (
           <>
-            {/* Beban Kerja Tim Terstandar dengan padding kiri-kanan */}
-            <div style={{ padding: '0 24px' }}>
-              <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', padding: '20px' }}>
-                <h3 style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Beban Kerja Tim (Tugas Aktif)</h3>
-                {bebanKerjaArr.length === 0 ? (
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Tidak ada beban kerja saat ini.</div>
-                ) : (
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    {bebanKerjaArr.map(([pic, count]) => (
-                      <div key={pic} style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-panel)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)', gap: '8px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{pic}</span>
-                        <Badge label={`${count} tugas`} variant={count > 3 ? "warning" : "info"} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            {/* Beban Kerja Tim Terstandar tanpa container card */}
+            <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h3 style={{ margin: 0, fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Beban Kerja Tim (Tugas Aktif)</h3>
+              {bebanKerjaArr.length === 0 ? (
+                <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Tidak ada beban kerja saat ini.</div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {bebanKerjaArr.map(([pic, count]) => (
+                    <div key={pic} style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border)', gap: '6px' }}>
+                      <span style={{ fontSize: '11.5px', fontWeight: '600', color: 'var(--text-primary)' }}>{pic}</span>
+                      <Badge label={`${count} tugas`} variant={count > 3 ? "warning" : "info"} size="sm" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Task Terlambat Terstandar - FULL WIDTH */}
