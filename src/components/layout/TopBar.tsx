@@ -41,17 +41,61 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
     importExportActions,
     syncAllDataToCloud,
     services,
-    showToast
+    showToast,
+    loadFiles,
+    loadBooks,
+    loadContacts,
+    loadInvoices,
+    loadServices
   } = useAppContext();
 
-  const { penulis, penerbit, naskah, tim, legalitas } = useDataMasterContext();
-  const { tasks } = useWorkflowContext();
+  const { 
+    penulis, 
+    penerbit, 
+    naskah, 
+    tim, 
+    legalitas,
+    loadPenulis,
+    loadPenerbit,
+    loadNaskah,
+    loadTim,
+    loadLegalitas
+  } = useDataMasterContext();
+  
+  const { tasks, loadTasks } = useWorkflowContext();
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const activeActions = activeModule ? importExportActions[activeModule] : undefined;
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    showToast('Menyegarkan data dari database...', 'info');
+    try {
+      await Promise.all([
+        loadFiles(),
+        loadBooks(),
+        loadContacts(),
+        loadInvoices(),
+        loadServices(),
+        loadPenulis(),
+        loadPenerbit(),
+        loadNaskah(),
+        loadTim(),
+        loadLegalitas(),
+        loadTasks()
+      ]);
+      showToast('Seluruh data berhasil disegarkan!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal menyegarkan beberapa data.', 'error');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleSyncAllData = async () => {
     setSyncing(true);
@@ -286,6 +330,36 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
             </button>
           </div>
         )}
+
+        <button 
+          className="top-bar-btn-close-path" 
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title={refreshing ? "Sedang menyegarkan data..." : "Segarkan data aplikasi"}
+          aria-label="Refresh data"
+          style={{
+            color: refreshing ? 'var(--accent)' : 'var(--text-secondary)',
+            cursor: refreshing ? 'not-allowed' : 'pointer',
+            marginRight: '2px'
+          }}
+        >
+          <svg 
+            width="14" 
+            height="14" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            style={{
+              animation: refreshing ? 'spin 1s linear infinite' : 'none'
+            }}
+          >
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.72 2.78L21 8" />
+            <polyline points="21 3 21 8 16 8" />
+          </svg>
+        </button>
 
         <button 
           className="top-bar-btn-close-path" 
