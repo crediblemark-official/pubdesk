@@ -462,6 +462,169 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // ==========================================
+    // WORKFLOW PRODUKSI NASKAH & MIGRASI EXCEL
+    // ==========================================
+
+    // Tabel workflow_templates
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS workflow_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL
+        )",
+        [],
+    )?;
+
+    // Tabel workflow_template_steps
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS workflow_template_steps (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            template_id INTEGER NOT NULL REFERENCES workflow_templates(id) ON DELETE CASCADE,
+            step_order INTEGER NOT NULL,
+            step_name TEXT NOT NULL,
+            default_role TEXT,
+            default_duration_days INTEGER DEFAULT 0,
+            is_required INTEGER NOT NULL DEFAULT 1
+        )",
+        [],
+    )?;
+
+    // Tabel tasks
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            naskah_id INTEGER NOT NULL REFERENCES naskah(id) ON DELETE CASCADE,
+            step_name TEXT NOT NULL,
+            step_order INTEGER,
+            assigned_team_id INTEGER REFERENCES tim(id),
+            status TEXT NOT NULL DEFAULT 'Belum Mulai',
+            priority TEXT NOT NULL DEFAULT 'Normal',
+            start_date TEXT,
+            due_date TEXT,
+            completed_date TEXT,
+            notes TEXT,
+            proof_path_or_link TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        )",
+        [],
+    )?;
+
+    // Tabel task_history
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS task_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+            old_status TEXT,
+            new_status TEXT NOT NULL,
+            changed_by TEXT,
+            changed_at TEXT NOT NULL,
+            notes TEXT
+        )",
+        [],
+    )?;
+
+    // Tabel task_blockers
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS task_blockers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+            naskah_id INTEGER REFERENCES naskah(id) ON DELETE CASCADE,
+            blocker_type TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT 'Aktif',
+            created_at TEXT NOT NULL,
+            resolved_at TEXT
+        )",
+        [],
+    )?;
+
+    // Tabel task_approvals
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS task_approvals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+            approval_type TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'Menunggu Approval',
+            requested_at TEXT NOT NULL,
+            decided_at TEXT,
+            decided_by TEXT,
+            notes TEXT
+        )",
+        [],
+    )?;
+
+    // Tabel naskah_files
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS naskah_files (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            naskah_id INTEGER NOT NULL REFERENCES naskah(id) ON DELETE CASCADE,
+            file_id INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+            file_role TEXT NOT NULL,
+            notes TEXT,
+            created_at TEXT NOT NULL
+        )",
+        [],
+    )?;
+
+    // Tabel cetak_distribusi
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS cetak_distribusi (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            naskah_id INTEGER NOT NULL REFERENCES naskah(id) ON DELETE CASCADE,
+            acc_cetak_date TEXT,
+            naik_cetak_date TEXT,
+            jumlah_cetak INTEGER,
+            status_cetak TEXT DEFAULT 'Belum Mulai',
+            link_playbook TEXT,
+            link_shopee TEXT,
+            link_omp TEXT,
+            ekspedisi TEXT,
+            resi TEXT,
+            tanggal_kirim TEXT,
+            status_kirim TEXT DEFAULT 'Belum Dikirim',
+            notes TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        )",
+        [],
+    )?;
+
+    // Tabel import_logs
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS import_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            import_type TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            sheet_name TEXT,
+            total_rows INTEGER DEFAULT 0,
+            valid_rows INTEGER DEFAULT 0,
+            invalid_rows INTEGER DEFAULT 0,
+            duplicate_rows INTEGER DEFAULT 0,
+            imported_rows INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            notes TEXT
+        )",
+        [],
+    )?;
+
+    // Migrasi ad-hoc untuk tabel legalitas & invoices
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN nomor_dokumen TEXT", []);
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN tanggal_keluar TEXT", []);
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN tanggal_revisi TEXT", []);
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN pic_id INTEGER REFERENCES tim(id)", []);
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN rejection_reason TEXT", []);
+    let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN proof_path_or_link TEXT", []);
+
+    let _ = conn.execute("ALTER TABLE invoices ADD COLUMN naskah_id INTEGER REFERENCES naskah(id)", []);
+    let _ = conn.execute("ALTER TABLE invoices ADD COLUMN payment_status TEXT DEFAULT 'Draft'", []);
+    let _ = conn.execute("ALTER TABLE invoices ADD COLUMN paid_amount REAL DEFAULT 0", []);
+    let _ = conn.execute("ALTER TABLE invoices ADD COLUMN remaining_amount REAL DEFAULT 0", []);
+    let _ = conn.execute("ALTER TABLE invoices ADD COLUMN payment_notes TEXT", []);
+
     Ok(())
 }
 

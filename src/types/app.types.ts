@@ -19,7 +19,15 @@ export type AppModule =
   | 'tim'
   | 'legalitas'
   | 'pelanggan'
-  | 'activity-log';
+  | 'activity-log'
+  | 'pekerjaan-saya'
+  | 'produksi-board'
+  | 'produksi-list'
+  | 'produksi-kendala'
+  | 'produksi-approval'
+  | 'produksi-timeline'
+  | 'laporan-operasional'
+  | 'import-data';
 
 export interface AppState {
   activeModule: AppModule;

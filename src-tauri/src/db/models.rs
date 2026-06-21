@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 use chrono::Local;
 
@@ -139,6 +140,11 @@ pub struct Invoice {
     pub file_path: Option<String>,
     pub sync_status: Option<String>,
     pub cloud_file_url: Option<String>,
+    pub naskah_id: Option<i64>,
+    pub payment_status: Option<String>,
+    pub paid_amount: f64,
+    pub remaining_amount: f64,
+    pub payment_notes: Option<String>,
     pub updated_at: Option<String>,
 }
 
@@ -166,6 +172,11 @@ impl Default for Invoice {
             file_path: None,
             sync_status: Some("pending".to_string()),
             cloud_file_url: None,
+            naskah_id: None,
+            payment_status: Some("Draft".to_string()),
+            paid_amount: 0.0,
+            remaining_amount: 0.0,
+            payment_notes: None,
             updated_at: None,
         }
     }
@@ -434,6 +445,12 @@ pub struct Legalitas {
     pub tanggal_pengajuan: Option<String>,
     pub keterangan: Option<String>,
     pub status: String,
+    pub nomor_dokumen: Option<String>,
+    pub tanggal_keluar: Option<String>,
+    pub tanggal_revisi: Option<String>,
+    pub pic_id: Option<i64>,
+    pub rejection_reason: Option<String>,
+    pub proof_path_or_link: Option<String>,
     pub created_at: String,
     pub updated_at: Option<String>,
 }
@@ -449,6 +466,12 @@ impl Default for Legalitas {
             tanggal_pengajuan: None,
             keterangan: None,
             status: "Diajukan".to_string(),
+            nomor_dokumen: None,
+            tanggal_keluar: None,
+            tanggal_revisi: None,
+            pic_id: None,
+            rejection_reason: None,
+            proof_path_or_link: None,
             created_at: Local::now().to_rfc3339(),
             updated_at: None,
         }
@@ -463,4 +486,146 @@ pub struct ActivityLog {
     pub action: String, // "CREATE", "UPDATE", "DELETE"
     pub description: String,
     pub created_at: String,
+}
+
+// ==========================================
+// WORKFLOW PRODUKSI NASKAH & MIGRASI EXCEL
+// ==========================================
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkflowTemplate {
+    pub id: Option<i64>,
+    pub name: String,
+    pub description: Option<String>,
+    pub is_active: i32,
+    pub created_at: String,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkflowTemplateStep {
+    pub id: Option<i64>,
+    pub template_id: i64,
+    pub step_order: i64,
+    pub step_name: String,
+    pub default_role: Option<String>,
+    pub default_duration_days: i64,
+    pub is_required: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Task {
+    pub id: Option<i64>,
+    pub naskah_id: i64,
+    pub step_name: String,
+    pub step_order: Option<i64>,
+    pub assigned_team_id: Option<i64>,
+    pub status: String,
+    pub priority: String,
+    pub start_date: Option<String>,
+    pub due_date: Option<String>,
+    pub completed_date: Option<String>,
+    pub notes: Option<String>,
+    pub proof_path_or_link: Option<String>,
+    pub created_at: String,
+    pub updated_at: Option<String>,
+    #[serde(default)]
+    pub naskah_title: Option<String>,
+    #[serde(default)]
+    pub pic_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskHistory {
+    pub id: Option<i64>,
+    pub task_id: i64,
+    pub old_status: Option<String>,
+    pub new_status: String,
+    pub changed_by: Option<String>,
+    pub changed_at: String,
+    pub notes: Option<String>,
+    pub naskah_title: Option<String>,
+    pub step_name: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskBlocker {
+    pub id: Option<i64>,
+    pub task_id: Option<i64>,
+    pub naskah_id: Option<i64>,
+    pub blocker_type: String,
+    pub description: Option<String>,
+    pub status: String,
+    pub created_at: String,
+    pub resolved_at: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskApproval {
+    pub id: Option<i64>,
+    pub task_id: i64,
+    pub approval_type: String,
+    pub status: String,
+    pub requested_at: String,
+    pub decided_at: Option<String>,
+    pub decided_by: Option<String>,
+    pub notes: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NaskahFile {
+    pub id: Option<i64>,
+    pub naskah_id: i64,
+    pub file_id: i64,
+    pub file_role: String,
+    pub notes: Option<String>,
+    pub created_at: String,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CetakDistribusi {
+    pub id: Option<i64>,
+    pub naskah_id: i64,
+    pub acc_cetak_date: Option<String>,
+    pub naik_cetak_date: Option<String>,
+    pub jumlah_cetak: Option<i64>,
+    pub status_cetak: Option<String>,
+    pub link_playbook: Option<String>,
+    pub link_shopee: Option<String>,
+    pub link_omp: Option<String>,
+    pub ekspedisi: Option<String>,
+    pub resi: Option<String>,
+    pub tanggal_kirim: Option<String>,
+    pub status_kirim: Option<String>,
+    pub notes: Option<String>,
+    pub created_at: String,
+    pub updated_at: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportLog {
+    pub id: Option<i64>,
+    pub import_type: String,
+    pub file_name: String,
+    pub sheet_name: Option<String>,
+    pub total_rows: i64,
+    pub valid_rows: i64,
+    pub invalid_rows: i64,
+    pub duplicate_rows: i64,
+    pub imported_rows: i64,
+    pub created_at: String,
+    pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportTaskPayload {
+    pub judul: String,
+    pub pic: String,
+    pub tanggal: String,
+    pub status: String,
 }

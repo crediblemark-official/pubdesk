@@ -702,6 +702,96 @@ async fn get_activity_log(state: State<'_, AppState>, limit: i64) -> Result<Vec<
     db.get_activity_log(limit).map_err(|e| e.to_string())
 }
 
+// Workflow Commands
+#[tauri::command]
+async fn get_tasks(state: State<'_, AppState>) -> Result<Vec<Task>, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_tasks().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_task(state: State<'_, AppState>, task: Task) -> Result<i64, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.add_task(&task).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn update_task(state: State<'_, AppState>, task: Task) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.update_task(&task).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn delete_task(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.delete_task(id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_workflow_templates(state: State<'_, AppState>) -> Result<Vec<WorkflowTemplate>, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_workflow_templates().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_workflow_template(state: State<'_, AppState>, template: WorkflowTemplate) -> Result<i64, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.add_workflow_template(&template).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_task_history(state: State<'_, AppState>, history: TaskHistory) -> Result<i64, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.add_task_history(&history).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_task_history(state: State<'_, AppState>, task_id: i64) -> Result<Vec<TaskHistory>, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_task_history(task_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_all_task_history(state: State<'_, AppState>) -> Result<Vec<TaskHistory>, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_all_task_history().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn read_file_bytes(path: String) -> Result<Vec<u8>, String> {
+    std::fs::read(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn import_alur_naskah_batch(state: State<'_, AppState>, payloads: Vec<ImportTaskPayload>) -> Result<usize, String> {
+    let mut db = state.db.lock().unwrap();
+    let db = db.as_mut().ok_or("Database tidak diinisialisasi")?;
+    db.import_alur_naskah_batch(payloads).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn seed_sample_data(state: State<'_, AppState>) -> Result<String, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db::sample_data::seed_sample_data(&db.conn).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn reset_workflow_data(state: State<'_, AppState>) -> Result<String, String> {
+    let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db::sample_data::reset_workflow_data(&db.conn).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -775,9 +865,21 @@ pub fn run() {
             add_legalitas,
             update_legalitas,
             delete_legalitas,
-            get_activity_log
+            get_activity_log,
+            get_tasks,
+            add_task,
+            update_task,
+            delete_task,
+            get_workflow_templates,
+            add_workflow_template,
+            add_task_history,
+            get_task_history,
+            get_all_task_history,
+            read_file_bytes,
+            import_alur_naskah_batch,
+            seed_sample_data,
+            reset_workflow_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

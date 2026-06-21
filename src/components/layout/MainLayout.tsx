@@ -21,6 +21,18 @@ import LegalitasManager from '../data-master/LegalitasManager';
 import PelangganManager from '../data-master/PelangganManager';
 import ActivityLog from '../data-master/ActivityLog';
 
+// Modul Produksi (Workflow)
+import PekerjaanSaya from '../produksi/PekerjaanSaya';
+import ProduksiBoard from '../produksi/ProduksiBoard';
+import ProduksiList from '../produksi/ProduksiList';
+import ProduksiKendala from '../produksi/ProduksiKendala';
+import ProduksiApproval from '../produksi/ProduksiApproval';
+import ProduksiTimeline from '../produksi/ProduksiTimeline';
+import LaporanOperasional from '../laporan/LaporanOperasional';
+
+// Modul Pengaturan Tambahan
+import ImportExcel from '../import/ImportExcel';
+
 
 const MainLayout = () => {
   const { appState, rightPanelVisible } = useAppContext();
@@ -107,6 +119,22 @@ const MainLayout = () => {
         return <PelangganManager searchQuery={fileSearchQuery} />;
       case 'activity-log':
         return <ActivityLog />;
+      case 'pekerjaan-saya':
+        return <PekerjaanSaya />;
+      case 'produksi-board':
+        return <ProduksiBoard />;
+      case 'produksi-list':
+        return <ProduksiList />;
+      case 'produksi-kendala':
+        return <ProduksiKendala />;
+      case 'produksi-approval':
+        return <ProduksiApproval />;
+      case 'produksi-timeline':
+        return <ProduksiTimeline />;
+      case 'laporan-operasional':
+        return <LaporanOperasional />;
+      case 'import-data':
+        return <ImportExcel />;
       case 'ledger':
         return <div className="module-content" style={{ padding: '24px', color: '#a89880' }}><h2>Buku Besar Virtual</h2><p>Fitur akan segera tersedia</p></div>;
       case 'settings':
@@ -185,3 +213,4 @@ const MainLayout = () => {
 
 export { MainLayout };
 export default MainLayout;
+ 

@@ -1,6 +1,8 @@
 pub mod error;
 pub mod models;
+pub mod sample_data;
 pub mod schema;
+pub mod workflow;
 
 // Modul database SQLite untuk aplikasi PubDesk
 pub use error::DbError;
@@ -212,7 +214,7 @@ impl Database {
     pub fn add_invoice(&self, invoice: &Invoice) -> Result<i64, DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, sync_status, cloud_file_url, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, sync_status, cloud_file_url, naskah_id, payment_status, paid_amount, remaining_amount, payment_notes, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
             params![
                 invoice.created_at,
                 invoice.customer_id,
@@ -224,6 +226,11 @@ impl Database {
                 invoice.file_path,
                 invoice.sync_status.as_deref().unwrap_or("pending"),
                 invoice.cloud_file_url,
+                invoice.naskah_id,
+                invoice.payment_status.as_deref().unwrap_or("Draft"),
+                invoice.paid_amount,
+                invoice.remaining_amount,
+                invoice.payment_notes,
                 now
             ]
         )?;
@@ -233,7 +240,7 @@ impl Database {
     }
 
     pub fn get_invoices(&self) -> Result<Vec<Invoice>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, sync_status, cloud_file_url, updated_at FROM invoices ORDER BY created_at DESC")?;
+        let mut stmt = self.conn.prepare("SELECT id, created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, sync_status, cloud_file_url, naskah_id, payment_status, paid_amount, remaining_amount, payment_notes, updated_at FROM invoices ORDER BY created_at DESC")?;
         let invoices = stmt.query_map([], |row| {
             Ok(Invoice {
                 id: row.get(0)?,
@@ -247,7 +254,12 @@ impl Database {
                 file_path: row.get(8)?,
                 sync_status: row.get(9)?,
                 cloud_file_url: row.get(10)?,
-                updated_at: row.get(11)?,
+                naskah_id: row.get(11)?,
+                payment_status: row.get(12)?,
+                paid_amount: row.get(13)?,
+                remaining_amount: row.get(14)?,
+                payment_notes: row.get(15)?,
+                updated_at: row.get(16)?,
             })
         })?;
 
@@ -276,7 +288,7 @@ impl Database {
     pub fn update_invoice(&self, invoice: &Invoice) -> Result<(), DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "UPDATE invoices SET customer_id = ?1, items_json = ?2, shipping_cost = ?3, admin_fee = ?4, total = ?5, export_format = ?6, file_path = ?7, sync_status = ?8, cloud_file_url = ?9, updated_at = ?10 WHERE id = ?11",
+            "UPDATE invoices SET customer_id = ?1, items_json = ?2, shipping_cost = ?3, admin_fee = ?4, total = ?5, export_format = ?6, file_path = ?7, sync_status = ?8, cloud_file_url = ?9, naskah_id = ?10, payment_status = ?11, paid_amount = ?12, remaining_amount = ?13, payment_notes = ?14, updated_at = ?15 WHERE id = ?16",
             params![
                 invoice.customer_id,
                 invoice.items_json,
@@ -287,6 +299,11 @@ impl Database {
                 invoice.file_path,
                 invoice.sync_status.as_deref().unwrap_or("pending"),
                 invoice.cloud_file_url,
+                invoice.naskah_id,
+                invoice.payment_status.as_deref().unwrap_or("Draft"),
+                invoice.paid_amount,
+                invoice.remaining_amount,
+                invoice.payment_notes,
                 now,
                 invoice.id
             ]
@@ -1018,7 +1035,7 @@ impl Database {
     pub fn add_legalitas(&self, l: &Legalitas) -> Result<i64, DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "INSERT INTO legalitas (naskah_id, judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO legalitas (naskah_id, judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, nomor_dokumen, tanggal_keluar, tanggal_revisi, pic_id, rejection_reason, proof_path_or_link, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
             params![
                 l.naskah_id,
                 l.judul_buku,
@@ -1027,6 +1044,12 @@ impl Database {
                 l.tanggal_pengajuan,
                 l.keterangan,
                 l.status,
+                l.nomor_dokumen,
+                l.tanggal_keluar,
+                l.tanggal_revisi,
+                l.pic_id,
+                l.rejection_reason,
+                l.proof_path_or_link,
                 l.created_at,
                 now
             ]
@@ -1037,7 +1060,7 @@ impl Database {
     }
 
     pub fn get_legalitas(&self) -> Result<Vec<Legalitas>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, naskah_id, judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, created_at, updated_at FROM legalitas ORDER BY created_at DESC")?;
+        let mut stmt = self.conn.prepare("SELECT id, naskah_id, judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, nomor_dokumen, tanggal_keluar, tanggal_revisi, pic_id, rejection_reason, proof_path_or_link, created_at, updated_at FROM legalitas ORDER BY created_at DESC")?;
         let rows = stmt.query_map([], |row| {
             Ok(Legalitas {
                 id: row.get(0)?,
@@ -1048,8 +1071,14 @@ impl Database {
                 tanggal_pengajuan: row.get(5)?,
                 keterangan: row.get(6)?,
                 status: row.get(7)?,
-                created_at: row.get(8)?,
-                updated_at: row.get(9)?,
+                nomor_dokumen: row.get(8)?,
+                tanggal_keluar: row.get(9)?,
+                tanggal_revisi: row.get(10)?,
+                pic_id: row.get(11)?,
+                rejection_reason: row.get(12)?,
+                proof_path_or_link: row.get(13)?,
+                created_at: row.get(14)?,
+                updated_at: row.get(15)?,
             })
         })?;
         let mut res = Vec::new();
@@ -1062,7 +1091,7 @@ impl Database {
     pub fn update_legalitas(&self, l: &Legalitas) -> Result<(), DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "UPDATE legalitas SET naskah_id = ?1, judul_buku = ?2, nama_penulis = ?3, tipe = ?4, tanggal_pengajuan = ?5, keterangan = ?6, status = ?7, updated_at = ?8 WHERE id = ?9",
+            "UPDATE legalitas SET naskah_id = ?1, judul_buku = ?2, nama_penulis = ?3, tipe = ?4, tanggal_pengajuan = ?5, keterangan = ?6, status = ?7, nomor_dokumen = ?8, tanggal_keluar = ?9, tanggal_revisi = ?10, pic_id = ?11, rejection_reason = ?12, proof_path_or_link = ?13, updated_at = ?14 WHERE id = ?15",
             params![
                 l.naskah_id,
                 l.judul_buku,
@@ -1071,6 +1100,12 @@ impl Database {
                 l.tanggal_pengajuan,
                 l.keterangan,
                 l.status,
+                l.nomor_dokumen,
+                l.tanggal_keluar,
+                l.tanggal_revisi,
+                l.pic_id,
+                l.rejection_reason,
+                l.proof_path_or_link,
                 now,
                 l.id
             ]

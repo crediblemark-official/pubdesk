@@ -5,6 +5,7 @@ import InvoiceSettings from './InvoiceSettings';
 import GASCloudSettings from './GASCloudSettings';
 import GDriveSettingsTab from './tabs/GDriveSettingsTab';
 import LocalFoldersTab from './tabs/LocalFoldersTab';
+import DataResetTab from './tabs/DataResetTab';
 
 // Definisi tab — urutan dan label
 const SETTINGS_TABS = [
@@ -12,6 +13,7 @@ const SETTINGS_TABS = [
   { key: 'local-folders', label: 'Folder Lokal Dipantau', icon: '📁' },
   { key: 'google-drive', label: 'Google Drive', icon: '☁️' },
   { key: 'google-apps-script', label: 'Google Apps Script', icon: '☁️' },
+  { key: 'data-reset', label: 'Data & Reset', icon: '🔄' },
 ];
 
 /**
@@ -32,6 +34,8 @@ const Settings: React.FC = () => {
         return <GDriveSettingsTab />;
       case 'google-apps-script':
         return <GASCloudSettings showToast={showToast} />;
+      case 'data-reset':
+        return <DataResetTab />;
       default:
         return <InvoiceSettings />;
     }
