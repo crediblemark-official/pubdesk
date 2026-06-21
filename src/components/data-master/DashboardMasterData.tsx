@@ -148,7 +148,7 @@ const DashboardMasterData: React.FC = () => {
         <div style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
-          borderRadius: '12px',
+          borderRadius: '0px',
           padding: '24px'
         }}>
           <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 20px 0' }}>
@@ -199,7 +199,7 @@ const DashboardMasterData: React.FC = () => {
         <div style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
-          borderRadius: '12px',
+          borderRadius: '0px',
           padding: '24px',
           display: 'flex',
           flexDirection: 'column',
@@ -213,7 +213,7 @@ const DashboardMasterData: React.FC = () => {
           </p>
           <div style={{ 
             padding: '12px', 
-            borderRadius: '8px', 
+            borderRadius: '0px', 
             background: 'var(--bg-panel)', 
             borderLeft: '4px solid var(--accent)',
             fontSize: '12px',

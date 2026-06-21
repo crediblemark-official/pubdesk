@@ -175,7 +175,7 @@ const DashboardProduksi: React.FC = () => {
           <div style={{ 
             background: 'var(--bg-card)', 
             border: '1px solid var(--border)', 
-            borderRadius: '12px', 
+            borderRadius: '0px', 
             padding: '20px' 
           }}>
             <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -189,7 +189,15 @@ const DashboardProduksi: React.FC = () => {
                 🎉 Bagus! Tidak ada tugas mendesak atau terlambat saat ini.
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                background: 'var(--bg-panel)',
+                borderTop: '1px solid var(--border)',
+                borderLeft: '1px solid var(--border)',
+                borderRadius: '0px',
+                overflow: 'hidden'
+              }}>
                 {urgentTasks.map(task => {
                   const overdue = isOverdue(task);
                   return (
@@ -206,19 +214,18 @@ const DashboardProduksi: React.FC = () => {
                         alignItems: 'center', 
                         justifyContent: 'space-between',
                         padding: '12px 16px', 
-                        borderRadius: '8px', 
-                        background: 'var(--bg-panel)',
-                        border: overdue ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid var(--border)',
+                        background: overdue ? 'rgba(239, 68, 68, 0.04)' : 'transparent',
+                        borderRight: '1px solid var(--border)',
+                        borderBottom: '1px solid var(--border)',
                         cursor: 'pointer',
-                        transition: 'transform 0.15s, border-color 0.15s',
+                        transition: 'background 0.15s',
+                        boxSizing: 'border-box'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.borderColor = overdue ? '#ef4444' : 'var(--accent)';
+                        e.currentTarget.style.background = overdue ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-card)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.borderColor = overdue ? 'rgba(239, 68, 68, 0.2)' : 'var(--border)';
+                        e.currentTarget.style.background = overdue ? 'rgba(239, 68, 68, 0.04)' : 'transparent';
                       }}
                     >
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '70%' }}>
@@ -257,13 +264,21 @@ const DashboardProduksi: React.FC = () => {
           <div style={{ 
             background: 'var(--bg-card)', 
             border: '1px solid var(--border)', 
-            borderRadius: '12px', 
+            borderRadius: '0px', 
             padding: '20px' 
           }}>
             <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 16px 0' }}>
               ⚡ Navigasi Cepat Produksi
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap',
+              background: 'var(--bg-panel)',
+              borderTop: '1px solid var(--border)',
+              borderLeft: '1px solid var(--border)',
+              borderRadius: '0px',
+              overflow: 'hidden'
+            }}>
               {[
                 { module: 'tambah-tugas' as const, label: 'Tambah Tugas Baru', desc: 'Buat workflow baru', icon: '➕' },
                 { module: 'produksi-board' as const, label: 'Board Kanban', desc: 'Atur naskah visual', icon: '🎨' },
@@ -276,28 +291,30 @@ const DashboardProduksi: React.FC = () => {
                   key={act.module}
                   onClick={() => setActiveModule(act.module)}
                   style={{
+                    flex: '1 1 33.33%',
+                    minWidth: '140px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'flex-start',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-panel)',
+                    padding: '12px 16px',
+                    border: 'none',
+                    borderRight: '1px solid var(--border)',
+                    borderBottom: '1px solid var(--border)',
+                    background: 'transparent',
                     textAlign: 'left',
                     cursor: 'pointer',
                     gap: '4px',
-                    transition: 'all 0.15s ease'
+                    transition: 'all 0.15s ease',
+                    boxSizing: 'border-box'
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--accent)';
                     e.currentTarget.style.background = 'var(--bg-card)';
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.background = 'var(--bg-panel)';
+                    e.currentTarget.style.background = 'transparent';
                   }}
                 >
-                  <span style={{ fontSize: '20px', marginBottom: '4px' }}>{act.icon}</span>
+                  <span style={{ fontSize: '20px', marginBottom: '2px' }}>{act.icon}</span>
                   <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{act.label}</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{act.desc}</span>
                 </button>
@@ -310,7 +327,7 @@ const DashboardProduksi: React.FC = () => {
         <div style={{ 
           background: 'var(--bg-card)', 
           border: '1px solid var(--border)', 
-          borderRadius: '12px', 
+          borderRadius: '0px', 
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
