@@ -545,6 +545,7 @@ pub struct Task {
     pub completed_date: Option<String>,
     pub notes: Option<String>,
     pub proof_path_or_link: Option<String>,
+    #[serde(default)]
     pub created_at: String,
     pub updated_at: Option<String>,
     #[serde(default)]
