@@ -886,14 +886,14 @@ async fn get_work_sessions(state: State<'_, AppState>, limit: i64) -> Result<Vec
 
 #[tauri::command]
 async fn login_user(state: State<'_, AppState>, tim_id: i64) -> Result<AppSession, String> {
-    let db = state.db.lock().unwrap();
-    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    let db_guard = state.db.lock().unwrap();
+    let db = db_guard.as_ref().ok_or("Database tidak diinisialisasi")?;
     let tim_list = db.get_all_tim().map_err(|e| e.to_string())?;
     let member = tim_list.into_iter().find(|t| t.id == Some(tim_id))
         .ok_or_else(|| "Anggota tim tidak ditemukan".to_string())?;
     let session = db.login_session(tim_id, &member.name, &member.role).map_err(|e| e.to_string())?;
     let _ = db.log_activity_audit("session", None, "LOGIN", &format!("Karyawan '{}' login ke sistem", member.name), Some(tim_id), Some(&member.name), None, None, Some("auth"));
-    drop(db);
+    drop(db_guard);
     let mut active = state.active_session.lock().unwrap();
     *active = Some(session.clone());
     Ok(session)
@@ -901,8 +901,8 @@ async fn login_user(state: State<'_, AppState>, tim_id: i64) -> Result<AppSessio
 
 #[tauri::command]
 async fn logout_user(state: State<'_, AppState>) -> Result<(), String> {
-    let db = state.db.lock().unwrap();
-    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    let db_guard = state.db.lock().unwrap();
+    let db = db_guard.as_ref().ok_or("Database tidak diinisialisasi")?;
     {
         let active = state.active_session.lock().unwrap();
         if let Some(ref session) = *active {
@@ -910,7 +910,7 @@ async fn logout_user(state: State<'_, AppState>) -> Result<(), String> {
         }
     }
     db.logout_session().map_err(|e| e.to_string())?;
-    drop(db);
+    drop(db_guard);
     let mut active = state.active_session.lock().unwrap();
     *active = None;
     Ok(())
