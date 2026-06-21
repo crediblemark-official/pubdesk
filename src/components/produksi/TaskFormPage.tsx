@@ -22,7 +22,7 @@ const TaskFormPage: React.FC = () => {
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
   const isEdit = appState.activeModule === 'edit-tugas';
-  const isAdmin = currentUser?.tim_role.toLowerCase() === 'admin';
+  const isAdmin = currentUser?.tim_role.toLowerCase().includes('admin');
 
   // Form states
   const [naskahId, setNaskahId] = useState('');
@@ -101,7 +101,7 @@ const TaskFormPage: React.FC = () => {
       }
     } else {
       setNaskahId('');
-      setPicName(currentUser && currentUser.tim_role.toLowerCase() !== 'admin' ? currentUser.tim_name : '');
+      setPicName(currentUser && !currentUser.tim_role.toLowerCase().includes('admin') ? currentUser.tim_name : '');
       setDueDate('');
       setPriority('Normal');
       setStatus('Belum Mulai');

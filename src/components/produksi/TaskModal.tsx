@@ -24,20 +24,20 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   const { addTask, updateTask } = useWorkflowContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEdit = !!task;
-  const isAdmin = currentUser?.tim_role.toLowerCase() === 'admin';
+  const isAdmin = currentUser?.tim_role.toLowerCase().includes('admin');
   const [useManualPic, setUseManualPic] = useState(false);
 
   // Form states
   const [naskahId, setNaskahId] = useState(task?.naskah_id || '');
   const [stepName, setStepName] = useState(task?.step_name || '');
-  const [picName, setPicName] = useState(task?.pic_name || (currentUser && currentUser.tim_role.toLowerCase() !== 'admin' ? currentUser.tim_name : ''));
+  const [picName, setPicName] = useState(task?.pic_name || (currentUser && !currentUser.tim_role.toLowerCase().includes('admin') ? currentUser.tim_name : ''));
   const [dueDate, setDueDate] = useState(task?.due_date ? task.due_date.split('T')[0] : '');
   const [priority, setPriority] = useState(task?.priority || 'Normal');
   const [status, setStatus] = useState(task?.status || 'Belum Mulai');
   const [notes, setNotes] = useState(task?.notes || '');
 
   useEffect(() => {
-    if (!isEdit && currentUser && currentUser.tim_role.toLowerCase() !== 'admin') {
+    if (!isEdit && currentUser && !currentUser.tim_role.toLowerCase().includes('admin')) {
       setPicName(currentUser.tim_name);
     }
   }, [currentUser, isEdit]);
