@@ -257,56 +257,56 @@ async fn get_all_file_tags(
 
 // Books commands
 #[tauri::command]
-fn get_books(state: State<'_, AppState>) -> Result<Vec<Book>, String> {
+async fn get_books(state: State<'_, AppState>) -> Result<Vec<Book>, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.get_books().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn add_book(state: State<'_, AppState>, book: Book) -> Result<i64, String> {
+async fn add_book(state: State<'_, AppState>, book: Book) -> Result<i64, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.add_book(&book).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn delete_book(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+async fn delete_book(state: State<'_, AppState>, id: i64) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.delete_book(id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn update_book(state: State<'_, AppState>, book: Book) -> Result<(), String> {
+async fn update_book(state: State<'_, AppState>, book: Book) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.update_book(&book).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn get_services(state: State<'_, AppState>) -> Result<Vec<Service>, String> {
+async fn get_services(state: State<'_, AppState>) -> Result<Vec<Service>, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.get_services().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn add_service(state: State<'_, AppState>, service: Service) -> Result<i64, String> {
+async fn add_service(state: State<'_, AppState>, service: Service) -> Result<i64, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.add_service(&service).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn update_service(state: State<'_, AppState>, service: Service) -> Result<(), String> {
+async fn update_service(state: State<'_, AppState>, service: Service) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.update_service(&service).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn delete_service(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+async fn delete_service(state: State<'_, AppState>, id: i64) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.delete_service(id).map_err(|e| e.to_string())
@@ -316,28 +316,28 @@ fn delete_service(state: State<'_, AppState>, id: i64) -> Result<(), String> {
 
 // Contacts commands
 #[tauri::command]
-fn get_contacts(state: State<'_, AppState>) -> Result<Vec<Contact>, String> {
+async fn get_contacts(state: State<'_, AppState>) -> Result<Vec<Contact>, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.get_contacts().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn add_contact(state: State<'_, AppState>, contact: Contact) -> Result<i64, String> {
+async fn add_contact(state: State<'_, AppState>, contact: Contact) -> Result<i64, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.add_contact(&contact).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn update_contact(state: State<'_, AppState>, contact: Contact) -> Result<(), String> {
+async fn update_contact(state: State<'_, AppState>, contact: Contact) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.update_contact(&contact).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn delete_contact(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+async fn delete_contact(state: State<'_, AppState>, id: i64) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.delete_contact(id).map_err(|e| e.to_string())
@@ -345,35 +345,35 @@ fn delete_contact(state: State<'_, AppState>, id: i64) -> Result<(), String> {
 
 // Invoices commands
 #[tauri::command]
-fn get_invoices(state: State<'_, AppState>) -> Result<Vec<Invoice>, String> {
+async fn get_invoices(state: State<'_, AppState>) -> Result<Vec<Invoice>, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.get_invoices().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn add_invoice(state: State<'_, AppState>, invoice: Invoice) -> Result<i64, String> {
+async fn add_invoice(state: State<'_, AppState>, invoice: Invoice) -> Result<i64, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.add_invoice(&invoice).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn update_invoice(state: State<'_, AppState>, invoice: Invoice) -> Result<(), String> {
+async fn update_invoice(state: State<'_, AppState>, invoice: Invoice) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.update_invoice(&invoice).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn delete_invoice(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+async fn delete_invoice(state: State<'_, AppState>, id: i64) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.delete_invoice(id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn update_invoice_sync_status(
+async fn update_invoice_sync_status(
     state: State<'_, AppState>,
     id: i64,
     sync_status: String,
@@ -386,7 +386,7 @@ fn update_invoice_sync_status(
 }
 
 #[tauri::command]
-fn update_sync_status(
+async fn update_sync_status(
     state: State<'_, AppState>,
     table_name: String,
     id: i64,
@@ -401,35 +401,35 @@ fn update_sync_status(
 
 // Files commands
 #[tauri::command]
-fn get_files(state: State<'_, AppState>) -> Result<Vec<File>, String> {
+async fn get_files(state: State<'_, AppState>) -> Result<Vec<File>, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.get_files().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn add_file(state: State<'_, AppState>, file: File) -> Result<i64, String> {
+async fn add_file(state: State<'_, AppState>, file: File) -> Result<i64, String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.add_file(&file).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn delete_file(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+async fn delete_file(state: State<'_, AppState>, id: i64) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.delete_file(id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn update_file(state: State<'_, AppState>, file: File) -> Result<(), String> {
+async fn update_file(state: State<'_, AppState>, file: File) -> Result<(), String> {
     let db = state.db.lock().unwrap();
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.update_file(&file).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn write_binary_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
+async fn write_binary_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
     use std::fs::File as StdFile;
     use std::io::Write;
 
@@ -439,7 +439,7 @@ fn write_binary_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn create_physical_file(app_handle: tauri::AppHandle, filename: String, bytes: Vec<u8>, folder: String) -> Result<String, String> {
+async fn create_physical_file(app_handle: tauri::AppHandle, filename: String, bytes: Vec<u8>, folder: String) -> Result<String, String> {
     use tauri::Manager;
     use std::fs::File as StdFile;
     use std::io::Write;
@@ -461,7 +461,7 @@ fn create_physical_file(app_handle: tauri::AppHandle, filename: String, bytes: V
 }
 
 #[tauri::command]
-fn open_file_physically(path: String) -> Result<(), String> {
+async fn open_file_physically(path: String) -> Result<(), String> {
     use std::process::Command;
     
     Command::new("xdg-open")
@@ -473,7 +473,7 @@ fn open_file_physically(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn open_file_location_physically(path: String) -> Result<(), String> {
+async fn open_file_location_physically(path: String) -> Result<(), String> {
     use std::process::Command;
     use std::path::Path;
     
