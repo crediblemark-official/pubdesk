@@ -236,56 +236,56 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               )}
 
               {showProduksiSubmenu && (
-        <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
-          {[
-            { module: 'produksi-board' as const, label: 'Board Produksi', icon: '🎨' },
-            { module: 'produksi-list' as const, label: 'Daftar Tugas', icon: '📄' },
-            { module: 'produksi-kendala' as const, label: 'Revisi & Kendala', icon: '⚠️' },
-            { module: 'produksi-approval' as const, label: 'Approval', icon: '✅' },
-          ].map((sub) => {
-            const isSubActive = appState.activeModule === sub.module;
-            return (
-              <button
-                key={sub.module}
-                onClick={() => {
-                  setActiveModule(sub.module);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '6px 10px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
-                  color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: isSubActive ? '600' : '400',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.15s ease'
-                }}
-                onMouseOver={(e) => {
-                  if (!isSubActive) {
-                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (!isSubActive) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-secondary)';
-                  }
-                }}
-              >
-                <span style={{ fontSize: '14px' }}>{sub.icon}</span>
-                <span>{sub.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
+                  {[
+                    { module: 'produksi-board' as const, label: 'Board Produksi', icon: '🎨' },
+                    { module: 'produksi-list' as const, label: 'Daftar Tugas', icon: '📄' },
+                    { module: 'produksi-kendala' as const, label: 'Revisi & Kendala', icon: '⚠️' },
+                    { module: 'produksi-approval' as const, label: 'Approval', icon: '✅' },
+                  ].map((sub) => {
+                    const isSubActive = appState.activeModule === sub.module;
+                    return (
+                      <button
+                        key={sub.module}
+                        onClick={() => {
+                          setActiveModule(sub.module);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '6px 10px',
+                          border: 'none',
+                          borderRadius: '6px',
+                          background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+                          color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: isSubActive ? '600' : '400',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseOver={(e) => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }
+                        }}
+                        onMouseOut={(e) => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text-secondary)';
+                          }
+                        }}
+                      >
+                        <span style={{ fontSize: '14px' }}>{sub.icon}</span>
+                        <span>{sub.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {showSubmenu && (
                 <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '8px', marginTop: '2px' }}>
