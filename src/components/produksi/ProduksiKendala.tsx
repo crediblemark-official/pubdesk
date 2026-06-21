@@ -13,6 +13,7 @@ const ProduksiKendala: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' 
   const { setRightPanelVisible } = useAppContext();
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [filterType, setFilterType] = useState<'status' | 'pic'>('status');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPic, setFilterPic] = useState('');
 
@@ -31,21 +32,42 @@ const ProduksiKendala: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' 
     <DataTablePage
       filterBar={
         <FilterBar>
-          <FilterGroup label="Status:">
-            <FilterChip label="Semua" active={filterStatus === ''} onClick={() => setFilterStatus('')} />
-            {uniqueStatuses.map(status => (
-              <FilterChip key={status as string} label={status as string} active={filterStatus === status} onClick={() => setFilterStatus(status as string)} />
-            ))}
+          <FilterGroup label="🔍 FILTER:">
+            <FilterChip 
+              label="Status" 
+              active={filterType === 'status'} 
+              onClick={() => { setFilterType('status'); setFilterStatus(''); setFilterPic(''); }} 
+            />
+            <FilterChip 
+              label="PJ" 
+              active={filterType === 'pic'} 
+              onClick={() => { setFilterType('pic'); setFilterStatus(''); setFilterPic(''); }} 
+            />
           </FilterGroup>
 
-          <FilterDivider />
+          {filterType === 'status' && uniqueStatuses.length > 0 && (
+            <>
+              <FilterDivider />
+              <FilterGroup label="📋 STATUS:">
+                <FilterChip label="Semua" active={filterStatus === ''} onClick={() => setFilterStatus('')} />
+                {uniqueStatuses.map(status => (
+                  <FilterChip key={status as string} label={status as string} active={filterStatus === status} onClick={() => setFilterStatus(status as string)} />
+                ))}
+              </FilterGroup>
+            </>
+          )}
 
-          <FilterGroup label="PJ:">
-            <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
-            {uniquePics.map(pic => (
-              <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
-            ))}
-          </FilterGroup>
+          {filterType === 'pic' && uniquePics.length > 0 && (
+            <>
+              <FilterDivider />
+              <FilterGroup label="👤 PJ:">
+                <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
+                {uniquePics.map(pic => (
+                  <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
+                ))}
+              </FilterGroup>
+            </>
+          )}
         </FilterBar>
       }
     >

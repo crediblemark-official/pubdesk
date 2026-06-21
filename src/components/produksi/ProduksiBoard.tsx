@@ -19,6 +19,7 @@ const ProduksiBoard: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' })
   const { tasks, isLoading, setSelectedTaskId } = useWorkflowContext();
   const { setRightPanelVisible } = useAppContext();
 
+  const [filterType, setFilterType] = useState<'pic' | 'tahap'>('pic');
   const [filterPic, setFilterPic] = useState('');
   const [filterTahap, setFilterTahap] = useState('');
 
@@ -39,21 +40,42 @@ const ProduksiBoard: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' })
   return (
     <div style={tableStyles.container}>
       <FilterBar>
-        <FilterGroup label="PJ:">
-          <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
-          {uniquePics.map(pic => (
-            <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
-          ))}
+        <FilterGroup label="🔍 FILTER:">
+          <FilterChip 
+            label="PJ" 
+            active={filterType === 'pic'} 
+            onClick={() => { setFilterType('pic'); setFilterPic(''); setFilterTahap(''); }} 
+          />
+          <FilterChip 
+            label="Tahap" 
+            active={filterType === 'tahap'} 
+            onClick={() => { setFilterType('tahap'); setFilterPic(''); setFilterTahap(''); }} 
+          />
         </FilterGroup>
 
-        <FilterDivider />
+        {filterType === 'pic' && uniquePics.length > 0 && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="👤 PJ:">
+              <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
+              {uniquePics.map(pic => (
+                <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
+              ))}
+            </FilterGroup>
+          </>
+        )}
 
-        <FilterGroup label="Tahap:">
-          <FilterChip label="Semua" active={filterTahap === ''} onClick={() => setFilterTahap('')} />
-          {uniqueTahap.map(tahap => (
-            <FilterChip key={tahap as string} label={tahap as string} active={filterTahap === tahap} onClick={() => setFilterTahap(tahap as string)} />
-          ))}
-        </FilterGroup>
+        {filterType === 'tahap' && uniqueTahap.length > 0 && (
+          <>
+            <FilterDivider />
+            <FilterGroup label="📋 TAHAP:">
+              <FilterChip label="Semua" active={filterTahap === ''} onClick={() => setFilterTahap('')} />
+              {uniqueTahap.map(tahap => (
+                <FilterChip key={tahap as string} label={tahap as string} active={filterTahap === tahap} onClick={() => setFilterTahap(tahap as string)} />
+              ))}
+            </FilterGroup>
+          </>
+        )}
       </FilterBar>
 
       <div style={{ flex: 1, overflowX: 'auto', background: 'var(--bg-card)' }}>

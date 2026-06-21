@@ -243,7 +243,7 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
           />
           <FilterGroup label="🔍 FILTER:">
             <FilterChip 
-              label="Penanggung Jawab (PJ)" 
+              label="PJ" 
               active={filterType === 'pic'} 
               onClick={() => { setFilterType('pic'); setFilterPic(''); setFilterStatus(''); }} 
             />

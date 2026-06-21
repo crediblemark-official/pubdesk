@@ -14,6 +14,7 @@ const ProduksiApproval: React.FC<{ searchQuery?: string }> = ({ searchQuery = ''
   const { setRightPanelVisible } = useAppContext();
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [filterType, setFilterType] = useState<'jenis' | 'pic'>('jenis');
   const [filterJenis, setFilterJenis] = useState('');
   const [filterPic, setFilterPic] = useState('');
 
@@ -34,21 +35,42 @@ const ProduksiApproval: React.FC<{ searchQuery?: string }> = ({ searchQuery = ''
     <DataTablePage
       filterBar={
         <FilterBar>
-          <FilterGroup label="Jenis Approval:">
-            <FilterChip label="Semua" active={filterJenis === ''} onClick={() => setFilterJenis('')} />
-            {uniqueJenis.map(jenis => (
-              <FilterChip key={jenis as string} label={jenis as string} active={filterJenis === jenis} onClick={() => setFilterJenis(jenis as string)} />
-            ))}
+          <FilterGroup label="🔍 FILTER:">
+            <FilterChip 
+              label="Jenis Approval" 
+              active={filterType === 'jenis'} 
+              onClick={() => { setFilterType('jenis'); setFilterJenis(''); setFilterPic(''); }} 
+            />
+            <FilterChip 
+              label="PJ" 
+              active={filterType === 'pic'} 
+              onClick={() => { setFilterType('pic'); setFilterJenis(''); setFilterPic(''); }} 
+            />
           </FilterGroup>
 
-          <FilterDivider />
+          {filterType === 'jenis' && uniqueJenis.length > 0 && (
+            <>
+              <FilterDivider />
+              <FilterGroup label="📋 JENIS:">
+                <FilterChip label="Semua" active={filterJenis === ''} onClick={() => setFilterJenis('')} />
+                {uniqueJenis.map(jenis => (
+                  <FilterChip key={jenis as string} label={jenis as string} active={filterJenis === jenis} onClick={() => setFilterJenis(jenis as string)} />
+                ))}
+              </FilterGroup>
+            </>
+          )}
 
-          <FilterGroup label="PJ:">
-            <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
-            {uniquePics.map(pic => (
-              <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
-            ))}
-          </FilterGroup>
+          {filterType === 'pic' && uniquePics.length > 0 && (
+            <>
+              <FilterDivider />
+              <FilterGroup label="👤 PJ:">
+                <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
+                {uniquePics.map(pic => (
+                  <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
+                ))}
+              </FilterGroup>
+            </>
+          )}
         </FilterBar>
       }
     >
