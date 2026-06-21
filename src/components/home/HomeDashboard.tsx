@@ -128,7 +128,7 @@ const HomeDashboard: React.FC = () => {
             📊 Ringkasan Operasional & Akses Cepat
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '20px' }}>
             
             {/* Modul 1: Produksi Naskah */}
             <div style={{
