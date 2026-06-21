@@ -62,7 +62,7 @@ const SHEETS_CONFIG = {
     "id", "naskah_id_code", "title", "penulis_id", "penerbit_id", "package_type", "order_type", "copies", "book_size", "initial_request", "revised_request", "legal_type", "shipping_address", "store_links", "status", "genre", "total_pages", "synopsis", "assigned_team_ids", "created_at", "updated_at"
   ],
   "Tim": [
-    "id", "name", "role", "is_active", "weekly_target", "notes", "department", "created_at", "updated_at"
+    "id", "name", "role", "is_active", "weekly_target", "notes", "department", "pin", "created_at", "updated_at"
   ],
   "Tasks": [
     "id", "naskah_id", "step_name", "step_order", "assigned_team_id", "status", "priority", "start_date", "due_date", "completed_date", "notes", "proof_path_or_link", "created_at", "updated_at"
