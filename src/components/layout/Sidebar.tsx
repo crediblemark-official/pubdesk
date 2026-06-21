@@ -13,17 +13,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const menuItems = [
     { id: 'pekerjaan-saya' as const, label: 'Pekerjaan Saya', icon: '📋' },
     { id: 'produksi-parent' as const, label: 'Produksi Naskah', icon: '🏭' },
-    { id: 'import-data' as const, label: 'Import Excel Lama', icon: '📥' },
     { id: 'laporan-operasional' as const, label: 'Laporan Operasional', icon: '📈' },
     { id: 'invoice' as const, label: 'Invoice', icon: '🧾' },
     { id: 'files' as const, label: 'Smart Folders', icon: '📁' },
     { id: 'master-data-parent' as const, label: 'Master Data', icon: '🗃️' },
-    { id: 'extractor' as const, label: 'Pre-order Extractor', icon: '📥' },
-    { id: 'ledger' as const, label: 'Buku Besar', icon: '📊' },
   ];
 
   const bottomItems = [
     { id: 'activity-log' as const, label: 'Activity Log', icon: '📋' },
+    { id: 'import-data' as const, label: 'Import Excel Lama', icon: '📥' },
     { id: 'settings' as const, label: 'Pengaturan', icon: '⚙️' },
   ];
 
@@ -362,40 +360,48 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       
       {/* Bottom Section */}
       <div style={{ padding: '8px', borderTop: '1px solid var(--border)' }}>
-        {bottomItems.map((item) => (
-          <button
-            key={item.id}
-            style={{ 
-              width: '100%', 
-              padding: collapsed ? '12px' : '10px 12px', 
-              border: 'none', 
-              borderRadius: '8px',
-              background: 'transparent', 
-              color: 'var(--text-secondary)', 
-              textAlign: 'left', 
-              cursor: 'pointer', 
-              fontSize: '14px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: collapsed ? 'center' : 'flex-start',
-              gap: collapsed ? '0' : '12px',
-              marginBottom: '4px',
-              transition: 'all 0.15s ease'
-            }}
-            onClick={() => setActiveModule(item.id)}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = 'var(--bg-card)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-secondary)';
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>{item.icon}</span>
-            {!collapsed && <span>{item.label}</span>}
-          </button>
-        ))}
+        {bottomItems.map((item) => {
+          const isActive = appState.activeModule === item.id;
+          return (
+            <button
+              key={item.id}
+              style={{ 
+                width: '100%', 
+                padding: collapsed ? '12px' : '10px 12px', 
+                border: 'none', 
+                borderRadius: '8px',
+                background: isActive ? 'var(--accent)' : 'transparent', 
+                color: isActive ? '#ffffff' : 'var(--text-secondary)', 
+                textAlign: 'left', 
+                cursor: 'pointer', 
+                fontSize: '14px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: collapsed ? 'center' : 'flex-start',
+                gap: collapsed ? '0' : '12px',
+                marginBottom: '4px',
+                fontWeight: isActive ? '600' : '400',
+                transition: 'all 0.15s ease'
+              }}
+              onClick={() => setActiveModule(item.id)}
+              onMouseOver={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'var(--bg-card)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                }
+              }}
+            >
+              <span style={{ fontSize: '18px', color: isActive ? '#ffffff' : undefined }}>{item.icon}</span>
+              {!collapsed && <span>{item.label}</span>}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
