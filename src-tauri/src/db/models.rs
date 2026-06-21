@@ -384,6 +384,7 @@ pub struct Tim {
     pub is_active: i32,
     pub weekly_target: i64,
     pub notes: Option<String>,
+    pub pin: Option<String>, // PIN login
     pub created_at: String,
     pub updated_at: Option<String>,
 }
@@ -398,6 +399,7 @@ impl Default for Tim {
             is_active: 1,
             weekly_target: 0,
             notes: None,
+            pin: None,
             created_at: Local::now().to_rfc3339(),
             updated_at: None,
         }

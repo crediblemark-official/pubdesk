@@ -22,6 +22,7 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
   const [department, setDepartment] = useState('Produksi');
   const [isActive, setIsActive] = useState(1);
   const [notes, setNotes] = useState('');
+  const [pin, setPin] = useState('');
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -32,12 +33,14 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
       setDepartment(initialData.department || 'Produksi');
       setIsActive(initialData.is_active);
       setNotes(initialData.notes || '');
+      setPin(initialData.pin || '');
     } else {
       setName('');
       setRole('Layouter');
       setDepartment('Produksi');
       setIsActive(1);
       setNotes('');
+      setPin('');
     }
   }, [initialData]);
 
@@ -45,6 +48,10 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
     e.preventDefault();
     if (!name.trim()) {
       showToast('Nama anggota tim tidak boleh kosong!', 'error');
+      return;
+    }
+    if (pin.trim() && pin.trim().length !== 6) {
+      showToast('PIN keamanan harus terdiri dari 6 digit angka!', 'error');
       return;
     }
 
@@ -55,6 +62,7 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
       department,
       is_active: isActive,
       notes: notes.trim() || undefined,
+      pin: pin.trim() || undefined,
     });
   };
 
@@ -177,6 +185,27 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
                 style={{ height: '100px' }}
                 fullWidth
               />
+
+              {/* PIN Login untuk autentikasi masuk aplikasi */}
+              <div>
+                <TextField
+                  label="PIN Login (6 Digit)"
+                  type="password"
+                  placeholder="Contoh: 123456"
+                  value={pin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setPin(val);
+                  }}
+                  fullWidth
+                  maxLength={6}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                />
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', marginLeft: '2px' }}>
+                  📌 PIN digunakan untuk masuk ke aplikasi. Wajib diisi agar anggota bisa login.
+                </p>
+              </div>
             </div>
           </AccordionSection>
         </Accordion>

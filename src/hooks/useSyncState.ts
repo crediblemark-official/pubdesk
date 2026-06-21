@@ -262,6 +262,7 @@ export function useSyncState({
           weekly_target: t.weekly_target || 0,
           notes: t.notes || '',
           department: t.department || '',
+          pin: t.pin || '',
           created_at: t.created_at,
           updated_at: t.updated_at || t.created_at
         }));

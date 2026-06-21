@@ -73,6 +73,7 @@ export interface Tim {
   is_active: number;
   weekly_target?: number;
   notes?: string;
+  pin?: string; // PIN login
   created_at: string;
   updated_at?: string;
 }
