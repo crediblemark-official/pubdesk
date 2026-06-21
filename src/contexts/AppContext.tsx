@@ -964,8 +964,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
 
       // 4. Files
-      if (files.length > 0) {
-        const payload = files.map(f => ({
+      const cloudFiles = files.filter(f => f.path.startsWith('gdrive://') || f.path.startsWith('http://') || f.path.startsWith('https://'));
+      if (cloudFiles.length > 0) {
+        const payload = cloudFiles.map(f => ({
           id: f.id,
           path: f.path,
           filename: f.filename,
@@ -982,7 +983,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           updated_at: f.updated_at || f.last_modified
         }));
         await googleAppsScriptService.upsertRecordsToCloud('Files', payload);
-        for (const f of files) {
+        for (const f of cloudFiles) {
           if (f.id) {
             await invoke('update_sync_status', { tableName: 'files', id: f.id, syncStatus: 'synced', cloudFileUrl: null });
           }
