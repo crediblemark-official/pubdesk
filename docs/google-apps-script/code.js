@@ -181,12 +181,13 @@ function doPost(e) {
 
     // 1. Unggah berkas ke Google Drive (jika ada file_base64)
     if (action === "upload_file") {
-      if (!payload.file_base64) throw new Error("Data 'file_base64' kosong");
+      const fileData = payload.file_base64 || payload.file_base_64;
+      if (!fileData) throw new Error("Data 'file_base64' kosong");
       
       const subfolder = payload.subfolder || "General";
       const folder = getOrCreateFolder(subfolder);
-      const decodedBytes = Utilities.base64Decode(payload.file_base64);
-      const blob = Utilities.newBlob(decodedBytes, payload.file_mime_type || "application/octet-stream", payload.file_name);
+      const decodedBytes = Utilities.base64Decode(fileData);
+      const blob = Utilities.newBlob(decodedBytes, payload.file_mime_type || "application/octet-stream", payload.file_name || "file");
       
       const file = folder.createFile(blob);
       return createJsonResponse({
