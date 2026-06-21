@@ -1181,6 +1181,71 @@ impl Database {
                 created_at: row.get(5)?,
             })
         })?;
+        
+        let mut res = Vec::new();
+        for r in rows {
+            res.push(r?);
+        }
+        Ok(res)
+    }
+
+    // Work Session management
+    pub fn start_work_session(&self, start_time: &str) -> Result<i64, DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        self.conn.execute(
+            "INSERT INTO work_hours (start_time, end_time, duration_seconds, notes, created_at) VALUES (?1, NULL, 0, NULL, ?2)",
+            params![start_time, now]
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    pub fn stop_work_session(&self, id: i64, end_time: &str, duration_seconds: i64, notes: Option<&str>) -> Result<(), DbError> {
+        self.conn.execute(
+            "UPDATE work_hours SET end_time = ?1, duration_seconds = ?2, notes = ?3 WHERE id = ?4",
+            params![end_time, duration_seconds, notes, id]
+        )?;
+        Ok(())
+    }
+
+    pub fn get_active_work_session(&self) -> Result<Option<WorkSession>, DbError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours WHERE end_time IS NULL ORDER BY id DESC LIMIT 1"
+        )?;
+        
+        let mut rows = stmt.query_map([], |row| {
+            Ok(WorkSession {
+                id: Some(row.get(0)?),
+                start_time: row.get(1)?,
+                end_time: row.get(2)?,
+                duration_seconds: row.get(3)?,
+                notes: row.get(4)?,
+                created_at: row.get(5)?,
+            })
+        })?;
+
+        if let Some(row) = rows.next() {
+            Ok(Some(row?))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn get_work_sessions(&self, limit: i64) -> Result<Vec<WorkSession>, DbError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours ORDER BY id DESC LIMIT ?1"
+        )?;
+        
+        let rows = stmt.query_map(params![limit], |row| {
+            Ok(WorkSession {
+                id: Some(row.get(0)?),
+                start_time: row.get(1)?,
+                end_time: row.get(2)?,
+                duration_seconds: row.get(3)?,
+                notes: row.get(4)?,
+                created_at: row.get(5)?,
+            })
+        })?;
+
         let mut res = Vec::new();
         for r in rows {
             res.push(r?);

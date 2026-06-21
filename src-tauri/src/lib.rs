@@ -855,6 +855,34 @@ async fn reset_workflow_data(state: State<'_, AppState>) -> Result<String, Strin
     db::sample_data::reset_workflow_data(&db.conn).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn start_work_session(state: State<'_, AppState>, start_time: String) -> Result<i64, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.start_work_session(&start_time).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn stop_work_session(state: State<'_, AppState>, id: i64, end_time: String, duration_seconds: i64, notes: Option<String>) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.stop_work_session(id, &end_time, duration_seconds, notes.as_deref()).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_active_work_session(state: State<'_, AppState>) -> Result<Option<WorkSession>, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_active_work_session().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_work_sessions(state: State<'_, AppState>, limit: i64) -> Result<Vec<WorkSession>, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.get_work_sessions(limit).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -949,7 +977,11 @@ pub fn run() {
             import_alur_naskah_batch,
             seed_sample_data,
             reset_workflow_data,
-            update_sync_status
+            update_sync_status,
+            start_work_session,
+            stop_work_session,
+            get_active_work_session,
+            get_work_sessions
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

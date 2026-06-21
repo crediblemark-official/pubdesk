@@ -611,6 +611,19 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Tabel work_hours untuk melacak jam kerja
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS work_hours (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            duration_seconds INTEGER DEFAULT 0,
+            notes TEXT,
+            created_at TEXT NOT NULL
+        )",
+        [],
+    )?;
+
     // Migrasi ad-hoc untuk tabel legalitas & invoices
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN nomor_dokumen TEXT", []);
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN tanggal_keluar TEXT", []);

@@ -629,3 +629,13 @@ pub struct ImportTaskPayload {
     pub tanggal: String,
     pub status: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkSession {
+    pub id: Option<i64>,
+    pub start_time: String,
+    pub end_time: Option<String>,
+    pub duration_seconds: i64,
+    pub notes: Option<String>,
+    pub created_at: String,
+}
