@@ -104,27 +104,31 @@ const DashboardProduksi: React.FC = () => {
       {/* Grid Stat Cards terpadu tanpa space/gap dan tidak membulat (siku) */}
       <div style={{ 
         display: 'flex', 
+        flexWrap: 'wrap',
         background: 'var(--bg-card)', 
-        border: '1px solid var(--border)', 
+        borderTop: '1px solid var(--border)', 
+        borderLeft: '1px solid var(--border)', 
         borderRadius: '0px', 
         overflow: 'hidden',
         boxSizing: 'border-box'
       }}>
-        {STAT_CARDS.map((card, idx) => {
-          const isLast = idx === STAT_CARDS.length - 1;
+        {STAT_CARDS.map((card) => {
           const value = stats[card.key];
           return (
             <div 
               key={card.key} 
               style={{ 
-                flex: 1,
+                flex: '1 1 150px',
+                minWidth: '120px',
                 padding: '16px 20px',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
-                borderRight: isLast ? 'none' : '1px solid var(--border)',
+                borderRight: '1px solid var(--border)',
+                borderBottom: '1px solid var(--border)',
                 transition: 'background 0.2s',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxSizing: 'border-box'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'var(--bg-panel)';

@@ -52,11 +52,16 @@ const DashboardMasterData: React.FC = () => {
       {/* Konten Dashboard yang scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      {/* Grid Summary Info Cards */}
+      {/* Grid Summary Info Cards terpadu tanpa space/gap dan siku */}
       <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-        gap: '20px',
+        display: 'flex', 
+        flexWrap: 'wrap',
+        background: 'var(--bg-card)', 
+        borderTop: '1px solid var(--border)', 
+        borderLeft: '1px solid var(--border)', 
+        borderRadius: '0px', 
+        overflow: 'hidden',
+        boxSizing: 'border-box',
         marginBottom: '24px'
       }}>
         {CARDS_CONFIG.map(card => {
@@ -66,27 +71,25 @@ const DashboardMasterData: React.FC = () => {
               key={card.key}
               onClick={() => setActiveModule(card.module)}
               style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border)',
-                borderRadius: '12px',
+                flex: '1 1 200px',
+                minWidth: '180px',
                 padding: '20px',
                 cursor: 'pointer',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
+                borderRight: '1px solid var(--border)',
+                borderBottom: '1px solid var(--border)',
                 transition: 'all 0.2s ease-in-out',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                boxSizing: 'border-box'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.borderColor = card.color;
-                e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.08)`;
+                e.currentTarget.style.background = 'var(--bg-panel)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = 'var(--border)';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.background = 'transparent';
               }}
             >
               {/* Background gradient subtle */}
@@ -100,7 +103,17 @@ const DashboardMasterData: React.FC = () => {
                 pointerEvents: 'none'
               }} />
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {/* Garis aksen warna kecil di sisi atas */}
+              <div style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                height: '3px', 
+                background: card.color 
+              }} />
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
                 <span style={{ fontSize: '28px' }}>{card.icon}</span>
                 <span style={{ 
                   fontSize: '28px', 
@@ -112,7 +125,7 @@ const DashboardMasterData: React.FC = () => {
               </div>
 
               <div>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
                   {card.label}
                 </h3>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
