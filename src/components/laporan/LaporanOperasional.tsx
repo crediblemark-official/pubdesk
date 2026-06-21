@@ -26,6 +26,7 @@ const LaporanOperasional: React.FC = () => {
   const [filterPic, setFilterPic] = useState('');
   const [filterPenerbit, setFilterPenerbit] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [activeFilterType, setActiveFilterType] = useState<'periode' | 'pic' | 'penerbit' | 'status'>('periode');
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -86,20 +87,24 @@ const LaporanOperasional: React.FC = () => {
   };
 
   return (
-    <div className="module-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: 'var(--bg-dark)' }}>
-      {/* Filter Bar Terstandar (Full Width, No Header) */}
-      <FilterBar style={{ borderRadius: 0, border: 'none', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+    <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      <FilterBar>
         <FilterGroup label="🔍 Filter:">
-          {/* 1. Filter Periode */}
+          {/* Dropdown Kategori / Judul Filter */}
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <FilterChip
-              label={`📅 Periode: ${periode === 'Semua' ? 'Semua Waktu' : periode} ▾`}
-              active={periode !== 'Semua'}
+              label={`${
+                activeFilterType === 'periode' ? '📅 Periode' :
+                activeFilterType === 'pic' ? '👤 PIC' :
+                activeFilterType === 'penerbit' ? '🏢 Penerbit' :
+                '📋 Status'
+              } ▾`}
+              active={true}
               onClick={() => {}}
             />
             <select
-              value={periode}
-              onChange={(e) => setPeriode(e.target.value)}
+              value={activeFilterType}
+              onChange={(e) => setActiveFilterType(e.target.value as any)}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -111,92 +116,129 @@ const LaporanOperasional: React.FC = () => {
                 appearance: 'none',
               }}
             >
-              <option value="Semua">Semua Waktu</option>
-              <option value="Bulan Ini">Bulan Ini</option>
-              <option value="Tahun Ini">Tahun Ini</option>
+              <option value="periode">📅 Periode</option>
+              <option value="pic">👤 PIC</option>
+              <option value="penerbit">🏢 Penerbit</option>
+              <option value="status">📋 Status</option>
             </select>
           </div>
 
-          {/* 2. Filter PIC */}
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <FilterChip
-              label={`👤 PIC: ${filterPic === '' ? 'Semua PIC' : filterPic} ▾`}
-              active={filterPic !== ''}
-              onClick={() => {}}
-            />
-            <select
-              value={filterPic}
-              onChange={(e) => setFilterPic(e.target.value)}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                cursor: 'pointer',
-                appearance: 'none',
-              }}
-            >
-              <option value="">Semua PIC</option>
-              {uniquePics.map(pic => (
-                <option key={pic as string} value={pic as string}>{pic as string}</option>
-              ))}
-            </select>
-          </div>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>:</span>
 
-          {/* 3. Filter Penerbit */}
+          {/* Dropdown Nilai Filter (Badge yang berubah sesuai opsi yang dipilih) */}
           <div style={{ position: 'relative', display: 'inline-block' }}>
-            <FilterChip
-              label={`🏢 Penerbit: ${filterPenerbit === '' ? 'Semua Penerbit' : filterPenerbit === 'penerbit_a' ? 'Penerbit A' : filterPenerbit} ▾`}
-              active={filterPenerbit !== ''}
-              onClick={() => {}}
-            />
-            <select
-              value={filterPenerbit}
-              onChange={(e) => setFilterPenerbit(e.target.value)}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                cursor: 'pointer',
-                appearance: 'none',
-              }}
-            >
-              <option value="">Semua Penerbit</option>
-              <option value="penerbit_a">Penerbit A</option>
-            </select>
-          </div>
+            {activeFilterType === 'periode' && (
+              <>
+                <FilterChip
+                  label={`${periode === 'Semua' ? 'Semua Waktu' : periode} ▾`}
+                  active={periode !== 'Semua'}
+                  onClick={() => {}}
+                />
+                <select
+                  value={periode}
+                  onChange={(e) => setPeriode(e.target.value)}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    opacity: 0,
+                    cursor: 'pointer',
+                    appearance: 'none',
+                  }}
+                >
+                  <option value="Semua">Semua Waktu</option>
+                  <option value="Bulan Ini">Bulan Ini</option>
+                  <option value="Tahun Ini">Tahun Ini</option>
+                </select>
+              </>
+            )}
 
-          {/* 4. Filter Status */}
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <FilterChip
-              label={`📋 Status: ${filterStatus === '' ? 'Semua Status' : filterStatus} ▾`}
-              active={filterStatus !== ''}
-              onClick={() => {}}
-            />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                cursor: 'pointer',
-                appearance: 'none',
-              }}
-            >
-              <option value="">Semua Status</option>
-              {uniqueStatuses.map(s => (
-                <option key={s as string} value={s as string}>{s as string}</option>
-              ))}
-            </select>
+            {activeFilterType === 'pic' && (
+              <>
+                <FilterChip
+                  label={`${filterPic === '' ? 'Semua PIC' : filterPic} ▾`}
+                  active={filterPic !== ''}
+                  onClick={() => {}}
+                />
+                <select
+                  value={filterPic}
+                  onChange={(e) => setFilterPic(e.target.value)}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    opacity: 0,
+                    cursor: 'pointer',
+                    appearance: 'none',
+                  }}
+                >
+                  <option value="">Semua PIC</option>
+                  {uniquePics.map(pic => (
+                    <option key={pic as string} value={pic as string}>{pic as string}</option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {activeFilterType === 'penerbit' && (
+              <>
+                <FilterChip
+                  label={`${filterPenerbit === '' ? 'Semua Penerbit' : filterPenerbit === 'penerbit_a' ? 'Penerbit A' : filterPenerbit} ▾`}
+                  active={filterPenerbit !== ''}
+                  onClick={() => {}}
+                />
+                <select
+                  value={filterPenerbit}
+                  onChange={(e) => setFilterPenerbit(e.target.value)}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    opacity: 0,
+                    cursor: 'pointer',
+                    appearance: 'none',
+                  }}
+                >
+                  <option value="">Semua Penerbit</option>
+                  <option value="penerbit_a">Penerbit A</option>
+                </select>
+              </>
+            )}
+
+            {activeFilterType === 'status' && (
+              <>
+                <FilterChip
+                  label={`${filterStatus === '' ? 'Semua Status' : filterStatus} ▾`}
+                  active={filterStatus !== ''}
+                  onClick={() => {}}
+                />
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    opacity: 0,
+                    cursor: 'pointer',
+                    appearance: 'none',
+                  }}
+                >
+                  <option value="">Semua Status</option>
+                  {uniqueStatuses.map(s => (
+                    <option key={s as string} value={s as string}>{s as string}</option>
+                  ))}
+                </select>
+              </>
+            )}
           </div>
         </FilterGroup>
 
