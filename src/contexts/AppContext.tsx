@@ -97,6 +97,10 @@ interface AppContextType {
   navigateForward: () => void;
   canNavigateBack: boolean;
   canNavigateForward: boolean;
+  navigateModuleBack: () => void;
+  navigateModuleForward: () => void;
+  canNavigateModuleBack: boolean;
+  canNavigateModuleForward: boolean;
   connectedUser: { name: string, email: string } | null;
   setConnectedUser: (user: { name: string, email: string } | null) => void;
   testConnection: (token: string) => Promise<void>;
@@ -554,7 +558,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [toast]);
 
-  const setActiveModule = (module: AppState['activeModule']) => {
+  const [moduleHistory, setModuleHistory] = useState<AppState['activeModule'][]>(['home']);
+  const [moduleHistoryIndex, setModuleHistoryIndex] = useState<number>(0);
+
+  const setActiveModuleInternal = (module: AppState['activeModule'], isHistoryNav = false) => {
     setAppState(prev => ({ ...prev, activeModule: module }));
     setSelectedFileId(null);
     setSelectedBookId(null);
@@ -564,7 +571,43 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setSelectedPenerbitId(null);
     setSelectedTaskId(null);
     setRightPanelVisible(false);
+
+    if (!isHistoryNav) {
+      setModuleHistory(prev => {
+        const nextHistory = prev.slice(0, moduleHistoryIndex + 1);
+        if (nextHistory[nextHistory.length - 1] !== module) {
+          const updated = [...nextHistory, module];
+          setModuleHistoryIndex(updated.length - 1);
+          return updated;
+        }
+        return nextHistory;
+      });
+    }
   };
+
+  const setActiveModule = (module: AppState['activeModule']) => {
+    setActiveModuleInternal(module, false);
+  };
+
+  const navigateModuleBack = () => {
+    if (moduleHistoryIndex > 0) {
+      const newIndex = moduleHistoryIndex - 1;
+      setModuleHistoryIndex(newIndex);
+      setActiveModuleInternal(moduleHistory[newIndex], true);
+    }
+  };
+
+  const navigateModuleForward = () => {
+    if (moduleHistoryIndex < moduleHistory.length - 1) {
+      const newIndex = moduleHistoryIndex + 1;
+      setModuleHistoryIndex(newIndex);
+      setActiveModuleInternal(moduleHistory[newIndex], true);
+    }
+  };
+
+  const canNavigateModuleBack = moduleHistoryIndex > 0;
+  const canNavigateModuleForward = moduleHistoryIndex < moduleHistory.length - 1;
+
 
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -1231,6 +1274,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       navigateForward,
       canNavigateBack,
       canNavigateForward,
+      navigateModuleBack,
+      navigateModuleForward,
+      canNavigateModuleBack,
+      canNavigateModuleForward,
       activeSettingsTab,
       setActiveSettingsTab,
       connectedUser,

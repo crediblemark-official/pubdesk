@@ -50,7 +50,11 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
     loadBooks,
     loadContacts,
     loadInvoices,
-    loadServices
+    loadServices,
+    navigateModuleBack,
+    navigateModuleForward,
+    canNavigateModuleBack,
+    canNavigateModuleForward
   } = useAppContext();
 
   const { 
@@ -370,30 +374,43 @@ const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, acti
 
       <div className="top-bar-main-area" data-tauri-drag-region>
         <div className="top-bar-nav-arrows">
-          <button
-            className="top-bar-btn"
-            onClick={navigateBack}
-            disabled={!canNavigateBack}
-            style={{ opacity: canNavigateBack ? 1 : 0.4, cursor: canNavigateBack ? 'pointer' : 'not-allowed' }}
-            aria-label="Back"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </button>
-          <button
-            className="top-bar-btn"
-            onClick={navigateForward}
-            disabled={!canNavigateForward}
-            style={{ opacity: canNavigateForward ? 1 : 0.4, cursor: canNavigateForward ? 'pointer' : 'not-allowed' }}
-            aria-label="Forward"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
+          {(() => {
+            const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
+            const isFilesInSubfolder = activeModule === 'files' && fileCategory === 'gdrive' && currentFolderId !== rootFolderId;
+            const handleBack = isFilesInSubfolder ? navigateBack : navigateModuleBack;
+            const handleForward = isFilesInSubfolder ? navigateForward : navigateModuleForward;
+            const isBackDisabled = isFilesInSubfolder ? !canNavigateBack : !canNavigateModuleBack;
+            const isForwardDisabled = isFilesInSubfolder ? !canNavigateForward : !canNavigateModuleForward;
+
+            return (
+              <>
+                <button
+                  className="top-bar-btn"
+                  onClick={handleBack}
+                  disabled={isBackDisabled}
+                  style={{ opacity: !isBackDisabled ? 1 : 0.4, cursor: !isBackDisabled ? 'pointer' : 'not-allowed' }}
+                  aria-label="Back"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12" />
+                    <polyline points="12 19 5 12 12 5" />
+                  </svg>
+                </button>
+                <button
+                  className="top-bar-btn"
+                  onClick={handleForward}
+                  disabled={isForwardDisabled}
+                  style={{ opacity: !isForwardDisabled ? 1 : 0.4, cursor: !isForwardDisabled ? 'pointer' : 'not-allowed' }}
+                  aria-label="Forward"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </button>
+              </>
+            );
+          })()}
         </div>
 
         {isSearchable ? (
