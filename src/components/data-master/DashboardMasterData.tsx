@@ -27,16 +27,30 @@ const DashboardMasterData: React.FC = () => {
   const totalData = Object.values(counts).reduce((acc, curr) => acc + curr, 0);
 
   return (
-    <div style={{ padding: '24px', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
-          🗃️ Dashboard Master Data
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '14px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
+      {/* Header Bar Seragam */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--bg-panel)',
+        height: 44,
+        boxSizing: 'border-box',
+        flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>🗃️</span>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Dashboard Master Data</span>
+        </div>
+        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
           Kelola entitas data utama pendukung alur kerja dan operasional penerbitan.
-        </p>
+        </span>
       </div>
+
+      {/* Konten Dashboard yang scrollable */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
       {/* Grid Summary Info Cards */}
       <div style={{ 
@@ -196,7 +210,8 @@ const DashboardMasterData: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default DashboardMasterData;
