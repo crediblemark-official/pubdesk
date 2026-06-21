@@ -40,7 +40,7 @@ const ProduksiKendala: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' 
 
           <FilterDivider />
 
-          <FilterGroup label="PIC:">
+          <FilterGroup label="PJ:">
             <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
             {uniquePics.map(pic => (
               <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />

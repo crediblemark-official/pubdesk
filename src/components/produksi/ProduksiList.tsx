@@ -239,7 +239,7 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
             style={{ display: 'none' }}
             onChange={handleImportExcel}
           />
-          <FilterGroup label="PIC:">
+          <FilterGroup label="PJ:">
             <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
             {uniquePics.map(pic => (
               <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
@@ -264,7 +264,7 @@ const ProduksiList: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' }) 
       }
     >
       <DataTable>
-        <DataTableHeader columns={['ID Task', 'ID Naskah', 'Judul', 'Tahap', 'PIC', 'Mulai', 'Deadline', 'Selesai', 'Status']} />
+        <DataTableHeader columns={['ID Task', 'ID Naskah', 'Judul', 'Tahap', 'PJ', 'Mulai', 'Deadline', 'Selesai', 'Status']} />
         <DataTableBody isLoading={isLoading} isEmpty={filteredTasks.length === 0} colSpan={10} emptyMessage="Tidak ada data tugas">
           {filteredTasks.map(task => (
             <HoverRow

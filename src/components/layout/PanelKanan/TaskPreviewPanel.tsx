@@ -42,7 +42,7 @@ const TaskPreviewPanel: React.FC = () => {
       </div>
 
       <SectionCard title="Informasi Task">
-        <InfoRow label="PIC" value={selectedTask.pic_name || '-'} />
+        <InfoRow label="Penanggung Jawab (PJ)" value={selectedTask.pic_name || '-'} />
         <InfoRow label="Tanggal Mulai" value={formatDateLong(selectedTask.start_date)} />
         <InfoRow label="Deadline" value={formatDateLong(selectedTask.due_date)} />
         {selectedTask.completed_date && (

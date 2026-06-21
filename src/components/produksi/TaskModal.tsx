@@ -50,7 +50,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   ];
 
   const picOptions = [
-    { value: '', label: 'Pilih PIC dari Tim...' },
+    { value: '', label: 'Pilih Penanggung Jawab (PJ) dari Tim...' },
     ...tim.map(member => ({ value: member.name, label: member.name }))
   ];
 
@@ -126,13 +126,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama PIC</label>
+          <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Penanggung Jawab (PJ)</label>
           {useManualPic ? (
             <TextField
               type="text"
               value={picName}
               onChange={e => setPicName(e.target.value)}
-              placeholder="Masukkan nama PIC..."
+              placeholder="Masukkan nama penanggung jawab..."
               fullWidth
             />
           ) : (

@@ -51,7 +51,7 @@ const TaskFormPage: React.FC = () => {
   ];
 
   const picOptions = [
-    { value: '', label: 'Pilih PIC dari Tim...' },
+    { value: '', label: 'Pilih Penanggung Jawab (PJ) dari Tim...' },
     ...tim.map(member => ({ value: member.name, label: member.name }))
   ];
 
@@ -446,16 +446,16 @@ const TaskFormPage: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {useManualPic ? (
                   <TextField
-                    label="Nama PIC"
+                    label="Penanggung Jawab (PJ)"
                     type="text"
                     value={picName}
                     onChange={e => setPicName(e.target.value)}
-                    placeholder="Masukkan nama PIC..."
+                    placeholder="Masukkan nama penanggung jawab..."
                     fullWidth
                   />
                 ) : (
                   <Select
-                    label="Nama PIC"
+                    label="Penanggung Jawab (PJ)"
                     value={picName}
                     onChange={e => setPicName(e.target.value)}
                     options={picOptions}

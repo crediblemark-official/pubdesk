@@ -39,7 +39,7 @@ const ProduksiBoard: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' })
   return (
     <div style={tableStyles.container}>
       <FilterBar>
-        <FilterGroup label="PIC:">
+        <FilterGroup label="PJ:">
           <FilterChip label="Semua" active={filterPic === ''} onClick={() => setFilterPic('')} />
           {uniquePics.map(pic => (
             <FilterChip key={pic as string} label={pic as string} active={filterPic === pic} onClick={() => setFilterPic(pic as string)} />
@@ -134,7 +134,7 @@ const ProduksiBoard: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' })
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
                             <Badge label={task.step_name} variant="neutral" />
                             <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                              PIC: {task.pic_name || '-'}
+                              PJ: {task.pic_name || '-'}
                             </span>
                           </div>
                           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', gap: '16px' }}>
