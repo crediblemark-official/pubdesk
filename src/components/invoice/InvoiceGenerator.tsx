@@ -10,7 +10,7 @@ import { ItemsSection } from './generator-sections/ItemsSection';
 import { GlobalCostsSection } from './generator-sections/GlobalCostsSection';
 
 const InvoiceGenerator: React.FC = () => {
-  const { addInvoice, updateInvoice, showToast, rightPanelVisible, invoices, contacts, addContact, updateContact } = useAppContext();
+  const { addInvoice, updateInvoice, showToast, rightPanelVisible, invoices, contacts, addContact, updateContact, setActiveModule } = useAppContext();
   const { addFile, updateFile, files } = useFileState();
   const { penulis, addPenulis, updatePenulis } = useDataMasterContext();
   const {
@@ -299,9 +299,39 @@ const InvoiceGenerator: React.FC = () => {
 
   return (
     <div className="invoice-generator" style={{ padding: '20px', height: '100%', overflowY: 'auto' }}>
-      <h1 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-primary)' }}>
-        {editingInvoiceId ? '📝 Edit Invoice' : 'Pembuat Invoice'}
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <button
+          type="button"
+          onClick={() => setActiveModule('home')}
+          style={{
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            padding: '6px 10px',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontWeight: '600',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--bg-card)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--bg-panel)';
+            e.currentTarget.style.color = 'var(--text-secondary)';
+          }}
+        >
+          🏠 Beranda
+        </button>
+        <h1 style={{ fontSize: '20px', fontWeight: '700', margin: 0, color: 'var(--text-primary)' }}>
+          {editingInvoiceId ? '📝 Edit Invoice' : 'Pembuat Invoice'}
+        </h1>
+      </div>
 
       <Accordion>
         <AccordionSection index={1} title="📄 Jenis & Metadata Invoice" expandedSection={expandedSection} onToggle={setExpandedSection}>

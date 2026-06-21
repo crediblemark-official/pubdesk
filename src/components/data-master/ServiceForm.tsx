@@ -5,6 +5,7 @@ import { Select } from '../../ui/atoms/Select';
 import { TextArea } from '../../ui/atoms/TextArea';
 import { Button } from '../../ui/atoms/Button';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
+import { useAppContext } from '../../contexts/AppContext';
 
 interface ServiceFormProps {
   initialData?: Service | null;
@@ -22,6 +23,7 @@ const categoryOptions = [
 ];
 
 const ServiceForm: React.FC<ServiceFormProps> = ({ initialData, onSubmit, onCancel }) => {
+  const { setActiveModule } = useAppContext();
   const [name, setName] = useState('');
   const [category, setCategory] = useState('penerbitan');
   const [price, setPrice] = useState<number>(0);
@@ -57,9 +59,39 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ initialData, onSubmit, onCanc
 
   return (
     <div className="customer-form" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-      <h1 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-primary)' }}>
-        {initialData ? '✏️ Edit Layanan' : '➕ Tambah Layanan Baru'}
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <button
+          type="button"
+          onClick={() => setActiveModule('home')}
+          style={{
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            padding: '6px 10px',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontWeight: '600',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--bg-card)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--bg-panel)';
+            e.currentTarget.style.color = 'var(--text-secondary)';
+          }}
+        >
+          🏠 Beranda
+        </button>
+        <h1 style={{ fontSize: '20px', fontWeight: '700', margin: 0, color: 'var(--text-primary)' }}>
+          {initialData ? '✏️ Edit Layanan' : '➕ Tambah Layanan Baru'}
+        </h1>
+      </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <Accordion>

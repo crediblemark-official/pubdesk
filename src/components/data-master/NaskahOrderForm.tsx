@@ -16,7 +16,7 @@ interface NaskahFormProps {
 
 const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onCancel }) => {
   const { penulis, penerbit, naskah } = useDataMasterContext();
-  const { showToast } = useAppContext();
+  const { showToast, setActiveModule } = useAppContext();
 
   // Field identitas naskah
   const [naskahIdCode, setNaskahIdCode] = useState('');
@@ -165,9 +165,39 @@ const NaskahOrderForm: React.FC<NaskahFormProps> = ({ initialData, onSubmit, onC
 
   return (
     <div className="customer-form" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-      <h1 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-primary)' }}>
-        {initialData ? '📝 Edit Data Naskah' : '📚 Tambah Naskah Baru'}
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <button
+          type="button"
+          onClick={() => setActiveModule('home')}
+          style={{
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            padding: '6px 10px',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontWeight: '600',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--bg-card)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--bg-panel)';
+            e.currentTarget.style.color = 'var(--text-secondary)';
+          }}
+        >
+          🏠 Beranda
+        </button>
+        <h1 style={{ fontSize: '20px', fontWeight: '700', margin: 0, color: 'var(--text-primary)' }}>
+          {initialData ? '📝 Edit Data Naskah' : '📚 Tambah Naskah Baru'}
+        </h1>
+      </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <Accordion>
