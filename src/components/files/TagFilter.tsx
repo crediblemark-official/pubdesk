@@ -17,7 +17,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ allTags, selectedTag, setS
       flexShrink: 0
     }}>
       <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '4px', whiteSpace: 'nowrap' }}>
-        🏷️ Tag:
+        🏷️ TAG:
       </span>
       <button
         onClick={() => setSelectedTag(null)}
@@ -53,7 +53,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ allTags, selectedTag, setS
             whiteSpace: 'nowrap'
           }}
         >
-          {tag}
+          {`#${tag.replace(/^#/, '')}`}
         </button>
       ))}
     </div>
