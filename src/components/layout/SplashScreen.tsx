@@ -32,8 +32,8 @@ const SplashScreen: React.FC = () => {
     <div style={{
       width: '100vw',
       height: '100vh',
-      background: '#121214',
-      color: '#ffffff',
+      background: '#ffffff',
+      color: '#0f172a',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -58,7 +58,7 @@ const SplashScreen: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '42px',
-          boxShadow: '0 8px 30px rgba(59, 130, 246, 0.3)',
+          boxShadow: '0 8px 30px rgba(59, 130, 246, 0.15)',
           animation: 'pulseLogo 2s infinite ease-in-out',
         }}>
           📚
@@ -70,7 +70,7 @@ const SplashScreen: React.FC = () => {
             fontWeight: '800',
             letterSpacing: '-0.5px',
             margin: 0,
-            background: 'linear-gradient(to right, #ffffff, #d1d5db)',
+            background: 'linear-gradient(to right, #0f172a, #334155)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
@@ -78,7 +78,7 @@ const SplashScreen: React.FC = () => {
           </h1>
           <p style={{
             fontSize: '11px',
-            color: '#a1a1aa',
+            color: '#64748b',
             margin: '4px 0 0 0',
             letterSpacing: '1.2px',
             textTransform: 'uppercase',
@@ -101,7 +101,7 @@ const SplashScreen: React.FC = () => {
         <div style={{
           width: '100%',
           height: '4px',
-          background: '#27272a',
+          background: '#e2e8f0',
           borderRadius: '2px',
           overflow: 'hidden',
           position: 'relative'
@@ -118,7 +118,7 @@ const SplashScreen: React.FC = () => {
 
         <span style={{
           fontSize: '12px',
-          color: '#71717a',
+          color: '#64748b',
           fontWeight: '500',
           height: '16px',
           display: 'inline-block'
@@ -133,9 +133,9 @@ const SplashScreen: React.FC = () => {
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulseLogo {
-          0% { transform: scale(1); box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3); }
-          50% { transform: scale(1.05); box-shadow: 0 8px 40px rgba(59, 130, 246, 0.5); }
-          100% { transform: scale(1); box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3); }
+          0% { transform: scale(1); box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15); }
+          50% { transform: scale(1.05); box-shadow: 0 8px 40px rgba(59, 130, 246, 0.25); }
+          100% { transform: scale(1); box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15); }
         }
       `}</style>
     </div>
