@@ -26,7 +26,7 @@ const STORAGE_KEYS = {
   TOKEN: 'pubdesk_gas_token'
 };
 
-const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbxiHG--yIAwOapvGkkK57-E6dQfAKzHO_vbB8JgdYvIZa5VbC3sibRMmJ_nIlcttZMyWA/exec';
+const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbznI3Q4IqjG1T3BvduLlymBJUaMaNdDNjj4OF9krkfjUsXIvAamD8emMcZedwd5El0e2g/exec';
 const DEFAULT_TOKEN = 'PubDesk_Secret_Token_2026';
 
 /**
@@ -64,7 +64,15 @@ export const googleAppsScriptService = {
    * Mendapatkan konfigurasi URL dan Token dari localStorage
    */
   getSettings() {
-    const url = localStorage.getItem(STORAGE_KEYS.URL) || DEFAULT_URL;
+    const savedUrl = localStorage.getItem(STORAGE_KEYS.URL);
+    // Jika URL tersimpan bukan DEFAULT_URL saat ini (deployment lama), reset ke default terbaru
+    const url = (!savedUrl || savedUrl !== DEFAULT_URL && savedUrl.includes('AKfycbxiHG'))
+      ? DEFAULT_URL
+      : savedUrl;
+    // Simpan URL terbaru jika terjadi auto-reset
+    if (url === DEFAULT_URL && savedUrl !== DEFAULT_URL) {
+      localStorage.setItem(STORAGE_KEYS.URL, DEFAULT_URL);
+    }
     const token = localStorage.getItem(STORAGE_KEYS.TOKEN) || DEFAULT_TOKEN;
     return { url, token };
   },
