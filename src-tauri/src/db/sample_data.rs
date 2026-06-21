@@ -1,4 +1,5 @@
 // Modul sample data untuk pengujian dan demo fitur produksi naskah
+#![allow(dead_code)]
 use rusqlite::{params, Connection};
 use crate::db::error::DbError;
 
