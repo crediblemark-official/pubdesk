@@ -36,6 +36,7 @@ const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
   Negosiasi: 'warning',
   Pasif: 'neutral',
   Berhenti: 'danger',
+  Sendiri: 'accent',
   // Status berkas
   Tersimpan: 'success',
   final: 'success',
