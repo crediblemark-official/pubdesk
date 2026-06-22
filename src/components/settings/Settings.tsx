@@ -24,9 +24,9 @@ const SETTINGS_TABS = [
 const Settings: React.FC = () => {
   const { activeSettingsTab, setActiveSettingsTab, showToast, setRightPanelVisible } = useAppContext();
 
-  // Buka PanelKanan secara otomatis saat masuk ke modul Pengaturan, dan tutup saat keluar
+  // Tutup PanelKanan secara otomatis saat masuk ke modul Pengaturan, dan tutup saat keluar
   useEffect(() => {
-    setRightPanelVisible(true);
+    setRightPanelVisible(false);
     return () => {
       setRightPanelVisible(false);
     };

@@ -25,8 +25,8 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
     let mut tim_ids = Vec::new();
     if options.tim {
         let tim_data = vec![
-            ("Ika Rahmawati", "Layouter", "Tim Produksi", "123456", "081234567890", "ika.rahmawati@pubdesk.com", "Yogyakarta"),
-            ("Admin Produksi", "Admin Master", "Admin Master", "123456", "089876543210", "admin.produksi@pubdesk.com", "Jakarta"),
+            ("Ika Rahmawati - Demo", "Layouter", "Tim Produksi", "123456", "081234567890", "ika.rahmawati@pubdesk.com", "Yogyakarta"),
+            ("Admin Produksi - Demo", "Admin Master", "Admin Master", "123456", "089876543210", "admin.produksi@pubdesk.com", "Jakarta"),
         ];
         println!("[SAMPLE SEED] Menyisipkan data tim...");
         for (name, role, dept, pin, wa, email, address) in &tim_data {
@@ -57,14 +57,14 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
     if options.contacts {
         let penulis_data = vec![
             (
-                "Ahmad Fauzi",
+                "Ahmad Fauzi - Demo",
                 "081234567890",
                 "Bandung",
                 "Jawa Barat",
                 "Penulis Buku Rust",
             ),
             (
-                "Siti Nurhaliza",
+                "Siti Nurhaliza - Demo",
                 "082345678901",
                 "Surabaya",
                 "Jawa Timur",
@@ -104,9 +104,9 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
 
         // Tambah kontak umum (Pelanggan)
         let customer_data = vec![
-            ("Penerbit Andi", "085612345678", "Yogyakarta", "DIY"),
+            ("Penerbit Andi - Demo", "085612345678", "Yogyakarta", "DIY"),
             (
-                "Toko Buku Utama",
+                "Toko Buku Utama - Demo",
                 "081987654321",
                 "Jakarta Pusat",
                 "DKI Jakarta",
@@ -133,14 +133,14 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
     if options.penerbit {
         let penerbit_data = vec![
             (
-                "Pustaka Ilmu Nusantara",
+                "Pustaka Ilmu Nusantara - Demo",
                 "Yogyakarta",
                 "DIY",
                 "pustaka@nusantara.com",
                 "Kerjasama Aktif",
             ),
             (
-                "KBM Indonesia",
+                "KBM Indonesia - Demo",
                 "Surabaya",
                 "Jawa Timur",
                 "admin@kbm.co.id",
@@ -175,13 +175,13 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
         // Layanan (Services - 2 data)
         let services_data = vec![
             (
-                "Layout Naskah Standar",
+                "Layout Naskah Standar - Demo",
                 150000.0,
                 "Tata letak interior buku novel/nonfiksi standar",
                 "layout",
             ),
             (
-                "Desain Cover Premium",
+                "Desain Cover Premium - Demo",
                 350000.0,
                 "Desain sampul depan, belakang, dan punggung buku",
                 "cover",
@@ -209,12 +209,12 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get::<_, i64>(0)
         ).unwrap_or_else(|_| {
             let _ = conn.execute(
-                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Ahmad Fauzi', '081234567890', 'penulis', ?1)",
+                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Ahmad Fauzi - Demo', '081234567890', 'penulis', ?1)",
                 params![now]
             );
             let cid = conn.last_insert_rowid();
             let _ = conn.execute(
-                "INSERT INTO penulis (id, name, wa_number, created_at) VALUES (?1, 'Ahmad Fauzi', '081234567890', ?2)",
+                "INSERT INTO penulis (id, name, wa_number, created_at) VALUES (?1, 'Ahmad Fauzi - Demo', '081234567890', ?2)",
                 params![cid, now]
             );
             cid
@@ -222,14 +222,14 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
 
         let books_data = vec![
             (
-                "Jejak Langkah di Tanah Borneo",
+                "Jejak Langkah di Tanah Borneo - Demo",
                 "978-602-1234-56-7",
                 85000.0,
                 75000.0,
                 250,
             ),
             (
-                "Misteri Rumah Tua",
+                "Misteri Rumah Tua - Demo",
                 "978-602-7654-32-1",
                 75000.0,
                 65000.0,
@@ -259,7 +259,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get::<_, i64>(0)
         ).unwrap_or_else(|_| {
             let _ = conn.execute(
-                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Penerbit Andi', '085612345678', 'customer', ?1)",
+                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Penerbit Andi - Demo', '085612345678', 'customer', ?1)",
                 params![now]
             );
             conn.last_insert_rowid()
@@ -273,8 +273,8 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get(0),
         )?;
         if exists_inv1 == 0 {
-            let items_1 = r#"[{"item_title":"Layout Naskah Standar","quantity":1,"price":150000.0,"discount":0.0}]"#;
-            let metadata_1 = r#"{"invoiceNo":"INV/2026/06/0001","invoiceDate":"2026-06-22","invoiceHal":"Tagihan Jasa Layout","invoiceLampiran":"-","paymentStatus":"LUNAS","spesifikasiFasilitas":"Sesuai poster paket","invoiceType":"KBM","customerName":"Penerbit Andi","customerWa":"085612345678","customerEmail":"","customerAddress":"Yogyakarta","isPenulis":false}"#;
+            let items_1 = r#"[{"item_title":"Layout Naskah Standar - Demo","quantity":1,"price":150000.0,"discount":0.0}]"#;
+            let metadata_1 = r#"{"invoiceNo":"INV/2026/06/0001","invoiceDate":"2026-06-22","invoiceHal":"Tagihan Jasa Layout - Demo","invoiceLampiran":"-","paymentStatus":"LUNAS","spesifikasiFasilitas":"Sesuai poster paket","invoiceType":"KBM","customerName":"Penerbit Andi - Demo","customerWa":"085612345678","customerEmail":"","customerAddress":"Yogyakarta","isPenulis":false}"#;
 
             conn.execute(
                 "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, payment_status, paid_amount, remaining_amount, sync_status) VALUES (?1, ?2, ?3, 0, 0, 150000.0, 'KBM', ?4, 'LUNAS', 150000.0, 0, 'pending')",
@@ -298,8 +298,8 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get(0),
         )?;
         if exists_inv2 == 0 {
-            let items_2 = r#"[{"item_title":"Desain Cover Premium","quantity":1,"price":350000.0,"discount":0.0}]"#;
-            let metadata_2 = r#"{"invoiceNo":"INV/2026/06/0002","invoiceDate":"2026-06-22","invoiceHal":"Tagihan Desain","invoiceLampiran":"-","paymentStatus":"BELUM LUNAS","spesifikasiFasilitas":"Sesuai poster paket","invoiceType":"KBM","customerName":"Ahmad Fauzi","customerWa":"081234567890","customerEmail":"","customerAddress":"Bandung","isPenulis":true}"#;
+            let items_2 = r#"[{"item_title":"Desain Cover Premium - Demo","quantity":1,"price":350000.0,"discount":0.0}]"#;
+            let metadata_2 = r#"{"invoiceNo":"INV/2026/06/0002","invoiceDate":"2026-06-22","invoiceHal":"Tagihan Desain - Demo","invoiceLampiran":"-","paymentStatus":"BELUM LUNAS","spesifikasiFasilitas":"Sesuai poster paket","invoiceType":"KBM","customerName":"Ahmad Fauzi - Demo","customerWa":"081234567890","customerEmail":"","customerAddress":"Bandung","isPenulis":true}"#;
 
             conn.execute(
                 "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, payment_status, paid_amount, remaining_amount, sync_status) VALUES (?1, ?2, ?3, 0, 0, 350000.0, 'KBM', ?4, 'BELUM LUNAS', 150000.0, 200000.0, 'pending')",
@@ -363,12 +363,12 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get::<_, i64>(0)
         ).unwrap_or_else(|_| {
             let _ = conn.execute(
-                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Ahmad Fauzi (Demo)', '081234567890', 'penulis', ?1)",
+                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Ahmad Fauzi - Demo', '081234567890', 'penulis', ?1)",
                 params![now]
             );
             let cid = conn.last_insert_rowid();
             let _ = conn.execute(
-                "INSERT INTO penulis (id, name, wa_number, created_at) VALUES (?1, 'Ahmad Fauzi (Demo)', '081234567890', ?2)",
+                "INSERT INTO penulis (id, name, wa_number, created_at) VALUES (?1, 'Ahmad Fauzi - Demo', '081234567890', ?2)",
                 params![cid, now]
             );
             cid
@@ -381,7 +381,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get::<_, i64>(0)
         ).unwrap_or_else(|_| {
             let _ = conn.execute(
-                "INSERT INTO penerbit (name, cooperation_status, created_at) VALUES ('KBM Indonesia (Demo)', 'Kerjasama Aktif', ?1)",
+                "INSERT INTO penerbit (name, cooperation_status, created_at) VALUES ('KBM Indonesia - Demo', 'Kerjasama Aktif', ?1)",
                 params![now]
             );
             conn.last_insert_rowid()
@@ -394,7 +394,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get::<_, i64>(0)
         ).unwrap_or_else(|_| {
             let _ = conn.execute(
-                "INSERT INTO tim (name, role, department, pin, created_at) VALUES ('Ika Rahmawati (Demo)', 'Layouter', 'Tim Produksi', '123456', ?1)",
+                "INSERT INTO tim (name, role, department, pin, created_at) VALUES ('Ika Rahmawati - Demo', 'Layouter', 'Tim Produksi', '123456', ?1)",
                 params![now]
             );
             conn.last_insert_rowid()
@@ -406,7 +406,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             |row| row.get::<_, i64>(0)
         ).unwrap_or_else(|_| {
             let _ = conn.execute(
-                "INSERT INTO tim (name, role, department, pin, created_at) VALUES ('Admin Produksi (Demo)', 'Admin Master', 'Tim Manajemen', '123456', ?1)",
+                "INSERT INTO tim (name, role, department, pin, created_at) VALUES ('Admin Produksi - Demo', 'Admin Master', 'Tim Manajemen', '123456', ?1)",
                 params![now]
             );
             conn.last_insert_rowid()
@@ -414,8 +414,8 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
 
         // Naskah Data (Maksimal 2)
         let naskah_data = vec![
-            ("Panduan Lengkap Rust Programming", penulis_id, penerbit_id),
-            ("Kecerdasan Buatan untuk Pemula", penulis_id, penerbit_id),
+            ("Panduan Lengkap Rust Programming - Demo", penulis_id, penerbit_id),
+            ("Kecerdasan Buatan untuk Pemula - Demo", penulis_id, penerbit_id),
         ];
 
         let mut naskah_ids = Vec::new();
