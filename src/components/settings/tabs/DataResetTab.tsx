@@ -10,6 +10,15 @@ const DataResetTab: React.FC = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [seedOptions, setSeedOptions] = useState({
+    workflow: true,
+    tim: true,
+    contacts: true,
+    penerbit: true,
+    books_services: true,
+  });
+  const [isResettingTotal, setIsResettingTotal] = useState(false);
+  const [confirmResetTotal, setConfirmResetTotal] = useState(false);
 
   const [logoType, setLogoType] = useState<'emoji' | 'image'>(() => {
     const saved = localStorage.getItem('splash_logo');
@@ -246,7 +255,7 @@ const DataResetTab: React.FC = () => {
   const handleSeed = async () => {
     setIsSeeding(true);
     try {
-      const result = await invoke<string>('seed_sample_data');
+      const result = await invoke<string>('seed_sample_data', { options: seedOptions });
       showToast(result, 'success');
     } catch (err) {
       showToast(`Gagal memuat sample data: ${err}`, 'error');
@@ -270,6 +279,33 @@ const DataResetTab: React.FC = () => {
       showToast(`Gagal mereset data: ${err}`, 'error');
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const handleResetTotal = async () => {
+    if (!confirmResetTotal) {
+      setConfirmResetTotal(true);
+      return;
+    }
+    setIsResettingTotal(true);
+    try {
+      const result = await invoke<string>('reset_total_data');
+      showToast(result, 'success');
+      setConfirmResetTotal(false);
+      
+      try {
+        await invoke('logout_user');
+      } catch (logoutErr) {
+        console.error("Gagal log out otomatis setelah reset total:", logoutErr);
+      }
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      showToast(`Gagal mereset total data: ${err}`, 'error');
+    } finally {
+      setIsResettingTotal(false);
     }
   };
 
@@ -502,6 +538,33 @@ const DataResetTab: React.FC = () => {
                 <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                   Menyisipkan data contoh untuk pengujian alur kerja produksi dan master data.
                 </p>
+                
+                {/* Checkboxes untuk pilih kategori sample */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>Pilih kategori data sample:</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--text-primary)' }}>
+                      <input type="checkbox" checked={seedOptions.workflow} onChange={(e) => setSeedOptions(prev => ({ ...prev, workflow: e.target.checked }))} />
+                      Workflow & Naskah
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--text-primary)' }}>
+                      <input type="checkbox" checked={seedOptions.tim} onChange={(e) => setSeedOptions(prev => ({ ...prev, tim: e.target.checked }))} />
+                      Anggota Tim
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--text-primary)' }}>
+                      <input type="checkbox" checked={seedOptions.contacts} onChange={(e) => setSeedOptions(prev => ({ ...prev, contacts: e.target.checked }))} />
+                      Kontak & Penulis
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--text-primary)' }}>
+                      <input type="checkbox" checked={seedOptions.penerbit} onChange={(e) => setSeedOptions(prev => ({ ...prev, penerbit: e.target.checked }))} />
+                      Penerbit
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--text-primary)' }}>
+                      <input type="checkbox" checked={seedOptions.books_services} onChange={(e) => setSeedOptions(prev => ({ ...prev, books_services: e.target.checked }))} />
+                      Buku & Layanan
+                    </label>
+                  </div>
+                </div>
               </div>
               <button
                 onClick={handleSeed}
@@ -527,7 +590,8 @@ const DataResetTab: React.FC = () => {
 
           {/* Reset Data Workflow */}
           <div style={{
-            paddingBottom: '16px'
+            paddingBottom: '16px',
+            borderBottom: '1px solid var(--border)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div style={{ flex: 1, minWidth: '240px' }}>
@@ -579,6 +643,65 @@ const DataResetTab: React.FC = () => {
                   }}
                 >
                   {isResetting ? 'Menghapus...' : confirmReset ? 'Ya, Hapus Semua' : 'Reset Data'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Total Aplikasi */}
+          <div style={{
+            paddingBottom: '16px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ flex: 1, minWidth: '240px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: confirmResetTotal ? '#ef4444' : 'var(--text-primary)' }}>
+                  🚨 Reset Total Aplikasi
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  Menghapus **seluruh** data aplikasi (workflow, kontak, penulis, penerbit, buku, layanan, berkas, invoice, log aktivitas, jam kerja, dll).
+                  <br />
+                  <strong style={{ color: '#ef4444' }}>Tindakan ini tidak dapat dibatalkan!</strong>
+                </p>
+                {confirmResetTotal && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#ef4444', fontWeight: '600' }}>
+                    ⚠️ PERINGATAN: Semua data Anda akan hilang selamanya. Klik sekali lagi untuk konfirmasi.
+                  </p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignSelf: 'center' }}>
+                {confirmResetTotal && (
+                  <button
+                    onClick={() => setConfirmResetTotal(false)}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px'
+                    }}
+                  >
+                    Batal
+                  </button>
+                )}
+                <button
+                  onClick={handleResetTotal}
+                  disabled={isResettingTotal}
+                  style={{
+                    padding: '8px 20px',
+                    background: confirmResetTotal ? '#ef4444' : 'transparent',
+                    color: confirmResetTotal ? '#fff' : '#ef4444',
+                    border: confirmResetTotal ? 'none' : '1px solid #ef4444',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: isResettingTotal ? 'wait' : 'pointer',
+                    fontSize: '13px',
+                    whiteSpace: 'nowrap',
+                    opacity: isResettingTotal ? 0.7 : 1
+                  }}
+                >
+                  {isResettingTotal ? 'Mereset...' : confirmResetTotal ? 'Ya, Hapus Permanen' : 'Reset Total'}
                 </button>
               </div>
             </div>

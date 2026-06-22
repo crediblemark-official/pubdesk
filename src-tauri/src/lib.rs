@@ -238,6 +238,7 @@ pub fn run() {
             commands::session::call_gas_api,
             commands::session::seed_sample_data,
             commands::session::reset_workflow_data,
+            commands::session::reset_total_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
