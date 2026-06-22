@@ -1,7 +1,7 @@
 // Modul sample data untuk pengujian dan demo fitur produksi naskah
 #![allow(dead_code)]
-use rusqlite::{params, Connection};
 use crate::db::error::DbError;
+use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,7 +13,7 @@ pub struct SeedOptions {
     pub books_services: bool,
 }
 
-/// Menyisipkan data sample untuk keperluan demo/testing berdasarkan opsi pilihan
+/// Menyisipkan data sample untuk keperluan demo/testing berdasarkan opsi pilihan (maksimal 2 data per menu)
 pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<String, DbError> {
     let now = chrono::Local::now().to_rfc3339();
     let mut message_parts = Vec::new();
@@ -21,14 +21,12 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
     // Temporarily disable foreign key constraints
     conn.execute("PRAGMA foreign_keys = OFF", [])?;
 
-    // ─── 1. SEED TIM ───
+    // ─── 1. SEED TIM (Maksimal 2) ───
     let mut tim_ids = Vec::new();
     if options.tim {
         let tim_data = vec![
             ("Ika Rahmawati", "Layouter", "Tim Produksi", "123456"),
-            ("Dini Septiani", "Desainer Cover", "Tim Produksi", "123456"),
-            ("Admin Produksi", "Admin Produksi", "Tim Manajemen", "123456"),
-            ("Mohammad IJ", "Admin Master", "Tim Manajemen", "123456"),
+            ("Admin Produksi", "Admin Master", "Admin Master", "123456"),
         ];
         println!("[SAMPLE SEED] Menyisipkan data tim...");
         for (name, role, dept, pin) in &tim_data {
@@ -36,7 +34,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM tim WHERE name = ?1",
                 params![name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             if exists == 0 {
                 conn.execute(
@@ -47,20 +45,31 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             let id: i64 = conn.query_row(
                 "SELECT id FROM tim WHERE name = ?1 LIMIT 1",
                 params![name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             tim_ids.push(id);
         }
         message_parts.push(format!("{} anggota tim", tim_ids.len()));
     }
 
-    // ─── 2. SEED KONTAK & PENULIS ───
+    // ─── 2. SEED KONTAK & PENULIS (Maksimal 2 masing-masing) ───
     let mut penulis_ids = Vec::new();
     if options.contacts {
         let penulis_data = vec![
-            ("Ahmad Fauzi", "081234567890", "Bandung", "Jawa Barat", "Penulis Buku Rust"),
-            ("Siti Nurhaliza", "082345678901", "Surabaya", "Jawa Timur", "Penulis Naskah AI"),
-            ("Budi Santoso", "083456789012", "Sleman", "DIY", "Penyair & Penulis Digital"),
+            (
+                "Ahmad Fauzi",
+                "081234567890",
+                "Bandung",
+                "Jawa Barat",
+                "Penulis Buku Rust",
+            ),
+            (
+                "Siti Nurhaliza",
+                "082345678901",
+                "Surabaya",
+                "Jawa Timur",
+                "Penulis Naskah AI",
+            ),
         ];
         println!("[SAMPLE SEED] Menyisipkan data penulis/kontak...");
         for (name, wa, city, province, notes) in &penulis_data {
@@ -68,7 +77,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM contacts WHERE name = ?1",
                 params![name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             let id: i64;
             if exists == 0 {
@@ -77,7 +86,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
                     params![name, wa, city, province, notes, now]
                 )?;
                 id = conn.last_insert_rowid();
-                
+
                 // Tambahkan ke tabel penulis agar sinkron
                 conn.execute(
                     "INSERT INTO penulis (id, name, wa_number, city, province, notes, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
@@ -87,7 +96,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
                 id = conn.query_row(
                     "SELECT id FROM contacts WHERE name = ?1 LIMIT 1",
                     params![name],
-                    |row| row.get(0)
+                    |row| row.get(0),
                 )?;
             }
             penulis_ids.push(id);
@@ -96,13 +105,18 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
         // Tambah kontak umum (Pelanggan)
         let customer_data = vec![
             ("Penerbit Andi", "085612345678", "Yogyakarta", "DIY"),
-            ("Toko Buku Utama", "081987654321", "Jakarta Pusat", "DKI Jakarta"),
+            (
+                "Toko Buku Utama",
+                "081987654321",
+                "Jakarta Pusat",
+                "DKI Jakarta",
+            ),
         ];
         for (name, wa, city, province) in &customer_data {
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM contacts WHERE name = ?1 AND type = 'customer'",
                 params![name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             if exists == 0 {
                 conn.execute(
@@ -114,20 +128,31 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
         message_parts.push(format!("{} penulis & pelanggan", penulis_ids.len() + 2));
     }
 
-    // ─── 3. SEED PENERBIT ───
+    // ─── 3. SEED PENERBIT (Maksimal 2) ───
     let mut penerbit_ids = Vec::new();
     if options.penerbit {
         let penerbit_data = vec![
-            ("Pustaka Ilmu Nusantara", "Yogyakarta", "DIY", "pustaka@nusantara.com", "Kerjasama Aktif"),
-            ("KBM Indonesia", "Surabaya", "Jawa Timur", "admin@kbm.co.id", "Kerjasama Aktif"),
-            ("Sastrabook Press", "Bandung", "Jawa Barat", "contact@sastrabook.id", "Masa Uji Coba"),
+            (
+                "Pustaka Ilmu Nusantara",
+                "Yogyakarta",
+                "DIY",
+                "pustaka@nusantara.com",
+                "Kerjasama Aktif",
+            ),
+            (
+                "KBM Indonesia",
+                "Surabaya",
+                "Jawa Timur",
+                "admin@kbm.co.id",
+                "Kerjasama Aktif",
+            ),
         ];
         println!("[SAMPLE SEED] Menyisipkan data penerbit...");
         for (name, city, province, email, status) in &penerbit_data {
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM penerbit WHERE name = ?1",
                 params![name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             if exists == 0 {
                 conn.execute(
@@ -138,29 +163,36 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             let id: i64 = conn.query_row(
                 "SELECT id FROM penerbit WHERE name = ?1 LIMIT 1",
                 params![name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             penerbit_ids.push(id);
         }
         message_parts.push(format!("{} penerbit", penerbit_ids.len()));
     }
 
-    // ─── 4. SEED BUKU & LAYANAN ───
+    // ─── 4. SEED BUKU, LAYANAN, & INVOICE (Maksimal 2 masing-masing) ───
     if options.books_services {
-        // Layanan (Services)
+        // Layanan (Services - 2 data)
         let services_data = vec![
-            ("Layout Naskah Standar", 150000.0, "Tata letak interior buku novel/nonfiksi standar", "layout"),
-            ("Desain Cover Premium", 350000.0, "Desain sampul depan, belakang, dan punggung buku", "cover"),
-            ("Proofreading & Editing", 200000.0, "Koreksi ejaan, tanda baca, dan tata bahasa naskah", "proofread"),
-            ("Pengurusan ISBN Resmi", 250000.0, "Jasa pengurusan ISBN resmi ke Perpustakaan Nasional", "legalitas"),
-            ("Paket Cetak 100 Eks (A5)", 2500000.0, "Cetak buku A5, Bookpaper 57gr, cover artcarton 260gr laminasi doff", "other"),
+            (
+                "Layout Naskah Standar",
+                150000.0,
+                "Tata letak interior buku novel/nonfiksi standar",
+                "layout",
+            ),
+            (
+                "Desain Cover Premium",
+                350000.0,
+                "Desain sampul depan, belakang, dan punggung buku",
+                "cover",
+            ),
         ];
         println!("[SAMPLE SEED] Menyisipkan data layanan...");
         for (name, price, desc, cat) in &services_data {
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM services WHERE name = ?1",
                 params![name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             if exists == 0 {
                 conn.execute(
@@ -170,44 +202,129 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             }
         }
 
-        // Buku (Books) - Memerlukan setidaknya satu penulis di kontak
-        // Ambil penulis dari DB jika ada, jika tidak, pakai default
+        // Buku (Books - 2 data)
         let author_id = conn.query_row(
             "SELECT id FROM contacts WHERE type = 'penulis' LIMIT 1",
             [],
             |row| row.get::<_, i64>(0)
-        ).unwrap_or(0);
+        ).unwrap_or_else(|_| {
+            let _ = conn.execute(
+                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Ahmad Fauzi', '081234567890', 'penulis', ?1)",
+                params![now]
+            );
+            let cid = conn.last_insert_rowid();
+            let _ = conn.execute(
+                "INSERT INTO penulis (id, name, wa_number, created_at) VALUES (?1, 'Ahmad Fauzi', '081234567890', ?2)",
+                params![cid, now]
+            );
+            cid
+        });
 
-        if author_id > 0 {
-            let books_data = vec![
-                ("Jejak Langkah di Tanah Borneo", "978-602-1234-56-7", 85000.0, 75000.0, 250),
-                ("Misteri Rumah Tua", "978-602-7654-32-1", 75000.0, 65000.0, 200),
-            ];
-            println!("[SAMPLE SEED] Menyisipkan data buku...");
-            for (title, isbn, reg_p, po_p, weight) in &books_data {
-                let exists: i64 = conn.query_row(
-                    "SELECT COUNT(*) FROM books WHERE title = ?1",
-                    params![title],
-                    |row| row.get(0)
+        let books_data = vec![
+            (
+                "Jejak Langkah di Tanah Borneo",
+                "978-602-1234-56-7",
+                85000.0,
+                75000.0,
+                250,
+            ),
+            (
+                "Misteri Rumah Tua",
+                "978-602-7654-32-1",
+                75000.0,
+                65000.0,
+                200,
+            ),
+        ];
+        println!("[SAMPLE SEED] Menyisipkan data buku...");
+        for (title, isbn, reg_p, po_p, weight) in &books_data {
+            let exists: i64 = conn.query_row(
+                "SELECT COUNT(*) FROM books WHERE title = ?1",
+                params![title],
+                |row| row.get(0),
+            )?;
+            if exists == 0 {
+                conn.execute(
+                    "INSERT INTO books (title, isbn, regular_price, po_price, weight_grams, author_id, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                    params![title, isbn, reg_p, po_p, weight, author_id, now]
                 )?;
-                if exists == 0 {
-                    conn.execute(
-                        "INSERT INTO books (title, isbn, regular_price, po_price, weight_grams, author_id, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                        params![title, isbn, reg_p, po_p, weight, author_id, now]
-                    )?;
-                }
             }
         }
-        message_parts.push("data buku & master layanan".to_string());
+
+        // Seeding Invoices & Files (Smart Folders - 2 data)
+        println!("[SAMPLE SEED] Menyisipkan data invoice...");
+        let customer_id = conn.query_row(
+            "SELECT id FROM contacts WHERE type = 'customer' LIMIT 1",
+            [],
+            |row| row.get::<_, i64>(0)
+        ).unwrap_or_else(|_| {
+            let _ = conn.execute(
+                "INSERT INTO contacts (name, wa_number, type, created_at) VALUES ('Penerbit Andi', '085612345678', 'customer', ?1)",
+                params![now]
+            );
+            conn.last_insert_rowid()
+        });
+
+        // Invoice 1
+        let invoice_no_1 = "INV/2026/06/0001";
+        let exists_inv1: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM invoices WHERE file_path LIKE ?1",
+            params![format!("%{}%", invoice_no_1)],
+            |row| row.get(0),
+        )?;
+        if exists_inv1 == 0 {
+            let items_1 = r#"[{"item_title":"Layout Naskah Standar","quantity":1,"price":150000.0,"discount":0.0}]"#;
+            let metadata_1 = r#"{"invoiceNo":"INV/2026/06/0001","invoiceDate":"2026-06-22","invoiceHal":"Tagihan Jasa Layout","invoiceLampiran":"-","paymentStatus":"LUNAS","spesifikasiFasilitas":"Sesuai poster paket","invoiceType":"KBM","customerName":"Penerbit Andi","customerWa":"085612345678","customerEmail":"","customerAddress":"Yogyakarta","isPenulis":false}"#;
+
+            conn.execute(
+                "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, payment_status, paid_amount, remaining_amount, sync_status) VALUES (?1, ?2, ?3, 0, 0, 150000.0, 'KBM', ?4, 'LUNAS', 150000.0, 0, 'pending')",
+                params![now, customer_id, items_1, metadata_1]
+            )?;
+            let inv_id = conn.last_insert_rowid();
+
+            // Register ke files untuk Smart Folders (File 1)
+            let file_path = format!("/mock/invoices/Invoice-INV_2026_06_0001_{}.pdf", inv_id);
+            let _ = conn.execute(
+                "INSERT OR IGNORE INTO files (path, filename, type, version_label, last_modified, status, created_at) VALUES (?1, ?2, 'invoice', ?3, ?4, 'Tersimpan', ?4)",
+                params![file_path, "Invoice-INV_2026_06_0001.pdf", String::from("1"), now]
+            );
+        }
+
+        // Invoice 2
+        let invoice_no_2 = "INV/2026/06/0002";
+        let exists_inv2: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM invoices WHERE file_path LIKE ?1",
+            params![format!("%{}%", invoice_no_2)],
+            |row| row.get(0),
+        )?;
+        if exists_inv2 == 0 {
+            let items_2 = r#"[{"item_title":"Desain Cover Premium","quantity":1,"price":350000.0,"discount":0.0}]"#;
+            let metadata_2 = r#"{"invoiceNo":"INV/2026/06/0002","invoiceDate":"2026-06-22","invoiceHal":"Tagihan Desain","invoiceLampiran":"-","paymentStatus":"BELUM LUNAS","spesifikasiFasilitas":"Sesuai poster paket","invoiceType":"KBM","customerName":"Ahmad Fauzi","customerWa":"081234567890","customerEmail":"","customerAddress":"Bandung","isPenulis":true}"#;
+
+            conn.execute(
+                "INSERT INTO invoices (created_at, customer_id, items_json, shipping_cost, admin_fee, total, export_format, file_path, payment_status, paid_amount, remaining_amount, sync_status) VALUES (?1, ?2, ?3, 0, 0, 350000.0, 'KBM', ?4, 'BELUM LUNAS', 150000.0, 200000.0, 'pending')",
+                params![now, author_id, items_2, metadata_2]
+            )?;
+            let inv_id = conn.last_insert_rowid();
+
+            // Register ke files untuk Smart Folders (File 2)
+            let file_path = format!("/mock/invoices/Invoice-INV_2026_06_0002_{}.pdf", inv_id);
+            let _ = conn.execute(
+                "INSERT OR IGNORE INTO files (path, filename, type, version_label, last_modified, status, created_at) VALUES (?1, ?2, 'invoice', ?3, ?4, 'Tersimpan', ?4)",
+                params![file_path, "Invoice-INV_2026_06_0002.pdf", String::from("2"), now]
+            );
+        }
+
+        message_parts.push("data buku, master layanan, & invoice".to_string());
     }
 
-    // ─── 5. SEED WORKFLOW PRODUKSI NASKAH ───
+    // ─── 5. SEED WORKFLOW PRODUKSI NASKAH & LEGALITAS (Maksimal 2 masing-masing) ───
     if options.workflow {
         // Ambil atau buat template
         let exists_tmpl: i64 = conn.query_row(
             "SELECT COUNT(*) FROM workflow_templates WHERE name = 'Alur Produksi Standar'",
             [],
-            |row| row.get(0)
+            |row| row.get(0),
         )?;
         let _template_id = if exists_tmpl == 0 {
             conn.execute(
@@ -235,7 +352,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             conn.query_row(
                 "SELECT id FROM workflow_templates WHERE name = 'Alur Produksi Standar' LIMIT 1",
                 [],
-                |row| row.get(0)
+                |row| row.get(0),
             )?
         };
 
@@ -283,35 +400,22 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             conn.last_insert_rowid()
         });
 
-        let designer_id = conn.query_row(
-            "SELECT id FROM tim WHERE role = 'Desainer Cover' LIMIT 1",
-            [],
-            |row| row.get::<_, i64>(0)
-        ).unwrap_or_else(|_| {
-            let _ = conn.execute(
-                "INSERT INTO tim (name, role, department, pin, created_at) VALUES ('Dini Septiani (Demo)', 'Desainer Cover', 'Tim Produksi', '123456', ?1)",
-                params![now]
-            );
-            conn.last_insert_rowid()
-        });
-
         let admin_id = conn.query_row(
-            "SELECT id FROM tim WHERE role = 'Admin Produksi' LIMIT 1",
+            "SELECT id FROM tim WHERE role = 'Admin Master' OR role = 'Admin Produksi' LIMIT 1",
             [],
             |row| row.get::<_, i64>(0)
         ).unwrap_or_else(|_| {
             let _ = conn.execute(
-                "INSERT INTO tim (name, role, department, pin, created_at) VALUES ('Admin Produksi (Demo)', 'Admin Produksi', 'Tim Manajemen', '123456', ?1)",
+                "INSERT INTO tim (name, role, department, pin, created_at) VALUES ('Admin Produksi (Demo)', 'Admin Master', 'Tim Manajemen', '123456', ?1)",
                 params![now]
             );
             conn.last_insert_rowid()
         });
 
-        // Naskah Data
+        // Naskah Data (Maksimal 2)
         let naskah_data = vec![
             ("Panduan Lengkap Rust Programming", penulis_id, penerbit_id),
             ("Kecerdasan Buatan untuk Pemula", penulis_id, penerbit_id),
-            ("Strategi Digital Marketing 2026", penulis_id, penerbit_id),
         ];
 
         let mut naskah_ids = Vec::new();
@@ -320,7 +424,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM naskah WHERE title = ?1",
                 params![title],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
             let nid = if exists == 0 {
                 conn.execute(
@@ -332,7 +436,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
                 conn.query_row(
                     "SELECT id FROM naskah WHERE title = ?1 LIMIT 1",
                     params![title],
-                    |row| row.get(0)
+                    |row| row.get(0),
                 )?
             };
             naskah_ids.push(nid);
@@ -341,22 +445,57 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
         // Tasks Data
         // Format: (naskah_idx, step_name, step_order, assigned_team_id, status, priority, days_offset_start, days_offset_due, notes)
         let task_data = vec![
-            (naskah_ids[0], "Naskah Masuk", 1, admin_id, "Selesai", "Normal", -10, -9, None),
-            (naskah_ids[0], "Layout", 2, layouter_id, "Proses", "Tinggi", -5, 3, Some("Sedang mengerjakan bab 5-8")),
-            (naskah_ids[0], "Desain Cover", 3, designer_id, "Belum Mulai", "Normal", 0, 5, None),
-            
-            (naskah_ids[1], "Naskah Masuk", 1, admin_id, "Selesai", "Normal", -15, -14, None),
-            (naskah_ids[1], "Layout", 2, layouter_id, "Menunggu Revisi", "Tinggi", -10, -3, Some("Layout margin kurang rapi")),
-            (naskah_ids[1], "Desain Cover", 3, designer_id, "Proses", "Normal", -8, -1, Some("Sedang merevisi palet warna")),
-            
-            (naskah_ids[2], "Naskah Masuk", 1, admin_id, "Selesai", "Normal", -20, -19, None),
-            (naskah_ids[2], "Layout", 2, layouter_id, "Selesai", "Urgent", -15, -10, None),
-            (naskah_ids[2], "ACC Cetak", 5, admin_id, "Menunggu Approval", "Tinggi", -5, 0, Some("Menunggu konfirmasi naik cetak")),
+            (
+                naskah_ids[0],
+                "Naskah Masuk",
+                1,
+                admin_id,
+                "Selesai",
+                "Normal",
+                -10,
+                -9,
+                None,
+            ),
+            (
+                naskah_ids[0],
+                "Layout",
+                2,
+                layouter_id,
+                "Proses",
+                "Tinggi",
+                -5,
+                3,
+                Some("Sedang mengerjakan bab 5-8"),
+            ),
+            (
+                naskah_ids[1],
+                "Naskah Masuk",
+                1,
+                admin_id,
+                "Selesai",
+                "Normal",
+                -15,
+                -14,
+                None,
+            ),
+            (
+                naskah_ids[1],
+                "Layout",
+                2,
+                layouter_id,
+                "Menunggu Revisi",
+                "Tinggi",
+                -10,
+                -3,
+                Some("Layout margin kurang rapi"),
+            ),
         ];
 
         let mut task_ids = Vec::new();
         println!("[SAMPLE SEED] Menyisipkan data tasks...");
-        for (nid, step_name, step_order, tid, status, priority, start_off, due_off, notes) in &task_data {
+        for (nid, step_name, step_order, tid, status, priority, start_off, due_off, notes) in
+            &task_data
+        {
             let start_date = chrono::Local::now() + chrono::Duration::days(*start_off);
             let due_date = chrono::Local::now() + chrono::Duration::days(*due_off);
             let completed_date = if *status == "Selesai" {
@@ -368,7 +507,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM tasks WHERE naskah_id = ?1 AND step_name = ?2",
                 params![nid, step_name],
-                |row| row.get(0)
+                |row| row.get(0),
             )?;
 
             if exists == 0 {
@@ -392,7 +531,7 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             }
         }
 
-        // Seeding blocker / approval jika ada task baru
+        // Seeding blocker / approval jika ada task baru (Maksimal 2)
         if !task_ids.is_empty() {
             println!("[SAMPLE SEED] Menyisipkan kendala dan approval...");
             let _ = conn.execute(
@@ -405,7 +544,22 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
                 params![task_ids[task_ids.len() - 1], now]
             );
         }
-        message_parts.push(format!("{} naskah & tugas workflow", naskah_ids.len()));
+
+        // Seeding Legalitas (Maksimal 2)
+        println!("[SAMPLE SEED] Menyisipkan data legalitas...");
+        let _ = conn.execute(
+            "INSERT INTO legalitas (naskah_id, judul_buku, nama_penulis, tipe, status, nomor_dokumen, tanggal_pengajuan, tanggal_keluar, created_at, updated_at) VALUES (?1, ?2, 'Ahmad Fauzi', 'ISBN', 'Selesai', '978-602-1234-56-7', '2026-06-10', '2026-06-15', ?3, ?3)",
+            params![naskah_ids[0], "Panduan Lengkap Rust Programming", now]
+        );
+        let _ = conn.execute(
+            "INSERT INTO legalitas (naskah_id, judul_buku, nama_penulis, tipe, status, tanggal_pengajuan, created_at, updated_at) VALUES (?1, ?2, 'Siti Nurhaliza', 'HAKI', 'Diajukan', '2026-06-20', ?3, ?3)",
+            params![naskah_ids[1], "Kecerdasan Buatan untuk Pemula", now]
+        );
+
+        message_parts.push(format!(
+            "{} naskah, tugas workflow, kendala, approval, & legalitas",
+            naskah_ids.len()
+        ));
     }
 
     // Re-enable foreign key constraints
