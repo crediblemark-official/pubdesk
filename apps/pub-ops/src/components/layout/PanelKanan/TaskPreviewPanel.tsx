@@ -248,7 +248,7 @@ const TaskPreviewPanel: React.FC = () => {
         </form>
       </div>
 
-      <div style={{ marginTop: 'auto', display: 'flex', gap: '10px', pt: '10px' }}>
+      <div style={{ marginTop: 'auto', display: 'flex', gap: '10px', paddingTop: '10px' }}>
         <Button fullWidth onClick={() => setShowUpdateModal(true)} variant="primary">
           Update Status
         </Button>
