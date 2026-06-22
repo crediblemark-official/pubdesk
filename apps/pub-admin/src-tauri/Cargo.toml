@@ -24,6 +24,7 @@ tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rusqlite = { version = "0.32", features = ["bundled"] }
+pubhub-db-shared = { path = "../../../packages/shared-db-rust" }
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1.0"
 notify = "6.1.1"

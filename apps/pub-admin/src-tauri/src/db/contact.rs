@@ -7,7 +7,7 @@ impl Database {
     pub fn add_contact(&self, contact: &Contact) -> Result<i64, DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "INSERT INTO contacts (name, wa_number, email, address, province, city, job, institution, data_source, email_valid, wa_valid, followup_status, notes, type, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+            "INSERT INTO contacts (name, wa_number, email, address, province, city, job, institution, data_source, email_valid, wa_valid, needs_review, followup_status, notes, type, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
             params![
                 contact.name,
                 contact.wa_number,
@@ -20,6 +20,7 @@ impl Database {
                 contact.data_source,
                 contact.email_valid,
                 contact.wa_valid,
+                contact.needs_review,
                 contact.followup_status,
                 contact.notes,
                 contact.r#type,
@@ -35,7 +36,7 @@ impl Database {
     pub fn get_contacts(&self) -> Result<Vec<Contact>, DbError> {
         let mut stmt = self
             .conn
-            .prepare("SELECT id, name, wa_number, email, address, province, city, job, institution, data_source, email_valid, wa_valid, followup_status, notes, type, created_at, updated_at FROM contacts")?;
+            .prepare("SELECT id, name, wa_number, email, address, province, city, job, institution, data_source, email_valid, wa_valid, needs_review, followup_status, notes, type, created_at, updated_at FROM contacts")?;
         let contacts = stmt.query_map([], |row| {
             Ok(Contact {
                 id: row.get(0)?,
@@ -50,11 +51,12 @@ impl Database {
                 data_source: row.get(9)?,
                 email_valid: row.get(10)?,
                 wa_valid: row.get(11)?,
-                followup_status: row.get(12)?,
-                notes: row.get(13)?,
-                r#type: row.get(14)?,
-                created_at: row.get(15)?,
-                updated_at: row.get(16)?,
+                needs_review: row.get(12)?,
+                followup_status: row.get(13)?,
+                notes: row.get(14)?,
+                r#type: row.get(15)?,
+                created_at: row.get(16)?,
+                updated_at: row.get(17)?,
             })
         })?;
 
@@ -68,7 +70,7 @@ impl Database {
     pub fn update_contact(&self, contact: &Contact) -> Result<(), DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "UPDATE contacts SET name = ?1, wa_number = ?2, email = ?3, address = ?4, province = ?5, city = ?6, job = ?7, institution = ?8, data_source = ?9, email_valid = ?10, wa_valid = ?11, followup_status = ?12, notes = ?13, type = ?14, updated_at = ?15 WHERE id = ?16",
+            "UPDATE contacts SET name = ?1, wa_number = ?2, email = ?3, address = ?4, province = ?5, city = ?6, job = ?7, institution = ?8, data_source = ?9, email_valid = ?10, wa_valid = ?11, needs_review = ?12, followup_status = ?13, notes = ?14, type = ?15, updated_at = ?16 WHERE id = ?17",
             params![
                 contact.name,
                 contact.wa_number,
@@ -81,6 +83,7 @@ impl Database {
                 contact.data_source,
                 contact.email_valid,
                 contact.wa_valid,
+                contact.needs_review,
                 contact.followup_status,
                 contact.notes,
                 contact.r#type,

@@ -18,6 +18,8 @@ pub struct Contact {
     pub email_valid: i32,
     #[serde(default)]
     pub wa_valid: i32,
+    #[serde(default)]
+    pub needs_review: i32,
     pub followup_status: Option<String>,
     pub notes: Option<String>,
     pub r#type: String,
@@ -40,6 +42,7 @@ impl Default for Contact {
             data_source: None,
             email_valid: 0,
             wa_valid: 0,
+            needs_review: 0,
             followup_status: None,
             notes: None,
             r#type: "penulis".to_string(),
@@ -146,6 +149,7 @@ pub struct Invoice {
     pub remaining_amount: f64,
     pub payment_notes: Option<String>,
     pub updated_at: Option<String>,
+    pub customer_snapshot: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -178,6 +182,7 @@ impl Default for Invoice {
             remaining_amount: 0.0,
             payment_notes: None,
             updated_at: None,
+            customer_snapshot: None,
         }
     }
 }

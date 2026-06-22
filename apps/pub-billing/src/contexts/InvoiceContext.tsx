@@ -3,6 +3,7 @@ import { InvoiceItem, InvoiceProfile } from '../types/invoice.types';
 import { Contact } from '../types/contact.types';
 import { invoiceTemplates } from '../data/invoiceTemplates';
 import { evaluateItemFormula, getIndonesianDate } from '../utils/invoice';
+import { invoke } from '@tauri-apps/api/core';
 
 export interface InvoiceCustomerData extends Partial<Contact> {
   isPenulis?: boolean;
@@ -70,7 +71,7 @@ interface InvoiceContextType {
   resetProfilesToDefault: () => void;
   editingInvoiceId: number | null;
   setEditingInvoiceId: (id: number | null) => void;
-  loadInvoiceToForm: (invoice: any) => void;
+  loadInvoiceToForm: (invoice: any) => Promise<void>;
   tempPreviewProfile: InvoiceProfile | null;
   setTempPreviewProfile: (profile: InvoiceProfile | null) => void;
 }
@@ -263,7 +264,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   };
 
-  const loadInvoiceToForm = (invoice: any) => {
+  const loadInvoiceToForm = async (invoice: any) => {
     try {
       let metadata = {
         invoiceNo: '',
@@ -287,15 +288,39 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       let snapshot: any = null;
       if (invoice.customer_snapshot) {
-        try { snapshot = JSON.parse(invoice.customer_snapshot); } catch {}
+        try {
+          snapshot = JSON.parse(invoice.customer_snapshot);
+        } catch {}
       }
-      setCustomer({
+
+      // Fallback logic
+      let customerData = {
         name: snapshot?.name ?? metadata.customerName ?? '',
         wa_number: snapshot?.wa_number ?? metadata.customerWa ?? '',
         email: snapshot?.email ?? (metadata as any).customerEmail ?? '',
         address: snapshot?.address ?? metadata.customerAddress ?? '',
         isPenulis: snapshot?.isPenulis ?? (metadata as any).isPenulis ?? false
-      });
+      };
+
+      if (!invoice.customer_snapshot && invoice.customer_id) {
+        try {
+          const contacts = await invoke<Contact[]>('get_contacts');
+          const matchedContact = contacts.find(c => c.id === invoice.customer_id);
+          if (matchedContact) {
+            customerData = {
+              name: matchedContact.name,
+              wa_number: matchedContact.wa_number ?? '',
+              email: matchedContact.email ?? '',
+              address: matchedContact.address ?? '',
+              isPenulis: matchedContact.type === 'penulis' || matchedContact.type === 'both'
+            };
+          }
+        } catch (err) {
+          console.error("Gagal memuat kontak fallback:", err);
+        }
+      }
+
+      setCustomer(customerData);
       
       let parsedItems = [];
       if (invoice.items_json) {

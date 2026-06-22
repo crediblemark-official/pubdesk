@@ -18,6 +18,8 @@ pub struct Contact {
     pub email_valid: i32,
     #[serde(default)]
     pub wa_valid: i32,
+    #[serde(default)]
+    pub needs_review: i32,
     pub followup_status: Option<String>,
     pub notes: Option<String>,
     pub r#type: String,
@@ -40,6 +42,7 @@ impl Default for Contact {
             data_source: None,
             email_valid: 0,
             wa_valid: 0,
+            needs_review: 0,
             followup_status: None,
             notes: None,
             r#type: "penulis".to_string(),

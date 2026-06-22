@@ -15,6 +15,7 @@ export interface Contact {
   data_source?: string;
   email_valid?: number;
   wa_valid?: number;
+  needs_review?: number;
   followup_status?: string;
   notes?: string;
   type: string;

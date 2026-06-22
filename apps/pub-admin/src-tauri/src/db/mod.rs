@@ -38,6 +38,8 @@ pub fn get_db_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, DbError> {
 
 pub fn init_db(db_path: &PathBuf) -> Result<(), DbError> {
     let conn = rusqlite::Connection::open(db_path)?;
+    let _ = conn.execute("PRAGMA journal_mode=WAL;", []);
+    let _ = conn.execute("PRAGMA busy_timeout = 5000;", []);
     schema::create_tables(&conn)?;
     
     // Sinkronisasi data pelanggan dari invoice lama ke tabel contacts jika contacts kosong
@@ -53,6 +55,8 @@ pub struct Database {
 impl Database {
     pub fn new(db_path: &PathBuf) -> Result<Self, DbError> {
         let conn = rusqlite::Connection::open(db_path)?;
+        let _ = conn.execute("PRAGMA journal_mode=WAL;", []);
+        let _ = conn.execute("PRAGMA busy_timeout = 5000;", []);
         Ok(Self {
             conn: Connection::Local(conn)
         })
@@ -64,6 +68,8 @@ impl Database {
         host_peer_id: libp2p::PeerId,
     ) -> Result<Self, DbError> {
         let local_conn = rusqlite::Connection::open(local_db_path)?;
+        let _ = local_conn.execute("PRAGMA journal_mode=WAL;", []);
+        let _ = local_conn.execute("PRAGMA busy_timeout = 5000;", []);
         Ok(Self {
             conn: Connection::P2P {
                 manager,

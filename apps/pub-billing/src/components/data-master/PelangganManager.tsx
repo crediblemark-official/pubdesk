@@ -177,6 +177,7 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentContact, setCurrentContact] = useState<Contact | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'review'>('all');
 
   useEffect(() => {
     if (directAddNewModule === 'pelanggan') {
@@ -188,6 +189,7 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
 
   // Ambil hanya pelanggan (type === 'customer')
   const pelanggan = contacts.filter(c => c.type === 'customer');
+  const reviewCount = pelanggan.filter(p => p.needs_review === 1).length;
 
   // Filter & Search
   const filteredPelanggan = pelanggan.filter(p => {
@@ -195,7 +197,8 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
     const matchSearch = p.name.toLowerCase().includes(query) ||
       (p.email || '').toLowerCase().includes(query) ||
       (p.wa_number || '').toLowerCase().includes(query);
-    return matchSearch;
+    const matchTab = activeTab === 'all' || p.needs_review === 1;
+    return matchSearch && matchTab;
   });
 
   const handleAddNew = () => {
@@ -207,6 +210,19 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
     e.stopPropagation();
     setCurrentContact(contact);
     setIsEditing(true);
+  };
+
+  const handleVerify = async (contact: Contact, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await updateContact({
+        ...contact,
+        needs_review: 0
+      });
+      showToast('Kontak berhasil diverifikasi!', 'success');
+    } catch (err) {
+      showToast('Gagal memverifikasi kontak!', 'error');
+    }
   };
 
   const registerPelangganFile = async (contactId: number, contactData: Contact) => {
@@ -319,9 +335,55 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
       />
 
       <FilterBar>
-        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', whiteSpace: 'nowrap' }}>
-          👥 <strong style={{ color: 'var(--text-primary)' }}>{filteredPelanggan.length}</strong> pelanggan
-        </span>
+        <div style={{ display: 'flex', gap: '8px', marginRight: 'auto' }}>
+          <button
+            onClick={() => setActiveTab('all')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '4px',
+              border: 'none',
+              background: activeTab === 'all' ? 'var(--accent, #c01c1c)' : 'transparent',
+              color: activeTab === 'all' ? '#fff' : 'var(--text-secondary)',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            Semua ({pelanggan.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('review')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '4px',
+              border: 'none',
+              background: activeTab === 'review' ? 'var(--accent, #c01c1c)' : 'transparent',
+              color: activeTab === 'review' ? '#fff' : 'var(--text-secondary)',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            Review Queue
+            {reviewCount > 0 && (
+              <span style={{
+                background: activeTab === 'review' ? '#fff' : 'var(--accent, #c01c1c)',
+                color: activeTab === 'review' ? 'var(--accent, #c01c1c)' : '#fff',
+                fontSize: '10px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                fontWeight: 'bold'
+              }}>
+                {reviewCount}
+              </span>
+            )}
+          </button>
+        </div>
 
         <FilterDivider />
 
@@ -376,8 +438,21 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                     {index + 1}
                   </td>
-                  <td style={{ padding: '10px 12px', fontWeight: '500', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '10px 12px', fontWeight: '500', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {p.name}
+                    {p.needs_review === 1 && (
+                      <span style={{
+                        fontSize: '9px',
+                        background: '#fef3c7',
+                        color: '#d97706',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        border: '1px solid #fcd34d'
+                      }}>
+                        Review
+                      </span>
+                    )}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                     {p.wa_number || '-'}
@@ -388,7 +463,10 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.address}>
                     {p.address || '-'}
                   </td>
-                  <td style={{ padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', position: 'sticky', right: 0, background: 'var(--bg-card)', zIndex: 2, boxShadow: '-2px 0 4px rgba(0,0,0,0.06)' }}>
+                  <td style={{ padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', position: 'sticky', right: 0, background: 'var(--bg-card)', zIndex: 2, boxShadow: '-2px 0 4px rgba(0,0,0,0.06)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      {p.needs_review === 1 && (
+                        <button onClick={(e) => handleVerify(p, e)} style={{background:'none',border:'none',cursor:'pointer',padding:'2px',fontSize:'16px',lineHeight:1}} title="Setujui & Verifikasi">✓</button>
+                      )}
                       <button onClick={(e) => handleEdit(p, e)} style={{background:'none',border:'none',cursor:'pointer',padding:'2px',fontSize:'16px',lineHeight:1}} title="Edit">✏️</button>
                       <button onClick={(e) => p.id && handleDelete(p.id, p.name, e)} style={{background:'none',border:'none',cursor:'pointer',padding:'2px',fontSize:'16px',lineHeight:1}} title="Hapus">🗑️</button>
                   </td>

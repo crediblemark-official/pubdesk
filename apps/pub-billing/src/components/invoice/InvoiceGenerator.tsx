@@ -116,6 +116,7 @@ const InvoiceGenerator: React.FC = () => {
             email: customer.email?.trim() || undefined,
             address: customer.address?.trim() || undefined,
             type: 'customer',
+            needs_review: 1,
             created_at: new Date().toISOString()
           });
         } catch (err) {
