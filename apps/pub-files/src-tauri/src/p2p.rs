@@ -1,4 +1,5 @@
 use std::error::Error;
+use async_trait::async_trait;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use futures::{prelude::*, select};
@@ -7,12 +8,13 @@ use libp2p::{
     identity,
     noise,
     request_response,
-    swarm::{SwarmEvent, SwarmBuilder},
+    swarm::SwarmEvent,
     tcp,
     yamux,
     Multiaddr,
     PeerId,
     Swarm,
+    SwarmBuilder,
 };
 use serde::{Deserialize, Serialize};
 use tokio::sync::{mpsc, oneshot};
@@ -51,39 +53,42 @@ impl request_response::Codec for JsonCodec {
 
     async fn read_request<T>(
         &mut self,
-        _: &Self::Protocol,
+        protocol: &Self::Protocol,
         io: &mut T,
     ) -> std::io::Result<Self::Request>
     where
         T: AsyncRead + Unpin + Send,
     {
         let mut vec = Vec::new();
+        let _ = protocol;
         io.read_to_end(&mut vec).await?;
         serde_json::from_slice(&vec).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
     }
 
     async fn read_response<T>(
         &mut self,
-        _: &Self::Protocol,
+        protocol: &Self::Protocol,
         io: &mut T,
     ) -> std::io::Result<Self::Response>
     where
         T: AsyncRead + Unpin + Send,
     {
         let mut vec = Vec::new();
+        let _ = protocol;
         io.read_to_end(&mut vec).await?;
         serde_json::from_slice(&vec).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
     }
 
     async fn write_request<T>(
         &mut self,
-        _: &Self::Protocol,
+        protocol: &Self::Protocol,
         io: &mut T,
         req: Self::Request,
     ) -> std::io::Result<()>
     where
         T: AsyncWrite + Unpin + Send,
     {
+        let _ = protocol;
         let vec = serde_json::to_vec(&req).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
         io.write_all(&vec).await?;
         io.close().await?;
@@ -92,13 +97,14 @@ impl request_response::Codec for JsonCodec {
 
     async fn write_response<T>(
         &mut self,
-        _: &Self::Protocol,
+        protocol: &Self::Protocol,
         io: &mut T,
         res: Self::Response,
     ) -> std::io::Result<()>
     where
         T: AsyncWrite + Unpin + Send,
     {
+        let _ = protocol;
         let vec = serde_json::to_vec(&res).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
         io.write_all(&vec).await?;
         io.close().await?;
@@ -208,16 +214,12 @@ async fn run_p2p_loop(
     let local_peer_id = id_keys.public().to_peer_id();
 
     // Setup network behaviour
-    let behaviour = request_response::Behaviour::new(
+    let behaviour = request_response::Behaviour::with_codec(
         JsonCodec,
         std::iter::once((
-            request_response::ProtocolSupport::Outbound,
             "/pubhub/db/1.0.0",
-        ))
-        .chain(std::iter::once((
-            request_response::ProtocolSupport::Inbound,
-            "/pubhub/db/1.0.0",
-        ))),
+            request_response::ProtocolSupport::Full,
+        )),
         request_response::Config::default(),
     );
 
@@ -280,7 +282,7 @@ async fn run_p2p_loop(
                         let status = P2PStatus {
                             is_connected: !active_peers.is_empty(),
                             peer_id: local_peer_id.to_string(),
-                            active_peers: active_peers.iter().map(|p| p.to_string()).collect(),
+                            active_peers: active_peers.iter().map(|p: &PeerId| p.to_string()).collect(),
                             local_addresses: local_addresses.iter().map(|a: &Multiaddr| a.to_string()).collect(),
                         };
                         let _ = sender.send(status);
@@ -292,6 +294,57 @@ async fn run_p2p_loop(
                 match event {
                     SwarmEvent::NewListenAddr { address, .. } => {
                         local_addresses.push(address.clone());
+                        // Tulis konfigurasi bersama jika kita adalah host
+                        if let Some(conn) = db_conn_provider.lock().unwrap().as_ref() {
+                            let p2p_role: String = conn.query_row(
+                                "SELECT value FROM p2p_config WHERE key = 'p2p_role'",
+                                [],
+                                |row| row.get(0)
+                            ).unwrap_or_else(|_| "host".to_string());
+
+                            let p2p_enabled: String = conn.query_row(
+                                "SELECT value FROM p2p_config WHERE key = 'p2p_enabled'",
+                                [],
+                                |row| row.get(0)
+                            ).unwrap_or_else(|_| "false".to_string());
+
+                            let auth_token: String = conn.query_row(
+                                "SELECT value FROM p2p_config WHERE key = 'auth_token'",
+                                [],
+                                |row| row.get(0)
+                            ).unwrap_or_else(|_| "".to_string());
+
+                            if p2p_role == "host" && p2p_enabled == "true" {
+                                let address_str = address.to_string();
+                                if let Ok(home) = std::env::var("HOME") {
+                                    let conf_dir = std::path::PathBuf::from(home).join(".config").join("pubhub");
+                                    let _ = std::fs::create_dir_all(&conf_dir);
+                                    let file_path = conf_dir.join("p2p_shared_config.json");
+                                    
+                                    // Cek apakah file sudah ada dan berisi IP non-loopback
+                                    let mut should_write = true;
+                                    if file_path.exists() && address_str.contains("127.0.0.1") {
+                                        if let Ok(existing_content) = std::fs::read_to_string(&file_path) {
+                                            if !existing_content.contains("127.0.0.1") {
+                                                should_write = false; // jangan timpa IP LAN dengan 127.0.0.1
+                                            }
+                                        }
+                                    }
+
+                                    if should_write {
+                                        let host_addr = format!("{}/p2p/{}", address_str, local_peer_id);
+                                        let json_data = serde_json::json!({
+                                            "enabled": true,
+                                            "host_address": host_addr,
+                                            "auth_token": auth_token
+                                        });
+                                        if let Ok(json_str) = serde_json::to_string_pretty(&json_data) {
+                                            let _ = std::fs::write(file_path, json_str);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     SwarmEvent::ConnectionEstablished { peer_id, .. } => {
                         active_peers.insert(peer_id);
@@ -311,10 +364,10 @@ async fn run_p2p_loop(
                     }
                     SwarmEvent::Behaviour(request_response::Event::Message { message, .. }) => {
                         match message {
-                            request_response::Message::Request { request, response_channel, .. } => {
+                            request_response::Message::Request { request, channel, .. } => {
                                 // Eksekusi request SQL secara lokal
                                 let response = handle_incoming_request(request, &db_conn_provider);
-                                let _ = swarm.behaviour_mut().send_response(response_channel, response);
+                                let _ = swarm.behaviour_mut().send_response(channel, response);
                             }
                             request_response::Message::Response { request_id, response, .. } => {
                                 if let Some(sender) = pending_requests.remove(&request_id) {

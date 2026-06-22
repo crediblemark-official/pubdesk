@@ -272,6 +272,23 @@ async fn set_p2p_config(
 
     drop(conn);
 
+    // Tulis konfigurasi bersama jika role kita adalah host
+    if role == "host" {
+        if let Ok(home) = std::env::var("HOME") {
+            let conf_dir = std::path::PathBuf::from(home).join(".config").join("pubhub");
+            let _ = std::fs::create_dir_all(&conf_dir);
+            let file_path = conf_dir.join("p2p_shared_config.json");
+            let json_data = serde_json::json!({
+                "enabled": enabled,
+                "host_address": host_address,
+                "auth_token": auth_token
+            });
+            if let Ok(json_str) = serde_json::to_string_pretty(&json_data) {
+                let _ = std::fs::write(file_path, json_str);
+            }
+        }
+    }
+
     // Stop P2P manager lama jika ada
     {
         let mut mgr = state.p2p_manager.lock().unwrap();

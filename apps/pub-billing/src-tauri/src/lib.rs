@@ -46,7 +46,7 @@ pub fn setup_p2p_instance(
         Err(_) => {
             let keypair = libp2p::identity::Keypair::generate_ed25519();
             let encoded = keypair.to_protobuf_encoding().unwrap();
-            let b64 = base64::encode(&encoded);
+            let b64 = base64::Engine::encode(&base64::prelude::BASE64_STANDARD, &encoded);
             local_conn.execute(
                 "INSERT INTO p2p_config (key, value) VALUES ('keypair', ?1)",
                 [&b64]
@@ -54,7 +54,7 @@ pub fn setup_p2p_instance(
             b64
         }
     };
-    let keypair_bytes = base64::decode(&keypair_b64).map_err(|e| e.to_string())?;
+    let keypair_bytes = base64::Engine::decode(&base64::prelude::BASE64_STANDARD, &keypair_b64).map_err(|e| e.to_string())?;
 
     // 3. Baca/generate auth_token
     let _auth_token: String = match local_conn.query_row(
@@ -81,17 +81,50 @@ pub fn setup_p2p_instance(
         |row| row.get(0)
     ).unwrap_or_else(|_| "false".to_string());
 
-    let p2p_role: String = local_conn.query_row(
+    let mut p2p_role: String = local_conn.query_row(
         "SELECT value FROM p2p_config WHERE key = 'p2p_role'",
         [],
         |row| row.get(0)
-    ).unwrap_or_else(|_| "host".to_string());
+    ).unwrap_or_else(|_| "client".to_string());
 
-    let p2p_host_address: String = local_conn.query_row(
+    let mut p2p_host_address: String = local_conn.query_row(
         "SELECT value FROM p2p_config WHERE key = 'p2p_host_address'",
         [],
         |row| row.get(0)
     ).unwrap_or_else(|_| "".to_string());
+
+    let mut auth_token: String = local_conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'auth_token'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "".to_string());
+
+    // Muat konfigurasi bersama dari Host jika role kita adalah client
+    if p2p_role == "client" {
+        if let Ok(home) = std::env::var("HOME") {
+            let shared_conf_path = std::path::PathBuf::from(home)
+                .join(".config")
+                .join("pubhub")
+                .join("p2p_shared_config.json");
+            if shared_conf_path.exists() {
+                if let Ok(content) = std::fs::read_to_string(&shared_conf_path) {
+                    if let Ok(json_val) = serde_json::from_str::<serde_json::Value>(&content) {
+                        if let Some(enabled) = json_val.get("enabled").and_then(|v| v.as_bool()) {
+                            if enabled {
+                                p2p_enabled = "true".to_string();
+                            }
+                        }
+                        if let Some(host_addr) = json_val.get("host_address").and_then(|v| v.as_str()) {
+                            p2p_host_address = host_addr.to_string();
+                        }
+                        if let Some(token) = json_val.get("auth_token").and_then(|v| v.as_str()) {
+                            auth_token = token.to_string();
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Tutup koneksi lokal sementara
     drop(local_conn);
@@ -214,7 +247,7 @@ async fn get_p2p_config(
                 |row| row.get(0)
             );
             if let Ok(k_b64) = keypair_b64 {
-                if let Ok(bytes) = base64::decode(&k_b64) {
+                if let Ok(bytes) = base64::Engine::decode(&base64::prelude::BASE64_STANDARD, &k_b64) {
                     if let Ok(id_keys) = libp2p::identity::Keypair::from_protobuf_encoding(&bytes) {
                         id_keys.public().to_peer_id().to_string()
                     } else {

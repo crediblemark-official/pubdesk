@@ -294,6 +294,57 @@ async fn run_p2p_loop(
                 match event {
                     SwarmEvent::NewListenAddr { address, .. } => {
                         local_addresses.push(address.clone());
+                        // Tulis konfigurasi bersama jika kita adalah host
+                        if let Some(conn) = db_conn_provider.lock().unwrap().as_ref() {
+                            let p2p_role: String = conn.query_row(
+                                "SELECT value FROM p2p_config WHERE key = 'p2p_role'",
+                                [],
+                                |row| row.get(0)
+                            ).unwrap_or_else(|_| "host".to_string());
+
+                            let p2p_enabled: String = conn.query_row(
+                                "SELECT value FROM p2p_config WHERE key = 'p2p_enabled'",
+                                [],
+                                |row| row.get(0)
+                            ).unwrap_or_else(|_| "false".to_string());
+
+                            let auth_token: String = conn.query_row(
+                                "SELECT value FROM p2p_config WHERE key = 'auth_token'",
+                                [],
+                                |row| row.get(0)
+                            ).unwrap_or_else(|_| "".to_string());
+
+                            if p2p_role == "host" && p2p_enabled == "true" {
+                                let address_str = address.to_string();
+                                if let Ok(home) = std::env::var("HOME") {
+                                    let conf_dir = std::path::PathBuf::from(home).join(".config").join("pubhub");
+                                    let _ = std::fs::create_dir_all(&conf_dir);
+                                    let file_path = conf_dir.join("p2p_shared_config.json");
+                                    
+                                    // Cek apakah file sudah ada dan berisi IP non-loopback
+                                    let mut should_write = true;
+                                    if file_path.exists() && address_str.contains("127.0.0.1") {
+                                        if let Ok(existing_content) = std::fs::read_to_string(&file_path) {
+                                            if !existing_content.contains("127.0.0.1") {
+                                                should_write = false; // jangan timpa IP LAN dengan 127.0.0.1
+                                            }
+                                        }
+                                    }
+
+                                    if should_write {
+                                        let host_addr = format!("{}/p2p/{}", address_str, local_peer_id);
+                                        let json_data = serde_json::json!({
+                                            "enabled": true,
+                                            "host_address": host_addr,
+                                            "auth_token": auth_token
+                                        });
+                                        if let Ok(json_str) = serde_json::to_string_pretty(&json_data) {
+                                            let _ = std::fs::write(file_path, json_str);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     SwarmEvent::ConnectionEstablished { peer_id, .. } => {
                         active_peers.insert(peer_id);

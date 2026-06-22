@@ -81,17 +81,50 @@ pub fn setup_p2p_instance(
         |row| row.get(0)
     ).unwrap_or_else(|_| "false".to_string());
 
-    let p2p_role: String = local_conn.query_row(
+    let mut p2p_role: String = local_conn.query_row(
         "SELECT value FROM p2p_config WHERE key = 'p2p_role'",
         [],
         |row| row.get(0)
-    ).unwrap_or_else(|_| "host".to_string());
+    ).unwrap_or_else(|_| "client".to_string());
 
-    let p2p_host_address: String = local_conn.query_row(
+    let mut p2p_host_address: String = local_conn.query_row(
         "SELECT value FROM p2p_config WHERE key = 'p2p_host_address'",
         [],
         |row| row.get(0)
     ).unwrap_or_else(|_| "".to_string());
+
+    let mut auth_token: String = local_conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'auth_token'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "".to_string());
+
+    // Muat konfigurasi bersama dari Host jika role kita adalah client
+    if p2p_role == "client" {
+        if let Ok(home) = std::env::var("HOME") {
+            let shared_conf_path = std::path::PathBuf::from(home)
+                .join(".config")
+                .join("pubhub")
+                .join("p2p_shared_config.json");
+            if shared_conf_path.exists() {
+                if let Ok(content) = std::fs::read_to_string(&shared_conf_path) {
+                    if let Ok(json_val) = serde_json::from_str::<serde_json::Value>(&content) {
+                        if let Some(enabled) = json_val.get("enabled").and_then(|v| v.as_bool()) {
+                            if enabled {
+                                p2p_enabled = "true".to_string();
+                            }
+                        }
+                        if let Some(host_addr) = json_val.get("host_address").and_then(|v| v.as_str()) {
+                            p2p_host_address = host_addr.to_string();
+                        }
+                        if let Some(token) = json_val.get("auth_token").and_then(|v| v.as_str()) {
+                            auth_token = token.to_string();
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Tutup koneksi lokal sementara
     drop(local_conn);
