@@ -1,8 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useFileState } from '../../contexts/FileContext';
-import { useInvoiceContext } from '../../contexts/InvoiceContext';
-import InvoicePreview from '../invoice/InvoicePreview';
 import FilePreviewPanel from './PanelKanan/FilePreviewPanel';
 import ServicePreviewPanel from './PanelKanan/ServicePreviewPanel';
 import InsightPanel from './PanelKanan/InsightPanel';
@@ -177,11 +175,9 @@ const PanelKanan: React.FC = () => {
     selectedPenerbitId,
     selectedNaskahId,
     selectedTimId,
-    activeSettingsTab,
   } = useAppContext();
 
   const { files, selectedFileId, setSelectedFileId, setRightPanelVisible } = useFileState();
-  const { tempPreviewProfile, activeProfile } = useInvoiceContext();
 
   const { activeModule } = appState;
 
