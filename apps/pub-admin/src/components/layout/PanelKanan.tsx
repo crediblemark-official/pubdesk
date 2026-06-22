@@ -186,25 +186,8 @@ const PanelKanan: React.FC = () => {
   const { activeModule } = appState;
 
   switch (activeModule) {
-    case 'settings':
-      switch (activeSettingsTab) {
-        case 'invoice':
-          return <InvoicePreview previewProfile={tempPreviewProfile || activeProfile} />;
-        default:
-          return <SettingsHelpPanel tab={activeSettingsTab} />;
-      }
-
-    case 'settings-invoice':
-      return <InvoicePreview previewProfile={tempPreviewProfile || activeProfile} />;
-
-    case 'settings-local-folders':
-      return <SettingsHelpPanel tab="local-folders" />;
-
     case 'settings-p2p':
       return <SettingsHelpPanel tab="p2p-connection" />;
-
-    case 'settings-gdrive':
-      return <SettingsHelpPanel tab="google-drive" />;
 
     case 'settings-gas':
       return <SettingsHelpPanel tab="google-apps-script" />;

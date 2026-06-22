@@ -186,13 +186,7 @@ const PanelKanan: React.FC = () => {
   const { activeModule } = appState;
 
   switch (activeModule) {
-    case 'settings':
-      switch (activeSettingsTab) {
-        case 'invoice':
-          return <InvoicePreview previewProfile={tempPreviewProfile || activeProfile} />;
-        default:
-          return <SettingsHelpPanel tab={activeSettingsTab} />;
-      }
+
 
     case 'settings-local-folders':
       return <SettingsHelpPanel tab="local-folders" />;
