@@ -53,6 +53,11 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
 
   const panelRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [zoom, setZoom] = useState(1.0);
+
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2.0));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
+  const handleZoomReset = () => setZoom(1.0);
   const a4Width = 595;
   const a4Height = 842;
 
@@ -88,15 +93,69 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ previewProfile, overrid
   return (
     <div 
       ref={panelRef}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-panel)', overflow: 'hidden' }}>
+      style={{ 
+        position: 'relative', 
+        width: '100%', 
+        height: '100%', 
+        background: 'var(--bg-panel)', 
+        overflow: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Playball&display=swap');
       `}</style>
 
+      {/* Floating Zoom Controls */}
+      <div style={{
+        position: 'absolute',
+        top: '12px',
+        right: '12px',
+        display: 'flex',
+        gap: '4px',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        padding: '4px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+        zIndex: 100
+      }}>
+        <button 
+          onClick={handleZoomOut}
+          type="button"
+          style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          title="Zoom Out"
+        >
+          ➖
+        </button>
+        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', minWidth: '40px', justifyContent: 'center' }}>
+          {Math.round(zoom * 100)}%
+        </span>
+        <button 
+          onClick={handleZoomIn}
+          type="button"
+          style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          title="Zoom In"
+        >
+          ➕
+        </button>
+        <button 
+          onClick={handleZoomReset}
+          type="button"
+          style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          title="Reset"
+        >
+          🔄
+        </button>
+      </div>
+
       <div 
         id="invoice-preview-content"
         style={{
-          transform: `scale(${scale})`,
+          transform: `scale(${scale * zoom})`,
           transformOrigin: 'center center',
           flexShrink: 0,
           width: `${a4Width}px`,
