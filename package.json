@@ -11,12 +11,15 @@
     "dev:billing": "bun --filter pub-billing dev",
     "dev:files": "bun --filter pub-files dev",
     "dev:ops": "bun --filter pub-ops dev",
+    "dev:admin": "bun --filter pub-admin dev",
     "build:billing": "bun --filter pub-billing build",
     "build:files": "bun --filter pub-files build",
     "build:ops": "bun --filter pub-ops build",
+    "build:admin": "bun --filter pub-admin build",
     "tauri:billing": "bun --filter pub-billing tauri",
     "tauri:files": "bun --filter pub-files tauri",
-    "tauri:ops": "bun --filter pub-ops tauri"
+    "tauri:ops": "bun --filter pub-ops tauri",
+    "tauri:admin": "bun --filter pub-admin tauri"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

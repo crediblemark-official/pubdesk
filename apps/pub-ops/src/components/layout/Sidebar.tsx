@@ -134,7 +134,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     { module: 'penerbit' as const, label: 'Penerbit', icon: '🏢' },
                     { module: 'naskah' as const, label: 'Naskah', icon: '📚' },
                     { module: 'legalitas' as const, label: 'Legalitas', icon: '⚖️' },
-                    { module: 'tim' as const, label: 'Tim', icon: '👨‍💼' },
                   ].map((sub) => {
                     const isSubActive = appState.activeModule === sub.module;
                     return (

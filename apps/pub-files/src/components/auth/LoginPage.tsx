@@ -37,7 +37,6 @@ const LoginPage: React.FC = () => {
   const [selectedAdminForPin, setSelectedAdminForPin] = useState<TimMember | null>(null);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
-  const [pinPurpose, setPinPurpose] = useState<'login' | 'register'>('login');
 
   const [appName, setAppName] = useState('PubFiles');
   const [searchQuery, setSearchQuery] = useState('');
@@ -98,7 +97,6 @@ const LoginPage: React.FC = () => {
                           (member.department && member.department.toLowerCase().includes('admin'));
     
     if (isMemberAdmin) {
-      setPinPurpose('login');
       setSelectedAdminForPin(member);
       setPinInput('');
       setPinError(null);
@@ -117,14 +115,6 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleRegAuthClick = () => {
-    setPinPurpose('register');
-    setSelectedAdminForPin(null);
-    setPinInput('');
-    setPinError(null);
-    setShowPinModal(true);
-  };
-
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPinError(null);
@@ -133,21 +123,16 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    if (pinPurpose === 'register') {
-      setShowPinModal(false);
-      setIsRegistering(true);
-    } else {
-      if (!selectedAdminForPin || !selectedAdminForPin.id) return;
+    if (!selectedAdminForPin || !selectedAdminForPin.id) return;
 
-      setLoggingIn(selectedAdminForPin.id);
-      try {
-        await login(selectedAdminForPin.id);
-        setShowPinModal(false);
-      } catch (err) {
-        setPinError('Gagal login. Silakan coba lagi.');
-        console.error(err);
-        setLoggingIn(null);
-      }
+    setLoggingIn(selectedAdminForPin.id);
+    try {
+      await login(selectedAdminForPin.id);
+      setShowPinModal(false);
+    } catch (err) {
+      setPinError('Gagal login. Silakan coba lagi.');
+      console.error(err);
+      setLoggingIn(null);
     }
   };
 
@@ -496,32 +481,6 @@ const LoginPage: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && !isRegistering && members.length > 0 && (
-          <div style={{
-            padding: '12px 20px',
-            borderBottom: '1px solid var(--border)',
-            background: 'var(--bg-panel)',
-            display: 'flex',
-            justifyContent: 'center',
-          }}>
-            <button
-              type="button"
-              onClick={handleRegAuthClick}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--accent)',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
-            >
-              Nama Anda tidak terdaftar? Buat Profil Baru
-            </button>
-          </div>
-        )}
-
         {/* Error state */}
         {error && (
           <div style={{
@@ -548,7 +507,7 @@ const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      {showPinModal && (
+      {showPinModal && selectedAdminForPin && (
         <Modal
           open={showPinModal}
           onClose={() => {
@@ -560,9 +519,7 @@ const LoginPage: React.FC = () => {
         >
           <form onSubmit={handlePinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-              {pinPurpose === 'register'
-                ? 'Diperlukan verifikasi Admin untuk mendaftarkan profil baru. Masukkan PIN Admin:'
-                : `Anda mencoba masuk sebagai ${selectedAdminForPin?.name || ''} (${selectedAdminForPin?.role || ''}). Masukkan PIN Admin untuk melanjutkan:`}
+              Anda mencoba masuk sebagai <strong>{selectedAdminForPin.name}</strong> ({selectedAdminForPin.role}). Masukkan PIN Admin untuk melanjutkan:
             </p>
             <input
               type="password"
@@ -624,7 +581,7 @@ const LoginPage: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                Verifikasi
+                Masuk
               </button>
             </div>
           </form>

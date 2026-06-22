@@ -10,7 +10,6 @@ import Settings from '../settings/Settings';
 import PenulisManager from '../data-master/PenulisManager';
 import PenerbitManager from '../data-master/PenerbitManager';
 import NaskahOrdersManager from '../data-master/NaskahOrdersManager';
-import TimManager from '../data-master/TimManager';
 import LegalitasManager from '../data-master/LegalitasManager';
 import ActivityLog from '../data-master/ActivityLog';
 
@@ -110,8 +109,6 @@ const MainLayout = () => {
         return <PenerbitManager searchQuery={fileSearchQuery} />;
       case 'naskah':
         return <NaskahOrdersManager searchQuery={fileSearchQuery} />;
-      case 'tim':
-        return <TimManager searchQuery={fileSearchQuery} />;
       case 'legalitas':
         return <LegalitasManager searchQuery={fileSearchQuery} />;
       case 'activity-log':
