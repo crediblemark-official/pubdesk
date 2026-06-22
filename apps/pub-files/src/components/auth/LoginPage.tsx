@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuth } from '../../contexts/AuthContext';
 import { Modal } from '../../ui/molecules/Modal';
+import { useAppContext } from '../../contexts/AppContext';
 
 interface TimMember {
   id?: number;
@@ -27,6 +28,7 @@ function getInitials(name: string): string {
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
+  const { isDbInitialized } = useAppContext();
   const [members, setMembers] = useState<TimMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loggingIn, setLoggingIn] = useState<number | null>(null);
@@ -63,6 +65,8 @@ const LoginPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!isDbInitialized) return;
+
     const load = async () => {
       try {
         const data = await invoke<TimMember[]>('get_tim');
@@ -79,7 +83,7 @@ const LoginPage: React.FC = () => {
       }
     };
     load();
-  }, []);
+  }, [isDbInitialized]);
 
   const filteredMembers = members.filter(member => {
     const query = searchQuery.toLowerCase().trim();

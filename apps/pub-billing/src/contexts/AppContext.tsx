@@ -143,7 +143,9 @@ interface AppContextType {
   }) => Promise<{ success: boolean; message: string }>;
   directAddNewModule: string | null;
   setDirectAddNewModule: (module: string | null) => void;
+  isDbInitialized: boolean;
 }
+
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -151,6 +153,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const ui = useUIState();
   const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation'>('all');
   const [directAddNewModule, setDirectAddNewModule] = useState<string | null>(null);
+  const [isDbInitialized, setIsDbInitialized] = useState(false);
+
 
   const booksState = useBookState({ showToast: ui.showToast });
   const contactsState = useContactState({ showToast: ui.showToast });
@@ -188,6 +192,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const init = async () => {
       try {
         await invoke('init_database');
+        setIsDbInitialized(true);
         await booksState.loadBooks();
         await contactsState.loadContacts();
         await invoicesState.loadInvoices();
@@ -325,6 +330,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       syncModuleDataToCloud: syncState.syncModuleDataToCloud,
       directAddNewModule,
       setDirectAddNewModule,
+      isDbInitialized,
     }}>
       {children}
     </AppContext.Provider>
