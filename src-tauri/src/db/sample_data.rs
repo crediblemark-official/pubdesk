@@ -625,6 +625,7 @@ pub fn reset_total_data(conn: &Connection) -> Result<String, DbError> {
     conn.execute("DELETE FROM tim", [])?;
     conn.execute("DELETE FROM work_hours", [])?;
     conn.execute("DELETE FROM app_sessions", [])?;
+    conn.execute("DELETE FROM activity_log", [])?;
 
     // Seed satu user admin default agar aplikasi tidak macet saat kembali ke layar login
     let now = chrono::Local::now().to_rfc3339();
