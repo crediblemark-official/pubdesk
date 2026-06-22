@@ -31,14 +31,14 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loggingIn, setLoggingIn] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [splashLogo, setSplashLogo] = useState('📚');
+  const [splashLogo, setSplashLogo] = useState('🏭');
   const [logoType, setLogoType] = useState<'emoji' | 'image'>('emoji');
   const [showPinModal, setShowPinModal] = useState(false);
   const [selectedAdminForPin, setSelectedAdminForPin] = useState<TimMember | null>(null);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
 
-  const [appName, setAppName] = useState('PubDesk');
+  const [appName, setAppName] = useState('PubOps');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -53,9 +53,9 @@ const LoginPage: React.FC = () => {
     }
     const publisherName = localStorage.getItem('publisher_name');
     if (publisherName && publisherName.trim()) {
-      setAppName(`PubDesk - ${publisherName.trim()}`);
+      setAppName(`PubOps - ${publisherName.trim()}`);
     } else {
-      setAppName('PubDesk');
+      setAppName('PubOps');
     }
   }, []);
 
@@ -166,7 +166,7 @@ const LoginPage: React.FC = () => {
           {appName}
         </h1>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-          Pilih identitas Anda untuk memulai sesi kerja
+          Pilih identitas Anda untuk mengelola CRM & produksi naskah
         </p>
       </div>
 

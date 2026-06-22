@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Rust target directories
+**/target
+**/Cargo.lock
+**/gen/
