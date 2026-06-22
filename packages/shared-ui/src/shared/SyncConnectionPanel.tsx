@@ -216,6 +216,28 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
     }
   };
 
+  const handleResetWorkspace = async () => {
+    if (!window.confirm("Apakah Anda yakin ingin memutuskan koneksi dari workspace ini? Tindakan ini akan menghapus konfigurasi sinkronisasi dan master key secara lokal.")) {
+      return;
+    }
+    setLoading(true);
+    try {
+      await invoke('reset_sync_workspace');
+      setUnlocked(false);
+      setPin('');
+      setInviteCode('');
+      setEmployeePin('');
+      setGeneratedInvite('');
+      showMessage('Koneksi workspace berhasil diputuskan');
+      await loadConfig();
+      await loadStatus();
+    } catch (err: any) {
+      showMessage(`Gagal memutuskan koneksi: ${err}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleToggleEnabled = async () => {
     if (!status) return;
     try {
@@ -371,9 +393,14 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
         placeholder="PIN Anda"
         style={inputStyle}
       />
-      <button onClick={handleUnlock} disabled={loading || !pin} style={btnPrimaryStyle}>
-        {loading ? '...' : 'Buka Kunci Sync'}
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button onClick={handleUnlock} disabled={loading || !pin} style={{ ...btnPrimaryStyle, flex: 1, marginBottom: 0 }}>
+          {loading ? '...' : 'Buka Kunci Sync'}
+        </button>
+        <button onClick={handleResetWorkspace} disabled={loading} style={btnDangerStyle}>
+          Putuskan Koneksi
+        </button>
+      </div>
     </div>
   );
 
@@ -631,7 +658,6 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
             Error: {status.error}
           </div>
         )}
-      </div>
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
         <div style={{
@@ -744,11 +770,17 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
       </div>
       )}
 
-      <button onClick={handleLock} style={{ ...btnSecondaryStyle, alignSelf: 'flex-start' }}>
-        Kunci Sync
-      </button>
+      <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+        <button onClick={handleLock} style={btnSecondaryStyle}>
+          Kunci Sync
+        </button>
+        <button onClick={handleResetWorkspace} style={btnDangerStyle}>
+          Putuskan Koneksi
+        </button>
+      </div>
     </div>
   );
+};
 
   return (
     <div style={{ width: '100%', padding: '8px 0' }}>
@@ -819,6 +851,17 @@ const btnSecondaryStyle: React.CSSProperties = {
   background: 'var(--bg-card)',
   color: 'var(--text-primary)',
   fontSize: '12px',
+  cursor: 'pointer',
+};
+
+const btnDangerStyle: React.CSSProperties = {
+  padding: '8px 14px',
+  borderRadius: '0px',
+  border: '1px solid #ef4444',
+  background: '#ef4444',
+  color: 'white',
+  fontSize: '12px',
+  fontWeight: 600,
   cursor: 'pointer',
 };
 

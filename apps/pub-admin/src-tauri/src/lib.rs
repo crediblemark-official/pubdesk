@@ -232,6 +232,42 @@ async fn lock_sync(state: State<'_, AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn reset_sync_workspace(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
+    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
+    
+    // Hapus config sync
+    let _ = conn.execute(
+        "DELETE FROM p2p_config WHERE key IN ('sync_enabled', 'sync_workspace_id', 'sync_admin_setup', 'sync_lan_enabled', 'sync_wan_enabled')",
+        [],
+    );
+    let _ = conn.execute(
+        "DELETE FROM crypto_vault WHERE key = 'master_key_sealed'",
+        [],
+    );
+
+    // Reset runtime state
+    let mut s = state.sync.lock().unwrap();
+    if let Some(token) = s.cancel_token.take() {
+        token.cancel();
+    }
+    s.enabled = false;
+    s.workspace_id = None;
+    s.master_key = None;
+    s.network = None;
+    s.error = None;
+    s.last_sync_at = None;
+    s.lan_enabled = true;
+    s.wan_enabled = true;
+
+    Ok(())
+}
+
+
+#[tauri::command]
 async fn get_sync_rendezvous_url(app_handle: tauri::AppHandle) -> Result<String, String> {
     let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
     let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
@@ -766,6 +802,7 @@ pub fn run() {
             join_sync_workspace,
             unlock_sync,
             lock_sync,
+            reset_sync_workspace,
             create_employee_invite,
             get_sync_status,
             get_sync_rendezvous_url,
