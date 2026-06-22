@@ -1,5 +1,5 @@
 import React from 'react';
-import { InvoiceItem, InvoiceProfile, InvoiceTableColumn } from '../../../types/invoice.types';
+import { InvoiceItem, InvoiceProfile } from '../../../types/invoice.types';
 import { formatPrice } from '../../../utils/format';
 import { evaluateItemFormula } from '../../../utils/invoice';
 
@@ -34,17 +34,6 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
     return profile?.actionLabel || 'cetak buku';
   };
 
-  const columns = (profile?.tableColumns && profile.tableColumns.length > 0)
-    ? profile.tableColumns
-    : [
-        { key: 'item_title', label: 'Judul / Detail', type: 'text', align: 'left' as const },
-        { key: 'price', label: 'Harga', type: 'currency', align: 'right' as const, width: '90px' },
-        { key: 'quantity', label: 'Jml.', type: 'number', align: 'center' as const, width: '50px' },
-        { key: 'total', label: 'Total', type: 'formula', align: 'right' as const, width: '95px', formula: '{price} * {quantity}' }
-      ];
-
-  const footerColSpan = columns.length;
-
   return (
     <div style={{ padding: '0 35px', flex: 1, overflow: 'hidden' }}>
       {profile?.salamPembuka && (
@@ -64,75 +53,72 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         <thead>
           <tr style={{ color: '#ffffff' }}>
             <th style={{ background: accentColorDark, width: '28px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
-            {columns.map((col, idx) => (
-              <th 
-                key={idx} 
-                style={{ 
-                  background: accentColor, 
-                  textAlign: col.align || 'left', 
-                  padding: '8px 8px', 
-                  fontSize: '9px', 
-                  fontWeight: '700', 
-                  textTransform: 'uppercase', 
-                  border: 'none', 
-                  width: col.width || 'auto', 
-                  whiteSpace: 'nowrap' 
-                }}
-              >
-                {col.label}
-              </th>
-            ))}
+            <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul / Detail</th>
+            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '90px', whiteSpace: 'nowrap' }}>Harga</th>
+            <th style={{ background: accentColor, textAlign: 'center', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '50px' }}>Jml.</th>
+            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '95px', whiteSpace: 'nowrap' }}>Total</th>
           </tr>
         </thead>
         <tbody>
           {items.length === 0 ? (
             <tr>
-              <td colSpan={columns.length + 1} style={{ padding: '20px', textAlign: 'center', fontSize: '11px', color: '#6b7280', fontStyle: 'italic', borderBottom: '1px solid #e5e7eb' }}>
+              <td colSpan={5} style={{ padding: '20px', textAlign: 'center', fontSize: '11px', color: '#6b7280', fontStyle: 'italic', borderBottom: '1px solid #e5e7eb' }}>
                 Belum ada rincian item. Silakan tambahkan di menu generator.
               </td>
             </tr>
           ) : (
             items.map((item, index) => {
               const rowBg = index % 2 === 0 ? '#fdf2f2' : '#ffffff';
+              const columns = profile?.tableColumns || [];
+              const keysToSkip = new Set(['item_title', 'price', 'quantity', 'total']);
+              const detailParts: string[] = [];
+
+              columns.forEach(col => {
+                if (keysToSkip.has(col.key)) return;
+                if (col.type === 'formula' && (col.key === 'total' || col.key.toLowerCase().includes('total'))) return;
+
+                let val: any;
+                if (col.type === 'formula' && col.formula) {
+                  val = evaluateItemFormula(col.formula, item);
+                } else {
+                  val = item[col.key];
+                }
+                if (val === undefined || val === null || val === '' || val === 0) return;
+
+                const displayVal = col.type === 'currency'
+                  ? `Rp ${formatPrice(Number(val))}`
+                  : String(val);
+                detailParts.push(`${col.label}: ${displayVal}`);
+              });
+
+              const priceVal = item.price || 0;
+              const priceDisplay = `Rp ${formatPrice(priceVal)}`;
+              const qtyVal = item.quantity ?? 1;
+              const totalVal = calculateItemTotal(item);
+              const totalDisplay = `Rp ${formatPrice(totalVal)}`;
 
               return (
                 <tr key={index} style={{ background: rowBg }}>
                   <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
                     {index + 1}.
                   </td>
-                  {columns.map((col, colIdx) => {
-                    let val: any;
-                    if (col.type === 'formula' && col.formula) {
-                      val = evaluateItemFormula(col.formula, item);
-                    } else {
-                      val = item[col.key];
-                    }
-
-                    const displayVal = col.type === 'currency'
-                      ? `Rp ${formatPrice(Number(val || 0))}`
-                      : col.type === 'number'
-                      ? formatPrice(Number(val || 0))
-                      : String(val ?? '-');
-
-                    return (
-                      <td
-                        key={colIdx}
-                        style={{
-                          padding: '6px 8px',
-                          textAlign: col.align || 'left',
-                          fontSize: '9.5px',
-                          color: '#1f2937',
-                          fontWeight: col.key === 'total' || col.key === 'item_title' ? '700' : '500',
-                          borderBottom: '1px solid #e5e7eb',
-                          whiteSpace: col.type === 'currency' || col.type === 'number' ? 'nowrap' : 'normal',
-                          wordBreak: col.type === 'currency' || col.type === 'number' ? 'normal' : 'break-word',
-                          verticalAlign: 'top'
-                        }}
-                      >
-                        {col.key === 'item_title' ? `"${displayVal}"` : displayVal}
-                      </td>
-                    );
-                  })}
+                  <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
+                    <div style={{ fontWeight: '700' }}>"{item.item_title || '-'}"</div>
+                    {detailParts.length > 0 && (
+                      <div style={{ fontWeight: '400', color: '#6b7280', fontSize: '8.5px', marginTop: '2px', lineHeight: '1.4' }}>
+                        {detailParts.join(' | ')}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                    {priceDisplay}
+                  </td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
+                    {qtyVal}
+                  </td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                    {totalDisplay}
+                  </td>
                 </tr>
               );
             })
@@ -142,7 +128,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
             <>
               {((!hasItemShipping && shippingCost > 0) || adminFee > 0) && (
                 <tr style={{ borderTop: '1.5px solid #d1d5db' }}>
-                  <td colSpan={footerColSpan} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Subtotal
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
@@ -153,7 +139,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               {!hasItemShipping && shippingCost > 0 && (
                 <tr>
-                  <td colSpan={footerColSpan} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Ongkos Kirim
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
@@ -164,7 +150,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               {adminFee > 0 && (
                 <tr>
-                  <td colSpan={footerColSpan} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Biaya Admin
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
@@ -174,7 +160,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               )}
 
               <tr style={{ borderTop: '1.5px solid #9ca3af' }}>
-                <td colSpan={footerColSpan} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#1f2937' }}>
+                <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#1f2937' }}>
                   Total
                 </td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '10px', fontWeight: '800', color: accentColorDark, whiteSpace: 'nowrap' }}>
