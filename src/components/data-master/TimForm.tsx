@@ -23,6 +23,9 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
   const [isActive, setIsActive] = useState(1);
   const [notes, setNotes] = useState('');
   const [pin, setPin] = useState('');
+  const [waNumber, setWaNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -34,6 +37,9 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
       setIsActive(initialData.is_active);
       setNotes(initialData.notes || '');
       setPin(initialData.pin || '');
+      setWaNumber(initialData.wa_number || '');
+      setEmail(initialData.email || '');
+      setAddress(initialData.address || '');
     } else {
       setName('');
       setRole('Layouter');
@@ -41,6 +47,9 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
       setIsActive(1);
       setNotes('');
       setPin('');
+      setWaNumber('');
+      setEmail('');
+      setAddress('');
     }
   }, [initialData]);
 
@@ -63,6 +72,9 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
       is_active: isActive,
       notes: notes.trim() || undefined,
       pin: pin.trim() || undefined,
+      wa_number: waNumber.trim() || undefined,
+      email: email.trim() || undefined,
+      address: address.trim() || undefined,
     });
   };
 
@@ -175,6 +187,33 @@ const TimForm: React.FC<TimFormProps> = ({ initialData, onSubmit, onCancel }) =>
                 checked={isActive === 1}
                 onChange={(e) => setIsActive(e.target.checked ? 1 : 0)}
                 style={{ marginTop: '4px' }}
+              />
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <TextField
+                  label="Nomor WhatsApp"
+                  placeholder="Contoh: 081234567890"
+                  value={waNumber}
+                  onChange={(e) => setWaNumber(e.target.value.replace(/\D/g, ''))}
+                  fullWidth
+                />
+
+                <TextField
+                  label="Email Resmi / Pribadi"
+                  type="email"
+                  placeholder="Contoh: hana@pubdesk.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                />
+              </div>
+
+              <TextField
+                label="Alamat Lengkap"
+                placeholder="Contoh: Jl. Kebon Agung No. 12, Sleman, Yogyakarta"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                fullWidth
               />
 
               <TextArea

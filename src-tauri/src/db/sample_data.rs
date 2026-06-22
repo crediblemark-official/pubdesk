@@ -25,11 +25,11 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
     let mut tim_ids = Vec::new();
     if options.tim {
         let tim_data = vec![
-            ("Ika Rahmawati", "Layouter", "Tim Produksi", "123456"),
-            ("Admin Produksi", "Admin Master", "Admin Master", "123456"),
+            ("Ika Rahmawati", "Layouter", "Tim Produksi", "123456", "081234567890", "ika.rahmawati@pubdesk.com", "Yogyakarta"),
+            ("Admin Produksi", "Admin Master", "Admin Master", "123456", "089876543210", "admin.produksi@pubdesk.com", "Jakarta"),
         ];
         println!("[SAMPLE SEED] Menyisipkan data tim...");
-        for (name, role, dept, pin) in &tim_data {
+        for (name, role, dept, pin, wa, email, address) in &tim_data {
             // Cek apakah sudah ada anggota tim dengan nama ini
             let exists: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM tim WHERE name = ?1",
@@ -38,8 +38,8 @@ pub fn seed_sample_data(conn: &Connection, options: SeedOptions) -> Result<Strin
             )?;
             if exists == 0 {
                 conn.execute(
-                    "INSERT INTO tim (name, role, department, is_active, weekly_target, notes, pin, created_at, updated_at) VALUES (?1, ?2, ?3, 1, 5, 'Demo user', ?4, ?5, ?5)",
-                    params![name, role, dept, pin, now]
+                    "INSERT INTO tim (name, role, department, is_active, weekly_target, notes, pin, wa_number, email, address, created_at, updated_at) VALUES (?1, ?2, ?3, 1, 5, 'Demo user', ?4, ?5, ?6, ?7, ?8, ?8)",
+                    params![name, role, dept, pin, wa, email, address, now]
                 )?;
             }
             let id: i64 = conn.query_row(

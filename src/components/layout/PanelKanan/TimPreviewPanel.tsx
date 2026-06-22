@@ -31,7 +31,15 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ timId }) => {
 
   const completeness = useMemo(() => {
     if (!memberData) return 0;
-    const fields = [memberData.name, memberData.role, memberData.department, memberData.notes];
+    const fields = [
+      memberData.name,
+      memberData.role,
+      memberData.department,
+      memberData.notes,
+      memberData.wa_number,
+      memberData.email,
+      memberData.address
+    ];
     const filled = fields.filter(Boolean).length;
     return Math.round((filled / fields.length) * 100);
   }, [memberData]);
@@ -113,6 +121,12 @@ const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ timId }) => {
             value={<Badge label={memberData.is_active === 1 ? 'Aktif' : 'Nonaktif'} variant={memberData.is_active === 1 ? 'success' : 'neutral'} />}
             noBorder
           />
+        </SectionCard>
+
+        <SectionCard title="📞 Informasi Kontak">
+          <InfoRow label="No. WhatsApp" value={memberData.wa_number || '—'} />
+          <InfoRow label="Email Resmi" value={memberData.email || '—'} />
+          <InfoRow label="Alamat Lengkap" value={memberData.address || '—'} noBorder />
         </SectionCard>
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>

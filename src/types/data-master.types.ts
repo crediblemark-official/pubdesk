@@ -74,6 +74,9 @@ export interface Tim {
   weekly_target?: number;
   notes?: string;
   pin?: string; // PIN login
+  wa_number?: string;
+  email?: string;
+  address?: string;
   created_at: string;
   updated_at?: string;
 }

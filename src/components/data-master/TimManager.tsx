@@ -89,6 +89,9 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
           const is_active_str = String(row.Status || row.status || 'Aktif').toLowerCase();
           const is_active = (is_active_str.includes('non') || is_active_str.includes('pasif') || is_active_str === '0') ? 0 : 1;
           const notes = row.Catatan || row.catatan || row.Notes || row.notes;
+          const wa_number = row["No WA"] || row["No. WA"] || row.WhatsApp || row.whatsapp || row.wa || row.wa_number || row.Phone || row.phone;
+          const email = row.Email || row.email || row.Mail || row.mail;
+          const address = row.Alamat || row.alamat || row.Address || row.address;
 
           try {
             await addTim({
@@ -98,6 +101,9 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
               is_active,
               weekly_target: isNaN(weekly_target) ? 0 : weekly_target,
               notes: notes ? String(notes).trim() : undefined,
+              wa_number: wa_number ? String(wa_number).trim() : undefined,
+              email: email ? String(email).trim() : undefined,
+              address: address ? String(address).trim() : undefined,
             });
             importedCount++;
           } catch (err) {
@@ -128,6 +134,9 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
         "Nama Anggota": l.name,
         "Peran": l.role,
         "Divisi/Departemen": l.department || '',
+        "No WA": l.wa_number || '',
+        "Email": l.email || '',
+        "Alamat": l.address || '',
         "Target Mingguan": l.weekly_target,
         "Status": l.is_active === 1 ? 'Aktif' : 'Nonaktif',
         "Catatan": l.notes || '',
@@ -172,6 +181,9 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
           "Nama Anggota": "Hana Safitri",
           "Peran": "Layouter",
           "Divisi": "Produksi",
+          "No WA": "081234567890",
+          "Email": "hana@pubdesk.com",
+          "Alamat": "Jl. Kebon Agung No. 12, Sleman, Yogyakarta",
           "Target Mingguan": 3,
           "Status": "Aktif",
           "Catatan": "Menguasai Adobe InDesign dan Affinity Publisher"
@@ -443,6 +455,9 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Nama Anggota</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Peran</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Divisi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>WhatsApp</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Email</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Alamat</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Tanggal Masuk</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>Status</th>
               <th style={{ padding: '8px 12px', fontWeight: '600', userSelect: 'none', whiteSpace: 'nowrap' }}>PIN Login</th>
@@ -452,7 +467,7 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
           <tbody>
             {filteredMembers.length === 0 ? (
               <TableEmptyState
-                colSpan={7}
+                colSpan={10}
                 icon="👥"
                 message="Tidak ada data anggota tim"
                 description={hasActiveFilter ? 'Tidak ada hasil untuk filter yang dipilih.' : 'Belum ada anggota tim terdaftar. Klik Tambah Anggota Tim untuk menambahkan.'}
@@ -501,6 +516,37 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
                         {l.department}
                       </span>
                     ) : <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>-</span>}
+                  </td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                    {l.wa_number ? (
+                      <a
+                        href={`https://wa.me/${l.wa_number.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: 'var(--text-primary)', textDecoration: 'none', fontWeight: '500' }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                        💬 {l.wa_number}
+                      </a>
+                    ) : '—'}
+                  </td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                    {l.email ? (
+                      <a
+                        href={`mailto:${l.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: 'var(--text-primary)', textDecoration: 'none', fontWeight: '500' }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                        📧 {l.email}
+                      </a>
+                    ) : '—'}
+                  </td>
+                  <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={l.address}>
+                    {l.address || '—'}
                   </td>
                   <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
                     📅 {formatTanggal(l.created_at)}

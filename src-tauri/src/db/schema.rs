@@ -318,6 +318,12 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
             is_active INTEGER NOT NULL DEFAULT 1,
             weekly_target INTEGER NOT NULL DEFAULT 0,
             notes TEXT,
+            pin TEXT,
+            department TEXT,
+            sync_status TEXT DEFAULT 'synced',
+            wa_number TEXT,
+            email TEXT,
+            address TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT
         )",
@@ -680,6 +686,11 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
 
     // Migrasi kolom pin ke tabel tim — untuk autentikasi login anggota tim
     let _ = conn.execute("ALTER TABLE tim ADD COLUMN pin TEXT", []);
+
+    // Migrasi kolom baru untuk detail profil anggota tim
+    let _ = conn.execute("ALTER TABLE tim ADD COLUMN wa_number TEXT", []);
+    let _ = conn.execute("ALTER TABLE tim ADD COLUMN email TEXT", []);
+    let _ = conn.execute("ALTER TABLE tim ADD COLUMN address TEXT", []);
 
     Ok(())
 }

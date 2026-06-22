@@ -7,7 +7,7 @@ impl Database {
     pub fn add_tim(&self, l: &Tim) -> Result<i64, DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "INSERT INTO tim (name, role, department, is_active, weekly_target, notes, pin, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO tim (name, role, department, is_active, weekly_target, notes, pin, wa_number, email, address, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
             params![
                 l.name,
                 l.role,
@@ -16,6 +16,9 @@ impl Database {
                 l.weekly_target,
                 l.notes,
                 l.pin,
+                l.wa_number,
+                l.email,
+                l.address,
                 l.created_at,
                 now
             ]
@@ -26,7 +29,7 @@ impl Database {
     }
 
     pub fn get_all_tim(&self) -> Result<Vec<Tim>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, name, role, department, is_active, weekly_target, notes, pin, created_at, updated_at FROM tim ORDER BY name ASC")?;
+        let mut stmt = self.conn.prepare("SELECT id, name, role, department, is_active, weekly_target, notes, pin, created_at, updated_at, wa_number, email, address FROM tim ORDER BY name ASC")?;
         let rows = stmt.query_map([], |row| {
             Ok(Tim {
                 id: row.get(0)?,
@@ -39,6 +42,9 @@ impl Database {
                 pin: row.get(7)?,
                 created_at: row.get(8)?,
                 updated_at: row.get(9)?,
+                wa_number: row.get(10)?,
+                email: row.get(11)?,
+                address: row.get(12)?,
             })
         })?;
         let mut res = Vec::new();
@@ -51,7 +57,7 @@ impl Database {
     pub fn update_tim(&self, l: &Tim) -> Result<(), DbError> {
         let now = chrono::Local::now().to_rfc3339();
         self.conn.execute(
-            "UPDATE tim SET name = ?1, role = ?2, department = ?3, is_active = ?4, weekly_target = ?5, notes = ?6, pin = ?7, updated_at = ?8 WHERE id = ?9",
+            "UPDATE tim SET name = ?1, role = ?2, department = ?3, is_active = ?4, weekly_target = ?5, notes = ?6, pin = ?7, wa_number = ?8, email = ?9, address = ?10, updated_at = ?11 WHERE id = ?12",
             params![
                 l.name,
                 l.role,
@@ -60,6 +66,9 @@ impl Database {
                 l.weekly_target,
                 l.notes,
                 l.pin,
+                l.wa_number,
+                l.email,
+                l.address,
                 now,
                 l.id
             ]

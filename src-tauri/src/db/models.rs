@@ -385,6 +385,9 @@ pub struct Tim {
     pub weekly_target: i64,
     pub notes: Option<String>,
     pub pin: Option<String>, // PIN login
+    pub wa_number: Option<String>,
+    pub email: Option<String>,
+    pub address: Option<String>,
     pub created_at: String,
     pub updated_at: Option<String>,
 }
@@ -400,6 +403,9 @@ impl Default for Tim {
             weekly_target: 0,
             notes: None,
             pin: None,
+            wa_number: None,
+            email: None,
+            address: None,
             created_at: Local::now().to_rfc3339(),
             updated_at: None,
         }
