@@ -75,13 +75,13 @@ pub fn setup_p2p_instance(
     };
 
     // 4. Baca p2p_enabled, p2p_role, p2p_host_address
-    let p2p_enabled: String = local_conn.query_row(
+    let mut p2p_enabled: String = local_conn.query_row(
         "SELECT value FROM p2p_config WHERE key = 'p2p_enabled'",
         [],
         |row| row.get(0)
     ).unwrap_or_else(|_| "false".to_string());
 
-    let mut p2p_role: String = local_conn.query_row(
+    let p2p_role: String = local_conn.query_row(
         "SELECT value FROM p2p_config WHERE key = 'p2p_role'",
         [],
         |row| row.get(0)
@@ -109,10 +109,10 @@ pub fn setup_p2p_instance(
             if shared_conf_path.exists() {
                 if let Ok(content) = std::fs::read_to_string(&shared_conf_path) {
                     if let Ok(json_val) = serde_json::from_str::<serde_json::Value>(&content) {
+                        let mut shared_enabled = false;
                         if let Some(enabled) = json_val.get("enabled").and_then(|v| v.as_bool()) {
-                            if enabled {
-                                p2p_enabled = "true".to_string();
-                            }
+                            shared_enabled = enabled;
+                            p2p_enabled = if enabled { "true".to_string() } else { "false".to_string() };
                         }
                         if let Some(host_addr) = json_val.get("host_address").and_then(|v| v.as_str()) {
                             p2p_host_address = host_addr.to_string();
@@ -120,6 +120,20 @@ pub fn setup_p2p_instance(
                         if let Some(token) = json_val.get("auth_token").and_then(|v| v.as_str()) {
                             auth_token = token.to_string();
                         }
+
+                        // Simpan konfigurasi termuat ke database lokal agar wrapper.rs bisa menggunakannya
+                        let _ = local_conn.execute(
+                            "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('p2p_enabled', ?1)",
+                            [if shared_enabled { "true" } else { "false" }]
+                        );
+                        let _ = local_conn.execute(
+                            "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('p2p_host_address', ?1)",
+                            [&p2p_host_address]
+                        );
+                        let _ = local_conn.execute(
+                            "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('auth_token', ?1)",
+                            [&auth_token]
+                        );
                     }
                 }
             }
