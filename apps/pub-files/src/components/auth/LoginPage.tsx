@@ -37,6 +37,7 @@ const LoginPage: React.FC = () => {
   const [selectedAdminForPin, setSelectedAdminForPin] = useState<TimMember | null>(null);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
+  const [pinPurpose, setPinPurpose] = useState<'login' | 'register'>('login');
 
   const [appName, setAppName] = useState('PubFiles');
   const [searchQuery, setSearchQuery] = useState('');
@@ -97,6 +98,7 @@ const LoginPage: React.FC = () => {
                           (member.department && member.department.toLowerCase().includes('admin'));
     
     if (isMemberAdmin) {
+      setPinPurpose('login');
       setSelectedAdminForPin(member);
       setPinInput('');
       setPinError(null);
@@ -115,6 +117,14 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleRegAuthClick = () => {
+    setPinPurpose('register');
+    setSelectedAdminForPin(null);
+    setPinInput('');
+    setPinError(null);
+    setShowPinModal(true);
+  };
+
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPinError(null);
@@ -123,16 +133,21 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    if (!selectedAdminForPin || !selectedAdminForPin.id) return;
-
-    setLoggingIn(selectedAdminForPin.id);
-    try {
-      await login(selectedAdminForPin.id);
+    if (pinPurpose === 'register') {
       setShowPinModal(false);
-    } catch (err) {
-      setPinError('Gagal login. Silakan coba lagi.');
-      console.error(err);
-      setLoggingIn(null);
+      setIsRegistering(true);
+    } else {
+      if (!selectedAdminForPin || !selectedAdminForPin.id) return;
+
+      setLoggingIn(selectedAdminForPin.id);
+      try {
+        await login(selectedAdminForPin.id);
+        setShowPinModal(false);
+      } catch (err) {
+        setPinError('Gagal login. Silakan coba lagi.');
+        console.error(err);
+        setLoggingIn(null);
+      }
     }
   };
 
@@ -491,7 +506,7 @@ const LoginPage: React.FC = () => {
           }}>
             <button
               type="button"
-              onClick={() => setIsRegistering(true)}
+              onClick={handleRegAuthClick}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -533,7 +548,7 @@ const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      {showPinModal && selectedAdminForPin && (
+      {showPinModal && (
         <Modal
           open={showPinModal}
           onClose={() => {
@@ -545,7 +560,9 @@ const LoginPage: React.FC = () => {
         >
           <form onSubmit={handlePinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-              Anda mencoba masuk sebagai <strong>{selectedAdminForPin.name}</strong> ({selectedAdminForPin.role}). Masukkan PIN Admin untuk melanjutkan:
+              {pinPurpose === 'register'
+                ? 'Diperlukan verifikasi Admin untuk mendaftarkan profil baru. Masukkan PIN Admin:'
+                : `Anda mencoba masuk sebagai ${selectedAdminForPin?.name || ''} (${selectedAdminForPin?.role || ''}). Masukkan PIN Admin untuk melanjutkan:`}
             </p>
             <input
               type="password"
@@ -607,7 +624,7 @@ const LoginPage: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                Masuk
+                Verifikasi
               </button>
             </div>
           </form>
