@@ -6,7 +6,7 @@ interface UseBookStateProps {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export function useBookState({ showToast }: UseBookStateProps) {
+export function useBookState({ showToast: _showToast }: UseBookStateProps) {
   const [books, setBooks] = useState<Book[]>([]);
 
   const loadBooks = async () => {
@@ -25,8 +25,7 @@ export function useBookState({ showToast }: UseBookStateProps) {
       return id;
     } catch (error) {
       console.error('Failed to add book:', error);
-      showToast('Gagal menambahkan buku', 'error');
-      return 0;
+      throw error;
     }
   };
 
@@ -36,7 +35,7 @@ export function useBookState({ showToast }: UseBookStateProps) {
       await loadBooks();
     } catch (error) {
       console.error('Failed to delete book:', error);
-      showToast('Gagal menghapus buku', 'error');
+      throw error;
     }
   };
 
@@ -46,7 +45,7 @@ export function useBookState({ showToast }: UseBookStateProps) {
       await loadBooks();
     } catch (error) {
       console.error('Failed to update book:', error);
-      showToast('Gagal memperbarui buku', 'error');
+      throw error;
     }
   };
 

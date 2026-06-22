@@ -12,6 +12,7 @@ import InvoiceSettings from '../settings/InvoiceSettings';
 import { SyncConnectionPanel } from '@pubhub/shared-ui/src/shared/SyncConnectionPanel';
 import ServiceManager from '../data-master/ServiceManager';
 import PelangganManager from '../data-master/PelangganManager';
+import DashboardMasterData from '../data-master/DashboardMasterData';
 import ActivityLog from '../data-master/ActivityLog';
 import LaporanOperasional from '../laporan/LaporanOperasional';
 import DashboardInvoice from '../invoice/DashboardInvoice';
@@ -118,6 +119,8 @@ const MainLayout = () => {
         return <ActivityLog />;
       case 'invoice-parent':
         return <DashboardInvoice />;
+      case 'master-data-parent':
+        return <DashboardMasterData />;
       case 'laporan-operasional':
         return <LaporanOperasional />;
       case 'settings-invoice':

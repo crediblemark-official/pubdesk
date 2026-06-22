@@ -14,13 +14,8 @@ const HomeDashboard: React.FC = () => {
   }, []);
 
   const quickActions = [
-    { id: 'tambah-tugas', label: '➕ Tambah Tugas Baru', desc: 'Daftarkan tugas alur kerja produksi baru', color: '#10b981' },
     { id: 'invoice', label: '✍️ Buat Invoice Baru', desc: 'Buat lembar tagihan kuitansi resmi baru', color: '#06b6d4' },
-    { id: 'penulis', label: '👤 Tambah Kontak/Penulis', desc: 'Daftarkan profil penulis atau klien baru', color: '#3b82f6' },
-    { id: 'naskah', label: '📚 Tambah Naskah Baru', desc: 'Daftarkan pesanan order buku masuk baru', color: '#a855f7' },
-    { id: 'penerbit', label: '🏢 Tambah Mitra Penerbit', desc: 'Daftarkan mitra penerbit kerja sama baru', color: '#f59e0b' },
-    { id: 'tim', label: '👨‍💼 Tambah Anggota Tim', desc: 'Daftarkan staf pelaksana alur produksi baru', color: '#6b7280' },
-    { id: 'legalitas', label: '⚖️ Ajukan Legalitas Buku', desc: 'Ajukan ISBN atau hak cipta buku baru', color: '#ef4444' },
+    { id: 'pelanggan', label: '👤 Tambah Pelanggan Baru', desc: 'Daftarkan profil pelanggan baru', color: '#3b82f6' },
     { id: 'services', label: '🛠️ Tambah Layanan Jasa', desc: 'Daftarkan jenis layanan baru di katalog', color: '#14b8a6' },
   ];
 
@@ -89,7 +84,7 @@ const HomeDashboard: React.FC = () => {
                 key={action.id}
                 onClick={() => {
                   setActiveModule(action.id as any);
-                  if (!['tambah-tugas', 'invoice'].includes(action.id)) {
+                  if (!['invoice'].includes(action.id)) {
                     setDirectAddNewModule(action.id);
                   }
                 }}

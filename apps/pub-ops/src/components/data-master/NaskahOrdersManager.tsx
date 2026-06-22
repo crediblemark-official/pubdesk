@@ -117,6 +117,7 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
               book_size: book_size ? String(book_size).trim() : undefined,
               order_type: order_type ? String(order_type).trim() : undefined,
               legal_type: legal_type ? String(legal_type).trim() : undefined,
+              status: status ? String(status).trim() : 'Belum Dimulai',
             });
 
             if (newId && status && String(status).trim() !== 'Belum Dimulai') {
@@ -261,6 +262,8 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
   useEffect(() => {
     if (directAddNewModule === 'naskah') {
       setCurrentOrder(null);
+      setActiveStatuses([]);
+      setGenreFilter('');
       setIsEditing(true);
       setDirectAddNewModule(null);
     }
@@ -327,6 +330,8 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
 
   const handleAddNew = () => {
     setCurrentOrder(null);
+    setActiveStatuses([]);
+    setGenreFilter('');
     setIsEditing(true);
   };
 
@@ -411,7 +416,8 @@ const NaskahOrdersManager: React.FC<NaskahOrdersManagerProps> = ({ searchQuery =
           await registerNaskahFile(data.id, { ...original, ...data } as Naskah);
         }
       } else {
-        const newId = await addNaskah(data as Omit<Naskah, 'status' | 'created_at'>);
+        const newId = await addNaskah(data as Omit<Naskah, 'created_at'>);
+        if (!newId) throw new Error('Gagal menyimpan naskah');
         showToast('Naskah baru berhasil ditambahkan!', 'success');
         await registerNaskahFile(newId, { ...data, id: newId } as Naskah);
       }

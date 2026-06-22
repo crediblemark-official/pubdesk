@@ -11,8 +11,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(() => {
     const active = appState.activeModule;
     return {
-      'master-data-parent': ['kontak', 'penerbit', 'naskah', 'tim', 'legalitas', 'master-data-parent'].includes(active),
-      'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'tambah-tugas', 'edit-tugas', 'produksi-parent'].includes(active)
+      'master-data-parent': ['kontak', 'penulis', 'penerbit', 'naskah', 'legalitas', 'master-data-parent'].includes(active),
+      'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'produksi-timeline', 'tambah-tugas', 'edit-tugas', 'produksi-parent'].includes(active)
     };
   });
 
@@ -26,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   const bottomItems = [
     { id: 'settings-p2p' as const, label: 'Koneksi Jaringan', icon: '🔗' },
+    { id: 'settings' as const, label: 'Setelan Aplikasi', icon: '⚙️' },
     { id: 'activity-log' as const, label: 'Activity Log', icon: '📋' },
   ];
 
@@ -38,9 +39,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           const isActive = item.id === 'master-data-parent'
             ? (
                 appState.activeModule === 'kontak' ||
+                appState.activeModule === 'penulis' ||
                 appState.activeModule === 'penerbit' ||
                 appState.activeModule === 'naskah' ||
-                appState.activeModule === 'tim' ||
                 appState.activeModule === 'legalitas' ||
                 appState.activeModule === 'master-data-parent'
               )
@@ -50,6 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 appState.activeModule === 'produksi-list' ||
                 appState.activeModule === 'produksi-kendala' ||
                 appState.activeModule === 'produksi-approval' ||
+                appState.activeModule === 'produksi-timeline' ||
                 appState.activeModule === 'tambah-tugas' ||
                 appState.activeModule === 'edit-tugas' ||
                 appState.activeModule === 'produksi-parent'
@@ -130,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               {showMasterDataSubmenu && (
                 <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
-                    { module: 'kontak' as const, label: 'Kontak', icon: '👤' },
+                    { module: 'kontak' as const, label: 'Kontak & Penulis', icon: '👤' },
                     { module: 'penerbit' as const, label: 'Penerbit', icon: '🏢' },
                     { module: 'naskah' as const, label: 'Naskah', icon: '📚' },
                     { module: 'legalitas' as const, label: 'Legalitas', icon: '⚖️' },
@@ -187,6 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     { module: 'produksi-list' as const, label: 'Daftar Tugas', icon: '📄' },
                     { module: 'produksi-kendala' as const, label: 'Revisi & Kendala', icon: '⚠️' },
                     { module: 'produksi-approval' as const, label: 'Approval', icon: '✅' },
+                    { module: 'produksi-timeline' as const, label: 'Timeline', icon: '📅' },
                   ].map((sub) => {
                     const isSubActive = appState.activeModule === sub.module;
                     return (

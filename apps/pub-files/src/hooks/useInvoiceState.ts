@@ -6,7 +6,7 @@ interface UseInvoiceStateProps {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export function useInvoiceState({ showToast }: UseInvoiceStateProps) {
+export function useInvoiceState({ showToast: _showToast }: UseInvoiceStateProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const loadInvoices = async () => {
@@ -25,8 +25,7 @@ export function useInvoiceState({ showToast }: UseInvoiceStateProps) {
       return id;
     } catch (error) {
       console.error('Failed to add invoice:', error);
-      showToast('Gagal menambahkan invoice', 'error');
-      return 0;
+      throw error;
     }
   };
 
@@ -36,7 +35,7 @@ export function useInvoiceState({ showToast }: UseInvoiceStateProps) {
       await loadInvoices();
     } catch (error) {
       console.error('Failed to update invoice:', error);
-      showToast('Gagal memperbarui invoice', 'error');
+      throw error;
     }
   };
 
@@ -46,7 +45,7 @@ export function useInvoiceState({ showToast }: UseInvoiceStateProps) {
       await loadInvoices();
     } catch (error) {
       console.error('Failed to delete invoice:', error);
-      showToast('Gagal menghapus invoice', 'error');
+      throw error;
     }
   };
 

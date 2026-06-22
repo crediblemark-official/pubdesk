@@ -28,6 +28,20 @@ interface SyncConnectionPanelProps {
   isAdmin?: boolean;
 }
 
+function timeAgo(dateStr: string | null): string {
+  if (!dateStr) return 'Belum pernah';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 10) return 'baru saja';
+  if (sec < 60) return `${sec} detik lalu`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} menit lalu`;
+  const jam = Math.floor(min / 60);
+  if (jam < 24) return `${jam} jam lalu`;
+  const hari = Math.floor(jam / 24);
+  return `${hari} hari lalu`;
+}
+
 export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmin = false }) => {
   const [config, setConfig] = useState<SyncConfig | null>(null);
   const [status, setStatus] = useState<SyncStatus | null>(null);
@@ -41,6 +55,12 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
   const [rendezvousUrl, setRendezvousUrl] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
+
+  const [rendezvousStatus, setRendezvousStatus] = useState<'unknown' | 'online' | 'offline'>('unknown');
+  const [rendezvousTesting, setRendezvousTesting] = useState(false);
+  const [rendezvousLastChecked, setRendezvousLastChecked] = useState<string | null>(null);
+  const [syncingNow, setSyncingNow] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const showMessage = (msg: string) => {
     setMessage(msg);
@@ -65,6 +85,30 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
     }
   }, []);
 
+  const testRendezvous = useCallback(async () => {
+    if (!rendezvousUrl.trim()) {
+      setRendezvousStatus('offline');
+      return;
+    }
+    setRendezvousTesting(true);
+    try {
+      const base = rendezvousUrl.trim().replace(/\/+$/, '');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(`${base}/peers/_test_`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      setRendezvousStatus(res.status === 200 || res.status === 404 ? 'online' : 'offline');
+    } catch {
+      setRendezvousStatus('offline');
+    } finally {
+      setRendezvousTesting(false);
+      setRendezvousLastChecked(new Date().toISOString());
+    }
+  }, [rendezvousUrl]);
+
   useEffect(() => {
     loadConfig();
     (async () => {
@@ -80,6 +124,12 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
     }, 3000);
     return () => clearInterval(interval);
   }, [loadConfig, loadStatus]);
+
+  useEffect(() => {
+    if (rendezvousUrl.trim()) {
+      testRendezvous();
+    }
+  }, [rendezvousUrl, testRendezvous]);
 
   useEffect(() => {
     const unlistenApplied = listen('sync-applied', (event) => {
@@ -174,6 +224,27 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
     }
   };
 
+  const handleSyncNow = async () => {
+    setSyncingNow(true);
+    try {
+      await invoke('set_sync_enabled', { enabled: false });
+      await new Promise((r) => setTimeout(r, 300));
+      await invoke('set_sync_enabled', { enabled: true });
+      await loadStatus();
+      showMessage('Sinkronisasi dipicu ulang');
+    } catch (err: any) {
+      showMessage(`Gagal: ${err}`);
+    } finally {
+      setSyncingNow(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadStatus();
+    setRefreshing(false);
+  };
+
   const handleCreateInvite = async () => {
     if (!adminPinForInvite || !newEmployeePin) return;
     try {
@@ -192,6 +263,7 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
     try {
       await invoke('set_sync_rendezvous_url', { url: rendezvousUrl.trim() });
       showMessage('URL Worker disimpan');
+      testRendezvous();
     } catch (err: any) {
       showMessage(`Gagal simpan URL: ${err}`);
     }
@@ -203,6 +275,9 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
       showMessage('Invite code disalin');
     }
   };
+
+  const peerCount = status?.connected_peers.length || 0;
+  const hasOutbox = (status?.pending_outbox_count || 0) > 0;
 
   const renderSetup = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -290,32 +365,99 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
           borderLeft: `4px solid ${status?.enabled ? '#10b981' : '#ef4444'}`,
         }}
       >
-        <div>
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Status Sync</div>
-          <div style={{ fontSize: '15px', fontWeight: 700 }}>
-            {status?.enabled ? 'Aktif' : 'Nonaktif'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span
+            style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              background: status?.enabled
+                ? peerCount > 0 ? '#10b981' : '#f59e0b'
+                : '#ef4444',
+              flexShrink: 0,
+              boxShadow: status?.enabled
+                ? `0 0 6px ${peerCount > 0 ? '#10b981' : '#f59e0b'}`
+                : 'none',
+            }}
+            title={
+              !status?.enabled ? 'Nonaktif'
+                : peerCount > 0 ? 'Peer terhubung'
+                : 'Aktif, menunggu peer'
+            }
+          />
+          <div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Status Sync</div>
+            <div style={{ fontSize: '15px', fontWeight: 700 }}>
+              {!status?.enabled ? 'Nonaktif'
+                : peerCount > 0 ? 'Terhubung'
+                : 'Menunggu Peer'}
+            </div>
           </div>
         </div>
-        <button onClick={handleToggleEnabled} style={btnSecondaryStyle}>
-          {status?.enabled ? 'Matikan' : 'Aktifkan'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={handleSyncNow} disabled={syncingNow} style={btnSecondaryStyle}>
+            {syncingNow ? '...' : 'Sync Now'}
+          </button>
+          <button onClick={handleToggleEnabled} style={btnSecondaryStyle}>
+            {status?.enabled ? 'Matikan' : 'Aktifkan'}
+          </button>
+        </div>
       </div>
 
-      <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div>
-          <strong>Workspace:</strong> {status?.workspace_id || '-'}
+      <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <span><strong>Workspace:</strong> {status?.workspace_id || '-'}</span>
+          <button onClick={handleRefresh} disabled={refreshing} style={{
+            ...btnSecondaryStyle,
+            padding: '4px 10px',
+            fontSize: '11px',
+          }}>
+            {refreshing ? '...' : '↻ Refresh'}
+          </button>
         </div>
-        <div>
-          <strong>Peer ID lokal:</strong>{' '}
-          <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-            {status?.local_peer_id?.slice(0, 16)}...
-          </span>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 12px',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+        }}>
+          <span
+            style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: status?.enabled
+                ? peerCount > 0 ? '#10b981' : '#f59e0b'
+                : '#6b7280',
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Koneksi P2P</div>
+            <div style={{ fontSize: '13px', fontWeight: 600 }}>
+              {peerCount > 0
+                ? `${peerCount} peer terhubung`
+                : status?.enabled
+                  ? 'Menunggu koneksi peer...'
+                  : 'Nonaktif'}
+            </div>
+          </div>
+          {status?.local_peer_id && (
+            <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-secondary)' }}>
+              {status.local_peer_id.slice(0, 8)}...
+            </span>
+          )}
         </div>
-        <div>
-          <strong>Peer terhubung:</strong> {status?.connected_peers.length || 0}
-        </div>
+
         {status?.connected_peers && status.connected_peers.length > 0 && (
-          <div style={{ marginTop: '4px' }}>
+          <div style={{ paddingLeft: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {status.connected_peers.map((p, i) => (
               <div
                 key={p.peer_id}
@@ -323,8 +465,7 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '4px 8px',
-                  marginBottom: '4px',
+                  padding: '6px 10px',
                   fontSize: '12px',
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border)',
@@ -337,6 +478,7 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
                     borderRadius: '50%',
                     background: '#10b981',
                     flexShrink: 0,
+                    boxShadow: '0 0 4px #10b981',
                   }}
                   title="Terhubung"
                 />
@@ -350,35 +492,100 @@ export const SyncConnectionPanel: React.FC<SyncConnectionPanelProps> = ({ isAdmi
             ))}
           </div>
         )}
-        <div>
-          <strong>Menunggu kirim:</strong> {status?.pending_outbox_count || 0}
+
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '120px', padding: '8px 12px', background: hasOutbox ? 'rgba(245,158,11,0.08)' : 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Antrian Kirim</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: hasOutbox ? '#f59e0b' : 'var(--text-primary)' }}>
+              {status?.pending_outbox_count || 0}
+            </div>
+          </div>
+          <div style={{ flex: 1, minWidth: '120px', padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Sync Terakhir</div>
+            <div style={{ fontSize: '13px', fontWeight: 600 }}>{timeAgo(status?.last_sync_at ?? null)}</div>
+          </div>
         </div>
-        <div>
-          <strong>Sync terakhir:</strong>{' '}
-          {status?.last_sync_at ? new Date(status.last_sync_at).toLocaleString() : '-'}
-        </div>
+
         {status?.error && (
-          <div style={{ color: '#ef4444', fontSize: '12px' }}>Error: {status.error}</div>
+          <div style={{
+            padding: '8px 12px',
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            color: '#ef4444',
+            fontSize: '12px',
+          }}>
+            Error: {status.error}
+          </div>
         )}
       </div>
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-        <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px' }}>
-          Cloudflare Rendezvous Worker
-        </h4>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '12px',
+        }}>
+          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0 }}>
+            Cloudflare Rendezvous Worker
+          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {rendezvousTesting && (
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>mengetes...</span>
+            )}
+            {!rendezvousTesting && rendezvousUrl.trim() && (
+              <>
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: rendezvousStatus === 'online' ? '#10b981'
+                      : rendezvousStatus === 'offline' ? '#ef4444'
+                      : '#6b7280',
+                    flexShrink: 0,
+                    boxShadow: rendezvousStatus === 'online' ? '0 0 4px #10b981' : 'none',
+                  }}
+                  title={
+                    rendezvousStatus === 'online' ? 'Worker reachable'
+                      : rendezvousStatus === 'offline' ? 'Worker tidak reachable'
+                      : 'Belum dites'
+                  }
+                />
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                  {rendezvousStatus === 'online' ? 'Online'
+                    : rendezvousStatus === 'offline' ? 'Offline'
+                    : 'Unknown'}
+                </span>
+                {rendezvousLastChecked && (
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                    {timeAgo(rendezvousLastChecked)}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        </div>
         <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-          Opsional. Isi URL Worker untuk membantu peer menemukan satu sama lain antar kantor.
+          Opsional. Isi URL Worker untuk membantu peer menemukan satu sama lain antar jaringan.
         </p>
-        <input
-          type="text"
-          value={rendezvousUrl}
-          onChange={(e) => setRendezvousUrl(e.target.value)}
-          placeholder="https://pubdesk-rendezvous.your-account.workers.dev"
-          style={inputStyle}
-        />
-        <button onClick={handleSaveRendezvousUrl} style={btnSecondaryStyle}>
-          Simpan URL Worker
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+          <input
+            type="text"
+            value={rendezvousUrl}
+            onChange={(e) => setRendezvousUrl(e.target.value)}
+            placeholder="https://pubdesk-rendezvous.your-account.workers.dev"
+            style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+            <button onClick={handleSaveRendezvousUrl} style={btnSecondaryStyle}>
+              Simpan
+            </button>
+            <button onClick={testRendezvous} disabled={rendezvousTesting || !rendezvousUrl.trim()} style={btnSecondaryStyle}>
+              {rendezvousTesting ? '...' : 'Test'}
+            </button>
+          </div>
+        </div>
       </div>
 
       {isAdmin && (

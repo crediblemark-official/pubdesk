@@ -14,7 +14,7 @@ interface PelangganManagerProps {
 }
 
 const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' }) => {
-  const { contacts, addContact, updateContact, deleteContact, showConfirm, showToast, setRightPanelVisible, selectedCustomerId, setSelectedCustomerId, addFile, files, registerImportExportActions } = useAppContext();
+  const { contacts, addContact, updateContact, deleteContact, showConfirm, showToast, setRightPanelVisible, selectedCustomerId, setSelectedCustomerId, addFile, files, registerImportExportActions, directAddNewModule, setDirectAddNewModule } = useAppContext();
 
   useEffect(() => {
     const actions = {
@@ -178,6 +178,14 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
   const [isEditing, setIsEditing] = useState(false);
   const [currentContact, setCurrentContact] = useState<Contact | null>(null);
 
+  useEffect(() => {
+    if (directAddNewModule === 'pelanggan') {
+      setCurrentContact(null);
+      setIsEditing(true);
+      setDirectAddNewModule(null);
+    }
+  }, [directAddNewModule]);
+
   // Ambil hanya pelanggan (type === 'customer')
   const pelanggan = contacts.filter(c => c.type === 'customer');
 
@@ -244,10 +252,9 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
           ...data,
           created_at: new Date().toISOString()
         });
+        if (!newId) throw new Error('Gagal menyimpan pelanggan');
         showToast('Data pelanggan berhasil ditambahkan', 'success');
-        if (newId) {
-          await registerPelangganFile(newId, { ...data, id: newId, created_at: new Date().toISOString() } as Contact);
-        }
+        await registerPelangganFile(newId, { ...data, id: newId, created_at: new Date().toISOString() } as Contact);
       }
       setIsEditing(false);
       setCurrentContact(null);

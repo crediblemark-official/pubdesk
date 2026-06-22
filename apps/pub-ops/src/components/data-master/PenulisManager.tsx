@@ -41,6 +41,8 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
   useEffect(() => {
     if (directAddNewModule === 'penulis' || directAddNewModule === 'kontak') {
       setCurrentPenulis(null);
+      setStatusFilter('');
+      setContactTypeFilter('all');
       setIsEditing(true);
       setDirectAddNewModule(null);
     }
@@ -313,6 +315,8 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
 
   const handleAddNew = () => {
     setCurrentPenulis(null);
+    setStatusFilter('');
+    setContactTypeFilter('all');
     setIsEditing(true);
   };
 
@@ -428,6 +432,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
               wa_valid: data.wa_valid,
               data_source: data.data_source || 'Database Pelanggan',
             });
+            if (!newId) throw new Error('Gagal menyimpan penulis');
             penulisId = newId;
           }
 
@@ -464,6 +469,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
         }
       } else {
         const newId = await addPenulis(data as Omit<Penulis, 'created_at'>);
+        if (!newId) throw new Error('Gagal menyimpan penulis');
         showToast('Penulis baru berhasil ditambahkan!', 'success');
         await registerPenulisFile(newId, { ...data, id: newId } as Penulis);
       }

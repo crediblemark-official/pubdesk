@@ -216,6 +216,8 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
   useEffect(() => {
     if (directAddNewModule === 'legalitas') {
       setCurrentLegalitas(null);
+      setActiveTipe([]);
+      setStatusFilter('');
       setIsEditing(true);
       setDirectAddNewModule(null);
     }
@@ -259,6 +261,8 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
 
   const handleAddNew = () => {
     setCurrentLegalitas(null);
+    setActiveTipe([]);
+    setStatusFilter('');
     setIsEditing(true);
   };
 
@@ -339,6 +343,7 @@ const LegalitasManager: React.FC<LegalitasManagerProps> = ({ searchQuery = '' })
         await registerLegalitasFile(data.id, data as Legalitas);
       } else {
         const newId = await addLegalitas(data);
+        if (!newId) throw new Error('Gagal menyimpan legalitas');
         showToast('Data legalitas berhasil ditambahkan', 'success');
         await registerLegalitasFile(newId, { ...data, id: newId } as Legalitas);
       }

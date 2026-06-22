@@ -37,6 +37,7 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
   useEffect(() => {
     if (directAddNewModule === 'penerbit') {
       setCurrentPenerbit(null);
+      setCoopFilter('all');
       setIsEditing(true);
       setDirectAddNewModule(null);
     }
@@ -65,6 +66,7 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
 
   const handleAddNew = () => {
     setCurrentPenerbit(null);
+    setCoopFilter('all');
     setIsEditing(true);
   };
 
@@ -137,6 +139,7 @@ const PenerbitManager: React.FC<PenerbitManagerProps> = ({ searchQuery = '' }) =
         }
       } else {
         const newId = await addPenerbit(data as Omit<Penerbit, 'created_at'>);
+        if (!newId) throw new Error('Gagal menyimpan penerbit');
         showToast('Penerbit baru berhasil ditambahkan!', 'success');
         await registerPenerbitFile(newId, { ...data, id: newId } as Penerbit);
       }

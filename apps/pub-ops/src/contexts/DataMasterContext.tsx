@@ -17,7 +17,7 @@ interface DataMasterContextType {
   addPenerbit: (p: Omit<Penerbit, 'created_at'>) => Promise<number>;
   updatePenerbit: (p: Penerbit) => Promise<void>;
   deletePenerbit: (id: number) => Promise<void>;
-  addNaskah: (n: Omit<Naskah, 'status' | 'created_at'>) => Promise<number>;
+  addNaskah: (n: Omit<Naskah, 'created_at'>) => Promise<number>;
   updateNaskah: (n: Naskah) => Promise<void>;
   deleteNaskah: (id: number) => Promise<void>;
   addTim: (l: Omit<Tim, 'created_at'>) => Promise<number>;
@@ -95,7 +95,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       return id;
     } catch (err) {
       console.error('Gagal menambah penulis:', err);
-      return 0;
+      throw err;
     }
   };
 
@@ -105,6 +105,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadPenulis();
     } catch (err) {
       console.error('Gagal mengupdate penulis:', err);
+      throw err;
     }
   };
 
@@ -114,6 +115,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadPenulis();
     } catch (err) {
       console.error('Gagal menghapus penulis:', err);
+      throw err;
     }
   };
 
@@ -128,7 +130,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       return id;
     } catch (err) {
       console.error('Gagal menambah penerbit:', err);
-      return 0;
+      throw err;
     }
   };
 
@@ -138,6 +140,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadPenerbit();
     } catch (err) {
       console.error('Gagal mengupdate penerbit:', err);
+      throw err;
     }
   };
 
@@ -147,14 +150,15 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadPenerbit();
     } catch (err) {
       console.error('Gagal menghapus penerbit:', err);
+      throw err;
     }
   };
 
-  const addNaskah = async (n: Omit<Naskah, 'status' | 'created_at'>) => {
+  const addNaskah = async (n: Omit<Naskah, 'created_at'>) => {
     try {
       const payload = {
         ...n,
-        status: 'Belum Dimulai',
+        status: n.status || 'Belum Dimulai',
         created_at: new Date().toISOString()
       };
       const id = await invoke<number>('add_naskah', { order: payload });
@@ -162,7 +166,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       return id;
     } catch (err) {
       console.error('Gagal menambah naskah:', err);
-      return 0;
+      throw err;
     }
   };
 
@@ -172,6 +176,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadNaskah();
     } catch (err) {
       console.error('Gagal mengupdate naskah:', err);
+      throw err;
     }
   };
 
@@ -181,6 +186,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadNaskah();
     } catch (err) {
       console.error('Gagal menghapus naskah:', err);
+      throw err;
     }
   };
 
@@ -196,7 +202,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       return id;
     } catch (err) {
       console.error('Gagal menambah tim:', err);
-      return 0;
+      throw err;
     }
   };
 
@@ -210,6 +216,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadTim();
     } catch (err) {
       console.error('Gagal mengupdate tim:', err);
+      throw err;
     }
   };
 
@@ -219,6 +226,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadTim();
     } catch (err) {
       console.error('Gagal menghapus tim:', err);
+      throw err;
     }
   };
 
@@ -233,7 +241,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       return id;
     } catch (err) {
       console.error('Gagal menambah legalitas:', err);
-      return 0;
+      throw err;
     }
   };
 
@@ -243,6 +251,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadLegalitas();
     } catch (err) {
       console.error('Gagal mengupdate legalitas:', err);
+      throw err;
     }
   };
 
@@ -252,6 +261,7 @@ export const DataMasterProvider: React.FC<{ children: ReactNode }> = ({ children
       await loadLegalitas();
     } catch (err) {
       console.error('Gagal menghapus legalitas:', err);
+      throw err;
     }
   };
 

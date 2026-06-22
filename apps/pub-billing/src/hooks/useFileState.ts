@@ -9,7 +9,7 @@ interface UseFileStateProps {
   setSelectedFileId: (id: number | null) => void;
 }
 
-export function useFileState({ showToast, selectedFileId, setSelectedFileId }: UseFileStateProps) {
+export function useFileState({ showToast: _showToast, selectedFileId, setSelectedFileId }: UseFileStateProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [watchFolders, setWatchFolders] = useState<WatchFolder[]>([]);
 
@@ -29,8 +29,7 @@ export function useFileState({ showToast, selectedFileId, setSelectedFileId }: U
       return id;
     } catch (error) {
       console.error('Failed to add file:', error);
-      showToast('Gagal menambahkan file', 'error');
-      return 0;
+      throw error;
     }
   };
 
@@ -43,7 +42,7 @@ export function useFileState({ showToast, selectedFileId, setSelectedFileId }: U
       }
     } catch (error) {
       console.error('Failed to delete file:', error);
-      showToast('Gagal menghapus file', 'error');
+      throw error;
     }
   };
 
@@ -53,7 +52,7 @@ export function useFileState({ showToast, selectedFileId, setSelectedFileId }: U
       await loadFiles();
     } catch (error) {
       console.error('Failed to update file:', error);
-      showToast('Gagal memperbarui file', 'error');
+      throw error;
     }
   };
 
@@ -74,8 +73,7 @@ export function useFileState({ showToast, selectedFileId, setSelectedFileId }: U
       return result;
     } catch (error) {
       console.error('Failed to add watch folder:', error);
-      showToast('Gagal menambahkan folder pantauan', 'error');
-      return '';
+      throw error;
     }
   };
 
@@ -86,7 +84,7 @@ export function useFileState({ showToast, selectedFileId, setSelectedFileId }: U
       await loadFiles();
     } catch (error) {
       console.error('Failed to remove watch folder:', error);
-      showToast('Gagal menghapus folder pantauan', 'error');
+      throw error;
     }
   };
 
@@ -95,6 +93,7 @@ export function useFileState({ showToast, selectedFileId, setSelectedFileId }: U
       await invoke('add_file_tag', { fileId, tag });
     } catch (error) {
       console.error('Failed to add file tag:', error);
+      throw error;
     }
   };
 
@@ -103,6 +102,7 @@ export function useFileState({ showToast, selectedFileId, setSelectedFileId }: U
       await invoke('remove_file_tag', { fileId, tag });
     } catch (error) {
       console.error('Failed to remove file tag:', error);
+      throw error;
     }
   };
 

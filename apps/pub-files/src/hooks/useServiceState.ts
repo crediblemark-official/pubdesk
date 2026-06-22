@@ -8,7 +8,7 @@ interface UseServiceStateProps {
   setSelectedServiceId: (id: number | null) => void;
 }
 
-export function useServiceState({ showToast, selectedServiceId, setSelectedServiceId }: UseServiceStateProps) {
+export function useServiceState({ showToast: _showToast, selectedServiceId, setSelectedServiceId }: UseServiceStateProps) {
   const [services, setServices] = useState<Service[]>([]);
 
   const loadServices = async () => {
@@ -27,8 +27,7 @@ export function useServiceState({ showToast, selectedServiceId, setSelectedServi
       return id;
     } catch (error) {
       console.error('Failed to add service:', error);
-      showToast('Gagal menambahkan layanan', 'error');
-      return 0;
+      throw error;
     }
   };
 
@@ -38,7 +37,7 @@ export function useServiceState({ showToast, selectedServiceId, setSelectedServi
       await loadServices();
     } catch (error) {
       console.error('Failed to update service:', error);
-      showToast('Gagal memperbarui layanan', 'error');
+      throw error;
     }
   };
 
@@ -51,7 +50,7 @@ export function useServiceState({ showToast, selectedServiceId, setSelectedServi
       }
     } catch (error) {
       console.error('Failed to delete service:', error);
-      showToast('Gagal menghapus layanan', 'error');
+      throw error;
     }
   };
 

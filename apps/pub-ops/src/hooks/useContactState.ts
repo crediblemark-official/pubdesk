@@ -6,7 +6,7 @@ interface UseContactStateProps {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export function useContactState({ showToast }: UseContactStateProps) {
+export function useContactState({ showToast: _showToast }: UseContactStateProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
 
   const loadContacts = async () => {
@@ -25,8 +25,7 @@ export function useContactState({ showToast }: UseContactStateProps) {
       return id;
     } catch (error) {
       console.error('Failed to add contact:', error);
-      showToast('Gagal menambahkan kontak', 'error');
-      return 0;
+      throw error;
     }
   };
 
@@ -36,7 +35,7 @@ export function useContactState({ showToast }: UseContactStateProps) {
       await loadContacts();
     } catch (error) {
       console.error('Failed to update contact:', error);
-      showToast('Gagal memperbarui kontak', 'error');
+      throw error;
     }
   };
 
@@ -46,7 +45,7 @@ export function useContactState({ showToast }: UseContactStateProps) {
       await loadContacts();
     } catch (error) {
       console.error('Failed to delete contact:', error);
-      showToast('Gagal menghapus kontak', 'error');
+      throw error;
     }
   };
 

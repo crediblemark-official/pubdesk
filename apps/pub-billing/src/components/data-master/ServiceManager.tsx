@@ -214,6 +214,7 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
   useEffect(() => {
     if (directAddNewModule === 'services') {
       setCurrentService(null);
+      setCategoryFilter('all');
       setIsEditing(true);
       setDirectAddNewModule(null);
     }
@@ -235,6 +236,7 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
 
   const handleAddNew = () => {
     setCurrentService(null);
+    setCategoryFilter('all');
     setIsEditing(true);
   };
 
@@ -319,6 +321,7 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ searchQuery = '' }) => 
         }
       } else {
         const newId = await addService(data as Service);
+        if (!newId) throw new Error('Gagal menyimpan layanan');
         showToast('Layanan baru berhasil ditambahkan!', 'success');
         await registerServiceFile(newId, { ...data, id: newId } as Service);
       }

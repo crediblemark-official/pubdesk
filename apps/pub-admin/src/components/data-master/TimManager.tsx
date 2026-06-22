@@ -227,6 +227,8 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
   useEffect(() => {
     if (directAddNewModule === 'tim') {
       setCurrentMember(null);
+      setActiveStatuses([]);
+      setDepartmentFilter('');
       setIsEditing(true);
       setDirectAddNewModule(null);
     }
@@ -276,6 +278,8 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
 
   const handleAddNew = () => {
     setCurrentMember(null);
+    setActiveStatuses([]);
+    setDepartmentFilter('');
     setIsEditing(true);
   };
 
@@ -361,6 +365,7 @@ const TimManager: React.FC<TimManagerProps> = ({ searchQuery = '' }) => {
         }
       } else {
         const newId = await addTim(data as Omit<Tim, 'created_at'>);
+        if (!newId) throw new Error('Gagal menyimpan anggota tim');
         showToast('Anggota tim baru berhasil ditambahkan!', 'success');
         await registerTimFile(newId, { ...data, id: newId } as Tim);
       }

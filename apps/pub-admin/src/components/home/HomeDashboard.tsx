@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 
 const HomeDashboard: React.FC = () => {
-  const { setActiveModule } = useAppContext();
+  const { setActiveModule, setDirectAddNewModule } = useAppContext();
 
   const [time, setTime] = useState(new Date());
 
@@ -80,7 +80,10 @@ const HomeDashboard: React.FC = () => {
             {quickActions.map(action => (
               <div
                 key={action.id}
-                onClick={() => setActiveModule(action.id)}
+                onClick={() => {
+                  setDirectAddNewModule(action.id);
+                  setActiveModule(action.id);
+                }}
                 style={{
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border)',
