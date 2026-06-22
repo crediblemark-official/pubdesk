@@ -85,18 +85,18 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               key={item.id}
               style={{ 
                 width: '100%', 
-                padding: collapsed ? '12px' : '8px 12px', 
+                padding: collapsed ? '12px' : '10px 12px', 
                 border: 'none', 
                 borderRadius: '8px',
                 background: isActive ? 'var(--accent)' : 'transparent', 
                 color: isActive ? '#ffffff' : 'var(--text-secondary)', 
                 textAlign: 'left', 
                 cursor: 'pointer', 
-                fontSize: '13px', 
+                fontSize: '14px', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: collapsed ? 'center' : 'flex-start',
-                gap: collapsed ? '0' : '10px',
+                gap: collapsed ? '0' : '12px',
                 marginBottom: '4px',
                 fontWeight: isActive ? '600' : '400',
                 transition: 'all 0.15s ease'
@@ -115,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 }
               }}
             >
-              <span style={{ fontSize: '16px' }}>{item.icon}</span>
+              <span style={{ fontSize: '18px' }}>{item.icon}</span>
               {!collapsed && <span>{item.label}</span>}
             </button>
           );
