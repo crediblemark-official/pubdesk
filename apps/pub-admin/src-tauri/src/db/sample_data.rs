@@ -1,7 +1,8 @@
 // Modul sample data untuk pengujian dan demo fitur produksi naskah
 #![allow(dead_code)]
 use crate::db::error::DbError;
-use rusqlite::{params, Connection};
+use rusqlite::params;
+use super::Connection;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

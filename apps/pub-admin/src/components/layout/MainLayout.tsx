@@ -12,6 +12,14 @@ import HomeDashboard from '../home/HomeDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import LoginPage from '../auth/LoginPage';
 
+// Import komponen setelan individual
+import InvoiceSettings from '../settings/InvoiceSettings';
+import GASCloudSettings from '../settings/GASCloudSettings';
+import GDriveSettingsTab from '../settings/tabs/GDriveSettingsTab';
+import LocalFoldersTab from '../settings/tabs/LocalFoldersTab';
+import DataResetTab from '../settings/tabs/DataResetTab';
+import P2PConnectionTab from '../settings/tabs/P2PConnectionTab';
+
 const MainLayout = () => {
   const { appState, rightPanelVisible } = useAppContext();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -63,6 +71,7 @@ const MainLayout = () => {
   };
 
   const renderModule = () => {
+    const { showToast } = useAppContext();
     switch (appState.activeModule) {
       case 'home':
         return <HomeDashboard />;
@@ -72,6 +81,18 @@ const MainLayout = () => {
         return <ActivityLog />;
       case 'settings':
         return <Settings />;
+      case 'settings-invoice':
+        return <InvoiceSettings />;
+      case 'settings-local-folders':
+        return <LocalFoldersTab />;
+      case 'settings-p2p':
+        return <P2PConnectionTab />;
+      case 'settings-gdrive':
+        return <GDriveSettingsTab />;
+      case 'settings-gas':
+        return <GASCloudSettings showToast={showToast} />;
+      case 'settings-data-reset':
+        return <DataResetTab />;
       default:
         return <HomeDashboard />;
     }

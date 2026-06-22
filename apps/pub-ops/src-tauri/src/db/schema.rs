@@ -692,6 +692,15 @@ pub fn create_tables(conn: &Connection) -> Result<()> {
     let _ = conn.execute("ALTER TABLE tim ADD COLUMN email TEXT", []);
     let _ = conn.execute("ALTER TABLE tim ADD COLUMN address TEXT", []);
 
+    // Tabel konfigurasi P2P
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS p2p_config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )",
+        [],
+    )?;
+
     Ok(())
 }
 

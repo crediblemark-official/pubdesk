@@ -2,6 +2,7 @@ mod db;
 mod watcher;
 pub mod indexing;
 pub mod commands;
+pub mod p2p;
 
 use db::*;
 use watcher::WatcherManager;
@@ -13,10 +14,286 @@ use std::io::{Read, Write};
 pub struct AppState {
     pub db: Mutex<Option<Database>>,
     pub active_session: Mutex<Option<AppSession>>,
+    pub p2p_manager: Mutex<Option<std::sync::Arc<crate::p2p::P2PManager>>>,
 }
 
 pub struct WatcherState {
     pub manager: Mutex<Option<WatcherManager>>,
+}
+
+// Inisialisasi P2P Instance & Database P2P/Local
+pub fn setup_p2p_instance(
+    local_db_path: &std::path::PathBuf,
+    app_state: &AppState,
+) -> Result<(), String> {
+    // 1. Buka koneksi lokal sementara untuk membaca konfigurasi P2P
+    let local_conn = rusqlite::Connection::open(local_db_path)
+        .map_err(|e| format!("Gagal membuka DB lokal untuk P2P: {}", e))?;
+
+    // Pastikan tabel p2p_config ada
+    local_conn.execute(
+        "CREATE TABLE IF NOT EXISTS p2p_config (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+        []
+    ).map_err(|e| e.to_string())?;
+
+    // 2. Baca/generate keypair
+    let keypair_b64: String = match local_conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'keypair'",
+        [],
+        |row| row.get(0)
+    ) {
+        Ok(val) => val,
+        Err(_) => {
+            let keypair = libp2p::identity::Keypair::generate_ed25519();
+            let encoded = keypair.to_protobuf_encoding().unwrap();
+            let b64 = base64::encode(&encoded);
+            local_conn.execute(
+                "INSERT INTO p2p_config (key, value) VALUES ('keypair', ?1)",
+                [&b64]
+            ).map_err(|e| e.to_string())?;
+            b64
+        }
+    };
+    let keypair_bytes = base64::decode(&keypair_b64).map_err(|e| e.to_string())?;
+
+    // 3. Baca/generate auth_token
+    let _auth_token: String = match local_conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'auth_token'",
+        [],
+        |row| row.get(0)
+    ) {
+        Ok(val) => val,
+        Err(_) => {
+            // Generate token acak sederhana
+            let token = format!("{:x}", chrono::Utc::now().timestamp_nanos_opt().unwrap_or(0));
+            local_conn.execute(
+                "INSERT INTO p2p_config (key, value) VALUES ('auth_token', ?1)",
+                [&token]
+            ).map_err(|e| e.to_string())?;
+            token
+        }
+    };
+
+    // 4. Baca p2p_enabled, p2p_role, p2p_host_address
+    let p2p_enabled: String = local_conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'p2p_enabled'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "false".to_string());
+
+    let p2p_role: String = local_conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'p2p_role'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "host".to_string());
+
+    let p2p_host_address: String = local_conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'p2p_host_address'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "".to_string());
+
+    // Tutup koneksi lokal sementara
+    drop(local_conn);
+
+    if p2p_enabled == "true" {
+        let db_conn_provider = std::sync::Arc::new(std::sync::Mutex::new(None));
+        
+        let manager = std::sync::Arc::new(
+            crate::p2p::P2PManager::new(keypair_bytes, db_conn_provider.clone())
+                .map_err(|e| format!("Gagal membuat P2PManager: {}", e))?
+        );
+
+        *app_state.p2p_manager.lock().unwrap() = Some(manager.clone());
+
+        if p2p_role == "host" {
+            // Kita adalah Host. Database lokal terhubung langsung.
+            let db_conn = rusqlite::Connection::open(local_db_path).map_err(|e| e.to_string())?;
+            // Berikan koneksi database ke manager agar dia bisa merespons kueri masuk
+            *db_conn_provider.lock().unwrap() = Some(rusqlite::Connection::open(local_db_path).map_err(|e| e.to_string())?);
+            
+            let db = Database {
+                conn: crate::db::Connection::Local(db_conn)
+            };
+            *app_state.db.lock().unwrap() = Some(db);
+
+            // Mulai mendengarkan
+            let manager_clone = manager.clone();
+            tokio::spawn(async move {
+                if let Err(e) = manager_clone.start_listening().await {
+                    println!("Gagal memulai listen P2P: {:?}", e);
+                }
+            });
+        } else {
+            // Kita adalah Client.
+            if p2p_host_address.is_empty() {
+                return Err("Alamat host P2P kosong".to_string());
+            }
+            let addr: libp2p::Multiaddr = p2p_host_address.parse()
+                .map_err(|e| format!("Format alamat host salah: {}", e))?;
+
+            // Dapatkan peer ID host dari multiaddress
+            let host_peer_id = addr.iter().find_map(|p| match p {
+                libp2p::multiaddr::Protocol::P2p(peer_id) => Some(peer_id),
+                _ => None
+            }).ok_or_else(|| "Alamat host tidak menyertakan Peer ID (/p2p/...)".to_string())?;
+
+            // Hubungkan (dial) ke host secara asinkron
+            let manager_clone = manager.clone();
+            let addr_clone = addr.clone();
+            tokio::spawn(async move {
+                if let Err(e) = manager_clone.dial(addr_clone).await {
+                    println!("Gagal mendial host P2P: {:?}", e);
+                }
+            });
+
+            // Inisialisasi Database P2P
+            let db = Database::new_p2p(local_db_path, manager, host_peer_id)
+                .map_err(|e| format!("Gagal inisialisasi DB P2P: {}", e))?;
+            *app_state.db.lock().unwrap() = Some(db);
+        }
+    } else {
+        // P2P tidak diaktifkan, load SQLite lokal biasa
+        let db = Database::new(local_db_path).map_err(|e| e.to_string())?;
+        *app_state.db.lock().unwrap() = Some(db);
+    }
+
+    Ok(())
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct P2PConfigPayload {
+    pub enabled: bool,
+    pub role: String,
+    pub host_address: String,
+    pub auth_token: String,
+    pub local_peer_id: String,
+}
+
+#[tauri::command]
+async fn get_p2p_config(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<P2PConfigPayload, String> {
+    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
+    let conn = rusqlite::Connection::open(db_path).map_err(|e| e.to_string())?;
+
+    let enabled: String = conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'p2p_enabled'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "false".to_string());
+
+    let role: String = conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'p2p_role'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "host".to_string());
+
+    let host_address: String = conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'p2p_host_address'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "".to_string());
+
+    let auth_token: String = conn.query_row(
+        "SELECT value FROM p2p_config WHERE key = 'auth_token'",
+        [],
+        |row| row.get(0)
+    ).unwrap_or_else(|_| "".to_string());
+
+    let local_peer_id = {
+        let mgr = state.p2p_manager.lock().unwrap();
+        if let Some(m) = mgr.as_ref() {
+            m.peer_id.to_string()
+        } else {
+            // Ambil dari keypair jika manager belum start
+            let keypair_b64: Result<String, _> = conn.query_row(
+                "SELECT value FROM p2p_config WHERE key = 'keypair'",
+                [],
+                |row| row.get(0)
+            );
+            if let Ok(k_b64) = keypair_b64 {
+                if let Ok(bytes) = base64::decode(&k_b64) {
+                    if let Ok(id_keys) = libp2p::identity::Keypair::from_protobuf_encoding(&bytes) {
+                        id_keys.public().to_peer_id().to_string()
+                    } else {
+                        "".to_string()
+                    }
+                } else {
+                    "".to_string()
+                }
+            } else {
+                "".to_string()
+            }
+        }
+    };
+
+    Ok(P2PConfigPayload {
+        enabled: enabled == "true",
+        role,
+        host_address,
+        auth_token,
+        local_peer_id,
+    })
+}
+
+#[tauri::command]
+async fn set_p2p_config(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+    enabled: bool,
+    role: String,
+    host_address: String,
+    auth_token: String,
+) -> Result<(), String> {
+    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
+    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('p2p_enabled', ?1)",
+        [if enabled { "true" } else { "false" }]
+    ).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('p2p_role', ?1)",
+        [&role]
+    ).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('p2p_host_address', ?1)",
+        [&host_address]
+    ).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('auth_token', ?1)",
+        [&auth_token]
+    ).map_err(|e| e.to_string())?;
+
+    drop(conn);
+
+    // Stop P2P manager lama jika ada
+    {
+        let mut mgr = state.p2p_manager.lock().unwrap();
+        *mgr = None;
+    }
+
+    // Re-inisialisasi database dan P2P
+    setup_p2p_instance(&db_path, &state)?;
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_p2p_status_command(
+    state: State<'_, AppState>,
+) -> Result<crate::p2p::P2PStatus, String> {
+    let mgr = state.p2p_manager.lock().unwrap();
+    if let Some(m) = mgr.as_ref() {
+        m.get_status().await
+    } else {
+        Err("P2P Manager tidak aktif".to_string())
+    }
 }
 
 #[tauri::command]
@@ -101,7 +378,12 @@ async fn init_database(
     let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
     init_db(&db_path).map_err(|e| e.to_string())?;
     
-    let db = Database::new(&db_path).map_err(|e| e.to_string())?;
+    // Inisialisasi P2P Instance & Database
+    setup_p2p_instance(&db_path, &state)?;
+    
+    // Ambil referensi database yang baru diinisialisasi
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock.as_ref().ok_or("Database tidak terinisialisasi")?;
     
     // Pemuatan watch folders dari SQLite
     let watch_folders = db.get_watch_folders().map_err(|e| e.to_string())?;
@@ -110,7 +392,7 @@ async fn init_database(
         .map(|f| std::path::PathBuf::from(&f.path))
         .collect();
 
-    *state.db.lock().unwrap() = Some(db);
+    drop(db_lock); // lepas lock sebelum inisialisasi watcher
 
     // Inisialisasi watcher manager
     let manager = WatcherManager::new(app_handle.clone());
@@ -133,6 +415,7 @@ pub fn run() {
         .manage(AppState {
             db: Mutex::new(None),
             active_session: Mutex::new(None),
+            p2p_manager: Mutex::new(None),
         })
         .manage(WatcherState {
             manager: Mutex::new(None),
@@ -141,6 +424,9 @@ pub fn run() {
             greet,
             init_database,
             start_oauth_server,
+            get_p2p_config,
+            set_p2p_config,
+            get_p2p_status_command,
             // Book commands
             commands::book::get_books,
             commands::book::add_book,

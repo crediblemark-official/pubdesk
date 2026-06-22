@@ -42,14 +42,54 @@ pub async fn get_current_user(state: State<'_, AppState>) -> Result<Option<AppSe
             return Ok(active.clone());
         }
     }
-    let db = state.db.lock().unwrap();
-    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    let db_guard = state.db.lock().unwrap();
+    let db = db_guard.as_ref().ok_or("Database tidak diinisialisasi")?;
     let session = db.get_active_session().map_err(|e| e.to_string())?;
     if let Some(ref s) = session {
+        drop(db_guard);
         let mut active = state.active_session.lock().unwrap();
         *active = Some(s.clone());
+        return Ok(Some(s.clone()));
     }
-    Ok(session)
+    
+    // Auto-login ke Admin Master jika tidak ada sesi aktif
+    let tim_list = db.get_all_tim().map_err(|e| e.to_string())?;
+    let admin = if let Some(admin) = tim_list.into_iter().find(|t| t.role == "Admin Master" || t.name == "Admin Master") {
+        admin
+    } else {
+        // Buat Admin Master default jika belum ada
+        let default_admin = crate::db::models::Tim {
+            id: None,
+            name: "Admin Master".to_string(),
+            role: "Admin Master".to_string(),
+            department: Some("Tim Manajemen".to_string()),
+            is_active: 1,
+            weekly_target: 0,
+            notes: Some("Default Admin auto-generated".to_string()),
+            pin: Some("123456".to_string()),
+            wa_number: None,
+            email: None,
+            address: None,
+            created_at: chrono::Local::now().to_rfc3339(),
+            updated_at: None,
+        };
+        let new_id = db.add_tim(&default_admin).map_err(|e| e.to_string())?;
+        crate::db::models::Tim {
+            id: Some(new_id),
+            ..default_admin
+        }
+    };
+
+    if let Some(tim_id) = admin.id {
+        let session = db.login_session(tim_id, &admin.name, &admin.role).map_err(|e| e.to_string())?;
+        let _ = db.log_activity_audit("session", None, "LOGIN", &format!("Karyawan '{}' auto-login (Admin Master)", admin.name), Some(tim_id), Some(&admin.name), None, None, Some("auth"));
+        drop(db_guard);
+        let mut active = state.active_session.lock().unwrap();
+        *active = Some(session.clone());
+        return Ok(Some(session));
+    }
+    
+    Ok(None)
 }
 
 #[tauri::command]

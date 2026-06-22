@@ -6,11 +6,13 @@ import GASCloudSettings from './GASCloudSettings';
 import GDriveSettingsTab from './tabs/GDriveSettingsTab';
 import LocalFoldersTab from './tabs/LocalFoldersTab';
 import DataResetTab from './tabs/DataResetTab';
+import P2PConnectionTab from './tabs/P2PConnectionTab';
 
 // Definisi tab — urutan dan label
 const SETTINGS_TABS = [
   { key: 'invoice', label: 'Pengaturan Invoice', icon: '📄' },
   { key: 'local-folders', label: 'Folder Lokal Dipantau', icon: '📁' },
+  { key: 'p2p-connection', label: 'Koneksi P2P', icon: '🔗' },
   { key: 'google-drive', label: 'Google Drive', icon: '☁️' },
   { key: 'google-apps-script', label: 'Google Apps Script', icon: '☁️' },
   { key: 'data-reset', label: 'Kustomisasi & Data', icon: '🎨' },
@@ -38,6 +40,8 @@ const Settings: React.FC = () => {
         return <InvoiceSettings />;
       case 'local-folders':
         return <LocalFoldersTab />;
+      case 'p2p-connection':
+        return <P2PConnectionTab />;
       case 'google-drive':
         return <GDriveSettingsTab />;
       case 'google-apps-script':

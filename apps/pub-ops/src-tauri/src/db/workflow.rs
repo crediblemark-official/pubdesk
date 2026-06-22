@@ -1,6 +1,7 @@
 use super::{Database, DbError};
 use crate::db::models::*;
-use rusqlite::{params, Row};
+use rusqlite::params;
+use super::Row;
 
 // Helper functions to map rows
 fn map_row_to_task_blocker(row: &Row) -> Result<TaskBlocker, rusqlite::Error> {

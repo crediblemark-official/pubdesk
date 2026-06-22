@@ -254,17 +254,6 @@ export default function ActivityLog() {
               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                 {currentUser.tim_name}
               </span>
-              <button
-                onClick={logout}
-                style={{
-                  fontSize: '11px', padding: '3px 10px',
-                  border: '1px solid var(--border)', borderRadius: '0px',
-                  background: 'transparent', color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                }}
-              >
-                Ganti User
-              </button>
             </div>
           )}
           <button

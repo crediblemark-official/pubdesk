@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::collections::HashMap;
-use rusqlite::{params, Connection};
+use rusqlite::params;
 use crate::db::Database;
 use super::extractor::extract_text;
 use tauri::{AppHandle, Manager};
@@ -489,8 +489,8 @@ pub fn global_semantic_search(db: &Database, query: &str) -> Result<Vec<SearchRe
     Ok(results)
 }
 
-fn get_all_embeddings(conn: &Connection, exclude_id: i64) -> Result<Vec<(i64, HashMap<String, f32>)>, String> {
-    let mut stmt = conn.prepare("SELECT file_id, vector FROM file_embeddings WHERE file_id != ?1")
+fn get_all_embeddings(tx: &crate::db::wrapper::PubhubTransaction<'_>, exclude_id: i64) -> Result<Vec<(i64, HashMap<String, f32>)>, String> {
+    let mut stmt = tx.prepare("SELECT file_id, vector FROM file_embeddings WHERE file_id != ?1")
         .map_err(|e| e.to_string())?;
     
     let rows = stmt.query_map(params![exclude_id], |row| {

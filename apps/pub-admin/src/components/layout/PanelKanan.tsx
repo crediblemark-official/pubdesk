@@ -194,6 +194,24 @@ const PanelKanan: React.FC = () => {
           return <SettingsHelpPanel tab={activeSettingsTab} />;
       }
 
+    case 'settings-invoice':
+      return <InvoicePreview previewProfile={tempPreviewProfile || activeProfile} />;
+
+    case 'settings-local-folders':
+      return <SettingsHelpPanel tab="local-folders" />;
+
+    case 'settings-p2p':
+      return <SettingsHelpPanel tab="p2p-connection" />;
+
+    case 'settings-gdrive':
+      return <SettingsHelpPanel tab="google-drive" />;
+
+    case 'settings-gas':
+      return <SettingsHelpPanel tab="google-apps-script" />;
+
+    case 'settings-data-reset':
+      return <SettingsHelpPanel tab="data-reset" />;
+
     // Generator invoice — preview langsung dari context form
     case 'invoice':
       return <InvoicePreview />;
