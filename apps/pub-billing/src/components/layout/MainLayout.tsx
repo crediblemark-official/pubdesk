@@ -72,6 +72,34 @@ const MainLayout = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const renderSettingsModule = (title: string, icon: string, component: React.ReactNode) => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)', color: 'var(--text-primary)' }}>
+        {/* Header Bar Seragam */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 16px',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-panel)',
+          height: 44,
+          boxSizing: 'border-box',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>{icon}</span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{title}</span>
+          </div>
+        </div>
+        {/* Konten Setelan */}
+        <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+          {component}
+        </div>
+      </div>
+    );
+  };
+
   const renderModule = () => {
     switch (appState.activeModule) {
       case 'home':
@@ -95,7 +123,7 @@ const MainLayout = () => {
       case 'settings':
         return <Settings />;
       case 'settings-invoice':
-        return <InvoiceSettings />;
+        return renderSettingsModule('Setelan Invoice', '📄', <InvoiceSettings />);
       default:
         return <InvoiceGenerator />;
     }

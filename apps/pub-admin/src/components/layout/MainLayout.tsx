@@ -70,6 +70,34 @@ const MainLayout = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const renderSettingsModule = (title: string, icon: string, component: React.ReactNode) => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)', color: 'var(--text-primary)' }}>
+        {/* Header Bar Seragam */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 16px',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-panel)',
+          height: 44,
+          boxSizing: 'border-box',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>{icon}</span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{title}</span>
+          </div>
+        </div>
+        {/* Konten Setelan */}
+        <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+          {component}
+        </div>
+      </div>
+    );
+  };
+
   const renderModule = () => {
     const { showToast } = useAppContext();
     switch (appState.activeModule) {
@@ -82,17 +110,17 @@ const MainLayout = () => {
       case 'settings':
         return <Settings />;
       case 'settings-invoice':
-        return <InvoiceSettings />;
+        return renderSettingsModule('Setelan Invoice', '📄', <InvoiceSettings />);
       case 'settings-local-folders':
-        return <LocalFoldersTab />;
+        return renderSettingsModule('Folder Lokal Dipantau', '📁', <LocalFoldersTab />);
       case 'settings-p2p':
-        return <P2PConnectionTab />;
+        return renderSettingsModule('Koneksi P2P', '🔗', <P2PConnectionTab />);
       case 'settings-gdrive':
-        return <GDriveSettingsTab />;
+        return renderSettingsModule('Google Drive', '☁️', <GDriveSettingsTab />);
       case 'settings-gas':
-        return <GASCloudSettings showToast={showToast} />;
+        return renderSettingsModule('Google Sheets (GAS)', '📊', <GASCloudSettings showToast={showToast} />);
       case 'settings-data-reset':
-        return <DataResetTab />;
+        return renderSettingsModule('Kustomisasi & Data', '🎨', <DataResetTab />);
       default:
         return <HomeDashboard />;
     }
