@@ -1,0 +1,86 @@
+{
+  "templateId": "cetak_buku_ongkir",
+  "label": "Cetak Buku – Dengan Ongkos Kirim",
+  "description": "Kolom: Judul, Hal, Jenis Naskah, Jml. Cetak, Harga Cetak/pcs, Ongkir, Total",
+  "category": "Penerbitan",
+  "name": "Cetak Buku + Ongkir",
+  "companyName": "COMPANY",
+  "companyTagline": "Tagline Penerbit/Perusahaan",
+  "invoiceTitleText": "INVOICE",
+  "accentColor": "#d93838",
+  "accentColorDark": "#991b1b",
+  "headerBgColor": "#222933",
+  "headerPrimaryColor": "#d93838",
+  "headerSecondaryColor": "#d93838",
+  "defaultHal": "Biaya Cetak Buku",
+  "defaultLampiran": "-",
+  "salamPembuka": "Bersama surat ini kami memberikan gambaran rincian biaya Cetak Buku dengan ketentuan sebagai berikut:",
+  "actionLabel": "cetak buku",
+  "tableType": "cetak_buku_ongkir",
+  "notes": [
+    "Jika terkait pajak maka pajak ditanggung penulis atau pemesan.",
+    "Fasilitas sesuai paket yang diambil."
+  ],
+  "showSpesifikasi": false,
+  "defaultSpesifikasi": "",
+  "signatureOffice": "Kantor Penerbit",
+  "signatureLocation": "Kota",
+  "signatureRole": "CEO / Direktur",
+  "signatureName": "Nama Penandatangan",
+  "showBankInfo": true,
+  "bankName": "Nama Bank",
+  "bankAccountNo": "Nomor Rekening",
+  "bankAccountOwner": "Nama Pemilik Rekening",
+  "headerType": "logo_text",
+  "tableColumns": [
+    {
+      "key": "item_title",
+      "label": "Judul",
+      "type": "text",
+      "align": "left"
+    },
+    {
+      "key": "pages",
+      "label": "Hal",
+      "type": "text",
+      "align": "center",
+      "width": "80px"
+    },
+    {
+      "key": "paper_type",
+      "label": "Jenis Naskah",
+      "type": "text",
+      "align": "center",
+      "width": "90px"
+    },
+    {
+      "key": "quantity",
+      "label": "Jml. Cetak",
+      "type": "number",
+      "align": "center",
+      "width": "80px"
+    },
+    {
+      "key": "price",
+      "label": "Cetak/pcs",
+      "type": "currency",
+      "align": "right",
+      "width": "100px"
+    },
+    {
+      "key": "item_shipping_cost",
+      "label": "Ongkos Kirim",
+      "type": "currency",
+      "align": "right",
+      "width": "100px"
+    },
+    {
+      "key": "total",
+      "label": "Total Biaya",
+      "type": "formula",
+      "align": "right",
+      "width": "110px",
+      "formula": "({price} * {quantity}) + {item_shipping_cost}"
+    }
+  ]
+}

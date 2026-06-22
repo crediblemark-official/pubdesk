@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path mapping untuk workspaces */
+    "baseUrl": ".",
+    "paths": {
+      "@pubhub/shared-types": ["../../packages/shared-types/src/index.ts"],
+      "@pubhub/shared-types/*": ["../../packages/shared-types/src/*"],
+      "@pubhub/shared-utils": ["../../packages/shared-utils/src/index.ts"],
+      "@pubhub/shared-utils/*": ["../../packages/shared-utils/src/*"],
+      "@pubhub/shared-ui": ["../../packages/shared-ui/src/index.ts"],
+      "@pubhub/shared-ui/*": ["../../packages/shared-ui/src/*"]
+    }
+  },
+  "include": ["src"]
+}
