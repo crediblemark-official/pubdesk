@@ -267,6 +267,37 @@ export const googleAppsScriptService = {
   },
 
   /**
+   * Mereset/mengosongkan seluruh tabel data di Google Sheets (menyisakan baris header)
+   */
+  async clearDatabaseOnCloud() {
+    const { url, token } = this.getSettings();
+    if (!url) {
+      throw new Error('URL Web App Google Apps Script belum dikonfigurasi.');
+    }
+
+    const payload = {
+      auth_token: token,
+      action: 'clear_database'
+    };
+
+    const responseText = await invoke<string>('call_gas_api', {
+      url,
+      method: 'POST',
+      payloadJson: JSON.stringify(payload)
+    });
+
+    const result = parseGasResponse(responseText);
+    if (result.status === 'error') {
+      throw new Error(result.message || 'Terjadi kesalahan dari Google Apps Script');
+    }
+
+    return {
+      success: true,
+      message: result.message
+    };
+  },
+
+  /**
    * Mengunggah file biner (Base64) ke Google Drive
    */
   async uploadFileToCloud(fileName: string, fileBase64: string, subfolder: string, mimeType: string) {

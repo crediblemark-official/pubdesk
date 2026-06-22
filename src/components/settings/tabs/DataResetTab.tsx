@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAppContext } from '../../../contexts/AppContext';
 import * as XLSX from 'xlsx';
 import { save } from '@tauri-apps/plugin-dialog';
+import { googleAppsScriptService } from '../../../services/googleAppsScript';
 
 const DataResetTab: React.FC = () => {
   const { showToast } = useAppContext();
@@ -19,6 +20,8 @@ const DataResetTab: React.FC = () => {
   });
   const [isResettingTotal, setIsResettingTotal] = useState(false);
   const [confirmResetTotal, setConfirmResetTotal] = useState(false);
+  const [isResettingCloud, setIsResettingCloud] = useState(false);
+  const [confirmResetCloud, setConfirmResetCloud] = useState(false);
 
   const [logoType, setLogoType] = useState<'emoji' | 'image'>(() => {
     const saved = localStorage.getItem('splash_logo');
@@ -306,6 +309,23 @@ const DataResetTab: React.FC = () => {
       showToast(`Gagal mereset total data: ${err}`, 'error');
     } finally {
       setIsResettingTotal(false);
+    }
+  };
+
+  const handleResetCloud = async () => {
+    if (!confirmResetCloud) {
+      setConfirmResetCloud(true);
+      return;
+    }
+    setIsResettingCloud(true);
+    try {
+      const response = await googleAppsScriptService.clearDatabaseOnCloud();
+      showToast(response.message || 'Database Cloud Spreadsheet berhasil direset!', 'success');
+      setConfirmResetCloud(false);
+    } catch (err) {
+      showToast(`Gagal mereset database cloud: ${err}`, 'error');
+    } finally {
+      setIsResettingCloud(false);
     }
   };
 
@@ -643,6 +663,66 @@ const DataResetTab: React.FC = () => {
                   }}
                 >
                   {isResetting ? 'Menghapus...' : confirmReset ? 'Ya, Hapus Semua' : 'Reset Data'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Database Cloud (Spreadsheet) */}
+          <div style={{
+            paddingBottom: '16px',
+            borderBottom: '1px solid var(--border)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ flex: 1, minWidth: '240px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: confirmResetCloud ? '#ef4444' : 'var(--text-primary)' }}>
+                  ☁️ Reset Database Cloud (Spreadsheet)
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  Menghapus semua data yang tersimpan di Google Sheets (cloud) yang terhubung.
+                  <br />
+                  <strong style={{ color: '#ef4444' }}>Tindakan ini akan mengosongkan spreadsheet Anda namun menyisakan baris header!</strong>
+                </p>
+                {confirmResetCloud && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#ef4444', fontWeight: '600' }}>
+                    ⚠️ Klik sekali lagi untuk mengonfirmasi pembersihan database cloud.
+                  </p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignSelf: 'center' }}>
+                {confirmResetCloud && (
+                  <button
+                    onClick={() => setConfirmResetCloud(false)}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px'
+                    }}
+                  >
+                    Batal
+                  </button>
+                )}
+                <button
+                  onClick={handleResetCloud}
+                  disabled={isResettingCloud}
+                  style={{
+                    padding: '8px 20px',
+                    background: confirmResetCloud ? '#ef4444' : 'transparent',
+                    color: confirmResetCloud ? '#fff' : '#ef4444',
+                    border: confirmResetCloud ? 'none' : '1px solid #ef4444',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: isResettingCloud ? 'wait' : 'pointer',
+                    fontSize: '13px',
+                    whiteSpace: 'nowrap',
+                    opacity: isResettingCloud ? 0.7 : 1
+                  }}
+                >
+                  {isResettingCloud ? 'Mereset Cloud...' : confirmResetCloud ? 'Ya, Reset Cloud' : 'Reset Cloud'}
                 </button>
               </div>
             </div>

@@ -305,7 +305,30 @@ function doPost(e) {
       return createJsonResponse({ status: "error", message: "Record tidak ditemukan." }, 404);
     }
 
-    // 4. Operasi Create Invoice (Kompatibilitas Versi Lama)
+    // 4. Reset Database Spreadsheet (Cloud)
+    if (action === "clear_database") {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const sheetNames = Object.keys(SHEETS_CONFIG);
+      let resetCount = 0;
+
+      sheetNames.forEach(sheetName => {
+        const sheet = ss.getSheetByName(sheetName);
+        if (sheet) {
+          const lastRow = sheet.getLastRow();
+          if (lastRow > 1) {
+            sheet.deleteRows(2, lastRow - 1);
+            resetCount++;
+          }
+        }
+      });
+
+      return createJsonResponse({
+        status: "success",
+        message: "Berhasil mereset database spreadsheet. Sebanyak " + resetCount + " tabel dibersihkan."
+      });
+    }
+
+    // 5. Operasi Create Invoice (Kompatibilitas Versi Lama)
     if (action === "create_invoice") {
       let fileUrl = "";
       let fileId = "";
