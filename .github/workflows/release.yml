@@ -49,8 +49,10 @@ jobs:
 
       - name: Setup Signtool (Windows only)
         if: matrix.platform == 'windows-latest'
-        uses: egor-tensin/setup-signtool@v1
-
+        run: |
+          $signtoolPath = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty DirectoryName
+          echo "$signtoolPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: powershell
       - name: Build Tauri App & Publish Release
         uses: tauri-apps/tauri-action@v0
         env:
