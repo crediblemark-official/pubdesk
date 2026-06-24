@@ -12,11 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: 'ubuntu-22.04' # Untuk Linux (.deb & .AppImage)
-            args: ''
-          - platform: 'windows-latest' # Untuk Windows (.exe & .msi)
-            args: ''
+        platform: [ubuntu-22.04, windows-latest]
+        app: [pub-admin, pub-billing, pub-files, pub-ops]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -57,10 +54,9 @@ jobs:
           WIN_CERT_PATH: 'cert.pfx'
           WIN_CERT_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
         with:
-          tagName: app-v__VERSION__ # Diganti otomatis dengan versi dari tauri.conf.json
-          releaseName: 'PubAdmin v__VERSION__'
-          releaseBody: 'Unduh installer binary di bawah ini.'
+          tagName: ${{ matrix.app }}-v__VERSION__ # Diganti otomatis dengan versi dari tauri.conf.json
+          releaseName: '${{ matrix.app }} v__VERSION__'
+          releaseBody: 'Unduh installer binary untuk ${{ matrix.app }} di bawah ini.'
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
-          projectPath: './apps/pub-admin'
+          projectPath: './apps/${{ matrix.app }}'
