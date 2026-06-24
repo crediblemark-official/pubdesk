@@ -40,25 +40,10 @@ jobs:
       - name: Install Monorepo Dependencies
         run: bun install
 
-      - name: Setup Windows Certificate (Windows only)
-        if: matrix.platform == 'windows-latest'
-        run: |
-          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}")
-          [System.IO.File]::WriteAllBytes("cert.pfx", $pfx_cert_byte)
-        shell: powershell
-
-      - name: Setup Signtool (Windows only)
-        if: matrix.platform == 'windows-latest'
-        run: |
-          $signtoolPath = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty DirectoryName
-          echo "$signtoolPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        shell: powershell
       - name: Build Tauri App & Publish Release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WIN_CERT_PATH: 'cert.pfx'
-          WIN_CERT_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
         with:
           tagName: ${{ matrix.app }}-v__VERSION__ # Diganti otomatis dengan versi dari tauri.conf.json
           releaseName: '${{ matrix.app }} v__VERSION__'
