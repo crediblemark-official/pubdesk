@@ -1,6 +1,5 @@
 import React from 'react';
 import { FileIcon, formatDateTime, getDisplayType } from './fileHelpers';
-import { useAppContext } from '../../contexts/AppContext';
 import { StatusBadge } from '../../ui/atoms/Badge';
 
 interface FileListProps {
@@ -48,8 +47,6 @@ export const FileList: React.FC<FileListProps> = ({
   setExpandedFolders,
   setRightPanelVisible
 }) => {
-  const { setActiveModule } = useAppContext();
-  const { loadInvoiceToForm } = useInvoiceContext();
   return (
     <>
       <style>{`

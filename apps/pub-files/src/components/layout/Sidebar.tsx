@@ -109,8 +109,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 <div style={{ paddingLeft: collapsed ? '0' : '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { cat: 'all' as const, label: 'Semua Berkas', icon: '📂' },
-                    { cat: 'invoice' as const, label: 'Dokumen Invoice', icon: '🧾' },
-                    { cat: 'service' as const, label: 'Katalog Layanan', icon: '🛠️' },
                     { cat: 'pdf' as const, label: 'Dokumen PDF', icon: '📕' },
                     { cat: 'spreadsheet' as const, label: 'Spreadsheet', icon: '📊' },
                     { cat: 'text' as const, label: 'Dokumen Teks & Word', icon: '📝' },

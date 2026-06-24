@@ -467,10 +467,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     let matchesCategory = false;
     if (fileCategory === 'all') {
       matchesCategory = file.type !== 'gdrive';
-    } else if (fileCategory === 'invoice') {
-      matchesCategory = file.type === 'invoice';
-    } else if (fileCategory === 'service') {
-      matchesCategory = file.type === 'service';
     } else if (fileCategory === 'gdrive') {
       matchesCategory = file.type === 'gdrive';
     } else if (fileCategory === 'pdf') {
@@ -484,9 +480,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
     } else if (fileCategory === 'presentation') {
       matchesCategory = file.type !== 'gdrive' && isPresentation;
     } else if (fileCategory === 'other') {
-      matchesCategory = file.type !== 'invoice' && 
-                        file.type !== 'service' && 
-                        file.type !== 'gdrive' && 
+      matchesCategory = file.type !== 'gdrive' && 
                         !isPdf && 
                         !isSpreadsheet && 
                         !isText && 

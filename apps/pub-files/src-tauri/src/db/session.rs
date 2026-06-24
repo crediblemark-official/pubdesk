@@ -1,6 +1,6 @@
 use super::{Database, DbError};
 use crate::db::models::{Tim, ActivityLog, AppSession, WorkSession};
-use rusqlite::{params, Connection};
+use rusqlite::params;
 
 impl Database {
     // Tim CRUD
@@ -341,53 +341,4 @@ impl Database {
         }
         Ok(res)
     }
-}
-
-pub fn sync_contacts_from_invoices(conn: &Connection) -> Result<(), DbError> {
-    let count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contacts WHERE type = 'customer'",
-        [],
-        |row| row.get(0)
-    )?;
-
-    if count > 0 {
-        return Ok(());
-    }
-
-    let mut stmt = conn.prepare("SELECT file_path FROM invoices")?;
-    let rows = stmt.query_map([], |row| {
-        let file_path: Option<String> = row.get(0)?;
-        Ok(file_path)
-    })?;
-
-    let created_at = chrono::Local::now().to_rfc3339();
-
-    for row in rows {
-        if let Ok(Some(file_path_str)) = row {
-            if let Ok(v) = serde_json::from_str::<serde_json::Value>(&file_path_str) {
-                if let Some(customer_name) = v.get("customerName").and_then(|n| n.as_str()) {
-                    let customer_name_trimmed = customer_name.trim();
-                    if !customer_name_trimmed.is_empty() {
-                        let customer_wa = v.get("customerWa").and_then(|w| w.as_str()).unwrap_or("");
-                        let customer_address = v.get("customerAddress").and_then(|a| a.as_str()).unwrap_or("");
-
-                        let exists: i64 = conn.query_row(
-                            "SELECT COUNT(*) FROM contacts WHERE name = ?1 AND type = 'customer'",
-                            params![customer_name_trimmed],
-                            |r| r.get(0)
-                        )?;
-
-                        if exists == 0 {
-                            conn.execute(
-                                "INSERT INTO contacts (name, wa_number, email, address, type, created_at, updated_at) VALUES (?1, ?2, NULL, ?3, 'customer', ?4, ?4)",
-                                params![customer_name_trimmed, customer_wa, customer_address, created_at]
-                            )?;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(())
 }

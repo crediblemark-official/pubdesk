@@ -2,7 +2,6 @@ export const MODULE_LABELS: Record<string, string> = {
   'home': 'Beranda Utama',
   'files': 'Smart Folders',
   'files-parent': 'Dashboard Smart Folders',
-  'activity-log': 'Activity Log',
   'settings-local-folders': 'Folder Lokal Dipantau',
   'settings-gdrive': 'Google Drive',
 };

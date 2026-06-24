@@ -17,7 +17,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
   const { 
     showToast,
     loadFiles,
-    loadInvoices,
     loadWatchFolders,
   } = useAppContext();
 
@@ -29,7 +28,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
     try {
       await Promise.all([
         loadFiles(),
-        loadInvoices(),
         loadWatchFolders(),
       ]);
       showToast('Data file & folder berhasil disegarkan!', 'success');

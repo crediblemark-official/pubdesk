@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useFileState } from '../../contexts/FileContext';
 import { useAppContext } from '../../contexts/AppContext';
 
-type FileCategory = 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation';
+type FileCategory = 'all' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation';
 
 interface StatCardConfig {
   label: string;
@@ -13,7 +13,6 @@ interface StatCardConfig {
 
 const STAT_CARDS: StatCardConfig[] = [
   { label: 'Semua Berkas', color: '#3b82f6', icon: '📂', cat: 'all' },
-  { label: 'Dokumen Invoice', color: '#10b981', icon: '🧾', cat: 'invoice' },
   { label: 'Dokumen PDF', color: '#ef4444', icon: '📕', cat: 'pdf' },
   { label: 'Spreadsheet', color: '#f59e0b', icon: '📊', cat: 'spreadsheet' },
   { label: 'Dokumen Teks & Word', color: '#8b5cf6', icon: '📝', cat: 'text' },
@@ -26,7 +25,6 @@ const DashboardFiles: React.FC = () => {
 
   const stats = useMemo(() => {
     const all = files.length;
-    const invoice = files.filter(f => f.type === 'invoice').length;
     const pdf = files.filter(f => f.type === 'pdf' || f.filename.toLowerCase().endsWith('.pdf')).length;
     const spreadsheet = files.filter(f =>
       f.type === 'spreadsheet' ||
@@ -41,12 +39,11 @@ const DashboardFiles: React.FC = () => {
     ).length;
     const gdrive = files.filter(f => f.type === 'gdrive').length;
 
-    return { all, invoice, pdf, spreadsheet, text, gdrive };
+    return { all, pdf, spreadsheet, text, gdrive };
   }, [files]);
 
   const countMap: Record<string, number> = {
     all: stats.all,
-    invoice: stats.invoice,
     pdf: stats.pdf,
     spreadsheet: stats.spreadsheet,
     text: stats.text,
@@ -77,7 +74,7 @@ const DashboardFiles: React.FC = () => {
           <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Dashboard Smart Folders</span>
         </div>
         <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-          Katalogisasi berkas otomatis berdasarkan jenis dokumen, kuitansi invoice, spreadsheet data master, dan sinkronisasi Google Drive.
+          Katalogisasi berkas otomatis berdasarkan jenis dokumen, spreadsheet data master, dan sinkronisasi Google Drive.
         </span>
       </div>
 
@@ -172,7 +169,6 @@ const DashboardFiles: React.FC = () => {
             overflow: 'hidden'
           }}>
             {[
-              { cat: 'service' as FileCategory, label: 'Katalog Layanan', desc: 'Berkas terkait modul list layanan', icon: '🛠️' },
               { cat: 'image' as FileCategory, label: 'Gambar & Poster', desc: 'Aset gambar naskah atau promosi', icon: '🖼️' },
               { cat: 'presentation' as FileCategory, label: 'Presentasi', desc: 'Slide atau proposal berformat PPTX/PDF', icon: '📉' },
               { cat: 'other' as FileCategory, label: 'Berkas Lainnya', desc: 'Kategori berkas tak terdefinisi', icon: '📁' },
@@ -225,7 +221,7 @@ const DashboardFiles: React.FC = () => {
             💡 Petunjuk Smart Folders
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.6' }}>
-            Smart Folders mendeteksi berkas secara cerdas dari folder lokal yang Anda pantau (Watch Folders) dan menyaringnya berdasarkan ekstensi atau metadata file secara otomatis. Hubungkan ke Google Drive pada Pengaturan untuk mengaktifkan sinkronisasi otomatis berkas invoice Anda.
+            Smart Folders mendeteksi berkas secara cerdas dari folder lokal yang Anda pantau (Watch Folders) dan menyaringnya berdasarkan ekstensi atau metadata file secara otomatis. Hubungkan ke Google Drive pada Pengaturan untuk mengaktifkan sinkronisasi otomatis berkas Anda.
           </p>
           <div style={{ 
             padding: '12px', 

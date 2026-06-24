@@ -25,8 +25,8 @@ interface AppContextType {
   selectedFileId: number | null;
   setSelectedFileId: (id: number | null) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
-  fileCategory: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation';
-  setFileCategory: (category: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation') => void;
+  fileCategory: 'all' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation';
+  setFileCategory: (category: 'all' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation') => void;
   loadFiles: () => Promise<void>;
   addFile: (file: File) => Promise<number>;
   deleteFile: (id: number) => Promise<void>;
@@ -80,7 +80,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const ui = useUIState();
-  const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation'>('all');
+  const [fileCategory, setFileCategory] = useState<'all' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation'>('all');
   const [directAddNewModule, setDirectAddNewModule] = useState<string | null>(null);
   const [isDbInitialized, setIsDbInitialized] = useState(false);
 

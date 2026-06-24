@@ -79,13 +79,7 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
       setCurrentTags([]);
 
       // Service dan GDrive tidak didukung di penganalisis teks lokal
-      if (file.type === 'service' || file.type === 'gdrive') {
-        return;
-      }
-
-      // Invoice: data metadata sudah dari sintetis dan files array — skip backend call
-      if (file.type === 'invoice') {
-        setLoadingMetadata(false);
+      if (file.type === 'gdrive') {
         return;
       }
 
@@ -242,25 +236,8 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     // 1. Dapatkan metadata invoice tiruan jika metadata semantik null atau summary kosong
     let resolvedMetadata = fileMetadata;
 
-    // 1b. Linimasa Versi: untuk invoice cari file lain dengan version_label sama
-    // Non-invoice pakai relatedFiles dari backend (Smart Folders)
-    let displayRelated: any[] = [];
-    if (currentFile.type === 'invoice' && currentFile.version_label) {
-      displayRelated = files
-        .filter(f => f.version_label === currentFile.version_label && f.id !== currentFile.id)
-        .sort((a, b) => new Date(a.last_modified).getTime() - new Date(b.last_modified).getTime())
-        .map(f => ({
-          file_id: f.id,
-          path: f.path,
-          filename: f.filename,
-          type: f.type,
-          relation_type: 'version_of',
-          confidence: 1.0,
-          last_modified: f.last_modified,
-        }));
-    } else {
-      displayRelated = relatedFiles;
-    }
+    // Linimasa Versi
+    let displayRelated: any[] = relatedFiles;
 
     if (!resolvedMetadata) {
       return (
@@ -497,20 +474,8 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', textAlign: 'center', fontWeight: '500' }}>
-          Pilih berkas invoice untuk melihat pratinjau
+          Pilih berkas untuk melihat pratinjau
         </p>
-      </div>
-    );
-  }
-
-  // ---------- Berkas Invoice — render InvoicePreview ----------
-  if (file.type === 'invoice') {
-    return (
-      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', background: 'var(--bg-panel)' }}>
-        <h4 style={{ fontSize: '14px', fontWeight: 700 }}>{file.filename}</h4>
-        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-          Berkas invoice — buka di PubBilling untuk detail.
-        </div>
       </div>
     );
   }

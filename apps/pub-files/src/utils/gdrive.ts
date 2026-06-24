@@ -40,8 +40,6 @@ export const getMimeLabel = (mime?: string): string => {
 };
 
 export const getDisplayType = (file: any) => {
-  if (file.type === 'invoice') return 'Invoice';
-  if (file.type === 'service') return 'Layanan';
   if (file.type === 'gdrive' && file.version_label === 'application/vnd.google-apps.folder') return 'Folder';
   const parts = file.filename.split('.');
   if (parts.length > 1) {

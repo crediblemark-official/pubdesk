@@ -35,10 +35,6 @@ pub fn init_db(db_path: &PathBuf) -> Result<(), DbError> {
     let _ = conn.execute("PRAGMA journal_mode=WAL;", []);
     let _ = conn.execute("PRAGMA busy_timeout = 5000;", []);
     schema::create_tables(&conn)?;
-    
-    // Sinkronisasi data pelanggan dari invoice lama ke tabel contacts jika contacts kosong
-    let _ = session::sync_contacts_from_invoices(&conn);
-    
     Ok(())
 }
 

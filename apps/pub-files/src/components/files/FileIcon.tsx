@@ -44,8 +44,6 @@ export const FileIcon: React.FC<{
 
   const getEmoji = () => {
     if (file.type === 'folder') return expandedFolders[file.path] ? '📂' : '📁';
-    if (file.type === 'invoice') return '📄';
-    if (file.type === 'service') return '🛠️';
     if (file.type === 'gdrive') return isFolder ? (expandedFolders[file.path] ? '📂' : '📁') : '☁️';
     const ext = (file.version_label || '').toLowerCase();
     switch (ext) {
