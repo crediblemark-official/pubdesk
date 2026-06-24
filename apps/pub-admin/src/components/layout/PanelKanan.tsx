@@ -153,9 +153,6 @@ const PanelKanan: React.FC = () => {
   const { activeModule } = appState;
 
   switch (activeModule) {
-    case 'settings-p2p':
-      return <SettingsHelpPanel tab="p2p-connection" />;
-
     case 'settings-gas':
       return <SettingsHelpPanel tab="google-apps-script" />;
 

@@ -14,8 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   ];
 
   const bottomItems = [
-    { id: 'settings-p2p' as const, label: 'Koneksi P2P', icon: '🔗' },
-    { id: 'settings-gas' as const, label: 'Google Sheets (GAS)', icon: '📊' },
+    { id: 'settings-p2p' as const, label: 'Sinkronisasi', icon: '🔗' },
     { id: 'settings-data-reset' as const, label: 'Kustomisasi & Data', icon: '🎨' },
     { id: 'activity-log' as const, label: 'Activity Log', icon: '📋' },
   ];

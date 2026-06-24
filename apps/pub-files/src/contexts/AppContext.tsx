@@ -17,6 +17,7 @@ import { useServiceState } from '../hooks/useServiceState';
 import { useFileState } from '../hooks/useFileState';
 import { useGDriveState, GDriveAccount } from '../hooks/useGDriveState';
 import { useSyncState } from '../hooks/useSyncState';
+import { googleAppsScriptService } from '../services/googleAppsScript';
 
 export type { ConfirmOptions, ImportExportActions, GDriveAccount };
 
@@ -192,6 +193,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const init = async () => {
       try {
         await invoke('init_database');
+        await googleAppsScriptService.initSettings();
+        // Sync config dari cloud spreadsheet di latar belakang jika online
+        googleAppsScriptService.syncConfigFromCloud().catch((err) => {
+          console.warn('[GAS] Gagal sinkronisasi konfigurasi cloud saat startup:', err);
+        });
         setIsDbInitialized(true);
         await booksState.loadBooks();
         await contactsState.loadContacts();

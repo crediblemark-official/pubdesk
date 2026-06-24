@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { WindowControls } from './WindowControls';
+import {
+  MODULE_LABELS,
+  SEARCHABLE_MODULES,
+  SEARCH_PLACEHOLDERS,
+  SEARCH_HINTS,
+  DEFAULT_SEARCH_PLACEHOLDER,
+  DEFAULT_SEARCH_HINT,
+} from './topBarConfig';
+
 import { WorkSessionTimer } from './TopBar/WorkSessionTimer';
 import { ActionButtons } from './TopBar/ActionButtons';
 import { UserProfile } from './TopBar/UserProfile';
@@ -18,9 +27,11 @@ const TopBar: React.FC<TopBarProps> = ({
   onToggleSidebar,
   sidebarCollapsed,
   activeModule,
+  searchQuery = '',
+  onSearchChange,
   onSessionChange
 }) => {
-  const {
+  const { 
     showToast,
     navigateModuleBack,
     navigateModuleForward,
@@ -28,8 +39,14 @@ const TopBar: React.FC<TopBarProps> = ({
     canNavigateModuleForward
   } = useAppContext();
 
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
   const motivationalQuotes = "✦ Kerja keras mengalahkan bakat ketika bakat tidak bekerja keras ✦ Satu-satunya cara untuk melakukan pekerjaan hebat adalah dengan mencintai apa yang Anda lakukan ✦ Disiplin adalah jembatan antara tujuan dan pencapaian ✦ Jangan menunggu kesempatan, ciptakan kesempatan itu sendiri ✦ Keberhasilan bukanlah kunci dari kebahagiaan. Kebahagiaan adalah kunci dari keberhasilan ✦ Mulailah dari mana Anda berada. Gunakan apa yang Anda miliki. Lakukan apa yang Anda bisa ✦";
-  const moduleLabel = 'PubDesk';
+
+  const isSearchable = activeModule ? SEARCHABLE_MODULES.has(activeModule) : false;
+  const moduleLabel = MODULE_LABELS[activeModule ?? ''] ?? 'PubDesk';
+  const searchPlaceholder = SEARCH_PLACEHOLDERS[activeModule ?? ''] ?? DEFAULT_SEARCH_PLACEHOLDER;
+  const searchHint = SEARCH_HINTS[activeModule ?? ''] ?? DEFAULT_SEARCH_HINT;
 
   return (
     <>
@@ -80,22 +97,59 @@ const TopBar: React.FC<TopBarProps> = ({
             </button>
           </div>
 
-          <div className="top-bar-gnome-pathbar" style={{ paddingRight: '12px' }}>
-            <div className="marquee-container">
-              <span className="marquee-content">{motivationalQuotes}</span>
+          {isSearchable ? (
+            (!isSearchFocused && !searchQuery) ? (
+              <div
+                className="top-bar-gnome-pathbar"
+                onClick={() => setIsSearchFocused(true)}
+                style={{ display: 'flex', alignItems: 'center', cursor: 'text', userSelect: 'none', padding: '0 8px' }}
+              >
+                <span className="top-bar-path-text" style={{ color: 'var(--text-secondary)' }}>{searchHint}</span>
+              </div>
+            ) : (
+              <div className="top-bar-gnome-pathbar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <span style={{ position: 'absolute', left: '10px', color: 'var(--text-secondary)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
+                <input
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  value={searchQuery}
+                  autoFocus
+                  onBlur={() => { if (!searchQuery) setIsSearchFocused(false); }}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
+                  style={{
+                    width: '100%', height: '100%', background: 'transparent', border: 'none', outline: 'none',
+                    color: 'var(--text-primary)', fontSize: '13px', paddingLeft: '30px', paddingRight: '8px',
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => { onSearchChange?.(''); setIsSearchFocused(false); }}
+                    className="top-bar-path-clear"
+                    aria-label="Hapus pencarian"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )
+          ) : (
+            <div className="top-bar-gnome-pathbar" style={{ paddingRight: '12px' }}>
+              <div className="marquee-container">
+                <span className="marquee-content">{motivationalQuotes}</span>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="top-bar-action-container">
-            {/* Fitur Timer Durasi Jam Kerja */}
             <WorkSessionTimer showToast={showToast} onSessionChange={onSessionChange} />
 
-            {/* Tombol-tombol Aksi Refresh, Sync, Right Panel, Grid/List & Dropdown */}
             <ActionButtons activeModule={activeModule} />
 
             <div className="top-bar-gnome-separator" style={{ margin: '0 4px' }} />
 
-            {/* Info user + tombol logout */}
             <UserProfile />
 
             <WindowControls />

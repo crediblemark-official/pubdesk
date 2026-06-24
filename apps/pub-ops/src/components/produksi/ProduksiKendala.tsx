@@ -18,7 +18,7 @@ const ProduksiKendala: React.FC<{ searchQuery?: string }> = ({ searchQuery = '' 
   const [filterPic, setFilterPic] = useState('');
 
   const filteredTasks = useMemo(() => {
-    let filtered = tasks.filter(t => t.status === 'Menunggu Revisi' || t.notes);
+    let filtered = tasks.filter(t => t.status === 'Menunggu Revisi' || (t.notes && t.notes.trim().length > 0));
     if (searchQuery) filtered = filtered.filter(t => (t.naskah_title || '').toLowerCase().includes(searchQuery.toLowerCase()));
     if (filterPic) filtered = filtered.filter(t => t.pic_name === filterPic);
     if (filterStatus) filtered = filtered.filter(t => t.status === filterStatus);

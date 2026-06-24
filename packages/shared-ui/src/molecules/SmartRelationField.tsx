@@ -87,7 +87,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
 }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const plural = entityLabelPlural || `${entityLabel}`;
+  const plural = entityLabelPlural || entityLabel;
 
   const selectedOption = useMemo(
     () => options.find((o) => o.value === value),
@@ -163,7 +163,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
         >
           {selectedOption.wa_number && <span>WA: {selectedOption.wa_number}</span>}
           {selectedOption.email && <span>Email: {selectedOption.email}</span>}
-          {selectedOption.city && <span>Kota: {selectedOption.city}</span>}
+          {selectedOption.address && <span>Alamat: {selectedOption.address}</span>}
         </div>
       )}
 

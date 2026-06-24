@@ -17,13 +17,12 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
   const { 
     importExportActions,
     syncModuleDataToCloud,
-    services,
     showToast,
-    loadFiles,
     loadBooks,
     loadContacts,
     loadInvoices,
-    loadServices
+    loadServices,
+    services
   } = useAppContext();
 
   const { 
@@ -49,22 +48,21 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    showToast('Menyegarkan data dari database...', 'info');
+    showToast('Menyegarkan data produksi & CRM...', 'info');
     try {
       await Promise.all([
-        loadFiles(),
-        loadBooks(),
-        loadContacts(),
-        loadInvoices(),
-        loadServices(),
         loadPenulis(),
         loadPenerbit(),
         loadNaskah(),
         loadTim(),
         loadLegalitas(),
-        loadTasks()
+        loadTasks(),
+        loadContacts(),
+        loadBooks(),
+        loadInvoices(),
+        loadServices(),
       ]);
-      showToast('Seluruh data berhasil disegarkan!', 'success');
+      showToast('Data produksi & CRM berhasil disegarkan!', 'success');
     } catch (err) {
       console.error(err);
       showToast('Gagal menyegarkan beberapa data.', 'error');
@@ -76,11 +74,10 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
   const handleSyncModuleData = async () => {
     if (!activeModule) return;
     
-    // Validasi modul yang mendukung sinkronisasi
     const syncableModules = [
-      'kontak', 'books', 'services', 'files', 'invoice', 
-      'invoice-manager', 'penerbit', 'naskah', 'tim', 'legalitas',
-      'produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'tambah-tugas', 'edit-tugas'
+      'kontak', 'penulis', 'penerbit', 'naskah', 'tim', 'legalitas',
+      'produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval',
+      'tambah-tugas', 'edit-tugas'
     ];
     if (!syncableModules.includes(activeModule)) {
       showToast('Halaman ini tidak mendukung sinkronisasi data.', 'info');
@@ -129,7 +126,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ activeModule }) =>
         className="top-bar-btn" 
         onClick={handleRefresh}
         disabled={refreshing}
-        title={refreshing ? "Sedang menyegarkan data..." : "Segarkan data aplikasi"}
+        title={refreshing ? "Sedang menyegarkan data..." : "Segarkan data produksi"}
         aria-label="Refresh data"
         style={{
           color: refreshing ? 'var(--accent)' : 'var(--text-secondary)',

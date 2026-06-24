@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
-const SplashScreen: React.FC = () => {
+interface SplashScreenProps {
+  initError?: string | null;
+  onRetry?: () => void;
+}
+
+const SplashScreen: React.FC<SplashScreenProps> = ({ initError, onRetry }) => {
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('Menginisialisasi aplikasi...');
   const [splashLogo, setSplashLogo] = useState('📚');
@@ -121,33 +126,60 @@ const SplashScreen: React.FC = () => {
         alignItems: 'center',
         gap: '12px'
       }}>
-        <div style={{
-          width: '100%',
-          height: '4px',
-          background: '#e2e8f0',
-          borderRadius: '2px',
-          overflow: 'hidden',
-          position: 'relative'
-        }}>
-          <div style={{
-            width: `${progress}%`,
-            height: '100%',
-            background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
-            borderRadius: '2px',
-            transition: 'width 0.1s linear',
-            boxShadow: '0 0 8px #3b82f6'
-          }} />
-        </div>
+        {initError ? (
+          <div style={{ textAlign: 'center', width: '100%' }}>
+            <div style={{
+              background: '#fef2f2', border: '1px solid #fca5a5',
+              borderRadius: '8px', padding: '12px 16px', marginBottom: '12px'
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#b91c1c', marginBottom: '4px' }}>
+                Gagal Inisialisasi Database
+              </div>
+              <div style={{ fontSize: '10px', color: '#7f1d1d', fontWeight: '500', wordBreak: 'break-word' }}>
+                {initError}
+              </div>
+            </div>
+            {onRetry && (
+              <button onClick={onRetry} style={{
+                padding: '8px 24px', borderRadius: '6px', border: 'none',
+                background: '#3b82f6', color: '#ffffff', fontWeight: '600',
+                fontSize: '13px', cursor: 'pointer'
+              }}>
+                Coba Lagi
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div style={{
+              width: '100%',
+              height: '4px',
+              background: '#e2e8f0',
+              borderRadius: '2px',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <div style={{
+                width: `${progress}%`,
+                height: '100%',
+                background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
+                borderRadius: '2px',
+                transition: 'width 0.1s linear',
+                boxShadow: '0 0 8px #3b82f6'
+              }} />
+            </div>
 
-        <span style={{
-          fontSize: '12px',
-          color: '#64748b',
-          fontWeight: '500',
-          height: '16px',
-          display: 'inline-block'
-        }}>
-          {statusText}
-        </span>
+            <span style={{
+              fontSize: '12px',
+              color: '#64748b',
+              fontWeight: '500',
+              height: '16px',
+              display: 'inline-block'
+            }}>
+              {statusText}
+            </span>
+          </>
+        )}
       </div>
 
       <style>{`

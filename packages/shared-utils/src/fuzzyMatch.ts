@@ -107,7 +107,6 @@ export function findBestDuplicate<T extends FuzzyMatchable>(
     let totalWeight = 0;
     let weightedScore = 0;
     const matchedFields: { key: string; similarity: number }[] = [];
-    let strongMatchCount = 0;
 
     for (const field of fields) {
       const key = field.key as string;
@@ -128,11 +127,6 @@ export function findBestDuplicate<T extends FuzzyMatchable>(
 
       if (similarity > 0) {
         matchedFields.push({ key, similarity });
-      }
-
-      const threshold = field.threshold ?? 0.9;
-      if (similarity >= threshold) {
-        strongMatchCount++;
       }
     }
 

@@ -26,3 +26,5 @@ export * from './molecules/SmartRelationField';
 
 // Shared Components
 export * from './shared/SyncConnectionPanel';
+export * from './shared/ConfirmDialog';
+export * from './shared/Toast';

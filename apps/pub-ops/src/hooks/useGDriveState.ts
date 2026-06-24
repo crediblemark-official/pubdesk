@@ -15,7 +15,7 @@ interface UseGDriveStateProps {
 }
 
 export function useGDriveState({ showToast, fileCategory }: UseGDriveStateProps) {
-  const rootFolderId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
+  const rootFolderId = (() => { try { return localStorage.getItem('gdrive_parent_folder_id'); } catch { return null; } })() || 'root';
   const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolderId);
   const [folderHistory, setFolderHistory] = useState<string[]>([rootFolderId]);
   const [folderHistoryIndex, setFolderHistoryIndex] = useState<number>(0);
@@ -37,12 +37,12 @@ export function useGDriveState({ showToast, fileCategory }: UseGDriveStateProps)
 
   const setGdriveAccounts = (accounts: GDriveAccount[]) => {
     setGdriveAccountsState(accounts);
-    localStorage.setItem('gdrive_accounts', JSON.stringify(accounts));
+    try { localStorage.setItem('gdrive_accounts', JSON.stringify(accounts)); } catch {}
   };
 
   const exchangeCodeForToken = async (code: string) => {
-    const clientId = localStorage.getItem('gdrive_client_id') || '935478440552-k48b61cglp06gskchsc7qg6l2i1pkhn1.apps.googleusercontent.com';
-    const clientSecret = localStorage.getItem('gdrive_client_secret') || '';
+    const clientId = (() => { try { return localStorage.getItem('gdrive_client_id'); } catch { return null; } })() || '';
+    const clientSecret = (() => { try { return localStorage.getItem('gdrive_client_secret'); } catch { return null; } })() || '';
     const port = 50007;
 
     showToast('Menukar kode otorisasi...', 'info');
@@ -105,12 +105,12 @@ export function useGDriveState({ showToast, fileCategory }: UseGDriveStateProps)
           setGdriveAccounts(updatedAccounts);
 
           // Set akun default
-          localStorage.setItem('gdrive_token', accessToken);
+          try { localStorage.setItem('gdrive_token', accessToken); } catch {}
           if (refreshToken) {
-            localStorage.setItem('gdrive_refresh_token', refreshToken);
+            try { localStorage.setItem('gdrive_refresh_token', refreshToken); } catch {}
           }
-          localStorage.setItem('gdrive_client_id', clientId);
-          localStorage.setItem('gdrive_client_secret', clientSecret);
+          try { localStorage.setItem('gdrive_client_id', clientId); } catch {}
+          try { localStorage.setItem('gdrive_client_secret', clientSecret); } catch {}
 
           setConnectedUser({ name, email });
           showToast(`Akun ${email} berhasil dihubungkan!`, 'success');
@@ -187,10 +187,10 @@ export function useGDriveState({ showToast, fileCategory }: UseGDriveStateProps)
         });
         setGdriveAccounts(updatedAccounts);
 
-        const defaultToken = localStorage.getItem('gdrive_token');
+        const defaultToken = (() => { try { return localStorage.getItem('gdrive_token'); } catch { return null; } })();
         const defaultEmail = connectedUser?.email;
         if (defaultEmail === email || !defaultToken) {
-          localStorage.setItem('gdrive_token', newAccessToken);
+          try { localStorage.setItem('gdrive_token', newAccessToken); } catch {}
           setConnectedUser({ name: account.name, email: account.email });
         }
         
@@ -242,7 +242,7 @@ export function useGDriveState({ showToast, fileCategory }: UseGDriveStateProps)
         if (res.ok) {
           const data = await res.json();
           const newAccessToken = data.access_token;
-          localStorage.setItem('gdrive_token', newAccessToken);
+          try { localStorage.setItem('gdrive_token', newAccessToken); } catch {}
           
           await testConnection(newAccessToken);
           return newAccessToken;
@@ -264,7 +264,7 @@ export function useGDriveState({ showToast, fileCategory }: UseGDriveStateProps)
 
   useEffect(() => {
     const initConnection = async () => {
-      const token = localStorage.getItem('gdrive_token');
+      const token = (() => { try { return localStorage.getItem('gdrive_token'); } catch { return null; } })();
       if (token) {
         try {
           const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
@@ -290,7 +290,7 @@ export function useGDriveState({ showToast, fileCategory }: UseGDriveStateProps)
   }, []);
 
   useEffect(() => {
-    const rootId = localStorage.getItem('gdrive_parent_folder_id') || 'root';
+    const rootId = (() => { try { return localStorage.getItem('gdrive_parent_folder_id'); } catch { return null; } })() || 'root';
     setCurrentFolderId(rootId);
     setFolderHistory([rootId]);
     setFolderHistoryIndex(0);

@@ -22,6 +22,7 @@ export const Select: React.FC<SelectProps> = ({
     )}
     <div style={{ position: 'relative', width: '100%' }}>
       <select
+        aria-label={label || undefined}
         style={{
           width: '100%',
           height: '42px',

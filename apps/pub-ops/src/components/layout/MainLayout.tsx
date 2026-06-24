@@ -2,10 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { PanelKanan } from './PanelKanan';
-import { Toast } from '../../components/shared/Toast';
-import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
+import { Toast, ConfirmDialog } from '@pubhub/shared-ui';
 import { useAppContext } from '../../contexts/AppContext';
-import { SyncConnectionPanel } from '@pubhub/shared-ui/src/shared/SyncConnectionPanel';
 // Modul CRM & Manajemen Kontak Pelanggan
 import PenulisManager from '../data-master/PenulisManager';
 import PenerbitManager from '../data-master/PenerbitManager';
@@ -31,7 +29,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoginPage from '../auth/LoginPage';
 
 const MainLayout = () => {
-  const { appState, rightPanelVisible } = useAppContext();
+  const { appState, rightPanelVisible, toast, confirmOptions, hideConfirm } = useAppContext();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [rightPanelWidth, setRightPanelWidth] = useState(450);
   const [isDragging, setIsDragging] = useState(false);
@@ -138,8 +136,6 @@ const MainLayout = () => {
         return <LegalitasManager searchQuery={fileSearchQuery} />;
       case 'activity-log':
         return <ActivityLog />;
-      case 'settings-p2p':
-        return renderSettingsModule('Koneksi Jaringan', '🔗', <SyncConnectionPanel />);
       case 'tambah-tugas':
       case 'edit-tugas':
         return <TaskFormPage />;
@@ -224,8 +220,8 @@ const MainLayout = () => {
           </div>
         </div>
       </div>
-      <Toast />
-      <ConfirmDialog />
+      <Toast toast={toast} />
+      <ConfirmDialog confirmOptions={confirmOptions} hideConfirm={hideConfirm} />
     </div>
   );
 };

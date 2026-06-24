@@ -84,6 +84,9 @@ const SHEETS_CONFIG = {
   ],
   "Legalitas": [
     "id", "naskah_id", "judul_buku", "nama_penulis", "tipe", "tanggal_pengajuan", "keterangan", "status", "nomor_dokumen", "tanggal_keluar", "tanggal_revisi", "pic_id", "rejection_reason", "proof_path_or_link", "created_at", "updated_at"
+  ],
+  "AppConfig": [
+    "key", "value", "updated_at"
   ]
 };
 

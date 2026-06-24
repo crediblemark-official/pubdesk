@@ -9,21 +9,23 @@ const SplashScreen: React.FC = () => {
   const [appName, setAppName] = useState('PubDesk');
 
   useEffect(() => {
-    const savedLogo = localStorage.getItem('splash_logo');
-    if (savedLogo) {
-      setSplashLogo(savedLogo);
-      if (savedLogo.startsWith('data:image')) {
-        setLogoType('image');
-      } else {
-        setLogoType('emoji');
+    try {
+      const savedLogo = localStorage.getItem('splash_logo');
+      if (savedLogo) {
+        setSplashLogo(savedLogo);
+        if (savedLogo.startsWith('data:image')) {
+          setLogoType('image');
+        } else {
+          setLogoType('emoji');
+        }
       }
-    }
-    const publisherName = localStorage.getItem('publisher_name');
-    if (publisherName && publisherName.trim()) {
-      setAppName(`PubDesk - ${publisherName.trim()}`);
-    } else {
-      setAppName('PubDesk');
-    }
+    } catch { /* localStorage tidak tersedia */ }
+    try {
+      const publisherName = localStorage.getItem('publisher_name');
+      if (publisherName && publisherName.trim()) {
+        setAppName(`PubDesk - ${publisherName.trim()}`);
+      }
+    } catch { /* localStorage tidak tersedia */ }
   }, []);
 
   useEffect(() => {

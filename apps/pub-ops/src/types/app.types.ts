@@ -10,7 +10,7 @@ export type AppModule =
   | 'penerbit'
   | 'naskah'
   | 'legalitas'
-  | 'tim'
+
   | 'activity-log'
   | 'pekerjaan-saya'
   | 'produksi-board'
@@ -23,8 +23,7 @@ export type AppModule =
   | 'tambah-tugas'
   | 'edit-tugas'
   | 'produksi-parent'
-  | 'master-data-parent'
-  | 'settings-p2p';
+  | 'master-data-parent';
 
 export interface AppState {
   activeModule: AppModule;

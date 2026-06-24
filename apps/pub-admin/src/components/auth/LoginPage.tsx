@@ -10,6 +10,7 @@ interface TimMember {
   role: string;
   department?: string;
   is_active: number;
+  pin?: string;
 }
 
 // Warna avatar berdasarkan index
@@ -42,9 +43,6 @@ const LoginPage: React.FC = () => {
 
   const [appName, setAppName] = useState('PubAdmin');
   const [searchQuery, setSearchQuery] = useState('');
-  const [regName, setRegName] = useState('');
-  const [regRole, setRegRole] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     const savedLogo = localStorage.getItem('splash_logo');
@@ -72,9 +70,6 @@ const LoginPage: React.FC = () => {
         const data = await invoke<TimMember[]>('get_tim');
         const activeMembers = data.filter(m => m.is_active === 1);
         setMembers(activeMembers);
-        if (activeMembers.length === 0) {
-          setIsRegistering(true);
-        }
       } catch (e) {
         setError('Gagal memuat data anggota tim.');
         console.error(e);
@@ -97,10 +92,9 @@ const LoginPage: React.FC = () => {
 
   const handleLogin = async (member: TimMember) => {
     if (!member.id) return;
-    const isMemberAdmin = member.role.toLowerCase().includes('admin') || 
-                          (member.department && member.department.toLowerCase().includes('admin'));
+    const hasPin = member.pin && member.pin.trim() !== '';
     
-    if (isMemberAdmin) {
+    if (hasPin) {
       setSelectedAdminForPin(member);
       setPinInput('');
       setPinError(null);
@@ -109,7 +103,7 @@ const LoginPage: React.FC = () => {
       setLoggingIn(member.id);
       setError(null);
       try {
-        await login(member.id);
+        await login(member.id, '');
       } catch (e) {
         setError('Gagal login. Silakan coba lagi.');
         console.error(e);
@@ -122,44 +116,17 @@ const LoginPage: React.FC = () => {
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPinError(null);
-    if (pinInput !== '123456') {
-      setPinError('PIN keamanan admin salah!');
-      return;
-    }
 
     if (!selectedAdminForPin || !selectedAdminForPin.id) return;
 
     setLoggingIn(selectedAdminForPin.id);
     try {
-      await login(selectedAdminForPin.id);
+      await login(selectedAdminForPin.id, pinInput);
       setShowPinModal(false);
     } catch (err) {
-      setPinError('Gagal login. Silakan coba lagi.');
+      setPinError('PIN keamanan admin salah!');
       console.error(err);
       setLoggingIn(null);
-    }
-  };
-
-  const handleRegisterFirstMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!regName.trim() || !regRole.trim()) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const payload = {
-        name: regName.trim(),
-        role: regRole.trim(),
-        is_active: 1,
-        weekly_target: 0,
-        created_at: new Date().toISOString()
-      };
-      const newMemberId = await invoke<number>('add_tim', { tim: payload });
-      await login(newMemberId);
-    } catch (e) {
-      setError('Gagal membuat profil pengguna.');
-      console.error(e);
-      setIsLoading(false);
     }
   };
 
@@ -229,7 +196,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Search Bar */}
-        {!isLoading && !isRegistering && members.length > 0 && (
+        {!isLoading && members.length > 0 && (
           <div style={{
             padding: '8px 16px',
             borderBottom: '1px solid var(--border)',
@@ -276,78 +243,6 @@ const LoginPage: React.FC = () => {
         {isLoading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
             Memuat daftar tim...
-          </div>
-        ) : isRegistering ? (
-          <div style={{ padding: '32px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: '36px', marginBottom: '16px' }}>👥</div>
-            <p style={{ color: 'var(--text-primary)', margin: '0 0 8px 0', fontSize: '15px', fontWeight: '600' }}>
-              Selamat Datang!
-            </p>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: '0 0 24px 0', lineHeight: '1.5' }}>
-              Belum ada profil pengguna terdaftar di komputer ini. Silakan buat profil pengguna lokal pertama Anda untuk masuk:
-            </p>
-            <form onSubmit={handleRegisterFirstMember} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '320px', margin: '0 auto', textAlign: 'left' }}>
-              <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: '500' }}>NAMA LENGKAP</label>
-                <input
-                  type="text"
-                  placeholder="Masukkan nama lengkap..."
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    background: 'var(--bg-dark)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
-                    borderRadius: '6px',
-                    fontSize: '13px',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: '500' }}>JABATAN / PERAN</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Admin Keuangan, Editor, dll..."
-                  value={regRole}
-                  onChange={(e) => setRegRole(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    background: 'var(--bg-dark)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
-                    borderRadius: '6px',
-                    fontSize: '13px',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-              <button
-                type="submit"
-                style={{
-                  background: 'var(--accent)',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  marginTop: '8px',
-                  textAlign: 'center',
-                  transition: 'background 0.15s ease'
-                }}
-              >
-                Buat Profil & Masuk Aplikasi
-              </button>
-            </form>
           </div>
         ) : filteredMembers.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center' }}>

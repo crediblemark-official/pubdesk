@@ -124,9 +124,12 @@ pub async fn get_all_task_history(state: State<'_, AppState>) -> Result<Vec<Task
 
 #[tauri::command]
 pub async fn update_task_status(state: State<'_, AppState>, task_id: i64, new_status: String, notes: Option<String>, proof_path_or_link: Option<String>) -> Result<(), String> {
+    let active = state.active_session.lock().map_err(|_| "Failed to lock session".to_string())?;
+    let changed_by = active.as_ref().map(|s| s.tim_name.clone()).unwrap_or_else(|| "User".to_string());
+    drop(active);
     let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
-    db.update_task_status(task_id, &new_status, notes.as_deref(), proof_path_or_link.as_deref()).map_err(|e| e.to_string())
+    db.update_task_status(task_id, &new_status, notes.as_deref(), proof_path_or_link.as_deref(), &changed_by).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

@@ -11,8 +11,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(() => {
     const active = appState.activeModule;
     return {
-      'master-data-parent': ['kontak', 'penulis', 'penerbit', 'naskah', 'legalitas', 'master-data-parent'].includes(active),
-      'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'produksi-timeline', 'tambah-tugas', 'edit-tugas', 'produksi-parent'].includes(active)
+      'master-data-parent': ['kontak', 'penulis', 'penerbit', 'naskah', 'legalitas'].includes(active),
+      'produksi-parent': ['produksi-board', 'produksi-list', 'produksi-kendala', 'produksi-approval', 'produksi-timeline', 'tambah-tugas', 'edit-tugas'].includes(active)
     };
   });
 
@@ -25,7 +25,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   ];
 
   const bottomItems = [
-    { id: 'settings-p2p' as const, label: 'Koneksi Jaringan', icon: '🔗' },
     { id: 'activity-log' as const, label: 'Activity Log', icon: '📋' },
   ];
 

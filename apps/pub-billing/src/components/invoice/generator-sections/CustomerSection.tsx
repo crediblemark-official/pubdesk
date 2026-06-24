@@ -1,14 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { SmartRelationField, SmartRelationOption } from '@pubhub/shared-ui';
 import { findBestDuplicate, formatDuplicateReason } from '@pubhub/shared-utils';
 
 export const CustomerSection: React.FC = () => {
   const { customer, setCustomer } = useInvoiceContext();
   const { contacts, addContact } = useAppContext();
-  const { penulis, addPenulis } = useDataMasterContext();
   const [waInput, setWaInput] = useState('');
 
   const [createFormData, setCreateFormData] = useState({
@@ -16,6 +14,7 @@ export const CustomerSection: React.FC = () => {
     wa_number: '',
     email: '',
     address: '',
+    isPenulis: false,
   });
   const [duplicateWarning, setDuplicateWarning] = useState<{
     matchedOption: SmartRelationOption;
@@ -23,36 +22,55 @@ export const CustomerSection: React.FC = () => {
     reason: string;
   } | null>(null);
 
-  // Combine customers and penulis for the dropdown.
-  const customers = contacts.filter((c) => c.type === 'customer');
   const allContactOptions: SmartRelationOption[] = useMemo(() => {
-    const list = [
-      ...customers.map((c) => ({
+    // Kelompokkan kontak berdasarkan nama (case-insensitive) untuk menghilangkan duplikasi visual
+    const uniqueContactsMap = new Map<string, typeof contacts[0]>();
+    
+    contacts.forEach((c) => {
+      const nameKey = c.name.trim().toLowerCase();
+      const existing = uniqueContactsMap.get(nameKey);
+      
+      if (!existing) {
+        uniqueContactsMap.set(nameKey, c);
+      } else {
+        // Tentukan prioritas tipe: both > customer > penulis
+        const getPriority = (type: string) => {
+          if (type === 'both') return 3;
+          if (type === 'customer') return 2;
+          return 1;
+        };
+        
+        if (getPriority(c.type) > getPriority(existing.type)) {
+          uniqueContactsMap.set(nameKey, c);
+        }
+      }
+    });
+
+    const uniqueContactsList = Array.from(uniqueContactsMap.values());
+
+    return uniqueContactsList.map((c) => {
+      let roleLabel = '';
+      if (c.type === 'customer') roleLabel = ' (Pelanggan)';
+      else if (c.type === 'penulis') roleLabel = ' (Penulis)';
+      else if (c.type === 'both') roleLabel = ' (Pelanggan & Penulis)';
+
+      return {
         value: String(c.id),
-        label: `${c.name} (Pelanggan)`,
-        source: 'Pelanggan',
+        label: `${c.name}${roleLabel}`,
+        name: c.name,
+        source: c.type === 'penulis' ? 'Penulis' : c.type === 'customer' ? 'Pelanggan' : 'Pelanggan & Penulis',
         wa_number: c.wa_number,
         email: c.email,
         address: c.address,
-        isPenulis: false,
-      })),
-      ...penulis.map((p) => ({
-        value: `penulis-${p.id}`,
-        label: `${p.name} (Penulis)`,
-        source: 'Penulis',
-        wa_number: p.wa_number,
-        email: p.email,
-        address: p.address,
-        isPenulis: true,
-      })),
-    ];
-    return list;
-  }, [customers, penulis]);
+        isPenulis: c.type === 'penulis' || c.type === 'both',
+      };
+    });
+  }, [contacts]);
 
   const selectedValue = useMemo(() => {
     if (!customer.name) return '';
     const found = allContactOptions.find(
-      (o) => o.label.toLowerCase().startsWith(customer.name!.toLowerCase())
+      (o) => (o as any).name?.toLowerCase() === customer.name!.toLowerCase()
     );
     return found ? found.value : '';
   }, [allContactOptions, customer.name]);
@@ -60,12 +78,12 @@ export const CustomerSection: React.FC = () => {
   const handleSelect = (value: string, option?: SmartRelationOption) => {
     if (!option) {
       const exactMatch = allContactOptions.find(
-        (o) => o.label.replace(/ \(Pelanggan\)| \(Penulis\)/, '').toLowerCase() === value.trim().toLowerCase()
+        (o) => (o as any).name?.toLowerCase() === value.trim().toLowerCase()
       );
       if (exactMatch) {
         setCustomer((prev) => ({
           ...prev,
-          name: value,
+          name: exactMatch.name || value,
           wa_number: exactMatch.wa_number || '',
           email: exactMatch.email || '',
           address: exactMatch.address || '',
@@ -78,7 +96,7 @@ export const CustomerSection: React.FC = () => {
     }
     setCustomer((prev) => ({
       ...prev,
-      name: option.label.replace(/ \(Pelanggan\)| \(Penulis\)/, ''),
+      name: (option as any).name || option.label,
       wa_number: option.wa_number || '',
       email: option.email || '',
       address: option.address || '',
@@ -87,10 +105,12 @@ export const CustomerSection: React.FC = () => {
   };
 
   const checkDuplicate = (data: { name: string; wa_number?: string; email?: string }) => {
-    const allEntities: Array<{ id: string; name: string; wa_number?: string; email?: string }> = [
-      ...customers.map((c) => ({ id: String(c.id), name: c.name, wa_number: c.wa_number, email: c.email })),
-      ...penulis.map((p) => ({ id: `penulis-${p.id}`, name: p.name, wa_number: p.wa_number, email: p.email })),
-    ];
+    const allEntities = contacts.map((c) => ({
+      id: String(c.id),
+      name: c.name,
+      wa_number: c.wa_number,
+      email: c.email,
+    }));
     const result = findBestDuplicate(
       { id: undefined, name: data.name, wa_number: data.wa_number, email: data.email },
       allEntities,
@@ -117,10 +137,8 @@ export const CustomerSection: React.FC = () => {
   };
 
   const handleCreateSave = async (onSuccess: () => void) => {
-    const { name, wa_number, email, address } = createFormData;
+    const { name, wa_number, email, address, isPenulis } = createFormData;
     if (!name.trim()) return;
-
-    const isPenulis = customer.isPenulis;
 
     if (duplicateWarning) {
       // The modal is showing the duplicate warning; user pressed "Tetap Buat Baru".
@@ -147,41 +165,22 @@ export const CustomerSection: React.FC = () => {
     isPenulis: boolean;
   }) => {
     try {
-      if (data.isPenulis) {
-        await addPenulis({
-          name: data.name.trim(),
-          wa_number: data.wa_number.trim(),
-          email: data.email.trim(),
-          address: data.address.trim(),
-          email_valid: 0,
-          wa_valid: 0,
-        });
-        setCustomer((prev) => ({
-          ...prev,
-          name: data.name.trim(),
-          wa_number: data.wa_number.trim(),
-          email: data.email.trim(),
-          address: data.address.trim(),
-          isPenulis: true,
-        }));
-      } else {
-        await addContact({
-          name: data.name.trim(),
-          wa_number: data.wa_number.trim(),
-          email: data.email.trim(),
-          address: data.address.trim(),
-          type: 'customer',
-          created_at: new Date().toISOString(),
-        });
-        setCustomer((prev) => ({
-          ...prev,
-          name: data.name.trim(),
-          wa_number: data.wa_number.trim(),
-          email: data.email.trim(),
-          address: data.address.trim(),
-          isPenulis: false,
-        }));
-      }
+      await addContact({
+        name: data.name.trim(),
+        wa_number: data.wa_number.trim(),
+        email: data.email.trim(),
+        address: data.address.trim(),
+        type: data.isPenulis ? 'both' : 'customer',
+        created_at: new Date().toISOString(),
+      });
+      setCustomer((prev) => ({
+        ...prev,
+        name: data.name.trim(),
+        wa_number: data.wa_number.trim(),
+        email: data.email.trim(),
+        address: data.address.trim(),
+        isPenulis: data.isPenulis,
+      }));
     } catch (err) {
       console.error('Gagal membuat kontak baru:', err);
     }
@@ -334,6 +333,15 @@ export const CustomerSection: React.FC = () => {
                 boxSizing: 'border-box',
               }}
             />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none', margin: '4px 0' }}>
+              <input
+                type="checkbox"
+                checked={createFormData.isPenulis}
+                onChange={(e) => setCreateFormData((prev) => ({ ...prev, isPenulis: e.target.checked }))}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              Centang jika penulis (simpan sebagai penulis & pelanggan)
+            </label>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button className="btn-secondary" type="button" onClick={onCancel}>
                 Batal
@@ -341,7 +349,7 @@ export const CustomerSection: React.FC = () => {
               <button
                 className="btn-primary"
                 type="button"
-                onClick={() => handleCreateSave(() => onSave())}
+                onClick={() => handleCreateSave(() => onSave({}))}
               >
                 Simpan
               </button>
@@ -429,30 +437,6 @@ export const CustomerSection: React.FC = () => {
           onChange={(e) => setCustomer((prev) => ({ ...prev, address: e.target.value }))}
           placeholder="Alamat Pengiriman"
         />
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          marginTop: '16px',
-          padding: '12px',
-          background: 'var(--bg-panel)',
-          borderRadius: '8px',
-          border: '1px solid var(--border)',
-        }}
-      >
-        <input
-          type="checkbox"
-          id="isPenulis"
-          checked={customer.isPenulis || false}
-          onChange={(e) => setCustomer((prev) => ({ ...prev, isPenulis: e.target.checked }))}
-          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-        />
-        <label htmlFor="isPenulis" style={{ fontSize: '14px', color: 'var(--text-primary)', cursor: 'pointer', userSelect: 'none' }}>
-          Centang Jika Penulis
-        </label>
       </div>
     </>
   );

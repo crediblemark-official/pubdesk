@@ -163,8 +163,6 @@ const DataResetTab: React.FC = () => {
         "Nomor WA": d.wa_number || '',
         "Email": d.email || '',
         "Alamat": d.address || '',
-        "Provinsi": d.province || '',
-        "Kota": d.city || '',
         "Pekerjaan": d.job || '',
         "Institusi": d.institution || '',
         "Tipe": d.type || '',
@@ -174,8 +172,6 @@ const DataResetTab: React.FC = () => {
       addSheet(penerbitData.map((d, i) => ({
         "No": i + 1,
         "Nama Penerbit": d.name || '',
-        "Kota": d.city || '',
-        "Provinsi": d.province || '',
         "Alamat": d.address || '',
         "Email": d.email || '',
         "Nomor WA": d.wa_number || '',

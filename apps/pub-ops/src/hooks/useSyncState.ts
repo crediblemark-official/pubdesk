@@ -72,8 +72,6 @@ export function useSyncState({
           wa_number: c.wa_number || '',
           email: c.email || '',
           address: c.address || '',
-          province: c.province || '',
-          city: c.city || '',
           job: c.job || '',
           institution: c.institution || '',
           data_source: c.data_source || '',
@@ -244,7 +242,6 @@ export function useSyncState({
         const payload = dataMaster.penerbit.map(p => ({
           id: p.id,
           name: p.name,
-          city: p.city || '',
           instagram: p.instagram || '',
           facebook: p.facebook || '',
           email: p.email || '',
@@ -257,7 +254,6 @@ export function useSyncState({
           cooperation_status: p.cooperation_status || 'Aktif',
           address: p.address || '',
           notes: p.notes || '',
-          province: p.province || '',
           created_at: p.created_at,
           updated_at: p.updated_at || p.created_at
         }));
@@ -467,8 +463,6 @@ export function useSyncState({
           wa_number: c.wa_number || '',
           email: c.email || '',
           address: c.address || '',
-          province: c.province || '',
-          city: c.city || '',
           job: c.job || '',
           institution: c.institution || '',
           data_source: c.data_source || '',
@@ -634,7 +628,6 @@ export function useSyncState({
         const payload = dataMaster.penerbit.map(p => ({
           id: p.id,
           name: p.name,
-          city: p.city || '',
           instagram: p.instagram || '',
           facebook: p.facebook || '',
           email: p.email || '',
@@ -647,7 +640,6 @@ export function useSyncState({
           cooperation_status: p.cooperation_status || 'Aktif',
           address: p.address || '',
           notes: p.notes || '',
-          province: p.province || '',
           created_at: p.created_at,
           updated_at: p.updated_at || p.created_at
         }));

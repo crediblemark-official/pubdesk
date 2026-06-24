@@ -9,6 +9,8 @@ interface InvoiceHeaderProps {
   invoiceNo: string;
 }
 
+const FONT_FAMILY = '"Montserrat", "Segoe UI", sans-serif';
+
 export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   profile,
   headerBgColor,
@@ -52,10 +54,10 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           if (headerType === 'text_only' || (!profile?.companyLogo && headerType === 'logo_only')) {
             return (
               <>
-                <text x="120" y="88" textAnchor="middle" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="700" letterSpacing="1.4">
+                <text x="120" y="88" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="16" fontWeight="700" letterSpacing="1.4">
                   {profile?.companyName || 'CV KBM'}
                 </text>
-                <text x="120" y="104" textAnchor="middle" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7.5" fontWeight="600" letterSpacing="1.8">
+                <text x="120" y="104" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7.5" fontWeight="600" letterSpacing="1.8">
                   {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                 </text>
               </>
@@ -87,10 +89,10 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                     height="52"
                     preserveAspectRatio="xMinYMid meet"
                   />
-                  <text x="90" y="87" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">
+                  <text x="90" y="87" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="700" letterSpacing="1.4">
                     {profile?.companyName || 'CV KBM'}
                   </text>
-                  <text x="90" y="101" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">
+                  <text x="90" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1.8">
                     {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                   </text>
                 </>
@@ -100,10 +102,10 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                     <path d="M20 0 L38 10 L38 33 L20 44 L2 33 L2 10 Z" fill="#ffffff" />
                     <path d="M20 11 L29 16 L29 28 L20 33 L11 28 L11 16 Z" fill={headerPrimaryColor} />
                   </g>
-                  <text x="88" y="87" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="15" fontWeight="700" letterSpacing="1.4">
+                  <text x="88" y="87" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="700" letterSpacing="1.4">
                     {profile?.companyName || 'CV KBM'}
                   </text>
-                  <text x="89" y="101" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="7" fontWeight="600" letterSpacing="1.8">
+                  <text x="89" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1.8">
                     {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                   </text>
                 </>
@@ -112,10 +114,10 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           );
         })()}
 
-        <text x="622" y="98" textAnchor="end" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="44" fontWeight="700" letterSpacing="2">
+        <text x="622" y="98" textAnchor="end" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="44" fontWeight="700" letterSpacing="2">
           {profile?.invoiceTitleText || 'INVOICE'}
         </text>
-        <text x="622" y="118" textAnchor="end" fill="#dddddd" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="700" letterSpacing="1">
+        <text x="622" y="118" textAnchor="end" fill="#dddddd" fontFamily={FONT_FAMILY} fontSize="10" fontWeight="700" letterSpacing="1">
           NO. {invoiceNo || 'RA.01/11/06/2026'}
         </text>
       </svg>

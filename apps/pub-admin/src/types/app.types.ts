@@ -7,7 +7,6 @@ export type AppModule =
   | 'tim'
   | 'activity-log'
   | 'settings-p2p'
-  | 'settings-gas'
   | 'settings-data-reset';
 
 export interface AppState {

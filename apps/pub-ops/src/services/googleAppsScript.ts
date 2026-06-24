@@ -29,6 +29,10 @@ const STORAGE_KEYS = {
 const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbznI3Q4IqjG1T3BvduLlymBJUaMaNdDNjj4OF9krkfjUsXIvAamD8emMcZedwd5El0e2g/exec';
 const DEFAULT_TOKEN = 'PubDesk_Secret_Token_2026';
 
+let cachedUrl = DEFAULT_URL;
+let cachedToken = DEFAULT_TOKEN;
+let isInitialized = false;
+
 /**
  * Konversi byte array ke Base64 string secara efisien
  */
@@ -88,29 +92,136 @@ function parseGasResponse(responseText: string): any {
 
 export const googleAppsScriptService = {
   /**
-   * Mendapatkan konfigurasi URL dan Token dari localStorage
+   * Menginisialisasi setelan dari database lokal SQLite
    */
-  getSettings() {
-    const savedUrl = localStorage.getItem(STORAGE_KEYS.URL);
-    // Jika URL kosong atau merupakan URL default lama, reset ke default terbaru
-    const url = (!savedUrl || (savedUrl !== DEFAULT_URL && savedUrl.includes('AKfycbxiHG')))
-      ? DEFAULT_URL
-      : savedUrl.trim();
+  async initSettings() {
+    if (isInitialized) return { url: cachedUrl, token: cachedToken };
 
-    // Simpan URL terbaru jika terjadi auto-reset
-    if (url === DEFAULT_URL && savedUrl !== DEFAULT_URL) {
-      localStorage.setItem(STORAGE_KEYS.URL, DEFAULT_URL);
+    try {
+      const raw = await invoke<string>('get_sync_config_full');
+      const config = JSON.parse(raw);
+      
+      const savedUrl = (config.gas_url || '').trim();
+      const savedToken = (config.gas_token || '').trim();
+
+      if (savedUrl) {
+        cachedUrl = savedUrl;
+        cachedToken = savedToken || DEFAULT_TOKEN;
+      } else {
+        // Jika kosong di database, gunakan default dan simpan ke database
+        cachedUrl = DEFAULT_URL;
+        cachedToken = DEFAULT_TOKEN;
+        
+        await invoke('set_sync_config', {
+          syncMethod: 'gas',
+          workerUrl: '',
+          gasUrl: DEFAULT_URL,
+          gasToken: DEFAULT_TOKEN
+        });
+      }
+    } catch (err) {
+      console.warn('[GAS] Gagal membaca konfigurasi dari database lokal, menggunakan localStorage/default:', err);
+      // Fallback ke localStorage
+      const localUrl = localStorage.getItem(STORAGE_KEYS.URL);
+      const localToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      
+      cachedUrl = localUrl ? localUrl.trim() : DEFAULT_URL;
+      cachedToken = localToken ? localToken.trim() : DEFAULT_TOKEN;
     }
-    const token = localStorage.getItem(STORAGE_KEYS.TOKEN) || DEFAULT_TOKEN;
-    return { url, token };
+
+    isInitialized = true;
+    return { url: cachedUrl, token: cachedToken };
   },
 
   /**
-   * Menyimpan konfigurasi URL dan Token ke localStorage
+   * Mendapatkan konfigurasi URL dan Token dari cache memori
    */
-  saveSettings(url: string, token: string) {
-    localStorage.setItem(STORAGE_KEYS.URL, url.trim());
-    localStorage.setItem(STORAGE_KEYS.TOKEN, token.trim());
+  getSettings() {
+    return { url: cachedUrl, token: cachedToken };
+  },
+
+  /**
+   * Menyimpan konfigurasi URL dan Token ke cache, SQLite local db, dan localStorage
+   */
+  async saveSettings(url: string, token: string, uploadToCloud = true) {
+    const trimmedUrl = url.trim();
+    const trimmedToken = token.trim();
+    
+    cachedUrl = trimmedUrl;
+    cachedToken = trimmedToken;
+    isInitialized = true;
+
+    localStorage.setItem(STORAGE_KEYS.URL, trimmedUrl);
+    localStorage.setItem(STORAGE_KEYS.TOKEN, trimmedToken);
+
+    try {
+      await invoke('set_sync_config', {
+        syncMethod: 'gas',
+        workerUrl: '',
+        gasUrl: trimmedUrl,
+        gasToken: trimmedToken
+      });
+    } catch (err) {
+      console.error('[GAS] Gagal menyimpan ke database lokal SQLite:', err);
+    }
+
+    if (uploadToCloud && trimmedUrl) {
+      try {
+        await this.upsertRecordsToCloud('AppConfig', [
+          { key: 'gas_url', value: trimmedUrl, updated_at: new Date().toISOString() },
+          { key: 'gas_token', value: trimmedToken, updated_at: new Date().toISOString() }
+        ]);
+        console.log('[GAS] Konfigurasi berhasil di-backup ke spreadsheet.');
+      } catch (err) {
+        console.error('[GAS] Gagal membackup konfigurasi ke spreadsheet:', err);
+      }
+    }
+  },
+
+  /**
+   * Menyelaraskan konfigurasi dari cloud (spreadsheet)
+   */
+  async syncConfigFromCloud() {
+    let records: any[] = [];
+    try {
+      records = await this.getRecordsFromCloud('AppConfig');
+    } catch (err) {
+      console.warn('[GAS] Gagal mengambil konfigurasi cloud dengan URL aktif, mencoba default...', err);
+      if (cachedUrl !== DEFAULT_URL) {
+        const originalUrl = cachedUrl;
+        const originalToken = cachedToken;
+
+        cachedUrl = DEFAULT_URL;
+        cachedToken = DEFAULT_TOKEN;
+
+        try {
+          records = await this.getRecordsFromCloud('AppConfig');
+        } catch (errDefault) {
+          cachedUrl = originalUrl;
+          cachedToken = originalToken;
+          console.error('[GAS] Gagal mengambil konfigurasi cloud dari URL default:', errDefault);
+          return;
+        }
+      } else {
+        console.error('[GAS] Gagal mengambil konfigurasi cloud:', err);
+        return;
+      }
+    }
+
+    if (records && records.length > 0) {
+      const urlRecord = records.find(r => r.key === 'gas_url');
+      const tokenRecord = records.find(r => r.key === 'gas_token');
+      
+      if (urlRecord || tokenRecord) {
+        const newUrl = urlRecord ? urlRecord.value.trim() : cachedUrl;
+        const newToken = tokenRecord ? tokenRecord.value.trim() : cachedToken;
+        
+        if (newUrl !== cachedUrl || newToken !== cachedToken) {
+          console.log('[GAS] Menemukan kredensial baru dari cloud spreadsheet. Mengupdate lokal...');
+          await this.saveSettings(newUrl, newToken, false);
+        }
+      }
+    }
   },
 
   /**

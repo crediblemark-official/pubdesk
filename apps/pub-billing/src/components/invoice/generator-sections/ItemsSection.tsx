@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../../../contexts/AppContext';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
+import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { InvoiceItem } from '../../../types/invoice.types';
 import { formatPrice } from '../../../utils/format';
+import { SmartRelationField, SmartRelationOption } from '@pubhub/shared-ui';
 
 export const ItemsSection: React.FC = () => {
-  const { services, showToast } = useAppContext();
+  const { services, books, showToast, addService, addBook, contacts } = useAppContext();
+  const { naskah } = useDataMasterContext();
   const {
     customer,
     items,
@@ -17,8 +20,156 @@ export const ItemsSection: React.FC = () => {
 
   const [customTitle, setCustomTitle] = useState('');
   const [selectedServiceIdState, setSelectedServiceIdState] = useState('');
+  const [selectedBookIdState, setSelectedBookIdState] = useState('');
+  const [selectedNaskahIdState, setSelectedNaskahIdState] = useState('');
   const [dynamicInputs, setDynamicInputs] = useState<Record<string, any>>({});
+  const [createType, setCreateType] = useState<'service' | 'book'>('service');
+  const [createFormData, setCreateFormData] = useState({
+    name: '',
+    price: 0,
+    description: '',
+    // book fields
+    title: '',
+    regular_price: 0,
+    author_id: '',
+  });
 
+  const penulisList = useMemo(() => {
+    return contacts.filter(c => c.type === 'penulis' || c.type === 'both');
+  }, [contacts]);
+
+  const handleCreateItem = async (onSave: () => void) => {
+    if (createType === 'service') {
+      if (!createFormData.name.trim()) {
+        showToast("Nama layanan harus diisi!", "error");
+        return;
+      }
+      try {
+        const newServiceId = await addService({
+          name: createFormData.name.trim(),
+          price: createFormData.price,
+          description: createFormData.description.trim(),
+          category: 'umum',
+        });
+        
+        setCustomTitle(createFormData.name.trim());
+        setSelectedServiceIdState(String(newServiceId));
+        setSelectedBookIdState('');
+        setDynamicInputs(prev => ({ ...prev, price: createFormData.price }));
+        onSave();
+      } catch (err) {
+        console.error("Gagal menambahkan layanan baru:", err);
+        showToast("Gagal menambahkan layanan baru", "error");
+      }
+    } else {
+      if (!createFormData.title.trim()) {
+        showToast("Judul karya harus diisi!", "error");
+        return;
+      }
+      try {
+        const newBookId = await addBook({
+          title: createFormData.title.trim(),
+          regular_price: createFormData.regular_price,
+          po_price: createFormData.regular_price,
+          weight_grams: 0,
+          author_id: createFormData.author_id ? parseInt(createFormData.author_id) : undefined,
+        });
+
+        setCustomTitle(createFormData.title.trim());
+        setSelectedBookIdState(String(newBookId));
+        setSelectedServiceIdState('');
+        setDynamicInputs(prev => ({ ...prev, price: createFormData.regular_price }));
+        onSave();
+      } catch (err) {
+        console.error("Gagal menambahkan karya baru:", err);
+        showToast("Gagal menambahkan karya baru", "error");
+      }
+    }
+    
+    // Reset form
+    setCreateFormData({
+      name: '',
+      price: 0,
+      description: '',
+      title: '',
+      regular_price: 0,
+      author_id: '',
+    });
+  };
+
+  const allItemOptions: SmartRelationOption[] = useMemo(() => {
+    return [
+      ...services.map((s) => ({
+        value: `service-${s.id}`,
+        label: `${s.name} [Layanan]`,
+        name: s.name,
+        price: s.price,
+        isBook: false,
+        isNaskah: false,
+        source: 'Layanan',
+      })),
+      ...books.map((b) => ({
+        value: `book-${b.id}`,
+        label: `${b.title} [Karya]`,
+        name: b.title,
+        price: b.regular_price,
+        isBook: true,
+        isNaskah: false,
+        source: 'Karya',
+      })),
+      ...naskah.map((n) => ({
+        value: `naskah-${n.id}`,
+        label: `${n.title} [Naskah]`,
+        name: n.title,
+        price: 0,
+        isBook: false,
+        isNaskah: true,
+        source: 'Naskah',
+      })),
+    ];
+  }, [services, books, naskah]);
+
+  const selectedValue = useMemo(() => {
+    if (selectedServiceIdState) return `service-${selectedServiceIdState}`;
+    if (selectedBookIdState) return `book-${selectedBookIdState}`;
+    if (selectedNaskahIdState) return `naskah-${selectedNaskahIdState}`;
+    if (customTitle) {
+      const found = allItemOptions.find(o => (o as any).name?.toLowerCase() === customTitle.trim().toLowerCase());
+      return found ? found.value : '';
+    }
+    return '';
+  }, [selectedServiceIdState, selectedBookIdState, selectedNaskahIdState, customTitle, allItemOptions]);
+
+  const handleSelect = (value: string, option?: SmartRelationOption) => {
+    if (!option) {
+      setCustomTitle(value);
+      setSelectedServiceIdState('');
+      setSelectedBookIdState('');
+      setSelectedNaskahIdState('');
+      return;
+    }
+
+    setCustomTitle((option as any).name || option.label);
+    if ((option as any).isNaskah) {
+      setSelectedNaskahIdState(value.replace('naskah-', ''));
+      setSelectedBookIdState('');
+      setSelectedServiceIdState('');
+    } else if ((option as any).isBook) {
+      setSelectedBookIdState(value.replace('book-', ''));
+      setSelectedServiceIdState('');
+      setSelectedNaskahIdState('');
+    } else {
+      setSelectedServiceIdState(value.replace('service-', ''));
+      setSelectedBookIdState('');
+      setSelectedNaskahIdState('');
+    }
+
+    setDynamicInputs((prev) => ({
+      ...prev,
+      price: (option as any).price || 0,
+    }));
+  };
+  
   // Dynamically set default values when activeProfile changes
   useEffect(() => {
     if (!activeProfile?.tableColumns) return;
@@ -130,6 +281,19 @@ export const ItemsSection: React.FC = () => {
           finalPrice = service.price;
         }
       }
+    } else if (selectedBookIdState) {
+      const book = books.find((b) => b.id === parseInt(selectedBookIdState));
+      if (book) {
+        if (!finalTitle) finalTitle = book.title;
+        if (finalPrice === 0) {
+          finalPrice = book.regular_price;
+        }
+      }
+    } else if (selectedNaskahIdState) {
+      const n = naskah.find((nk) => nk.id === parseInt(selectedNaskahIdState));
+      if (n) {
+        if (!finalTitle) finalTitle = n.title;
+      }
     }
 
     if (!finalTitle) {
@@ -138,7 +302,8 @@ export const ItemsSection: React.FC = () => {
     }
 
     const newItem: InvoiceItem = {
-      book_id: selectedServiceIdState ? parseInt(selectedServiceIdState) : 0,
+      book_id: selectedBookIdState ? parseInt(selectedBookIdState) : 0,
+      naskah_id: selectedNaskahIdState ? parseInt(selectedNaskahIdState) : undefined,
       item_title: finalTitle,
       quantity: finalQty,
       price: finalPrice,
@@ -151,6 +316,8 @@ export const ItemsSection: React.FC = () => {
     // Reset form item
     setCustomTitle('');
     setSelectedServiceIdState('');
+    setSelectedBookIdState('');
+    setSelectedNaskahIdState('');
     
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
@@ -185,37 +352,180 @@ export const ItemsSection: React.FC = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '250px' }}>
-            <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nama Layanan / Karya</label>
-            <input
-              list="services-datalist"
-              type="text"
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
-              value={customTitle}
-              onChange={(e) => {
-                const val = e.target.value;
-                setCustomTitle(val);
-                
-                // Periksa jika input cocok dengan salah satu layanan master
-                const matchedService = services.find(s => s.name === val);
-                if (matchedService) {
-                  setSelectedServiceIdState(String(matchedService.id));
-                  setDynamicInputs(prev => ({
-                    ...prev,
-                    price: matchedService.price
-                  }));
-                } else {
-                  setSelectedServiceIdState('');
-                }
-              }}
-              placeholder="Ketik nama layanan / karya atau pilih dari Master Layanan..."
+            <SmartRelationField
+              label="Nama Layanan / Karya"
+              options={allItemOptions}
+              value={selectedValue}
+              onChange={handleSelect}
+              placeholder="Ketik nama layanan / karya atau pilih dari Master..."
+              emptyMessage="Ketik nama baru untuk menambahkan item khusus."
+              entityLabel="Layanan/Karya Baru"
+              entityLabelPlural="Layanan/Karya"
+              fullWidth
+              renderCreateForm={({ onSave, onCancel }) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Tab Selector */}
+                  <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
+                    <button
+                      type="button"
+                      onClick={() => setCreateType('service')}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        background: createType === 'service' ? 'var(--btn-primary-bg)' : 'transparent',
+                        color: createType === 'service' ? 'var(--btn-primary-text)' : 'var(--text-primary)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        fontSize: '12px',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      Layanan (Jasa)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCreateType('book')}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        background: createType === 'book' ? 'var(--btn-primary-bg)' : 'transparent',
+                        color: createType === 'book' ? 'var(--btn-primary-text)' : 'var(--text-primary)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        fontSize: '12px',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      Karya (Buku)
+                    </button>
+                  </div>
+
+                  {createType === 'service' ? (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="Nama Layanan Baru"
+                        value={createFormData.name}
+                        onChange={(e) => setCreateFormData((prev) => ({ ...prev, name: e.target.value }))}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Tarif (Rp)"
+                        value={createFormData.price || ''}
+                        onChange={(e) => setCreateFormData((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Deskripsi (Opsional)"
+                        value={createFormData.description}
+                        onChange={(e) => setCreateFormData((prev) => ({ ...prev, description: e.target.value }))}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="Judul Karya Baru"
+                        value={createFormData.title}
+                        onChange={(e) => setCreateFormData((prev) => ({ ...prev, title: e.target.value }))}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Harga (Rp)"
+                        value={createFormData.regular_price || ''}
+                        onChange={(e) => setCreateFormData((prev) => ({ ...prev, regular_price: parseFloat(e.target.value) || 0 }))}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <select
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          boxSizing: 'border-box',
+                        }}
+                        value={createFormData.author_id}
+                        onChange={(e) => setCreateFormData((prev) => ({ ...prev, author_id: e.target.value }))}
+                      >
+                        <option value="">-- Pilih Penulis --</option>
+                        {penulisList.map((p) => (
+                          <option key={p.id} value={String(p.id)}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button className="btn-secondary" type="button" onClick={onCancel}>
+                      Batal
+                    </button>
+                    <button
+                      className="btn-primary"
+                      type="button"
+                      onClick={() => handleCreateItem(() => onSave({}))}
+                    >
+                      Simpan
+                    </button>
+                  </div>
+                </div>
+              )}
             />
-            <datalist id="services-datalist">
-              {services.map((service) => (
-                <option key={service.id} value={service.name}>
-                  Tarif: Rp {new Intl.NumberFormat('id-ID').format(service.price)}
-                </option>
-              ))}
-            </datalist>
           </div>
         </div>
 

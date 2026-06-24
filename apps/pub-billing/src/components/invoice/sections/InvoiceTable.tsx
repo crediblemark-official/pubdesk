@@ -30,12 +30,34 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   const globalShip = hasItemShipping ? 0 : shippingCost;
   const total = subtotal + globalShip + adminFee;
 
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = React.useState(false);
+  React.useLayoutEffect(() => {
+    if (!tableRef.current) return;
+    const el = tableRef.current;
+    requestAnimationFrame(() => {
+      setIsOverflowing(el.scrollHeight > el.clientHeight && el.clientHeight > 0);
+    });
+  }, [items, profile, shippingCost, adminFee]);
+
   const getInvoiceTypeActionLabel = () => {
     return profile?.actionLabel || 'cetak buku';
   };
 
   return (
-    <div style={{ padding: '0 35px', flex: 1, overflow: 'hidden' }}>
+    <div ref={tableRef} style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
+      {isOverflowing && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0,
+          background: '#fef2f2', border: '1px solid #fca5a5',
+          color: '#b91c1c', fontSize: '8px', fontWeight: '600',
+          padding: '4px 8px', textAlign: 'center', zIndex: 20,
+          borderRadius: '0 0 4px 4px'
+        }}>
+          ⚠ Beberapa item tidak termuat karena melebihi satu halaman A4.
+          Pertimbangkan untuk mengurangi jumlah item atau cetak manual per bagian.
+        </div>
+      )}
       {profile?.salamPembuka && (
         <div style={{ 
           fontSize: '9px', 

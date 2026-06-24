@@ -7,7 +7,13 @@ import { useMemo } from 'react';
  */
 export function useUniqueValues<T>(items: T[], field: keyof T): string[] {
   return useMemo(
-    () => Array.from(new Set(items.map((i) => i[field]).filter(Boolean))) as string[],
+    () => Array.from(
+      new Set(
+        items
+          .map((i) => i[field])
+          .filter((v): v is string => typeof v === 'string' && v.length > 0)
+      )
+    ),
     [items, field]
   );
 }

@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { PanelKanan } from './PanelKanan';
-import { Toast } from '../../components/shared/Toast';
-import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
+import { Toast, ConfirmDialog } from '@pubhub/shared-ui';
 import { useAppContext } from '../../contexts/AppContext';
 import TimManager from '../data-master/TimManager';
 import ActivityLog from '../data-master/ActivityLog';
@@ -12,12 +11,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoginPage from '../auth/LoginPage';
 
 // Import komponen setelan individual
-import GASCloudSettings from '../settings/GASCloudSettings';
 import DataResetTab from '../settings/tabs/DataResetTab';
 import { SyncConnectionPanel } from '@pubhub/shared-ui/src/shared/SyncConnectionPanel';
 
 const MainLayout = () => {
-  const { appState, rightPanelVisible } = useAppContext();
+  const { appState, rightPanelVisible, toast, confirmOptions, hideConfirm } = useAppContext();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [rightPanelWidth, setRightPanelWidth] = useState(450);
   const [isDragging, setIsDragging] = useState(false);
@@ -104,9 +102,7 @@ const MainLayout = () => {
       case 'activity-log':
         return <ActivityLog />;
       case 'settings-p2p':
-        return renderSettingsModule('Sinkronisasi P2P', '🔗', <SyncConnectionPanel isAdmin />);
-      case 'settings-gas':
-        return renderSettingsModule('Google Sheets (GAS)', '📊', <GASCloudSettings showToast={showToast} />);
+        return renderSettingsModule('Sinkronisasi', '🔗', <SyncConnectionPanel />);
       case 'settings-data-reset':
         return renderSettingsModule('Kustomisasi & Data', '🎨', <DataResetTab />);
       default:
@@ -190,8 +186,8 @@ const MainLayout = () => {
           </div>
         </div>
       </div>
-      <Toast />
-      <ConfirmDialog />
+      <Toast toast={toast} />
+      <ConfirmDialog confirmOptions={confirmOptions} hideConfirm={hideConfirm} />
     </div>
   );
 };

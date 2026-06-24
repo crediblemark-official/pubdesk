@@ -89,43 +89,95 @@ fn extract_xlsx(path: &Path) -> Result<String, String> {
 }
 
 fn extract_pdf(path: &Path) -> Result<String, String> {
-    // Parser stream PDF sederhana untuk mengekstrak string literal (pola ASCII)
-    // Menghindari ketergantungan library dynamic runtime ONNX / PDF external yang berat
+    use flate2::read::ZlibDecoder;
+    use std::io::Read;
+
     let mut file = File::open(path).map_err(|e| e.to_string())?;
     let mut bytes = Vec::new();
     file.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
-    
+
     let mut text = String::new();
-    let mut in_string = false;
-    let mut current_str = Vec::new();
-    
-    let mut i = 0;
-    while i < bytes.len() {
-        let b = bytes[i];
-        if b == b'(' && !in_string {
-            in_string = true;
-            current_str.clear();
-        } else if b == b')' && in_string {
-            in_string = false;
-            if let Ok(s) = String::from_utf8(current_str.clone()) {
-                let cleaned: String = s.chars()
-                    .filter(|c| c.is_alphanumeric() || c.is_whitespace() || *c == '.' || *c == ',')
-                    .collect();
-                if cleaned.len() > 2 {
-                    text.push_str(&cleaned);
-                    text.push(' ');
+
+    // Ekstrak teks dari aliran byte PDF (string literal di dalam tanda kurung)
+    let extract_literal_strings = |data: &[u8], out: &mut String| {
+        let mut i = 0;
+        while i < data.len() {
+            if data[i] == b'(' {
+                // String literal PDF: (teks)
+                i += 1;
+                let mut current_str = Vec::new();
+                while i < data.len() && data[i] != b')' {
+                    if data[i] == b'\\' && i + 1 < data.len() {
+                        i += 1;
+                        current_str.push(data[i]);
+                    } else {
+                        current_str.push(data[i]);
+                    }
+                    i += 1;
+                }
+                if let Ok(s) = String::from_utf8(current_str) {
+                    let cleaned: String = s.chars()
+                        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || *c == '.' || *c == ',')
+                        .collect();
+                    if cleaned.len() > 2 {
+                        out.push_str(&cleaned);
+                        out.push(' ');
+                    }
                 }
             }
-        } else if in_string {
-            if b == b'\\' && i + 1 < bytes.len() {
-                i += 1;
-                current_str.push(bytes[i]);
-            } else {
-                current_str.push(b);
-            }
+            i += 1;
         }
-        i += 1;
+    };
+
+    // Proses konten tidak terkompresi
+    extract_literal_strings(&bytes, &mut text);
+
+    // Cari dan dekompresi stream FlateDecode
+    let content_str = String::from_utf8_lossy(&bytes);
+    let lower = content_str.to_lowercase();
+    let mut search_pos = 0;
+    while let Some(stream_start) = lower[search_pos..].find("stream") {
+        let abs_start = search_pos + stream_start;
+
+        // Periksa apakah stream menggunakan FlateDecode
+        let before_stream = &lower[..abs_start].trim_end();
+        let is_flate = before_stream.contains("/flatedecode");
+
+        // Cari awal data stream (setelah "stream" dan whitespace)
+        let data_start = abs_start + 6;
+        let data_start = data_start
+            + bytes[data_start..]
+                .iter()
+                .take_while(|&&b| b == b' ' || b == b'\r' || b == b'\n')
+                .count();
+
+        // Cari "endstream"
+        if let Some(end_rel) = lower[data_start..].find("endstream") {
+            let data_end = data_start + end_rel;
+            // Trim trailing whitespace
+            let data_end = data_end
+                - bytes[..data_end]
+                    .iter()
+                    .rev()
+                    .take_while(|&&b| b == b' ' || b == b'\r' || b == b'\n')
+                    .count();
+
+            let stream_data = &bytes[data_start..data_end];
+
+            if is_flate && !stream_data.is_empty() {
+                // Dekompresi FlateDecode
+                let mut decoder = ZlibDecoder::new(stream_data);
+                let mut decompressed = Vec::new();
+                if decoder.read_to_end(&mut decompressed).is_ok() {
+                    extract_literal_strings(&decompressed, &mut text);
+                }
+            }
+
+            search_pos = data_start + end_rel + 9;
+        } else {
+            break;
+        }
     }
-    
+
     Ok(text)
 }

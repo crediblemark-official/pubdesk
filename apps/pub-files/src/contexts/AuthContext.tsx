@@ -6,7 +6,7 @@ interface AuthContextType {
   currentUser: AppSession | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (timId: number) => Promise<AppSession>;
+  login: (timId: number, pin?: string) => Promise<AppSession>;
   logout: () => Promise<void>;
 }
 
@@ -32,8 +32,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     checkSession();
   }, []);
 
-  const login = async (timId: number): Promise<AppSession> => {
-    const session = await invoke<AppSession>('login_user', { timId });
+  const login = async (timId: number, pin: string = ''): Promise<AppSession> => {
+    const session = await invoke<AppSession>('login_user', { timId, pin });
     setCurrentUser(session);
     return session;
   };

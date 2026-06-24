@@ -16,8 +16,8 @@ import { findBestDuplicate, formatDuplicateReason } from '@pubhub/shared-utils';
 
 const TaskFormPage: React.FC = () => {
   const { currentUser } = useAuth();
-  const { showToast, setActiveModule, selectedTaskId, appState } = useAppContext();
-  const { naskah, penulis, addNaskah, tim } = useDataMasterContext();
+  const { showToast, setActiveModule, selectedTaskId, appState, contacts } = useAppContext();
+  const { naskah, addNaskah, tim } = useDataMasterContext();
   const { addTask, updateTask, tasks } = useWorkflowContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
@@ -75,9 +75,20 @@ const TaskFormPage: React.FC = () => {
     }));
   }, [naskah, selectedCustomerId]);
 
-  const penulisOptions: SmartRelationOption[] = useMemo(
-    () => penulis.map((p) => ({ value: String(p.id), label: p.name, wa_number: p.wa_number, email: p.email })),
-    [penulis]
+  const contactOptions: SmartRelationOption[] = useMemo(
+    () => contacts.map((c) => ({
+      value: String(c.id),
+      label: `${c.name} (${c.type === 'both' ? 'Penulis & Pelanggan' : c.type === 'penulis' ? 'Penulis' : 'Pelanggan'})`,
+      wa_number: c.wa_number,
+      email: c.email,
+      isPenulis: c.type === 'penulis' || c.type === 'both'
+    })),
+    [contacts]
+  );
+
+  const penulisOptionsFiltered: SmartRelationOption[] = useMemo(
+    () => contactOptions.filter(o => o.isPenulis),
+    [contactOptions]
   );
 
   const timOptions: SmartRelationOption[] = useMemo(
@@ -343,7 +354,7 @@ const TaskFormPage: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <SmartRelationField
                     label="Pelanggan / Penulis (Relasi CRM)"
-                    options={penulisOptions}
+                    options={contactOptions}
                     value={selectedCustomerId}
                     onChange={(val) => setSelectedCustomerId(val)}
                     placeholder="Cari pelanggan..."
@@ -426,7 +437,7 @@ const TaskFormPage: React.FC = () => {
                               />
                               <Select
                                 label="Penulis"
-                                options={[{ value: '', label: '-- Pilih Penulis --' }, ...penulisOptions]}
+                                options={[{ value: '', label: '-- Pilih Penulis --' }, ...penulisOptionsFiltered]}
                                 value={naskahCreateForm.penulis_id}
                                 onChange={(e) => setNaskahCreateForm((prev) => ({ ...prev, penulis_id: e.target.value }))}
                                 fullWidth
@@ -440,7 +451,7 @@ const TaskFormPage: React.FC = () => {
                               />
                               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                 <button className="btn-secondary" type="button" onClick={onCancel}>Batal</button>
-                                <button className="btn-primary" type="button" onClick={() => createNaskahFromTask(onSave)}>Simpan</button>
+                                <button className="btn-primary" type="button" onClick={() => createNaskahFromTask(() => onSave(naskahCreateForm))}>Simpan</button>
                               </div>
                             </div>
                           )}

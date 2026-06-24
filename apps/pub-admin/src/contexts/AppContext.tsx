@@ -17,6 +17,7 @@ import { useServiceState } from '../hooks/useServiceState';
 import { useFileState } from '../hooks/useFileState';
 import { useGDriveState, GDriveAccount } from '../hooks/useGDriveState';
 import { useSyncState } from '../hooks/useSyncState';
+import { googleAppsScriptService } from '../services/googleAppsScript';
 
 export type { ConfirmOptions, ImportExportActions, GDriveAccount };
 
@@ -24,20 +25,6 @@ export interface WatchFolder {
   id?: number;
   path: string;
   created_at: string;
-}
-
-export interface DiscoveredPeer {
-  peer_id: string;
-  addresses: string[];
-}
-
-export interface P2PConnectionInfo {
-  is_connected: boolean;
-  peer_id: string;
-  active_peers: string[];
-  local_addresses: string[];
-  discovered_peers: DiscoveredPeer[];
-  role: string;
 }
 
 interface AppContextType {
@@ -158,9 +145,6 @@ interface AppContextType {
   directAddNewModule: string | null;
   setDirectAddNewModule: (module: string | null) => void;
   isDbInitialized: boolean;
-  p2pConnectionInfo: P2PConnectionInfo | null;
-  discoveredPeers: DiscoveredPeer[];
-  setDiscoveredPeers: (peers: DiscoveredPeer[]) => void;
 }
 
 
@@ -171,8 +155,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [fileCategory, setFileCategory] = useState<'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation'>('all');
   const [directAddNewModule, setDirectAddNewModule] = useState<string | null>(null);
   const [isDbInitialized, setIsDbInitialized] = useState(false);
-  const [discoveredPeers, setDiscoveredPeers] = useState<DiscoveredPeer[]>([]);
-  const [p2pConnectionInfo] = useState<P2PConnectionInfo | null>(null);
 
 
   const booksState = useBookState({ showToast: ui.showToast });
@@ -209,6 +191,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const init = async () => {
       try {
         await invoke('init_database');
+        await googleAppsScriptService.initSettings();
+        // Sync config dari cloud spreadsheet di latar belakang jika online
+        googleAppsScriptService.syncConfigFromCloud().catch((err) => {
+          console.warn('[GAS] Gagal sinkronisasi konfigurasi cloud saat startup:', err);
+        });
         setIsDbInitialized(true);
         await booksState.loadBooks();
         await contactsState.loadContacts();
@@ -238,24 +225,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           await filesState.loadFiles();
         });
         unlistenPromises.push(u2);
-
-        const u3 = listen<DiscoveredPeer>('p2p-peer-discovered', (event) => {
-          setDiscoveredPeers(prev => {
-            const existing = prev.find(p => p.peer_id === event.payload.peer_id);
-            if (existing) {
-              return prev.map(p =>
-                p.peer_id === event.payload.peer_id ? { ...p, addresses: [...new Set([...p.addresses, ...event.payload.addresses])] } : p
-              );
-            }
-            return [...prev, event.payload];
-          });
-        });
-        unlistenPromises.push(u3);
-
-        const u4 = listen<DiscoveredPeer>('p2p-peer-expired', (event) => {
-          setDiscoveredPeers(prev => prev.filter(p => p.peer_id !== event.payload.peer_id));
-        });
-        unlistenPromises.push(u4);
 
       } catch (err) {
         console.error('Gagal memasang event listener:', err);
@@ -373,9 +342,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       directAddNewModule,
       setDirectAddNewModule,
       isDbInitialized,
-      p2pConnectionInfo,
-      discoveredPeers,
-      setDiscoveredPeers,
     }}>
       {children}
     </AppContext.Provider>

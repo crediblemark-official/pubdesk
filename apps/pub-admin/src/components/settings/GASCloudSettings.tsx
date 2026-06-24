@@ -24,13 +24,19 @@ const GASCloudSettings: React.FC<GASCloudSettingsProps> = ({ showToast }) => {
     setTokenInput(token);
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!urlInput.trim()) {
       showToast('URL Google Apps Script tidak boleh kosong!', 'error');
       return;
     }
-    googleAppsScriptService.saveSettings(urlInput, tokenInput);
-    showToast('Konfigurasi Google Apps Script berhasil disimpan!', 'success');
+    showToast('Menyimpan konfigurasi dan mencadangkan ke cloud...', 'info');
+    try {
+      await googleAppsScriptService.saveSettings(urlInput, tokenInput);
+      showToast('Konfigurasi Google Apps Script berhasil disimpan dan dicadangkan!', 'success');
+    } catch (err: any) {
+      console.error(err);
+      showToast('Konfigurasi disimpan secara lokal, namun gagal mencadangkan ke cloud.', 'error');
+    }
   };
 
   const handleTestConnection = async () => {

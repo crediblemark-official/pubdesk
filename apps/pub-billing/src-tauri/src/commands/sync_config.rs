@@ -1,0 +1,168 @@
+use tauri::{State, Manager};
+use crate::AppState;
+use crate::sync::client;
+
+#[tauri::command]
+pub async fn get_sync_config_full(state: State<'_, AppState>) -> Result<String, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    let cfg = client::SyncRuntimeConfig::load(&db.conn);
+    serde_json::to_string(&serde_json::json!({
+        "enabled": cfg.enabled,
+        "workspace_id": cfg.workspace_id,
+        "device_id": cfg.device_id,
+        "gas_url": cfg.gas_url,
+        "gas_token": cfg.gas_token,
+        "last_push_ts": cfg.last_push_ts,
+        "last_pull_ts": cfg.last_pull_ts,
+    })).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn set_sync_config(
+    state: State<'_, AppState>,
+    sync_method: String,
+    worker_url: String,
+    gas_url: String,
+    gas_token: String,
+) -> Result<(), String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.conn.execute("INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('sync_method', ?1)", rusqlite::params![sync_method]).map_err(|e| e.to_string())?;
+    db.conn.execute("INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('sync_worker_url', ?1)", rusqlite::params![worker_url]).map_err(|e| e.to_string())?;
+    db.conn.execute("INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('sync_gas_url', ?1)", rusqlite::params![gas_url]).map_err(|e| e.to_string())?;
+    db.conn.execute("INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('sync_gas_token', ?1)", rusqlite::params![gas_token]).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn test_sync_connection(state: State<'_, AppState>) -> Result<String, String> {
+    let cfg;
+    {
+        let db = state.db.lock().unwrap();
+        let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+        cfg = client::SyncRuntimeConfig::load(&db.conn);
+    }
+
+    let (gas_ok, gas_error) = if let Some(ref url) = cfg.gas_url {
+        let token = cfg.gas_token.as_deref().unwrap_or("PubDesk_Secret_Token_2026");
+        match reqwest::Client::builder().timeout(std::time::Duration::from_secs(10)).build() {
+            Ok(client) => {
+                let body = serde_json::json!({ "action": "test", "auth_token": token });
+                match client.post(url).json(&body).send().await {
+                    Ok(resp) => (resp.status().is_success(), if resp.status().is_success() { String::new() } else { format!("HTTP {}", resp.status()) }),
+                    Err(e) => (false, e.to_string()),
+                }
+            }
+            Err(e) => (false, format!("Client error: {}", e)),
+        }
+    } else {
+        (false, "URL GAS belum dikonfigurasi".to_string())
+    };
+
+    serde_json::to_string(&serde_json::json!({
+        "gas_ok": gas_ok, "gas_error": gas_error,
+    })).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn run_sync_now(state: State<'_, AppState>) -> Result<String, String> {
+    let (cfg, changes, outbox_ids);
+    {
+        let db = state.db.lock().unwrap();
+        let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+        cfg = client::SyncRuntimeConfig::load(&db.conn);
+        let (c, ids) = client::sync_read_outbox(&db.conn).map_err(|e| e.to_string())?;
+        changes = c;
+        outbox_ids = ids;
+    }
+
+    let mut result = client::SyncResult { pushed: 0, pulled: 0, error: None };
+
+    if cfg.is_ready() {
+        if !changes.is_empty() {
+            match client::sync_push_to_gas(changes, &cfg).await {
+                Ok(n) => {
+                    result.pushed = n;
+                    let db = state.db.lock().unwrap();
+                    if let Some(db) = db.as_ref() { let _ = client::sync_mark_sent(&db.conn, &outbox_ids); }
+                }
+                Err(e) => result.error = Some(e),
+            }
+        }
+
+        match client::sync_pull_from_gas(&cfg).await {
+            Ok(remote_changes) => {
+                if !remote_changes.is_empty() {
+                    let db = state.db.lock().unwrap();
+                    if let Some(db) = db.as_ref() {
+                        match client::sync_apply_remote(&db.conn, &remote_changes) {
+                            Ok(n) => result.pulled = n,
+                            Err(e) => result.error = Some(e),
+                        }
+                    }
+                }
+            }
+            Err(e) => { if result.error.is_none() { result.error = Some(e); } }
+        }
+    }
+
+    let mut s = state.sync.lock().unwrap();
+    if let Some(ref err) = result.error { s.error = Some(err.clone()); } else { s.error = None; }
+    s.last_sync_at = Some(chrono::Local::now().to_rfc3339());
+    serde_json::to_string(&result).map_err(|e| e.to_string())
+}
+
+pub fn start_background_sync(app_handle: tauri::AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+            let state = match app_handle.try_state::<AppState>() { Some(s) => s, None => continue };
+
+            let (cfg, changes, outbox_ids);
+            {
+                let db = state.db.lock().unwrap();
+                let db = match db.as_ref() { Some(db) => db, None => continue };
+                cfg = client::SyncRuntimeConfig::load(&db.conn);
+                if !cfg.is_ready() { continue; }
+                let (c, ids) = match client::sync_read_outbox(&db.conn) { Ok(x) => x, Err(_) => continue };
+                changes = c; outbox_ids = ids;
+            }
+
+            let mut pushed = 0usize;
+            let mut pulled = 0usize;
+
+            if !changes.is_empty() {
+                match client::sync_push_to_gas(changes, &cfg).await {
+                    Ok(n) => {
+                        pushed = n;
+                        let db = state.db.lock().unwrap();
+                        if let Some(db) = db.as_ref() { let _ = client::sync_mark_sent(&db.conn, &outbox_ids); }
+                    }
+                    Err(e) => { let mut s = state.sync.lock().unwrap(); s.error = Some(e); }
+                }
+            }
+
+            match client::sync_pull_from_gas(&cfg).await {
+                Ok(remote_changes) => {
+                    if !remote_changes.is_empty() {
+                        let db = state.db.lock().unwrap();
+                        if let Some(db) = db.as_ref() {
+                            match client::sync_apply_remote(&db.conn, &remote_changes) {
+                                Ok(n) => pulled = n,
+                                Err(e) => { let mut s = state.sync.lock().unwrap(); s.error = Some(e); }
+                            }
+                        }
+                    }
+                }
+                Err(e) => { let mut s = state.sync.lock().unwrap(); s.error = Some(e); }
+            }
+
+            if pushed > 0 || pulled > 0 {
+                let mut s = state.sync.lock().unwrap();
+                s.error = None;
+                s.last_sync_at = Some(chrono::Local::now().to_rfc3339());
+            }
+        }
+    });
+}

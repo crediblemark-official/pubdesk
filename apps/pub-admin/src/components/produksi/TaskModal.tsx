@@ -9,6 +9,8 @@ import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
 import { DatePicker } from '../../ui/atoms/DatePicker';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDataMasterContext } from '../../contexts/DataMasterContext';
+import { SmartRelationField, SmartRelationOption } from '@pubhub/shared-ui';
 
 interface TaskModalProps {
   task?: Task; // if provided, it's edit mode
@@ -20,6 +22,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   const { currentUser } = useAuth();
   const { showToast } = useAppContext();
   const { addTask, updateTask } = useWorkflowContext();
+  const { naskah } = useDataMasterContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEdit = !!task;
   // Form states
@@ -30,6 +33,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
   const [priority, setPriority] = useState(task?.priority || 'Normal');
   const [status, setStatus] = useState(task?.status || 'Belum Mulai');
   const [notes, setNotes] = useState(task?.notes || '');
+  
+  const naskahOptions: SmartRelationOption[] = React.useMemo(() => {
+    return naskah.map((n) => ({
+      value: String(n.id),
+      label: `${n.title} (${n.naskah_id_code || `ID: ${n.id}`})`
+    }));
+  }, [naskah]);
 
   useEffect(() => {
     if (!isEdit && currentUser) {
@@ -108,13 +118,16 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSuccess }) => {
         
         {!isEdit && (
           <>
-            <TextField 
-              required 
-              type="number" 
-              label="ID Naskah" 
-              value={naskahId} 
-              onChange={e => setNaskahId(e.target.value)} 
+            <SmartRelationField
+              label="Pilih Naskah"
+              options={naskahOptions}
+              value={naskahId ? String(naskahId) : ''}
+              onChange={(val) => setNaskahId(val)}
+              placeholder="Cari judul naskah..."
+              emptyMessage="Tidak ada naskah yang cocok"
+              entityLabel="Naskah"
               fullWidth
+              allowCreate={false}
             />
             <TextField 
               required 

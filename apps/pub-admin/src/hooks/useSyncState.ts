@@ -83,8 +83,6 @@ async function syncContacts(
     wa_number: c.wa_number || '',
     email: c.email || '',
     address: c.address || '',
-    province: c.province || '',
-    city: c.city || '',
     job: c.job || '',
     institution: c.institution || '',
     data_source: c.data_source || '',
@@ -221,12 +219,12 @@ async function syncInvoices(
 async function syncPenerbit(penerbit: any[], gasService: any) {
   if (!penerbit.length) return;
   const payload = penerbit.map((p) => ({
-    id: p.id, name: p.name, city: p.city || '', instagram: p.instagram || '',
+    id: p.id, name: p.name, instagram: p.instagram || '',
     facebook: p.facebook || '', email: p.email || '', wa_number: p.wa_number || '',
     linkedin: p.linkedin || '', twitter: p.twitter || '', tiktok: p.tiktok || '',
     wa_valid: p.wa_valid, email_valid: p.email_valid,
     cooperation_status: p.cooperation_status || 'Aktif',
-    address: p.address || '', notes: p.notes || '', province: p.province || '',
+    address: p.address || '', notes: p.notes || '',
     created_at: p.created_at, updated_at: p.updated_at || p.created_at,
   }));
   await gasService.upsertRecordsToCloud('Penerbit', payload);

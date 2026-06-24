@@ -41,7 +41,7 @@ export const WorkSessionTimer: React.FC<WorkSessionTimerProps> = ({ showToast, o
 
   // Update timer seconds every second if running
   useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isTimerRunning && activeSession) {
       interval = setInterval(() => {
         const startTime = new Date(activeSession.start_time).getTime();

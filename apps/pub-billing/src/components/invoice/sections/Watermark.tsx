@@ -106,7 +106,8 @@ export const Watermark: React.FC<WatermarkProps> = ({ paymentStatus, activeProfi
       }}>
         <div
           style={{
-            background: `${color} ${grungePattern}`,
+            backgroundColor: color,
+            backgroundImage: grungePattern,
             border: `1.8px solid #ffffff`,
             padding: isMultiLine ? '10px 22px' : '8px 26px',
             borderRadius: '5px',

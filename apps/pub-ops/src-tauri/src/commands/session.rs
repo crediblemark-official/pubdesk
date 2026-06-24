@@ -3,12 +3,17 @@ use crate::AppState;
 use crate::db::{AppSession, WorkSession, ActivityLog};
 
 #[tauri::command]
-pub async fn login_user(state: State<'_, AppState>, tim_id: i64) -> Result<AppSession, String> {
+pub async fn login_user(state: State<'_, AppState>, tim_id: i64, pin: String) -> Result<AppSession, String> {
     let db_guard = state.db.lock().unwrap();
     let db = db_guard.as_ref().ok_or("Database tidak diinisialisasi")?;
     let tim_list = db.get_all_tim().map_err(|e| e.to_string())?;
     let member = tim_list.into_iter().find(|t| t.id == Some(tim_id))
         .ok_or_else(|| "Anggota tim tidak ditemukan".to_string())?;
+    if let Some(expected_pin) = &member.pin {
+        if !expected_pin.is_empty() && *expected_pin != pin {
+            return Err("PIN salah".to_string());
+        }
+    }
     let session = db.login_session(tim_id, &member.name, &member.role).map_err(|e| e.to_string())?;
     let _ = db.log_activity_audit("session", None, "LOGIN", &format!("Karyawan '{}' login ke sistem", member.name), Some(tim_id), Some(&member.name), None, None, Some("auth"));
     drop(db_guard);
@@ -42,9 +47,12 @@ pub async fn get_current_user(state: State<'_, AppState>) -> Result<Option<AppSe
             return Ok(active.clone());
         }
     }
-    let db = state.db.lock().unwrap();
-    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    let db_guard = state.db.lock().unwrap();
+    let db = db_guard.as_ref().ok_or("Database tidak diinisialisasi")?;
     let session = db.get_active_session().map_err(|e| e.to_string())?;
+    
+    drop(db_guard);
+
     if let Some(ref s) = session {
         let mut active = state.active_session.lock().unwrap();
         *active = Some(s.clone());
@@ -252,13 +260,19 @@ pub async fn call_gas_api(
 pub async fn seed_sample_data(state: State<'_, AppState>, options: crate::db::sample_data::SeedOptions) -> Result<String, String> {
     let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
-    crate::db::sample_data::seed_sample_data(&db.conn, options).map_err(|e| e.to_string())
+    if db.app_name != "admin" {
+        return Err("Fitur memuat data sample hanya diperbolehkan melalui aplikasi PubAdmin".to_string());
+    }
+    crate::db::sample_data::seed_sample_data(&db.conn, options, &db.app_name).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn reset_workflow_data(state: State<'_, AppState>) -> Result<String, String> {
     let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    if db.app_name != "admin" {
+        return Err("Fitur reset data hanya diperbolehkan melalui aplikasi PubAdmin".to_string());
+    }
     crate::db::sample_data::reset_workflow_data(&db.conn).map_err(|e| e.to_string())
 }
 
@@ -266,5 +280,8 @@ pub async fn reset_workflow_data(state: State<'_, AppState>) -> Result<String, S
 pub async fn reset_total_data(state: State<'_, AppState>) -> Result<String, String> {
     let db = state.db.lock().map_err(|_| "Failed to lock database".to_string())?;
     let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
-    crate::db::sample_data::reset_total_data(&db.conn).map_err(|e| e.to_string())
+    if db.app_name != "admin" {
+        return Err("Fitur reset data hanya diperbolehkan melalui aplikasi PubAdmin".to_string());
+    }
+    crate::db::sample_data::reset_total_data(&db.conn, &db.app_name).map_err(|e| e.to_string())
 }
