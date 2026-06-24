@@ -51,7 +51,7 @@ jobs:
         shell: powershell
 
       - name: Build Tauri App & Publish Release
-        uses: tauri-apps/tauri-action@v2
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WIN_CERT_PATH: 'cert.pfx'
