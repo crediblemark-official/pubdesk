@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { AppState } from '../types/app.types';
-import { Contact } from '../types/contact.types';
 
 export interface ConfirmOptions {
   title: string;
@@ -27,21 +26,10 @@ export function useUIState() {
   const [confirmOptions, setConfirmOptions] = useState<ConfirmOptions | null>(null);
   const [rightPanelVisible, setRightPanelVisible] = useState(false);
   const [fileLayoutMode, setFileLayoutMode] = useState<'list' | 'grid'>('list');
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'invoice' | 'local-folders' | 'google-drive' | 'google-apps-script' | 'data-reset'>('invoice');
-  const [selectedInsightMetric, setSelectedInsightMetric] = useState<'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null>(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'local-folders' | 'google-drive'>('local-folders');
 
   // Selection states
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
-  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
-  const [selectedPenulisId, setSelectedPenulisId] = useState<number | null>(null);
-  const [selectedPenerbitId, setSelectedPenerbitId] = useState<number | null>(null);
-  const [selectedNaskahId, setSelectedNaskahId] = useState<number | null>(null);
-  const [selectedTimId, setSelectedTimId] = useState<number | null>(null);
-  const [selectedLegalitasId, setSelectedLegalitasId] = useState<number | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-  const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
   
   const [importExportActions, setImportExportActions] = useState<Record<string, ImportExportActions>>({});
 
@@ -83,15 +71,6 @@ export function useUIState() {
   const setActiveModuleInternal = (module: AppState['activeModule'], isHistoryNav = false) => {
     setAppState(prev => ({ ...prev, activeModule: module }));
     setSelectedFileId(null);
-    setSelectedBookId(null);
-    setSelectedServiceId(null);
-    setSelectedCustomerId(null);
-    setSelectedPenulisId(null);
-    setSelectedPenerbitId(null);
-    setSelectedNaskahId(null);
-    setSelectedTimId(null);
-    setSelectedLegalitasId(null);
-    setSelectedTaskId(null);
     setRightPanelVisible(false);
 
     if (!isHistoryNav) {
@@ -144,30 +123,8 @@ export function useUIState() {
     setFileLayoutMode,
     activeSettingsTab,
     setActiveSettingsTab,
-    selectedInsightMetric,
-    setSelectedInsightMetric,
     selectedFileId,
     setSelectedFileId,
-    selectedBookId,
-    setSelectedBookId,
-    selectedServiceId,
-    setSelectedServiceId,
-    selectedCustomerId,
-    setSelectedCustomerId,
-    selectedPenulisId,
-    setSelectedPenulisId,
-    selectedPenerbitId,
-    setSelectedPenerbitId,
-    selectedNaskahId,
-    setSelectedNaskahId,
-    selectedTimId,
-    setSelectedTimId,
-    selectedLegalitasId,
-    setSelectedLegalitasId,
-    selectedTaskId,
-    setSelectedTaskId,
-    editingCustomer,
-    setEditingCustomer,
     importExportActions,
     registerImportExportActions,
     navigateModuleBack,

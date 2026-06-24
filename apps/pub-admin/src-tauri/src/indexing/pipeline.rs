@@ -131,11 +131,11 @@ pub fn run_indexing_pipeline(app_handle: &AppHandle, file_id: i64) -> Result<(),
 
         // Tambahkan tag otomatis berdasarkan tipe berkas dan status draft awal langsung di transaksi
         let auto_tag = format!("#{}", auto_type);
-        let _ = tx.execute("INSERT OR IGNORE INTO tags (name) VALUES (?1)", params![auto_tag]);
+        let _ = tx.execute("INSERT OR IGNORE INTO tags (name, created_at) VALUES (?1, datetime('now'))", params![auto_tag]);
         if let Ok(tag_id) = tx.query_row("SELECT id FROM tags WHERE name = ?1", params![auto_tag], |row| row.get::<usize, i64>(0)) {
             let _ = tx.execute("INSERT OR IGNORE INTO file_tags (file_id, tag_id) VALUES (?1, ?2)", params![file_id, tag_id]);
         }
-        let _ = tx.execute("INSERT OR IGNORE INTO tags (name) VALUES (?1)", params!["#draft"]);
+        let _ = tx.execute("INSERT OR IGNORE INTO tags (name, created_at) VALUES (?1, datetime('now'))", params!["#draft"]);
         if let Ok(tag_id) = tx.query_row("SELECT id FROM tags WHERE name = ?1", params!["#draft"], |row| row.get::<usize, i64>(0)) {
             let _ = tx.execute("INSERT OR IGNORE INTO file_tags (file_id, tag_id) VALUES (?1, ?2)", params![file_id, tag_id]);
         }

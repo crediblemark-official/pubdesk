@@ -131,11 +131,11 @@ pub fn run_indexing_pipeline(app_handle: &AppHandle, file_id: i64) -> Result<(),
 
         // Tambahkan tag otomatis berdasarkan tipe berkas dan status draft awal langsung di transaksi
         let auto_tag = format!("#{}", auto_type);
-        let _ = tx.execute("INSERT OR IGNORE INTO tags (name) VALUES (?1)", params![auto_tag]);
+        let _ = tx.execute("INSERT OR IGNORE INTO tags (name, created_at) VALUES (?1, datetime('now'))", params![auto_tag]);
         if let Ok(tag_id) = tx.query_row("SELECT id FROM tags WHERE name = ?1", params![auto_tag], |row| row.get::<usize, i64>(0)) {
             let _ = tx.execute("INSERT OR IGNORE INTO file_tags (file_id, tag_id) VALUES (?1, ?2)", params![file_id, tag_id]);
         }
-        let _ = tx.execute("INSERT OR IGNORE INTO tags (name) VALUES (?1)", params!["#draft"]);
+        let _ = tx.execute("INSERT OR IGNORE INTO tags (name, created_at) VALUES (?1, datetime('now'))", params!["#draft"]);
         if let Ok(tag_id) = tx.query_row("SELECT id FROM tags WHERE name = ?1", params!["#draft"], |row| row.get::<usize, i64>(0)) {
             let _ = tx.execute("INSERT OR IGNORE INTO file_tags (file_id, tag_id) VALUES (?1, ?2)", params![file_id, tag_id]);
         }
@@ -408,7 +408,7 @@ pub fn global_semantic_search(db: &Database, query: &str) -> Result<Vec<SearchRe
     
     // 2. Ambil semua file dari database beserta statistik dan embeddings
     let mut stmt = db.conn.prepare(
-        "SELECT f.id, f.path, f.filename, f.type, f.last_modified, f.version_label, 
+        "SELECT f.id, f.path, f.filename, f.type, f.status, f.last_modified, f.version_label, 
                 e.vector, s.access_count, s.last_accessed
          FROM files f
          LEFT JOIN file_embeddings e ON f.id = e.file_id
@@ -420,19 +420,20 @@ pub fn global_semantic_search(db: &Database, query: &str) -> Result<Vec<SearchRe
         let path: String = row.get(1)?;
         let filename: String = row.get(2)?;
         let r#type: String = row.get(3)?;
-        let last_modified: String = row.get(4)?;
-        let version_label: Option<String> = row.get(5)?;
-        let vector_str: Option<String> = row.get(6)?;
-        let access_count: i32 = row.get(7).unwrap_or(0);
-        let last_accessed: Option<String> = row.get(8)?;
+        let status: String = row.get(4)?;
+        let last_modified: String = row.get(5)?;
+        let version_label: Option<String> = row.get(6)?;
+        let vector_str: Option<String> = row.get(7)?;
+        let access_count: i32 = row.get(8).unwrap_or(0);
+        let last_accessed: Option<String> = row.get(9)?;
         
-        Ok((id, path, filename, r#type, last_modified, version_label, vector_str, access_count, last_accessed))
+        Ok((id, path, filename, r#type, status, last_modified, version_label, vector_str, access_count, last_accessed))
     }).map_err(|e| e.to_string())?;
     
     let mut results = Vec::new();
     
     for row in rows.flatten() {
-        let (id, path, filename, r#type, last_modified, version_label, vector_str, access_count, last_accessed) = row;
+        let (id, path, filename, r#type, status, last_modified, version_label, vector_str, access_count, last_accessed) = row;
         
         let filename_lower = filename.to_lowercase();
         
@@ -489,6 +490,7 @@ pub fn global_semantic_search(db: &Database, query: &str) -> Result<Vec<SearchRe
                 path,
                 filename,
                 r#type,
+                status,
                 last_modified,
                 score: total_score,
                 version_label,

@@ -2,7 +2,6 @@ mod db;
 mod watcher;
 pub mod indexing;
 pub mod commands;
-pub mod sync;
 
 use db::*;
 use watcher::WatcherManager;
@@ -12,31 +11,10 @@ use tauri::{Emitter, State};
 use std::net::TcpListener;
 use std::io::{Read, Write};
 
-pub struct SyncState {
-    pub enabled: bool,
-    pub workspace_id: Option<String>,
-    pub master_key: Option<[u8; 32]>,
-    pub last_sync_at: Option<String>,
-    pub error: Option<String>,
-}
-
-impl Default for SyncState {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            workspace_id: None,
-            master_key: None,
-            last_sync_at: None,
-            error: None,
-        }
-    }
-}
-
 pub struct AppState {
     pub db: Mutex<Option<Database>>,
     pub active_session: Mutex<Option<AppSession>>,
     pub db_path: Mutex<Option<PathBuf>>,
-    pub sync: Mutex<SyncState>,
 }
 
 pub struct WatcherState {
@@ -57,14 +35,6 @@ async fn init_database(
     let db = Database::new(&db_path, db::APP_NAME).map_err(|e| e.to_string())?;
     *state.db.lock().unwrap() = Some(db);
 
-    if let Ok(conn) = rusqlite::Connection::open(&db_path) {
-        if let Ok(cfg) = sync::engine::get_sync_config(&conn) {
-            let mut s = state.sync.lock().unwrap();
-            s.enabled = cfg.enabled;
-            s.workspace_id = cfg.workspace_id;
-        }
-    }
-
     let watch_folders = {
         let db_lock = state.db.lock().unwrap();
         let db = db_lock.as_ref().ok_or("Database tidak terinisialisasi")?;
@@ -84,165 +54,6 @@ async fn init_database(
     }
 
     Ok(())
-}
-
-#[tauri::command]
-async fn get_sync_config_command(
-    app_handle: tauri::AppHandle,
-) -> Result<sync::types::SyncConfig, String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-    sync::engine::get_sync_config(&conn).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn set_sync_enabled(
-    app_handle: tauri::AppHandle,
-    state: State<'_, AppState>,
-    enabled: bool,
-) -> Result<(), String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-    conn.execute(
-        "INSERT OR REPLACE INTO p2p_config (key, value) VALUES ('sync_enabled', ?1)",
-        [if enabled { "true" } else { "false" }],
-    )
-    .map_err(|e| e.to_string())?;
-
-    state.sync.lock().unwrap().enabled = enabled;
-
-    if !enabled {
-        let mut s = state.sync.lock().unwrap();
-        s.master_key = None;
-    }
-
-    Ok(())
-}
-
-#[tauri::command]
-async fn create_sync_workspace(
-    app_handle: tauri::AppHandle,
-    state: State<'_, AppState>,
-    admin_pin: String,
-) -> Result<String, String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-    let ws = sync::engine::create_workspace(&conn, &admin_pin)?;
-
-    {
-        let mut s = state.sync.lock().unwrap();
-        s.enabled = true;
-        s.workspace_id = Some(ws.clone());
-    }
-
-    Ok(ws)
-}
-
-#[tauri::command]
-async fn join_sync_workspace(
-    app_handle: tauri::AppHandle,
-    state: State<'_, AppState>,
-    invite_code: String,
-    employee_pin: String,
-) -> Result<String, String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-    let ws = sync::engine::join_workspace(&conn, &invite_code, &employee_pin)?;
-
-    {
-        let mut s = state.sync.lock().unwrap();
-        s.enabled = true;
-        s.workspace_id = Some(ws.clone());
-    }
-
-    Ok(ws)
-}
-
-#[tauri::command]
-async fn unlock_sync(
-    app_handle: tauri::AppHandle,
-    state: State<'_, AppState>,
-    pin: String,
-) -> Result<String, String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-    let master = sync::engine::unlock_master_key(&conn, &pin)?;
-
-    {
-        let mut s = state.sync.lock().unwrap();
-        s.master_key = Some(master);
-        s.error = None;
-    }
-
-    let ws = state.sync.lock().unwrap().workspace_id.clone().unwrap_or_default();
-    Ok(ws)
-}
-
-#[tauri::command]
-async fn lock_sync(state: State<'_, AppState>) -> Result<(), String> {
-    let mut s = state.sync.lock().unwrap();
-    s.master_key = None;
-    Ok(())
-}
-
-#[tauri::command]
-async fn reset_sync_workspace(
-    app_handle: tauri::AppHandle,
-    state: State<'_, AppState>,
-) -> Result<(), String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-
-    let _ = conn.execute(
-        "DELETE FROM p2p_config WHERE key IN ('sync_enabled', 'sync_workspace_id', 'sync_admin_setup')",
-        [],
-    );
-    let _ = conn.execute(
-        "DELETE FROM crypto_vault WHERE key = 'master_key_sealed'",
-        [],
-    );
-
-    let mut s = state.sync.lock().unwrap();
-    s.enabled = false;
-    s.workspace_id = None;
-    s.master_key = None;
-    s.error = None;
-    s.last_sync_at = None;
-
-    Ok(())
-}
-
-#[tauri::command]
-async fn create_employee_invite(
-    app_handle: tauri::AppHandle,
-    admin_pin: String,
-    employee_pin: String,
-) -> Result<String, String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-    sync::engine::create_employee_invite(&conn, &admin_pin, &employee_pin)
-}
-
-#[tauri::command]
-async fn get_sync_status(
-    app_handle: tauri::AppHandle,
-    state: State<'_, AppState>,
-) -> Result<sync::types::SyncStatus, String> {
-    let db_path = get_db_path(&app_handle).map_err(|e| e.to_string())?;
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
-
-    let (enabled, workspace_id, last_sync_at, error) = {
-        let s = state.sync.lock().unwrap();
-        (
-            s.enabled,
-            s.workspace_id.clone(),
-            s.last_sync_at.clone(),
-            s.error.clone(),
-        )
-    };
-
-    sync::engine::build_sync_status(&conn, enabled, workspace_id, last_sync_at, error)
-        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -321,67 +132,14 @@ pub fn run() {
             db: Mutex::new(None),
             active_session: Mutex::new(None),
             db_path: Mutex::new(None),
-            sync: Mutex::new(SyncState::default()),
         })
         .manage(WatcherState {
             manager: Mutex::new(None),
-        })
-        .setup(|app| {
-            let handle = app.handle().clone();
-            commands::sync_config::start_background_sync(handle);
-            Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             greet,
             init_database,
             start_oauth_server,
-            get_sync_config_command,
-            set_sync_enabled,
-            create_sync_workspace,
-            join_sync_workspace,
-            unlock_sync,
-            lock_sync,
-            reset_sync_workspace,
-            create_employee_invite,
-            get_sync_status,
-            commands::sync_config::get_sync_config_full,
-            commands::sync_config::set_sync_config,
-            commands::sync_config::test_sync_connection,
-            commands::sync_config::run_sync_now,
-            // Book commands
-            commands::book::get_books,
-            commands::book::add_book,
-            commands::book::delete_book,
-            commands::book::update_book,
-            // Service commands
-            commands::invoice::get_services,
-            commands::invoice::add_service,
-            commands::invoice::update_service,
-            commands::invoice::delete_service,
-            // Contact commands
-            commands::contact::get_contacts,
-            commands::contact::add_contact,
-            commands::contact::update_contact,
-            commands::contact::delete_contact,
-            commands::contact::get_penulis,
-            commands::contact::add_penulis,
-            commands::contact::update_penulis,
-            commands::contact::delete_penulis,
-            commands::contact::get_penerbit,
-            commands::contact::add_penerbit,
-            commands::contact::update_penerbit,
-            commands::contact::delete_penerbit,
-            commands::contact::get_tim,
-            commands::contact::add_tim,
-            commands::contact::update_tim,
-            commands::contact::delete_tim,
-            // Invoice commands
-            commands::invoice::get_invoices,
-            commands::invoice::add_invoice,
-            commands::invoice::update_invoice,
-            commands::invoice::delete_invoice,
-            commands::invoice::update_invoice_sync_status,
-            commands::invoice::update_sync_status,
             // File commands
             commands::file::get_files,
             commands::file::add_file,
@@ -406,33 +164,8 @@ pub fn run() {
             commands::file::get_all_tags,
             commands::file::get_all_file_tags,
             commands::file::read_file_bytes,
-            // Workflow commands
-            commands::workflow::get_naskah,
-            commands::workflow::add_naskah,
-            commands::workflow::update_naskah,
-            commands::workflow::delete_naskah,
-            commands::workflow::get_legalitas,
-            commands::workflow::add_legalitas,
-            commands::workflow::update_legalitas,
-            commands::workflow::delete_legalitas,
-            commands::workflow::get_tasks,
-            commands::workflow::add_task,
-            commands::workflow::update_task,
-            commands::workflow::delete_task,
-            commands::workflow::get_workflow_templates,
-            commands::workflow::add_workflow_template,
-            commands::workflow::add_task_history,
-            commands::workflow::get_task_history,
-            commands::workflow::get_all_task_history,
-            commands::workflow::update_task_status,
-            commands::workflow::get_task_blockers,
-            commands::workflow::add_task_blocker,
-            commands::workflow::resolve_task_blocker,
-            commands::workflow::get_task_approvals,
-            commands::workflow::request_approval,
-            commands::workflow::decide_approval,
-            commands::workflow::import_alur_naskah_batch,
-            // Session / Auth / Utility commands
+            // Session / Auth commands
+            commands::session::get_tim,
             commands::session::login_user,
             commands::session::logout_user,
             commands::session::get_current_user,
@@ -442,10 +175,6 @@ pub fn run() {
             commands::session::get_work_sessions,
             commands::session::get_activity_log,
             commands::session::get_activity_log_filtered,
-            commands::session::call_gas_api,
-            commands::session::seed_sample_data,
-            commands::session::reset_workflow_data,
-            commands::session::reset_total_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

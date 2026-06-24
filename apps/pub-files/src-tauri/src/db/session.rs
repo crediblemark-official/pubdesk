@@ -1,5 +1,5 @@
 use super::{Database, DbError};
-use crate::db::models::{Tim, Legalitas, ActivityLog, AppSession, WorkSession, WorkflowEvent};
+use crate::db::models::{Tim, ActivityLog, AppSession, WorkSession};
 use rusqlite::{params, Connection};
 
 impl Database {
@@ -112,160 +112,7 @@ impl Database {
         Ok(())
     }
 
-    // WorkflowEvents CRUD
-    pub fn add_workflow_event(&self, e: &WorkflowEvent) -> Result<i64, DbError> {
-        let now = chrono::Local::now().to_rfc3339();
-        self.conn.execute(
-            "INSERT INTO workflow_events (naskah_id, event_name, completed_date, pic_name, notes, proof_path_or_link, status, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-            params![
-                e.naskah_id,
-                e.event_name,
-                e.completed_date,
-                e.pic_name,
-                e.notes,
-                e.proof_path_or_link,
-                e.status,
-                now,
-                now
-            ]
-        )?;
-        let id = self.conn.last_insert_rowid();
-        self.log_activity("workflow_event", Some(id), "CREATE", &format!("Menambahkan event '{}'", e.event_name))?;
-        Ok(id)
-    }
-
-    pub fn get_workflow_events(&self, naskah_id: i64) -> Result<Vec<WorkflowEvent>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, naskah_id, event_name, completed_date, pic_name, notes, proof_path_or_link, status, created_at, updated_at FROM workflow_events WHERE naskah_id = ?1 ORDER BY id ASC")?;
-        let rows = stmt.query_map(params![naskah_id], |row| {
-            Ok(WorkflowEvent {
-                id: row.get(0)?,
-                naskah_id: row.get(1)?,
-                event_name: row.get(2)?,
-                completed_date: row.get(3)?,
-                pic_name: row.get(4)?,
-                notes: row.get(5)?,
-                proof_path_or_link: row.get(6)?,
-                status: row.get(7)?,
-                created_at: row.get(8)?,
-                updated_at: row.get(9)?,
-            })
-        })?;
-        let mut res = Vec::new();
-        for r in rows {
-            res.push(r?);
-        }
-        Ok(res)
-    }
-
-    pub fn update_workflow_event(&self, e: &WorkflowEvent) -> Result<(), DbError> {
-        let now = chrono::Local::now().to_rfc3339();
-        self.conn.execute(
-            "UPDATE workflow_events SET completed_date = ?1, pic_name = ?2, notes = ?3, proof_path_or_link = ?4, status = ?5, updated_at = ?6 WHERE id = ?7",
-            params![
-                e.completed_date,
-                e.pic_name,
-                e.notes,
-                e.proof_path_or_link,
-                e.status,
-                now,
-                e.id
-            ]
-        )?;
-        self.log_activity("workflow_event", e.id, "UPDATE", &format!("Memperbarui event '{}'", e.event_name))?;
-        Ok(())
-    }
-
-    // Legalitas CRUD
-    pub fn add_legalitas(&self, l: &Legalitas) -> Result<i64, DbError> {
-        let now = chrono::Local::now().to_rfc3339();
-        self.conn.execute(
-            "INSERT INTO legalitas (naskah_id, judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, nomor_dokumen, tanggal_keluar, tanggal_revisi, pic_id, rejection_reason, proof_path_or_link, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
-            params![
-                l.naskah_id,
-                l.judul_buku,
-                l.nama_penulis,
-                l.tipe,
-                l.tanggal_pengajuan,
-                l.keterangan,
-                l.status,
-                l.nomor_dokumen,
-                l.tanggal_keluar,
-                l.tanggal_revisi,
-                l.pic_id,
-                l.rejection_reason,
-                l.proof_path_or_link,
-                l.created_at,
-                now
-            ]
-        )?;
-        let id = self.conn.last_insert_rowid();
-        self.log_activity("legalitas", Some(id), "CREATE", &format!("Menambahkan legalitas '{}'", l.judul_buku))?;
-        Ok(id)
-    }
-
-    pub fn get_legalitas(&self) -> Result<Vec<Legalitas>, DbError> {
-        let mut stmt = self.conn.prepare("SELECT id, naskah_id, judul_buku, nama_penulis, tipe, tanggal_pengajuan, keterangan, status, nomor_dokumen, tanggal_keluar, tanggal_revisi, pic_id, rejection_reason, proof_path_or_link, created_at, updated_at FROM legalitas ORDER BY created_at DESC")?;
-        let rows = stmt.query_map([], |row| {
-            Ok(Legalitas {
-                id: row.get(0)?,
-                naskah_id: row.get(1)?,
-                judul_buku: row.get(2)?,
-                nama_penulis: row.get(3)?,
-                tipe: row.get(4)?,
-                tanggal_pengajuan: row.get(5)?,
-                keterangan: row.get(6)?,
-                status: row.get(7)?,
-                nomor_dokumen: row.get(8)?,
-                tanggal_keluar: row.get(9)?,
-                tanggal_revisi: row.get(10)?,
-                pic_id: row.get(11)?,
-                rejection_reason: row.get(12)?,
-                proof_path_or_link: row.get(13)?,
-                created_at: row.get(14)?,
-                updated_at: row.get(15)?,
-            })
-        })?;
-        let mut res = Vec::new();
-        for r in rows {
-            res.push(r?);
-        }
-        Ok(res)
-    }
-
-    pub fn update_legalitas(&self, l: &Legalitas) -> Result<(), DbError> {
-        let now = chrono::Local::now().to_rfc3339();
-        self.conn.execute(
-            "UPDATE legalitas SET naskah_id = ?1, judul_buku = ?2, nama_penulis = ?3, tipe = ?4, tanggal_pengajuan = ?5, keterangan = ?6, status = ?7, nomor_dokumen = ?8, tanggal_keluar = ?9, tanggal_revisi = ?10, pic_id = ?11, rejection_reason = ?12, proof_path_or_link = ?13, updated_at = ?14 WHERE id = ?15",
-            params![
-                l.naskah_id,
-                l.judul_buku,
-                l.nama_penulis,
-                l.tipe,
-                l.tanggal_pengajuan,
-                l.keterangan,
-                l.status,
-                l.nomor_dokumen,
-                l.tanggal_keluar,
-                l.tanggal_revisi,
-                l.pic_id,
-                l.rejection_reason,
-                l.proof_path_or_link,
-                now,
-                l.id
-            ]
-        )?;
-        self.log_activity("legalitas", l.id, "UPDATE", &format!("Memperbarui legalitas '{}'", l.judul_buku))?;
-        Ok(())
-    }
-
-    pub fn delete_legalitas(&self, id: i64) -> Result<(), DbError> {
-        self.conn
-            .execute("DELETE FROM legalitas WHERE id = ?1", params![id])?;
-        self.log_activity("legalitas", Some(id), "DELETE", &format!("Menghapus legalitas id={}", id))?;
-        Ok(())
-    }
-
-    // Activity Log helper — mendukung audit trail karyawan
+    // Activity Log helper
     pub fn log_activity(
         &self,
         entity_type: &str,
@@ -315,7 +162,7 @@ impl Database {
                 created_at: row.get(10)?,
             })
         })?;
-        
+
         let mut res = Vec::new();
         for r in rows {
             res.push(r?);
@@ -373,15 +220,13 @@ impl Database {
         Ok(res)
     }
 
-    // Auth session management — login/logout karyawan lokal
+    // Auth session management
     pub fn login_session(&self, tim_id: i64, tim_name: &str, tim_role: &str) -> Result<AppSession, DbError> {
         let now = chrono::Local::now().to_rfc3339();
-        // Nonaktifkan sesi sebelumnya untuk aplikasi ini
         self.conn.execute(
             "UPDATE app_sessions SET is_active = 0, logout_at = ?1 WHERE is_active = 1 AND app = ?2",
             params![now, self.app_name],
         )?;
-        // Buat sesi baru
         self.conn.execute(
             "INSERT INTO app_sessions (tim_id, tim_name, tim_role, login_at, is_active, app) VALUES (?1, ?2, ?3, ?4, 1, ?5)",
             params![tim_id, tim_name, tim_role, now, self.app_name],
@@ -453,7 +298,7 @@ impl Database {
         let mut stmt = self.conn.prepare(
             "SELECT id, tim_id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours WHERE tim_id = ?1 AND end_time IS NULL ORDER BY id DESC LIMIT 1"
         )?;
-        
+
         let mut rows = stmt.query_map(params![tim_id], |row| {
             Ok(WorkSession {
                 id: Some(row.get(0)?),
@@ -477,7 +322,7 @@ impl Database {
         let mut stmt = self.conn.prepare(
             "SELECT id, tim_id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours WHERE tim_id = ?1 ORDER BY id DESC LIMIT ?2"
         )?;
-        
+
         let rows = stmt.query_map(params![tim_id, limit], |row| {
             Ok(WorkSession {
                 id: Some(row.get(0)?),
@@ -504,19 +349,19 @@ pub fn sync_contacts_from_invoices(conn: &Connection) -> Result<(), DbError> {
         [],
         |row| row.get(0)
     )?;
-    
+
     if count > 0 {
         return Ok(());
     }
-    
+
     let mut stmt = conn.prepare("SELECT file_path FROM invoices")?;
     let rows = stmt.query_map([], |row| {
         let file_path: Option<String> = row.get(0)?;
         Ok(file_path)
     })?;
-    
+
     let created_at = chrono::Local::now().to_rfc3339();
-    
+
     for row in rows {
         if let Ok(Some(file_path_str)) = row {
             if let Ok(v) = serde_json::from_str::<serde_json::Value>(&file_path_str) {
@@ -525,13 +370,13 @@ pub fn sync_contacts_from_invoices(conn: &Connection) -> Result<(), DbError> {
                     if !customer_name_trimmed.is_empty() {
                         let customer_wa = v.get("customerWa").and_then(|w| w.as_str()).unwrap_or("");
                         let customer_address = v.get("customerAddress").and_then(|a| a.as_str()).unwrap_or("");
-                        
+
                         let exists: i64 = conn.query_row(
                             "SELECT COUNT(*) FROM contacts WHERE name = ?1 AND type = 'customer'",
                             params![customer_name_trimmed],
                             |r| r.get(0)
                         )?;
-                        
+
                         if exists == 0 {
                             conn.execute(
                                 "INSERT INTO contacts (name, wa_number, email, address, type, created_at, updated_at) VALUES (?1, ?2, NULL, ?3, 'customer', ?4, ?4)",
@@ -543,6 +388,6 @@ pub fn sync_contacts_from_invoices(conn: &Connection) -> Result<(), DbError> {
             }
         }
     }
-    
+
     Ok(())
 }

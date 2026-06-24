@@ -33,6 +33,11 @@ pub async fn update_file(state: State<'_, AppState>, file: File) -> Result<(), S
 }
 
 #[tauri::command]
+pub async fn remove_file_physically(path: String) -> Result<(), String> {
+    std::fs::remove_file(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub async fn write_binary_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
     use std::fs::File as StdFile;
     use std::io::Write;

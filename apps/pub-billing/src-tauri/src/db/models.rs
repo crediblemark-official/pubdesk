@@ -186,6 +186,17 @@ impl Default for Invoice {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvoiceTimelineItem {
+    pub id: Option<i64>,
+    pub action: String,
+    pub description: String,
+    pub old_value: Option<String>,
+    pub new_value: Option<String>,
+    pub performed_by_name: Option<String>,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Service {
     pub id: Option<i64>,
     pub name: String,

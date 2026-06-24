@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
-import { useDataMasterContext } from '../../../contexts/DataMasterContext';
+import React, { useMemo, useState, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { Badge } from '../../../ui/atoms/Badge';
 import { InfoRow } from '../../../ui/molecules/InfoRow';
 import { SectionCard } from '../../../ui/molecules/SectionCard';
+import { Tim } from '../../../types/data-master.types';
 
 interface TimPreviewPanelProps {
   timId: number | null;
@@ -22,7 +23,19 @@ const ROLE_GRADIENT: Record<string, string> = {
 };
 
 const TimPreviewPanel: React.FC<TimPreviewPanelProps> = ({ timId }) => {
-  const { tim } = useDataMasterContext();
+  const [tim, setTim] = useState<Tim[]>([]);
+
+  useEffect(() => {
+    const loadTim = async () => {
+      try {
+        const data = await invoke<Tim[]>('get_tim');
+        setTim(data || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    loadTim();
+  }, []);
 
   const memberData = useMemo(() => {
     if (!timId) return null;

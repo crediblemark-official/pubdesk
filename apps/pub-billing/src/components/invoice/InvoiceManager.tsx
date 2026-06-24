@@ -38,9 +38,12 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
   const {
     files,
     deleteFile,
+    updateFile,
     selectedFileId,
     setSelectedFileId,
     setRightPanelVisible,
+    previewInvoiceId,
+    setPreviewInvoiceId,
   } = useFileState();
   
   const { loadInvoiceToForm } = useInvoiceContext();
@@ -144,6 +147,46 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
     }
   };
 
+  const handleOpenFileLocation = async (invoiceId: number) => {
+    const fileEntry = files.find(f => f.type === 'invoice' && f.version_label === String(invoiceId));
+    if (!fileEntry) {
+      showToast('Berkas PDF tidak ditemukan di database!', 'error');
+      return;
+    }
+    try {
+      const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+      await tauriInvoke('open_file_location_physically', { path: fileEntry.path });
+      showToast('Membuka lokasi berkas...', 'info');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal membuka lokasi berkas!', 'error');
+    }
+  };
+
+  const handleMoveFile = async (invoiceId: number) => {
+    const fileEntry = files.find(f => f.type === 'invoice' && f.version_label === String(invoiceId));
+    if (!fileEntry) {
+      showToast('Berkas PDF tidak ditemukan di database!', 'error');
+      return;
+    }
+    try {
+      const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+      const destPath = await save({
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+        defaultPath: fileEntry.filename
+      });
+      if (!destPath) return;
+      const bytes = await tauriInvoke<number[]>('read_file_bytes', { path: fileEntry.path });
+      await tauriInvoke('write_binary_file', { path: destPath, bytes });
+      await tauriInvoke('remove_file_physically', { path: fileEntry.path });
+      await updateFile({ ...fileEntry, path: destPath });
+      showToast('Berkas berhasil dipindahkan!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal memindahkan berkas!', 'error');
+    }
+  };
+
   // Aksi Hapus Invoice
   const handleDeleteInvoice = (invoiceId: number, invoiceNo: string) => {
     showConfirm({
@@ -178,8 +221,8 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
     showToast('Data invoice berhasil dimuat ke editor!', 'success');
   };
 
-  // Aksi sinkronisasi manual ke cloud
-  const handleSyncCloud = async (invoice: Invoice) => {
+  // Core sync logic — returns true on success, false on failure
+  const syncOneInvoice = async (invoice: Invoice): Promise<boolean> => {
     const metadata = getInvoiceMetadata(invoice);
     let items = [];
     try {
@@ -189,23 +232,9 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
     }
 
     const { googleAppsScriptService } = await import('../../services/googleAppsScript');
-    if (!googleAppsScriptService.isConfigured()) {
-      showToast('Google Apps Script belum dikonfigurasi di Pengaturan!', 'error');
-      return;
-    }
+    if (!googleAppsScriptService.isConfigured()) return false;
 
     try {
-      const fileEntry = files.find(f => f.type === 'invoice' && f.version_label === String(invoice.id));
-      let pdfBytes: number[] = [];
-      
-      if (fileEntry) {
-        try {
-          // Fallback: panggil service cloud sheet saja jika berkas fisik tidak bisa dibaca langsung
-        } catch (readErr) {
-          console.error("Gagal membaca berkas fisik:", readErr);
-        }
-      }
-
       const itemsPayload = items.map((item: any) => ({
         item_title: item.item_title,
         quantity: item.quantity,
@@ -225,13 +254,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
         total: invoice.total
       };
 
-      showToast('Menyinkronkan data ke Cloud Google Sheets...', 'info');
-      const cloudResult = await googleAppsScriptService.sendInvoiceToCloud(
-        gasPayload,
-        pdfBytes,
-        `Invoice-${metadata.invoiceNo || 'DRAF'}.pdf`
-      );
-
+      const cloudResult = await googleAppsScriptService.sendInvoiceToCloud(gasPayload, []);
       if (cloudResult.success) {
         const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
         await tauriInvoke('update_invoice_sync_status', {
@@ -239,13 +262,42 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
           syncStatus: 'synced',
           cloudFileUrl: cloudResult.fileUrl || ''
         });
-        showToast('Sinkronisasi cloud berhasil!', 'success');
-      } else {
-        showToast('Gagal sinkronisasi ke cloud Sheets!', 'error');
+        return true;
       }
+      return false;
     } catch (err) {
       console.error(err);
-      showToast('Terjadi kesalahan sinkronisasi cloud!', 'error');
+      return false;
+    }
+  };
+
+  // Sinkronisasi semua invoice ke GAS (bulk)
+  const [syncingAll, setSyncingAll] = useState(false);
+  const handleSyncAllToCloud = async () => {
+    const pending = invoices.filter(inv => inv.sync_status !== 'synced' || !inv.sync_status);
+    if (pending.length === 0) {
+      showToast('Semua invoice sudah tersinkronisasi!', 'info');
+      return;
+    }
+    setSyncingAll(true);
+    let success = 0;
+    let failed = 0;
+    for (const inv of pending) {
+      const ok = await syncOneInvoice(inv);
+      if (ok) success++;
+      else failed++;
+    }
+    setSyncingAll(false);
+    showToast(`Sinkronisasi selesai: ${success} berhasil, ${failed} gagal`, failed > 0 ? 'error' : 'success');
+  };
+
+  // Aksi sinkronisasi manual per invoice
+  const handleSyncCloud = async (invoice: Invoice) => {
+    const ok = await syncOneInvoice(invoice);
+    if (ok) {
+      showToast('Sinkronisasi cloud berhasil!', 'success');
+    } else {
+      showToast('Gagal sinkronisasi ke cloud!', 'error');
     }
   };
 
@@ -509,6 +561,22 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
           <span>➕</span> Buat Invoice
         </button>
 
+        {/* Sinkronisasi ke Google Sheets */}
+        <button
+          onClick={handleSyncAllToCloud}
+          disabled={syncingAll}
+          style={{
+            padding: '4px 10px', borderRadius: '6px', border: 'none',
+            fontSize: '12px', fontWeight: '600', cursor: syncingAll ? 'not-allowed' : 'pointer',
+            background: syncingAll ? 'var(--bg-panel)' : '#1a73e8',
+            color: '#ffffff',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            height: '24px', flexShrink: 0
+          }}
+        >
+          <span>☁️</span> {syncingAll ? 'Menyinkron...' : 'Sinkron GAS'}
+        </button>
+
         <FilterDivider />
 
         <FilterGroup label="🚦 Status:">
@@ -526,59 +594,60 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
       </FilterBar>
 
       {/* Invoice Table Container */}
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
+      <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-card)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <th 
                 onClick={() => handleSort('date')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '12%', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '10%', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Tanggal"
               >
                 Tanggal{renderSortIcon('date')}
               </th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '7%' }}>Jam</th>
               <th 
                 onClick={() => handleSort('invoiceNo')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '16%', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '14%', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Nomor Invoice"
               >
                 No. Invoice{renderSortIcon('invoiceNo')}
               </th>
               <th 
                 onClick={() => handleSort('customerName')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '22%', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '18%', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Nama Pelanggan"
               >
                 Pelanggan{renderSortIcon('customerName')}
               </th>
               <th 
                 onClick={() => handleSort('total')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '12%', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '10%', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Total Nominal"
               >
                 Total{renderSortIcon('total')}
               </th>
               <th 
                 onClick={() => handleSort('status')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '12%', textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '10%', textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Status Pembayaran"
               >
-                Status Invoice{renderSortIcon('status')}
+                Status{renderSortIcon('status')}
               </th>
               <th 
                 onClick={() => handleSort('fileStatus')}
-                style={{ padding: '8px 12px', fontWeight: '600', width: '13%', textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '8px 12px', fontWeight: '600', width: '11%', textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
                 title="Urutkan berdasarkan Status Berkas"
               >
-                Status Berkas{renderSortIcon('fileStatus')}
+                Berkas{renderSortIcon('fileStatus')}
               </th>
-              <th style={{ padding: '8px 12px', fontWeight: '600', width: '13%', textAlign: 'center' }}>Aksi</th>
+              <th style={{ padding: '8px 12px', fontWeight: '600', width: '20%', textAlign: 'center', position: 'sticky', right: 0, background: 'var(--bg-panel)', zIndex: 2 }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filteredInvoices.length === 0 ? (
               <TableEmptyState
-                colSpan={7}
+                colSpan={8}
                 icon="🧾"
                 message="Tidak ada invoice yang ditemukan"
                 description={searchQuery ? `Tidak ada hasil untuk "${searchQuery}"` : undefined}
@@ -589,7 +658,9 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                 const status = metadata.paymentStatus || 'BERMASALAH';
                 const fileEntry = files.find(f => f.type === 'invoice' && f.version_label === String(inv.id));
                 const hasFile = !!fileEntry;
-                const isSelected = fileEntry && fileEntry.id === selectedFileId;
+                const isSelected = fileEntry
+                  ? fileEntry.id === selectedFileId
+                  : previewInvoiceId === inv.id;
                 
                 return (
                   <tr 
@@ -608,15 +679,31 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                     onClick={() => {
                       if (fileEntry) {
                         setSelectedFileId(fileEntry.id || null);
-                        setRightPanelVisible(true);
+                        setPreviewInvoiceId(null);
+                      } else {
+                        setSelectedFileId(null);
+                        setPreviewInvoiceId(inv.id || null);
                       }
+                      setRightPanelVisible(true);
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.background = isSelected ? 'rgba(192, 28, 28, 0.18)' : 'rgba(0, 0, 0, 0.015)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = isSelected ? 'rgba(192, 28, 28, 0.12)' : 'transparent'}
                   >
                     {/* Tanggal */}
-                    <td style={{ padding: '6px 12px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                    <td style={{ padding: '6px 12px', color: 'var(--text-primary)', fontWeight: '500', whiteSpace: 'nowrap' }}>
                       {metadata.invoiceDate ? formatDateId(metadata.invoiceDate) : new Date(inv.created_at).toLocaleDateString('id-ID')}
+                    </td>
+                    
+                    {/* Jam */}
+                    <td style={{ padding: '6px 12px', color: 'var(--text-secondary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                      {(() => {
+                        const dateStr = metadata.invoiceDate || inv.created_at;
+                        try {
+                          const d = new Date(dateStr);
+                          if (isNaN(d.getTime())) return '-';
+                          return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        } catch { return '-'; }
+                      })()}
                     </td>
                     
                     {/* No Invoice */}
@@ -648,7 +735,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                     </td>
                     
                     {/* Aksi */}
-                    <td style={{ padding: '6px 12px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                    <td onClick={(e) => e.stopPropagation()} style={{ padding: '6px 12px', textAlign: 'center', position: 'sticky', right: 0, background: isSelected ? '#fce8e8' : 'var(--bg-card)', zIndex: 1 }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                         {/* Edit / Reload */}
                         <button
@@ -695,6 +782,51 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                               <line x1="16" y1="13" x2="8" y2="13"></line>
                               <line x1="16" y1="17" x2="8" y2="17"></line>
                               <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                          </button>
+                        )}
+                        {/* Buka Lokasi */}
+                        {hasFile && (
+                          <button
+                            onClick={() => handleOpenFileLocation(inv.id!)}
+                            title="Buka Lokasi Berkas"
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              color: 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              padding: '4px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                              <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                          </button>
+                        )}
+                        {/* Pindahkan */}
+                        {hasFile && (
+                          <button
+                            onClick={() => handleMoveFile(inv.id!)}
+                            title="Pindahkan Berkas"
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              color: 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              padding: '4px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 11H3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2M12 3v12m0 0l-4-4m4 4l4-4"/>
                             </svg>
                           </button>
                         )}

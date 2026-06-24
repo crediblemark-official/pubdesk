@@ -24,13 +24,14 @@ pub async fn login_user(state: State<'_, AppState>, tim_id: i64, pin: String) ->
 
 #[tauri::command]
 pub async fn logout_user(state: State<'_, AppState>) -> Result<(), String> {
+    let session_info = {
+        let active = state.active_session.lock().unwrap();
+        active.as_ref().map(|s| (s.tim_id, s.tim_name.clone()))
+    };
     let db_guard = state.db.lock().unwrap();
     let db = db_guard.as_ref().ok_or("Database tidak diinisialisasi")?;
-    {
-        let active = state.active_session.lock().unwrap();
-        if let Some(ref session) = *active {
-            let _ = db.log_activity_audit("session", None, "LOGOUT", &format!("Karyawan '{}' logout dari sistem", session.tim_name), Some(session.tim_id), Some(&session.tim_name), None, None, Some("auth"));
-        }
+    if let Some((tim_id, tim_name)) = session_info {
+        let _ = db.log_activity_audit("session", None, "LOGOUT", &format!("Karyawan '{}' logout dari sistem", tim_name), Some(tim_id), Some(&tim_name), None, None, Some("auth"));
     }
     db.logout_session().map_err(|e| e.to_string())?;
     drop(db_guard);

@@ -10,8 +10,8 @@ import { GlobalCostsSection } from './generator-sections/GlobalCostsSection';
 import InvoicePreview from './InvoicePreview';
 
 const InvoiceGenerator: React.FC = () => {
-  const { addInvoice, updateInvoice, showToast, rightPanelVisible, invoices, contacts, addContact, updateContact, setActiveModule } = useAppContext();
-  const { loadPenulis } = useDataMasterContext();
+  const { addInvoice, updateInvoice, addFile, showToast, rightPanelVisible, invoices, files, contacts, addContact, updateContact, setActiveModule } = useAppContext();
+  const { loadPenulis, addPenulis } = useDataMasterContext();
   const {
     customer,
     items,
@@ -53,36 +53,34 @@ const InvoiceGenerator: React.FC = () => {
     }
   }, [invoices.length, activeProfile, setInvoiceNo, editingInvoiceId]);
 
-  const handleSaveInvoice = async () => {
+  // Validasi data sebelum menyimpan
+  const validateInvoice = (): boolean => {
     if (!customer.name) {
       showToast('Nama pelanggan harus diisi!', 'error');
-      return;
+      return false;
     }
     if (items.length === 0) {
       showToast('Item pesanan tidak boleh kosong!', 'error');
-      return;
+      return false;
     }
+    return true;
+  };
 
+  // Siapkan data invoice untuk disimpan
+  const prepareInvoiceData = async () => {
     const isPenulis = customer.isPenulis;
     let contactId: number | undefined = undefined;
     const customerNameTrimmed = customer.name.trim();
 
-    // Cari kontak secara global berdasarkan nama (tanpa menyaring berdasarkan tipe)
     const existingContact = contacts.find(c => c.name.toLowerCase() === customerNameTrimmed.toLowerCase());
 
     if (existingContact) {
       contactId = existingContact.id;
-      
-      // Tentukan tipe baru jika peran bertambah
       let newType = existingContact.type;
       if (isPenulis) {
-        if (existingContact.type === 'customer') {
-          newType = 'both';
-        }
+        if (existingContact.type === 'customer') newType = 'both';
       } else {
-        if (existingContact.type === 'penulis') {
-          newType = 'both';
-        }
+        if (existingContact.type === 'penulis') newType = 'both';
       }
 
       const hasWaChanged = (customer.wa_number?.trim() || '') !== (existingContact.wa_number || '');
@@ -99,16 +97,12 @@ const InvoiceGenerator: React.FC = () => {
             address: customer.address?.trim() || existingContact.address,
             type: newType
           });
-          // Refresh data master penulis jika tipenya berubah menjadi penulis/both
-          if (newType === 'both' || newType === 'penulis') {
-            await loadPenulis();
-          }
+          if (newType === 'both' || newType === 'penulis') await loadPenulis();
         } catch (err) {
-          console.error('Gagal memperbarui data kontak secara otomatis:', err);
+          console.error('Gagal memperbarui data kontak:', err);
         }
       }
     } else {
-      // Jika tidak ditemukan, buat kontak baru
       try {
         if (isPenulis) {
           contactId = await addPenulis({
@@ -116,9 +110,7 @@ const InvoiceGenerator: React.FC = () => {
             wa_number: customer.wa_number?.trim() || '',
             email: customer.email?.trim() || '',
             address: customer.address?.trim() || '',
-            data_source: 'Invoice',
-            email_valid: 0,
-            wa_valid: 0
+            data_source: 'Invoice', email_valid: 0, wa_valid: 0
           });
         } else {
           contactId = await addContact({
@@ -126,46 +118,28 @@ const InvoiceGenerator: React.FC = () => {
             wa_number: customer.wa_number?.trim() || undefined,
             email: customer.email?.trim() || undefined,
             address: customer.address?.trim() || undefined,
-            type: 'customer',
-            needs_review: 1,
+            type: 'customer', needs_review: 1,
             created_at: new Date().toISOString()
           });
         }
       } catch (err) {
-        console.error('Gagal menyimpan pelanggan baru secara otomatis:', err);
+        console.error('Gagal menyimpan pelanggan:', err);
       }
     }
 
     const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    // Deteksi ongkir per item secara dinamis agar tidak bergantung pada tableType tertentu
     const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
     const globalShip = hasItemShipping ? 0 : shippingCost;
     const total = itemsTotal + globalShip + adminFee;
 
     const metadata = {
-      invoiceNo,
-      invoiceDate,
-      invoiceHal,
-      invoiceLampiran,
-      paymentStatus,
-      spesifikasiFasilitas,
-      invoiceType,
-      customerName: customerNameTrimmed,
-      customerWa: customer.wa_number || '',
-      customerEmail: customer.email || '',
-      customerAddress: customer.address || '',
-      isPenulis
+      invoiceNo, invoiceDate, invoiceHal, invoiceLampiran, paymentStatus,
+      spesifikasiFasilitas, invoiceType,
+      customerName: customerNameTrimmed, customerWa: customer.wa_number || '',
+      customerEmail: customer.email || '', customerAddress: customer.address || '', isPenulis
     };
 
-    const customerSnapshot = JSON.stringify({
-      name: customerNameTrimmed,
-      wa_number: customer.wa_number || '',
-      email: customer.email || '',
-      address: customer.address || '',
-      isPenulis
-    });
-
-    const invoiceData = {
+    return {
       id: editingInvoiceId || undefined,
       created_at: new Date().toISOString(),
       customer_id: contactId || null,
@@ -175,70 +149,85 @@ const InvoiceGenerator: React.FC = () => {
       total,
       export_format: invoiceType,
       file_path: JSON.stringify(metadata),
-      customer_snapshot: customerSnapshot,
+      customer_snapshot: JSON.stringify({
+        name: customerNameTrimmed, wa_number: customer.wa_number || '',
+        email: customer.email || '', address: customer.address || '', isPenulis
+      }),
       payment_status: paymentStatus
     };
+  };
 
+  // Simpan saja (Catat) — tanpa PDF, tanpa GAS
+  const handleCatatOnly = async () => {
+    if (!validateInvoice()) return;
     try {
-      let invoiceId = editingInvoiceId;
+      const invoiceData = await prepareInvoiceData();
       if (editingInvoiceId) {
         await updateInvoice(invoiceData as any);
-        showToast('Invoice berhasil diperbarui secara lokal!', 'success');
+        showToast('Invoice berhasil diperbarui!', 'success');
       } else {
-        invoiceId = await addInvoice(invoiceData as any);
+        await addInvoice(invoiceData as any);
+        showToast('Invoice berhasil dicatat!', 'success');
       }
-
-      // Coba kirim data ke Google Apps Script (Cloud Sheets)
-      const { googleAppsScriptService } = await import('../../services/googleAppsScript');
-      if (googleAppsScriptService.isConfigured()) {
-        try {
-          const itemsPayload = items.map(item => ({
-            item_title: item.item_title,
-            quantity: item.quantity,
-            price: item.price
-          }));
-
-          const gasPayload = {
-            invoice_no: invoiceNo || undefined,
-            id_invoice: invoiceId,
-            tanggal: invoiceDate || new Date().toISOString().split('T')[0],
-            pelanggan: customer.name || '',
-            whatsapp: customer.wa_number || '',
-            alamat: customer.address || '',
-            items: itemsPayload,
-            shipping_cost: shippingCost,
-            admin_fee: adminFee,
-            total
-          };
-
-          showToast('Menyinkronkan data ke Cloud Google Sheets...', 'info');
-          const cloudResult = await googleAppsScriptService.sendInvoiceToCloud(gasPayload, []);
-
-          if (cloudResult.success) {
-            try {
-              const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
-              await tauriInvoke('update_invoice_sync_status', {
-                id: invoiceId,
-                syncStatus: 'synced',
-                cloudFileUrl: cloudResult.fileUrl || ''
-              });
-            } catch (dbUpdateError) {
-              console.error('Gagal memperbarui status sinkronisasi di database lokal:', dbUpdateError);
-            }
-            showToast(`Invoice berhasil disinkronkan ke Cloud!`, 'success');
-          }
-        } catch (cloudError) {
-          console.error('Gagal sinkronisasi cloud:', cloudError);
-          showToast(`Invoice disimpan lokal. Gagal ke Cloud: ${cloudError instanceof Error ? cloudError.message : String(cloudError)}`, 'error');
-        }
-      } else {
-        showToast('Invoice berhasil disimpan di lokal!', 'success');
-      }
-
       resetInvoice();
     } catch (error) {
       console.error(error);
       showToast(`Gagal menyimpan: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    }
+  };
+
+  // Simpan & Catat + Download PDF
+  const handleSimpanCatat = async () => {
+    if (!validateInvoice()) return;
+    try {
+      const invoiceData = await prepareInvoiceData();
+      let invoiceId = editingInvoiceId;
+      if (editingInvoiceId) {
+        await updateInvoice(invoiceData as any);
+      } else {
+        invoiceId = await addInvoice(invoiceData as any);
+      }
+
+      // Generate & download PDF
+      const { generateInvoicePDFBytes } = await import('../../utils/pdfGenerator');
+      const bytes = await generateInvoicePDFBytes('invoice-preview-export');
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const filename = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}.pdf`;
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Simpan ke disk & register file entry
+      const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+      const physicalPath = await tauriInvoke<string>('create_physical_file', {
+        filename,
+        bytes: Array.from(bytes),
+        folder: 'invoices'
+      });
+      const existingFile = files.find(f => f.type === 'invoice' && f.version_label === String(invoiceId));
+      if (!existingFile) {
+        await addFile({
+          filename,
+          path: physicalPath,
+          type: 'invoice',
+          project_id: undefined,
+          version_label: String(invoiceId),
+          status: 'final',
+          last_modified: new Date().toISOString(),
+          is_readonly: false
+        });
+      }
+
+      showToast('Invoice berhasil disimpan & PDF terdownload!', 'success');
+      resetInvoice();
+    } catch (error) {
+      console.error(error);
+      showToast(`Gagal: ${error instanceof Error ? error.message : String(error)}`, 'error');
     }
   };
 
@@ -302,8 +291,11 @@ const InvoiceGenerator: React.FC = () => {
 
       {/* Aksi Utama */}
       <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-        <button className="btn-primary" style={{ flex: 1 }} onClick={handleSaveInvoice}>
-          {editingInvoiceId ? '💾 Perbarui & Catat' : '💾 Simpan & Catat'}
+        <button className="btn-primary" style={{ flex: 1 }} onClick={handleSimpanCatat}>
+          💾 Simpan &amp; Catat
+        </button>
+        <button className="btn-secondary" style={{ flex: 1 }} onClick={handleCatatOnly}>
+          📝 Catat Saja
         </button>
         <button className="btn-secondary" style={{ flex: 1 }} onClick={() => resetInvoice()}>
           🔄 Reset

@@ -10,7 +10,6 @@ export type AppModule =
   | 'activity-log'
   | 'settings-local-folders'
   | 'settings-gdrive'
-  | 'settings-p2p'
 
 
 export interface AppState {

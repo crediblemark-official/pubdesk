@@ -37,6 +37,7 @@ pub struct SearchResultInfo {
     pub path: String,
     pub filename: String,
     pub r#type: String,
+    pub status: String,
     pub last_modified: String,
     pub score: f32,
     pub version_label: Option<String>,

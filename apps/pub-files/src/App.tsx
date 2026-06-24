@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
 import { AppProvider, useAppContext } from './contexts/AppContext';
-import { InvoiceProvider } from './contexts/InvoiceContext';
-import { DataMasterProvider } from './contexts/DataMasterContext';
-import { WorkflowProvider } from './contexts/WorkflowContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { MainLayoutInner } from './components/layout/MainLayout';
 import SplashScreen from './components/layout/SplashScreen';
@@ -16,13 +13,7 @@ function AppContent({ showSplash }: { showSplash: boolean }) {
 
   return (
     <AuthProvider>
-      <DataMasterProvider>
-        <WorkflowProvider>
-          <InvoiceProvider>
-            {showSplash ? <SplashScreen /> : <MainLayoutInner />}
-          </InvoiceProvider>
-        </WorkflowProvider>
-      </DataMasterProvider>
+      {showSplash ? <SplashScreen /> : <MainLayoutInner />}
     </AuthProvider>
   );
 }

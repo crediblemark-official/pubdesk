@@ -5,10 +5,8 @@ import { PanelKanan } from './PanelKanan';
 import { Toast, ConfirmDialog } from '@pubhub/shared-ui';
 import { useAppContext } from '../../contexts/AppContext';
 import { FileManager } from '../files/FileManager';
-import ActivityLog from '../data-master/ActivityLog';
 import DashboardFiles from '../files/DashboardFiles';
 import GDriveSettingsTab from '../settings/tabs/GDriveSettingsTab';
-import LocalFoldersTab from '../settings/tabs/LocalFoldersTab';
 import LocalFoldersTab from '../settings/tabs/LocalFoldersTab';
 import HomeDashboard from '../home/HomeDashboard';
 import { useAuth } from '../../contexts/AuthContext';
@@ -100,8 +98,6 @@ const MainLayout = () => {
         return <FileManager searchQuery={fileSearchQuery} />;
       case 'files-parent':
         return <DashboardFiles />;
-      case 'activity-log':
-        return <ActivityLog />;
       case 'settings-local-folders':
         return renderSettingsModule('Folder Lokal Dipantau', '📁', <LocalFoldersTab />);
       case 'settings-gdrive':

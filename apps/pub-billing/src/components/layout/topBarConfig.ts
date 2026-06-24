@@ -9,7 +9,6 @@ export const MODULE_LABELS: Record<string, string> = {
   'activity-log': 'Activity Log',
   'master-data-parent': 'Dashboard Master Data',
   'invoice-parent': 'Dashboard Invoice',
-  'settings-p2p': 'Koneksi Jaringan',
   'settings-invoice': 'Pengaturan Invoice',
 };
 

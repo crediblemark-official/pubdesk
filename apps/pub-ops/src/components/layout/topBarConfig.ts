@@ -15,7 +15,6 @@ export const MODULE_LABELS: Record<string, string> = {
   'penerbit': 'Penerbit',
   'naskah': 'Naskah',
   'legalitas': 'Legalitas',
-  'settings-p2p': 'Koneksi Jaringan',
   'activity-log': 'Activity Log',
 };
 

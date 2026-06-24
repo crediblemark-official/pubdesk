@@ -3,9 +3,11 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAppContext } from '../../../contexts/AppContext';
 import { useFileState } from '../../../contexts/FileContext';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
+import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import InvoicePreview from '../../invoice/InvoicePreview';
 import { parseModifiedBy, formatBytes, getMimeLabel } from '../../../utils/gdrive';
 import { formatPrice } from '../../../utils/format';
+import { save } from '@tauri-apps/plugin-dialog';
 
 interface FilePreviewPanelProps {
   /** ID berkas yang dipilih */
@@ -32,9 +34,12 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     addFileTag,
     removeFileTag,
     getFileTags,
+    previewInvoiceId,
+    setPreviewInvoiceId,
   } = useFileState();
 
   const { loadInvoiceToForm } = useInvoiceContext();
+  const { tim } = useDataMasterContext();
 
   const [fileMetadata, setFileMetadata] = useState<any | null>(null);
   const [relatedFiles, setRelatedFiles] = useState<any[]>([]);
@@ -43,7 +48,9 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
   const [newTagInput, setNewTagInput] = useState('');
   const [activeTab, setActiveTab] = useState<'preview' | 'inspector'>('preview');
   const [descriptionInput, setDescriptionInput] = useState('');
-  const [newResponsibleParty, setNewResponsibleParty] = useState('');
+  const [selectedTimId, setSelectedTimId] = useState<number | ''>('');
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [invoiceTimeline, setInvoiceTimeline] = useState<any[]>([]);
 
   const currentFileSelected = files.find(f => f.id === selectedFileId);
 
@@ -77,6 +84,12 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
 
       // Service dan GDrive tidak didukung di penganalisis teks lokal
       if (file.type === 'service' || file.type === 'gdrive') {
+        return;
+      }
+
+      // Invoice: data metadata sudah dari sintetis dan files array — skip backend call
+      if (file.type === 'invoice') {
+        setLoadingMetadata(false);
         return;
       }
 
@@ -114,6 +127,37 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
 
     fetchMetadata();
   }, [selectedFileId, files]);
+
+  // Ambil timeline invoice (riwayat status pembayaran, pembuatan, dll)
+  useEffect(() => {
+    const fetchTimeline = async () => {
+      // Cari invoice ID dari selectedFileId atau previewInvoiceId
+      let invoiceId: number | null = null;
+      if (selectedFileId) {
+        const file = files.find(f => f.id === selectedFileId);
+        if (file?.type === 'invoice' && file.version_label) {
+          invoiceId = parseInt(file.version_label);
+        }
+      } else if (previewInvoiceId) {
+        invoiceId = previewInvoiceId;
+      }
+
+      if (!invoiceId) {
+        setInvoiceTimeline([]);
+        return;
+      }
+
+      try {
+        const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+        const timeline = await tauriInvoke<any[]>('get_invoice_timeline', { invoiceId });
+        setInvoiceTimeline(timeline || []);
+      } catch (err) {
+        console.error('Gagal mengambil timeline invoice:', err);
+        setInvoiceTimeline([]);
+      }
+    };
+    fetchTimeline();
+  }, [selectedFileId, previewInvoiceId, files]);
 
   const handleAddTag = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +213,7 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     }
   };
 
-  const getResponsiblePartiesList = (currentFile: any): Array<{ name: string; timestamp: string }> => {
+  const getResponsiblePartiesList = (currentFile: any): Array<{ name: string; timestamp: string; tim_id?: number }> => {
     try {
       if (currentFile.responsible_parties) {
         const parsed = JSON.parse(currentFile.responsible_parties);
@@ -182,25 +226,31 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
   const handleAddResponsibleParty = async (e: React.FormEvent) => {
     e.preventDefault();
     const fileObj = files.find(f => f.id === selectedFileId);
-    if (!fileObj || !newResponsibleParty.trim()) return;
+    if (!fileObj || !selectedTimId) return;
     
-    const name = newResponsibleParty.trim();
+    const timMember = tim.find(t => t.id === selectedTimId);
+    if (!timMember) {
+      showToast('Pilih anggota tim terlebih dahulu', 'error');
+      return;
+    }
+    
     const parties = getResponsiblePartiesList(fileObj);
     
-    if (parties.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-      showToast('Nama penanggung jawab sudah terdaftar', 'error');
+    if (parties.some(p => p.tim_id === timMember.id || p.name.toLowerCase() === timMember.name.toLowerCase())) {
+      showToast('Anggota tim sudah terdaftar sebagai penanggung jawab', 'error');
       return;
     }
     
     const newParty = {
-      name,
+      tim_id: timMember.id,
+      name: timMember.name,
       timestamp: new Date().toISOString()
     };
     
     const updatedParties = [...parties, newParty];
     try {
       await updateFile({ ...fileObj, responsible_parties: JSON.stringify(updatedParties) });
-      setNewResponsibleParty('');
+      setSelectedTimId('');
       showToast('Penanggung jawab berhasil ditambahkan', 'success');
     } catch (err) {
       console.error('Gagal menambahkan penanggung jawab:', err);
@@ -223,11 +273,72 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     }
   };
 
+  // Aksi berkas: Buka file, Buka lokasi, Pindahkan
+  const handleOpenFile = async (path: string) => {
+    try {
+      await invoke('open_file_physically', { path });
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal membuka berkas!', 'error');
+    }
+  };
+
+  const handleOpenFileLocation = async (path: string) => {
+    try {
+      await invoke('open_file_location_physically', { path });
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal membuka lokasi berkas!', 'error');
+    }
+  };
+
+  const handleMoveFile = async (currentFile: any) => {
+    try {
+      const destPath = await save({
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+        defaultPath: currentFile.filename
+      });
+      if (!destPath) return;
+      const bytes = await invoke<number[]>('read_file_bytes', { path: currentFile.path });
+      await invoke('write_binary_file', { path: destPath, bytes });
+      await invoke('remove_file_physically', { path: currentFile.path });
+      await updateFile({ ...currentFile, path: destPath });
+      showToast('Berkas berhasil dipindahkan!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal memindahkan berkas!', 'error');
+    }
+  };
+
+  const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.25, 0.25));
+  const handleZoomReset = () => setZoomLevel(1);
+
+  const handleDownloadPdf = async () => {
+    try {
+      const { generateInvoicePDFBytes } = await import('../../../utils/pdfGenerator');
+      const bytes = await generateInvoicePDFBytes('file-preview-panel-export');
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentFileSelected?.filename || 'Invoice.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('PDF berhasil diunduh', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mengunduh PDF', 'error');
+    }
+  };
+
   const renderInspectorContent = (currentFile: any) => {
     // 1. Dapatkan metadata invoice tiruan jika metadata semantik null
     let resolvedMetadata = fileMetadata;
     
-    if (currentFile.type === 'invoice' && !resolvedMetadata) {
+    if (currentFile.type === 'invoice' && (!resolvedMetadata || !resolvedMetadata.summary)) {
       const invoiceId = currentFile.version_label ? parseInt(currentFile.version_label) : null;
       const invoice = invoices.find(inv => inv.id === invoiceId);
       let invoiceNo = 'DRAF';
@@ -258,6 +369,16 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
           { entity_type: 'status', entity_value: paymentStatus }
         ]
       };
+    }
+
+    // 1b. Tampilkan Linimasa: untuk invoice pakai invoiceTimeline dari DB,
+    // non-invoice pakai relatedFiles dari backend (Smart Folders)
+    let displayRelated: any[] = [];
+    let displayTimeline: any[] = [];
+    if (currentFile.type === 'invoice') {
+      displayTimeline = invoiceTimeline;
+    } else {
+      displayRelated = relatedFiles;
     }
 
     if (!resolvedMetadata) {
@@ -314,7 +435,7 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
           />
         </div>
 
-        {/* Pihak Penanggung Jawab */}
+        {/* Pihak Penanggung Jawab — terhubung dengan Tim */}
         <div>
           <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Pihak Penanggung Jawab</h5>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -325,38 +446,58 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
               </span>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {getResponsiblePartiesList(currentFile).map(party => (
-                  <div key={party.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <strong style={{ color: 'var(--text-primary)' }}>👤 {party.name}</strong>
-                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
-                        🕒 {new Date(party.timestamp).toLocaleString('id-ID')}
-                      </span>
+                {getResponsiblePartiesList(currentFile).map(party => {
+                  const timMember = party.tim_id ? tim.find(t => t.id === party.tim_id) : null;
+                  return (
+                    <div key={party.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <strong style={{ color: 'var(--text-primary)' }}>👤 {party.name}</strong>
+                          {timMember && (
+                            <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(0,0,0,0.04)', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                              {timMember.role}
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                          🕒 {new Date(party.timestamp).toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={() => handleRemoveResponsibleParty(party.name)} 
+                        style={{ border: 'none', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', padding: '4px' }}
+                        title="Hapus penanggung jawab"
+                      >
+                        ×
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => handleRemoveResponsibleParty(party.name)} 
-                      style={{ border: 'none', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', padding: '4px' }}
-                      title="Hapus penanggung jawab"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
-            {/* Form Tambah Penanggung Jawab */}
-            <form onSubmit={handleAddResponsibleParty} style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-              <input
-                type="text"
-                placeholder="Nama penanggung jawab baru..."
-                value={newResponsibleParty}
-                onChange={e => setNewResponsibleParty(e.target.value)}
-                style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
-              />
-              <button type="submit" style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: 'var(--accent)', color: '#ffffff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                Tambah
-              </button>
-            </form>
+            {/* Form Tambah Penanggung Jawab — dropdown dari Tim */}
+            {tim.length > 0 && (
+              <form onSubmit={handleAddResponsibleParty} style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                <select
+                  value={selectedTimId}
+                  onChange={e => setSelectedTimId(e.target.value ? Number(e.target.value) : '')}
+                  style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '12px', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="">Pilih anggota tim...</option>
+                  {tim.filter(t => t.is_active !== 0).map(t => (
+                    <option key={t.id} value={t.id}>{t.name} — {t.role}</option>
+                  ))}
+                </select>
+                <button type="submit" style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: 'var(--accent)', color: '#ffffff', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  Tambah
+                </button>
+              </form>
+            )}
+            {tim.length === 0 && (
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                Tidak ada anggota tim. Tambah anggota tim di menu Master Data &gt; Tim.
+              </span>
+            )}
           </div>
         </div>
 
@@ -422,42 +563,125 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
           </div>
         </div>
 
-        {/* Linimasa Versi */}
+        {/* Linimasa Versi — invoice: riwayat aktivitas; non-invoice: file relations */}
         <div>
-          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '12px' }}>Linimasa Versi & Relasi Berkas</h5>
-          {relatedFiles.length === 0 ? (
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
-              Tidak ada berkas terkait atau versi lain terdeteksi.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid var(--border)', gap: '16px', marginLeft: '6px' }}>
-              {relatedFiles.map((rel: any, idx: number) => {
-                const isVersion = rel.relation_type === 'version_of';
-                const isDup = rel.relation_type === 'duplicate_of';
-                const dotColor = isDup ? '#ef4444' : (isVersion ? '#2ec27e' : '#1e90ff');
-                const badgeColor = isDup ? 'rgba(239, 68, 68, 0.15)' : (isVersion ? 'rgba(46, 194, 126, 0.15)' : 'rgba(30, 144, 255, 0.15)');
-                const badgeText = isDup ? 'Duplikat Persis' : (isVersion ? `Revisi (${Math.round(rel.confidence * 100)}%)` : 'Terkait');
-                return (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-23px', top: '12px', width: '12px', height: '12px', borderRadius: '50%', background: dotColor, border: '2.5px solid var(--bg-panel)', boxShadow: '0 0 0 1px var(--border)' }} />
-                    <div
-                      style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '12px', gap: '6px' }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '700', background: badgeColor, color: dotColor, textTransform: 'uppercase' }}>{badgeText}</span>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{new Date(rel.last_modified).toLocaleDateString('id-ID')}</span>
+          <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '12px' }}>Linimasa Versi</h5>
+          {currentFile.type === 'invoice' ? (
+            displayTimeline.length === 0 ? (
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                Belum ada riwayat aktivitas untuk invoice ini.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid var(--border)', gap: '12px', marginLeft: '6px' }}>
+                {displayTimeline.map((item: any, idx: number) => {
+                  const isCreate = item.action === 'CREATE';
+                  const isPaymentChange = item.action === 'PAYMENT_CHANGE';
+                  const isUpdate = item.action === 'UPDATE';
+                  const isSync = item.action === 'SYNC' || (item.description || '').includes('sinkronisasi');
+                  const dotColor = isCreate ? '#2ec27e' : isPaymentChange ? '#d97706' : isSync ? '#8b5cf6' : '#1e90ff';
+                  const badgeColor = isCreate ? 'rgba(46, 194, 126, 0.15)' : isPaymentChange ? 'rgba(217, 119, 6, 0.15)' : isSync ? 'rgba(139, 92, 246, 0.15)' : 'rgba(30, 144, 255, 0.15)';
+                  const badgeText = isCreate ? 'DIBUAT' : isPaymentChange ? 'STATUS BERUBAH' : isSync ? 'SINKRON' : 'DIEDIT';
+                  const date = new Date(item.created_at);
+                  const dateStr = date.toLocaleDateString('id-ID');
+                  const timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                  return (
+                    <div key={idx} style={{ position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: '-23px', top: '12px', width: '12px', height: '12px', borderRadius: '50%', background: dotColor, border: '2.5px solid var(--bg-panel)', boxShadow: '0 0 0 1px var(--border)' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '12px', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '700', background: badgeColor, color: dotColor, textTransform: 'uppercase' }}>{badgeText}</span>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{dateStr} {timeStr}</span>
+                        </div>
+                        <span style={{ color: 'var(--text-primary)' }}>{item.description}</span>
+                        {isPaymentChange && item.old_value && item.new_value && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', marginTop: '2px' }}>
+                            <span style={{ padding: '1px 6px', borderRadius: '4px', background: 'rgba(0,0,0,0.05)', color: 'var(--text-secondary)', fontWeight: '600' }}>{item.old_value}</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>→</span>
+                            <span style={{ padding: '1px 6px', borderRadius: '4px', background: 'rgba(46, 194, 126, 0.15)', color: '#2ec27e', fontWeight: '700' }}>{item.new_value}</span>
+                          </div>
+                        )}
+                        {item.performed_by_name && (
+                          <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>oleh {item.performed_by_name}</span>
+                        )}
                       </div>
-                      <span style={{ fontWeight: '600', color: 'var(--text-primary)', wordBreak: 'break-all' }}>{rel.filename}</span>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            displayRelated.length === 0 ? (
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                Tidak ada berkas terkait atau versi lain terdeteksi.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid var(--border)', gap: '16px', marginLeft: '6px' }}>
+                {displayRelated.map((rel: any, idx: number) => {
+                  const isVersion = rel.relation_type === 'version_of';
+                  const isDup = rel.relation_type === 'duplicate_of';
+                  const dotColor = isDup ? '#ef4444' : (isVersion ? '#2ec27e' : '#1e90ff');
+                  const badgeColor = isDup ? 'rgba(239, 68, 68, 0.15)' : (isVersion ? 'rgba(46, 194, 126, 0.15)' : 'rgba(30, 144, 255, 0.15)');
+                  const badgeText = isDup ? 'Duplikat Persis' : (isVersion ? `Revisi (${Math.round(rel.confidence * 100)}%)` : 'Terkait');
+                  return (
+                    <div key={idx} style={{ position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: '-23px', top: '12px', width: '12px', height: '12px', borderRadius: '50%', background: dotColor, border: '2.5px solid var(--bg-panel)', boxShadow: '0 0 0 1px var(--border)' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '12px', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '700', background: badgeColor, color: dotColor, textTransform: 'uppercase' }}>{badgeText}</span>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{new Date(rel.last_modified).toLocaleDateString('id-ID')}</span>
+                        </div>
+                        <span style={{ fontWeight: '600', color: 'var(--text-primary)', wordBreak: 'break-all' }}>{rel.filename}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
           )}
         </div>
       </div>
     );
   };
+
+  // ---------- Invoice tanpa file entry — tampilkan preview langsung ----------
+  if (!selectedFileId && previewInvoiceId) {
+    const invoice = invoices.find(inv => inv.id === previewInvoiceId);
+    if (invoice) {
+      let meta: any = {};
+      try { if (invoice.file_path) meta = JSON.parse(invoice.file_path); } catch {}
+      let items: any[] = [];
+      try { items = JSON.parse(invoice.items_json); } catch {}
+      const overrideInvoice = {
+        customerName: meta.customerName || '',
+        waNumber: meta.customerWa || '',
+        address: meta.customerAddress || '',
+        items, shippingCost: invoice.shipping_cost,
+        adminFee: invoice.admin_fee, invoiceType: invoice.export_format || '',
+        invoiceNo: meta.invoiceNo || '', invoiceHal: meta.invoiceHal || '',
+        invoiceLampiran: meta.invoiceLampiran || '',
+        invoiceDate: meta.invoiceDate || '',
+        paymentStatus: meta.paymentStatus || 'LUNAS',
+        spesifikasiFasilitas: meta.spesifikasiFasilitas || ''
+      };
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)' }}>
+          <div style={{ padding: '10px 16px', background: '#fef3cd', borderBottom: '1px solid #fbbf24', fontSize: '12px', fontWeight: '600', color: '#92400e', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            ⚠️ Invoice ini belum memiliki file PDF terindex.
+          </div>
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            <InvoicePreview overrideInvoice={overrideInvoice} />
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', textAlign: 'center', fontWeight: '500' }}>
+          Data invoice tidak ditemukan
+        </p>
+      </div>
+    );
+  }
 
   // ---------- Tidak ada berkas terpilih ----------
   if (!selectedFileId) {
@@ -517,73 +741,70 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', background: 'var(--bg-panel)' }}>
-        {/* Header Tab Switcher */}
-        <div style={{ padding: '8px 16px', background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', zIndex: 10 }}>
-          {/* Tab Menu */}
-          <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-card)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)' }}>
+        {/* Header: Tab Switcher + Zoom + Edit */}
+        <div style={{ padding: '6px 12px', background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', zIndex: 10, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-card)', padding: '3px', borderRadius: '6px', border: '1px solid var(--border)' }}>
             <button
               onClick={() => setActiveTab('preview')}
               style={{
-                padding: '6px 12px',
-                borderRadius: '6px',
+                padding: '4px 10px',
+                borderRadius: '4px',
                 border: 'none',
                 background: activeTab === 'preview' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'preview' ? '#ffffff' : 'var(--text-secondary)',
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                cursor: 'pointer'
               }}
             >
-              📄 Pratinjau
+              📄 Preview
             </button>
             <button
               onClick={() => setActiveTab('inspector')}
               style={{
-                padding: '6px 12px',
-                borderRadius: '6px',
+                padding: '4px 10px',
+                borderRadius: '4px',
                 border: 'none',
                 background: activeTab === 'inspector' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'inspector' ? '#ffffff' : 'var(--text-secondary)',
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                cursor: 'pointer'
               }}
             >
-              🔍
+              🔍 Info
             </button>
           </div>
 
-          {/* Action Button */}
-          {activeTab === 'preview' && (
-            <button
-              className="btn-primary compact-btn"
-              onClick={() => { loadInvoiceToForm(invoice); setActiveModule('invoice'); }}
-              style={{ height: '30px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '0 12px' }}
-            >
-              <span>📝</span> Edit
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            {activeTab === 'preview' && (
+              <button
+                className="btn-primary compact-btn"
+                onClick={() => { loadInvoiceToForm(invoice); setActiveModule('invoice'); }}
+                style={{ height: '24px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '0 8px' }}
+              >
+                📝 Edit
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab Content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: activeTab === 'inspector' ? '20px 24px' : '0' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: activeTab === 'inspector' ? '16px 20px' : '0' }}>
           {activeTab === 'preview' ? (
-            <InvoicePreview overrideInvoice={overrideInvoice} />
+            <InvoicePreview id="file-preview-panel-export" overrideInvoice={overrideInvoice} hideToolbar externalZoom={zoomLevel} />
           ) : (
             <>
-              {/* Header Info Berkas */}
-              <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
-                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 6px 0', wordBreak: 'break-all' }}>
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 4px 0', wordBreak: 'break-all' }}>
                   {file.filename}
                 </h4>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
-                  <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: 'rgba(192, 28, 28, 0.1)', color: 'var(--accent)', textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                  <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '600', background: 'rgba(192, 28, 28, 0.1)', color: 'var(--accent)', textTransform: 'uppercase' }}>
                     {file.type}
                   </span>
-                  <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: 'rgba(0, 0, 0, 0.05)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                  <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '600', background: 'rgba(0, 0, 0, 0.05)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                     Lokal
                   </span>
                 </div>
@@ -593,6 +814,21 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
             </>
           )}
         </div>
+
+        {/* Bottom Bar: Zoom + Download PDF */}
+        {activeTab === 'preview' && (
+          <div style={{ flexShrink: 0, padding: '6px 12px', background: 'var(--bg-panel)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', gap: '6px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              <button onClick={handleZoomOut} title="Perkecil" style={{ width: '26px', height: '26px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>−</button>
+              <button onClick={handleZoomReset} title="Reset zoom" style={{ width: '26px', height: '26px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600' }}>⟲</button>
+              <button onClick={handleZoomIn} title="Perbesar" style={{ width: '26px', height: '26px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</button>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', minWidth: '36px', textAlign: 'center', fontWeight: '600' }}>{Math.round(zoomLevel * 100)}%</span>
+            </div>
+            <button onClick={handleDownloadPdf} className="btn-primary compact-btn" style={{ height: '26px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '0 10px' }}>
+              ⬇ Download PDF
+            </button>
+          </div>
+        )}
       </div>
     );
   }

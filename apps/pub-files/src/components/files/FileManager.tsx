@@ -92,7 +92,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ searchQuery }) => {
           path: res.path,
           filename: res.filename,
           type: res.type,
-          status: 'Lokal',
+          status: res.status || 'Lokal',
           version_label: res.version_label,
           last_modified: res.last_modified,
           modified_by: '',

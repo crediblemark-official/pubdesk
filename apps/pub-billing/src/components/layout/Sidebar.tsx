@@ -46,8 +46,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           
           const isExpandable = item.id === 'invoice' || item.id === 'master-data-parent';
           const isExpanded = expandedMenus[item.id];
-          const showInvoiceSubmenu = item.id === 'invoice' && !collapsed && isExpanded;
-          const showMasterDataSubmenu = item.id === 'master-data-parent' && !collapsed && isExpanded;
+          const showInvoiceSubmenu = item.id === 'invoice' && isExpanded;
+          const showMasterDataSubmenu = item.id === 'master-data-parent' && isExpanded;
 
           return (
             <div key={item.id}>
@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               </button>
 
               {showInvoiceSubmenu && (
-                <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
+                <div style={{ paddingLeft: collapsed ? '0' : '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { module: 'invoice' as const, label: 'Invoice Generator', icon: '✍️' },
                     { module: 'invoice-manager' as const, label: 'Manajemen Invoice', icon: '🗃️' },
@@ -131,18 +131,19 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                         style={{
                           width: '100%',
-                          padding: '4px 8px',
+                          padding: collapsed ? '8px 0' : '4px 8px',
                           border: 'none',
                           borderRadius: '6px',
                           background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
                           color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          textAlign: 'left',
+                          textAlign: collapsed ? 'center' : 'left',
                           cursor: 'pointer',
-                          fontSize: '12px',
+                          fontSize: collapsed ? '16px' : '12px',
                           fontWeight: isSubActive ? '600' : '400',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
+                          justifyContent: collapsed ? 'center' : 'flex-start',
+                          gap: collapsed ? '0' : '8px',
                           transition: 'all 0.15s ease'
                         }}
                         onMouseOver={(e) => {
@@ -159,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                       >
                         <span style={{ fontSize: '14px' }}>{sub.icon}</span>
-                        <span>{sub.label}</span>
+                        {!collapsed && <span>{sub.label}</span>}
                       </button>
                     );
                   })}
@@ -167,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               )}
 
               {showMasterDataSubmenu && (
-                <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
+                <div style={{ paddingLeft: collapsed ? '0' : '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { module: 'pelanggan' as const, label: 'Pelanggan', icon: '👤' },
                     { module: 'services' as const, label: 'Layanan', icon: '🛠️' },
@@ -181,18 +182,19 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                         style={{
                           width: '100%',
-                          padding: '4px 8px',
+                          padding: collapsed ? '8px 0' : '4px 8px',
                           border: 'none',
                           borderRadius: '6px',
                           background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
                           color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          textAlign: 'left',
+                          textAlign: collapsed ? 'center' : 'left',
                           cursor: 'pointer',
-                          fontSize: '12px',
+                          fontSize: collapsed ? '16px' : '12px',
                           fontWeight: isSubActive ? '600' : '400',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
+                          justifyContent: collapsed ? 'center' : 'flex-start',
+                          gap: collapsed ? '0' : '8px',
                           transition: 'all 0.15s ease'
                         }}
                         onMouseOver={(e) => {
@@ -209,7 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                       >
                         <span style={{ fontSize: '14px' }}>{sub.icon}</span>
-                        <span>{sub.label}</span>
+                        {!collapsed && <span>{sub.label}</span>}
                       </button>
                     );
                   })}

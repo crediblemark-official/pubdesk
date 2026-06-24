@@ -172,7 +172,7 @@ impl Database {
     #[allow(dead_code)]
     pub fn add_file_tag(&self, file_id: i64, tag: &str) -> Result<(), DbError> {
         self.conn.execute(
-            "INSERT OR IGNORE INTO tags (name) VALUES (?1)",
+            "INSERT OR IGNORE INTO tags (name, created_at) VALUES (?1, datetime('now'))",
             params![tag],
         )?;
 

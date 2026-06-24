@@ -36,6 +36,8 @@ interface AppContextType {
   toast: { message: string; type: 'success' | 'error' | 'info' } | null;
   selectedFileId: number | null;
   setSelectedFileId: (id: number | null) => void;
+  previewInvoiceId: number | null;
+  setPreviewInvoiceId: (id: number | null) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   fileCategory: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation';
   setFileCategory: (category: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation') => void;
@@ -65,7 +67,7 @@ interface AppContextType {
   setSelectedBookId: (id: number | null) => void;
   selectedServiceId: number | null;
   setSelectedServiceId: (id: number | null) => void;
-  activeSettingsTab: 'invoice' | 'local-folders' | 'p2p-connection' | 'google-drive' | 'google-apps-script' | 'data-reset';
+  activeSettingsTab: 'invoice' | 'local-folders' | 'google-drive' | 'google-apps-script' | 'data-reset';
   setActiveSettingsTab: (tab: 'invoice' | 'local-folders' | 'google-drive' | 'google-apps-script' | 'data-reset') => void;
   confirmOptions: ConfirmOptions | null;
   showConfirm: (options: ConfirmOptions) => void;
@@ -268,6 +270,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       toast: ui.toast,
       selectedFileId: ui.selectedFileId,
       setSelectedFileId: ui.setSelectedFileId,
+      previewInvoiceId: ui.previewInvoiceId,
+      setPreviewInvoiceId: ui.setPreviewInvoiceId,
       showToast: ui.showToast,
       fileCategory,
       setFileCategory,

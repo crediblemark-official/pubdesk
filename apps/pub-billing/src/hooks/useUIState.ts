@@ -32,6 +32,7 @@ export function useUIState() {
 
   // Selection states
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
+  const [previewInvoiceId, setPreviewInvoiceId] = useState<number | null>(null);
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
@@ -83,6 +84,7 @@ export function useUIState() {
   const setActiveModuleInternal = (module: AppState['activeModule'], isHistoryNav = false) => {
     setAppState(prev => ({ ...prev, activeModule: module }));
     setSelectedFileId(null);
+    setPreviewInvoiceId(null);
     setSelectedBookId(null);
     setSelectedServiceId(null);
     setSelectedCustomerId(null);
@@ -148,6 +150,8 @@ export function useUIState() {
     setSelectedInsightMetric,
     selectedFileId,
     setSelectedFileId,
+    previewInvoiceId,
+    setPreviewInvoiceId,
     selectedBookId,
     setSelectedBookId,
     selectedServiceId,

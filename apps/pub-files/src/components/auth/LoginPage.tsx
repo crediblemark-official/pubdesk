@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
 
-  const [appName, setAppName] = useState('PubBilling');
+  const [appName, setAppName] = useState('PubFiles');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -56,9 +56,9 @@ const LoginPage: React.FC = () => {
     }
     const publisherName = localStorage.getItem('publisher_name');
     if (publisherName && publisherName.trim()) {
-      setAppName(`PubBilling - ${publisherName.trim()}`);
+      setAppName(`PubFiles - ${publisherName.trim()}`);
     } else {
-      setAppName('PubBilling');
+      setAppName('PubFiles');
     }
   }, []);
 
@@ -168,7 +168,7 @@ const LoginPage: React.FC = () => {
           {appName}
         </h1>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-          Pilih identitas Anda untuk mengelola keuangan & invoice
+          Pilih identitas Anda untuk mengelola berkas
         </p>
       </div>
 

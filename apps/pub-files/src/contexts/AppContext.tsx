@@ -1,74 +1,40 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AppState } from '../types/app.types';
-import { Book } from '../types/book.types';
-import { Contact } from '../types/contact.types';
-import { Invoice } from '../types/invoice.types';
 import { File } from '../types/file.types';
-import { Service } from '../types/service.types';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
 // Import hooks
 import { useUIState, ConfirmOptions, ImportExportActions } from '../hooks/useUIState';
-import { useBookState } from '../hooks/useBookState';
-import { useContactState } from '../hooks/useContactState';
-import { useInvoiceState } from '../hooks/useInvoiceState';
-import { useServiceState } from '../hooks/useServiceState';
 import { useFileState } from '../hooks/useFileState';
 import { useGDriveState, GDriveAccount } from '../hooks/useGDriveState';
-import { useSyncState } from '../hooks/useSyncState';
-import { googleAppsScriptService } from '../services/googleAppsScript';
 
 export type { ConfirmOptions, ImportExportActions, GDriveAccount };
 
 export interface WatchFolder {
   id?: number;
   path: string;
-  created_at: string;
+  created_at?: string;
 }
 
 interface AppContextType {
   appState: AppState;
   setActiveModule: (module: AppState['activeModule']) => void;
-  books: Book[];
-  contacts: Contact[];
-  invoices: Invoice[];
   files: File[];
-  services: Service[];
   toast: { message: string; type: 'success' | 'error' | 'info' } | null;
   selectedFileId: number | null;
   setSelectedFileId: (id: number | null) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   fileCategory: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation';
   setFileCategory: (category: 'all' | 'invoice' | 'service' | 'other' | 'gdrive' | 'pdf' | 'spreadsheet' | 'text' | 'image' | 'presentation') => void;
-  loadBooks: () => Promise<void>;
-  loadContacts: () => Promise<void>;
-  loadInvoices: () => Promise<void>;
   loadFiles: () => Promise<void>;
-  loadServices: () => Promise<void>;
-  addBook: (book: Book) => Promise<number>;
-  deleteBook: (id: number) => Promise<void>;
-  updateBook: (book: Book) => Promise<void>;
-  addContact: (contact: Contact) => Promise<number>;
-  updateContact: (contact: Contact) => Promise<void>;
-  deleteContact: (id: number) => Promise<void>;
-  addInvoice: (invoice: Invoice) => Promise<number>;
-  updateInvoice: (invoice: Invoice) => Promise<void>;
-  deleteInvoice: (id: number) => Promise<void>;
   addFile: (file: File) => Promise<number>;
   deleteFile: (id: number) => Promise<void>;
   updateFile: (file: File) => Promise<void>;
-  addService: (service: Service) => Promise<number>;
-  updateService: (service: Service) => Promise<void>;
-  deleteService: (id: number) => Promise<void>;
   rightPanelVisible: boolean;
   setRightPanelVisible: (visible: boolean) => void;
-  selectedBookId: number | null;
-  setSelectedBookId: (id: number | null) => void;
-  selectedServiceId: number | null;
-  setSelectedServiceId: (id: number | null) => void;
-  activeSettingsTab: 'invoice' | 'local-folders' | 'p2p-connection' | 'google-drive' | 'google-apps-script' | 'data-reset';
-  setActiveSettingsTab: (tab: 'invoice' | 'local-folders' | 'google-drive' | 'google-apps-script' | 'data-reset') => void;
+  activeSettingsTab: 'local-folders' | 'google-drive';
+  setActiveSettingsTab: (tab: 'local-folders' | 'google-drive') => void;
   confirmOptions: ConfirmOptions | null;
   showConfirm: (options: ConfirmOptions) => void;
   hideConfirm: () => void;
@@ -103,50 +69,12 @@ interface AppContextType {
   getFileTags: (fileId: number) => Promise<string[]>;
   getAllTags: () => Promise<string[]>;
   getAllFileTags: () => Promise<Record<number, string[]>>;
-  selectedInsightMetric: 'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null;
-  setSelectedInsightMetric: (metric: 'total' | 'lunas' | 'belum_lunas' | 'bermasalah' | 'dp' | null) => void;
-  editingCustomer: Contact | null;
-  setEditingCustomer: (customer: Contact | null) => void;
-  selectedCustomerId: number | null;
-  setSelectedCustomerId: (id: number | null) => void;
-  selectedPenulisId: number | null;
-  setSelectedPenulisId: (id: number | null) => void;
-  selectedPenerbitId: number | null;
-  setSelectedPenerbitId: (id: number | null) => void;
-  selectedNaskahId: number | null;
-  setSelectedNaskahId: (id: number | null) => void;
-  selectedTimId: number | null;
-  setSelectedTimId: (id: number | null) => void;
-  selectedLegalitasId: number | null;
-  setSelectedLegalitasId: (id: number | null) => void;
-  selectedTaskId: number | null;
-  setSelectedTaskId: (id: number | null) => void;
   importExportActions: Record<string, ImportExportActions>;
   registerImportExportActions: (module: string, actions: ImportExportActions | null) => void;
-  updateSyncStatus: (tableName: string, id: number, syncStatus: string, cloudFileUrl?: string) => Promise<void>;
-  syncAllDataToCloud: (dataMaster: {
-    penulis: any[];
-    penerbit: any[];
-    naskah: any[];
-    tim: any[];
-    legalitas: any[];
-    services: any[];
-    tasks: any[];
-  }) => Promise<{ success: boolean; message: string }>;
-  syncModuleDataToCloud: (moduleName: string, dataMaster: {
-    penulis: any[];
-    penerbit: any[];
-    naskah: any[];
-    tim: any[];
-    legalitas: any[];
-    services: any[];
-    tasks: any[];
-  }) => Promise<{ success: boolean; message: string }>;
   directAddNewModule: string | null;
   setDirectAddNewModule: (module: string | null) => void;
   isDbInitialized: boolean;
 }
-
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -156,15 +84,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [directAddNewModule, setDirectAddNewModule] = useState<string | null>(null);
   const [isDbInitialized, setIsDbInitialized] = useState(false);
 
-
-  const booksState = useBookState({ showToast: ui.showToast });
-  const contactsState = useContactState({ showToast: ui.showToast });
-  const invoicesState = useInvoiceState({ showToast: ui.showToast });
-  const servicesState = useServiceState({ 
-    showToast: ui.showToast, 
-    selectedServiceId: ui.selectedServiceId, 
-    setSelectedServiceId: ui.setSelectedServiceId 
-  });
   const filesState = useFileState({ 
     showToast: ui.showToast, 
     selectedFileId: ui.selectedFileId, 
@@ -174,18 +93,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     showToast: ui.showToast, 
     fileCategory 
   });
-  const syncState = useSyncState({
-    contacts: contactsState.contacts,
-    loadContacts: contactsState.loadContacts,
-    books: booksState.books,
-    loadBooks: booksState.loadBooks,
-    services: servicesState.services,
-    loadServices: servicesState.loadServices,
-    files: filesState.files,
-    loadFiles: filesState.loadFiles,
-    invoices: invoicesState.invoices,
-    loadInvoices: invoicesState.loadInvoices
-  });
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -193,17 +100,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const init = async () => {
       try {
         await invoke('init_database');
-        await googleAppsScriptService.initSettings();
-        // Sync config dari cloud spreadsheet di latar belakang jika online
-        googleAppsScriptService.syncConfigFromCloud().catch((err) => {
-          console.warn('[GAS] Gagal sinkronisasi konfigurasi cloud saat startup:', err);
-        });
         setIsDbInitialized(true);
-        await booksState.loadBooks();
-        await contactsState.loadContacts();
-        await invoicesState.loadInvoices();
         await filesState.loadFiles();
-        await servicesState.loadServices();
         await filesState.loadWatchFolders();
       } catch (error) {
         console.error('Failed to initialize app:', error);
@@ -238,59 +136,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       appState: ui.appState,
       setActiveModule: ui.setActiveModule,
-      books: booksState.books,
-      contacts: contactsState.contacts,
-      invoices: invoicesState.invoices,
       files: filesState.files,
-      services: servicesState.services,
       toast: ui.toast,
       selectedFileId: ui.selectedFileId,
       setSelectedFileId: ui.setSelectedFileId,
       showToast: ui.showToast,
       fileCategory,
       setFileCategory,
-      loadBooks: booksState.loadBooks,
-      loadContacts: contactsState.loadContacts,
-      loadInvoices: invoicesState.loadInvoices,
       loadFiles: filesState.loadFiles,
-      loadServices: servicesState.loadServices,
-      addBook: booksState.addBook,
-      deleteBook: booksState.deleteBook,
-      updateBook: booksState.updateBook,
-      addContact: contactsState.addContact,
-      updateContact: contactsState.updateContact,
-      deleteContact: contactsState.deleteContact,
-      editingCustomer: ui.editingCustomer,
-      setEditingCustomer: ui.setEditingCustomer,
-      selectedCustomerId: ui.selectedCustomerId,
-      setSelectedCustomerId: ui.setSelectedCustomerId,
-      selectedPenulisId: ui.selectedPenulisId,
-      setSelectedPenulisId: ui.setSelectedPenulisId,
-      selectedPenerbitId: ui.selectedPenerbitId,
-      setSelectedPenerbitId: ui.setSelectedPenerbitId,
-      selectedNaskahId: ui.selectedNaskahId,
-      setSelectedNaskahId: ui.setSelectedNaskahId,
-      selectedTimId: ui.selectedTimId,
-      setSelectedTimId: ui.setSelectedTimId,
-      selectedLegalitasId: ui.selectedLegalitasId,
-      setSelectedLegalitasId: ui.setSelectedLegalitasId,
-      selectedTaskId: ui.selectedTaskId,
-      setSelectedTaskId: ui.setSelectedTaskId,
-      addInvoice: invoicesState.addInvoice,
-      updateInvoice: invoicesState.updateInvoice,
-      deleteInvoice: invoicesState.deleteInvoice,
       addFile: filesState.addFile,
       deleteFile: filesState.deleteFile,
       updateFile: filesState.updateFile,
-      addService: servicesState.addService,
-      updateService: servicesState.updateService,
-      deleteService: servicesState.deleteService,
       rightPanelVisible: ui.rightPanelVisible,
       setRightPanelVisible: ui.setRightPanelVisible,
-      selectedBookId: ui.selectedBookId,
-      setSelectedBookId: ui.setSelectedBookId,
-      selectedServiceId: ui.selectedServiceId,
-      setSelectedServiceId: ui.setSelectedServiceId,
+      activeSettingsTab: ui.activeSettingsTab,
+      setActiveSettingsTab: ui.setActiveSettingsTab,
       confirmOptions: ui.confirmOptions,
       showConfirm: ui.showConfirm,
       hideConfirm: ui.hideConfirm,
@@ -309,8 +169,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       navigateModuleForward: ui.navigateModuleForward,
       canNavigateModuleBack: ui.canNavigateModuleBack,
       canNavigateModuleForward: ui.canNavigateModuleForward,
-      activeSettingsTab: ui.activeSettingsTab,
-      setActiveSettingsTab: ui.setActiveSettingsTab,
       connectedUser: gdriveState.connectedUser,
       setConnectedUser: gdriveState.setConnectedUser,
       testConnection: gdriveState.testConnection,
@@ -327,13 +185,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       getFileTags: filesState.getFileTags,
       getAllTags: filesState.getAllTags,
       getAllFileTags: filesState.getAllFileTags,
-      selectedInsightMetric: ui.selectedInsightMetric,
-      setSelectedInsightMetric: ui.setSelectedInsightMetric,
       importExportActions: ui.importExportActions,
       registerImportExportActions: ui.registerImportExportActions,
-      updateSyncStatus: syncState.updateSyncStatus,
-      syncAllDataToCloud: syncState.syncAllDataToCloud,
-      syncModuleDataToCloud: syncState.syncModuleDataToCloud,
       directAddNewModule,
       setDirectAddNewModule,
       isDbInitialized,

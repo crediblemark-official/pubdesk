@@ -1,6 +1,6 @@
 use tauri::State;
 use crate::AppState;
-use crate::db::{Invoice, Service};
+use crate::db::{Invoice, InvoiceTimelineItem, Service};
 
 #[tauri::command]
 pub async fn get_invoices(state: State<'_, AppState>) -> Result<Vec<Invoice>, String> {
@@ -55,6 +55,16 @@ pub async fn update_sync_status(
     let db = db.as_ref().ok_or("Database not initialized")?;
     db.update_sync_status(&table_name, id, &sync_status, cloud_file_url.as_deref())
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn get_invoice_timeline(
+    state: State<'_, AppState>,
+    invoice_id: i64,
+) -> Result<Vec<InvoiceTimelineItem>, String> {
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database not initialized")?;
+    db.get_invoice_timeline(invoice_id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

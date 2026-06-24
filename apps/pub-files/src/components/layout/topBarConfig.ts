@@ -5,7 +5,6 @@ export const MODULE_LABELS: Record<string, string> = {
   'activity-log': 'Activity Log',
   'settings-local-folders': 'Folder Lokal Dipantau',
   'settings-gdrive': 'Google Drive',
-  'settings-p2p': 'Koneksi Jaringan',
 };
 
 export const SEARCHABLE_MODULES = new Set([

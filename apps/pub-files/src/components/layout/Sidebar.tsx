@@ -25,7 +25,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const bottomItems = [
     { id: 'settings-local-folders' as const, label: 'Folder Lokal Dipantau', icon: '📁' },
     { id: 'settings-gdrive' as const, label: 'Google Drive', icon: '☁️' },
-    { id: 'activity-log' as const, label: 'Activity Log', icon: '📋' },
   ];
 
   return (
@@ -40,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           
           const isExpandable = item.id === 'files';
           const isExpanded = expandedMenus[item.id];
-          const showSubmenu = item.id === 'files' && !collapsed && isExpanded;
+          const showSubmenu = item.id === 'files' && isExpanded;
 
           return (
             <div key={item.id}>
@@ -107,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               </button>
 
               {showSubmenu && (
-                <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
+                <div style={{ paddingLeft: collapsed ? '0' : '22px', display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '4px', marginTop: '1px' }}>
                   {[
                     { cat: 'all' as const, label: 'Semua Berkas', icon: '📂' },
                     { cat: 'invoice' as const, label: 'Dokumen Invoice', icon: '🧾' },
@@ -130,18 +129,19 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                         style={{
                           width: '100%',
-                          padding: '4px 8px',
+                          padding: collapsed ? '8px 0' : '4px 8px',
                           border: 'none',
                           borderRadius: '6px',
                           background: isSubActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
                           color: isSubActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          textAlign: 'left',
+                          textAlign: collapsed ? 'center' : 'left',
                           cursor: 'pointer',
-                          fontSize: '12px',
+                          fontSize: collapsed ? '16px' : '12px',
                           fontWeight: isSubActive ? '600' : '400',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
+                          justifyContent: collapsed ? 'center' : 'flex-start',
+                          gap: collapsed ? '0' : '8px',
                           transition: 'all 0.15s ease'
                         }}
                         onMouseOver={(e) => {
@@ -158,14 +158,16 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                         }}
                       >
                         <span style={{ fontSize: '14px' }}>{sub.icon}</span>
-                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textAlign: 'left' }}>
-                          <span>{sub.label}</span>
-                          {sub.cat === 'gdrive' && connectedUser && (
-                            <span style={{ fontSize: '9px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }} title={connectedUser.email}>
-                              {connectedUser.email}
-                            </span>
-                          )}
-                        </div>
+                        {!collapsed && (
+                          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textAlign: 'left' }}>
+                            <span>{sub.label}</span>
+                            {sub.cat === 'gdrive' && connectedUser && (
+                              <span style={{ fontSize: '9px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }} title={connectedUser.email}>
+                                {connectedUser.email}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </button>
                     );
                   })}

@@ -28,9 +28,11 @@ interface InvoicePreviewProps {
     paymentStatus?: string;
     spesifikasiFasilitas?: string;
   };
+  hideToolbar?: boolean;
+  externalZoom?: number;
 }
 
-const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, overrideInvoice }) => {
+const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, overrideInvoice, hideToolbar, externalZoom }) => {
   const contextData = useInvoiceContext();
   
   const customer = overrideInvoice 
@@ -55,10 +57,11 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
   const panelRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [zoom, setZoom] = useState(1.0);
+  const effectiveZoom = externalZoom ?? zoom;
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2.0));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
-  const handleZoomReset = () => setZoom(1.0);
+  const handleZoomIn = () => { if (externalZoom === undefined) setZoom(prev => Math.min(prev + 0.1, 2.0)); };
+  const handleZoomOut = () => { if (externalZoom === undefined) setZoom(prev => Math.max(prev - 0.1, 0.5)); };
+  const handleZoomReset = () => { if (externalZoom === undefined) setZoom(1.0); };
 
   const [downloading, setDownloading] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -142,66 +145,68 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
     >
 
 
-      {/* Floating Zoom Controls + Download */}
-      <div style={{
-        position: 'absolute',
-        top: '12px',
-        right: '12px',
-        display: 'flex',
-        gap: '4px',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        padding: '4px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-        zIndex: 100
-      }}>
-        <button 
-          onClick={handleZoomOut}
-          type="button"
-          style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          title="Zoom Out"
-        >
-          ➖
-        </button>
-        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', minWidth: '40px', justifyContent: 'center' }}>
-          {Math.round(zoom * 100)}%
-        </span>
-        <button 
-          onClick={handleZoomIn}
-          type="button"
-          style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          title="Zoom In"
-        >
-          ➕
-        </button>
-        <button 
-          onClick={handleZoomReset}
-          type="button"
-          style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          title="Reset"
-        >
-          🔄
-        </button>
-        <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 2px' }} />
-        <button
-          onClick={handleDownloadPDF}
-          disabled={downloading}
-          type="button"
-          style={{
-            width: '32px', height: '24px', borderRadius: '4px', border: 'none',
-            background: downloading ? 'var(--bg-panel)' : 'var(--accent)',
-            color: downloading ? 'var(--text-secondary)' : '#fff',
-            cursor: downloading ? 'not-allowed' : 'pointer',
-            fontWeight: '600', fontSize: '13px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.15s ease'
-          }}
-          title={downloading ? 'Memproses...' : 'Download PDF'}
-        >
-          {downloading ? '⏳' : '⬇'}
-        </button>
-      </div>
+      {/* Floating Zoom Controls + Download (hidden when controlled externally) */}
+      {!hideToolbar && (
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          display: 'flex',
+          gap: '4px',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          padding: '4px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+          zIndex: 100
+        }}>
+          <button 
+            onClick={handleZoomOut}
+            type="button"
+            style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Zoom Out"
+          >
+            ➖
+          </button>
+          <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', minWidth: '40px', justifyContent: 'center' }}>
+            {Math.round(effectiveZoom * 100)}%
+          </span>
+          <button 
+            onClick={handleZoomIn}
+            type="button"
+            style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Zoom In"
+          >
+            ➕
+          </button>
+          <button 
+            onClick={handleZoomReset}
+            type="button"
+            style={{ width: '24px', height: '24px', borderRadius: '4px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '600', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Reset"
+          >
+            🔄
+          </button>
+          <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 2px' }} />
+          <button
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            type="button"
+            style={{
+              width: '32px', height: '24px', borderRadius: '4px', border: 'none',
+              background: downloading ? 'var(--bg-panel)' : 'var(--accent)',
+              color: downloading ? 'var(--text-secondary)' : '#fff',
+              cursor: downloading ? 'not-allowed' : 'pointer',
+              fontWeight: '600', fontSize: '13px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s ease'
+            }}
+            title={downloading ? 'Memproses...' : 'Download PDF'}
+          >
+            {downloading ? '⏳' : '⬇'}
+          </button>
+        </div>
+      )}
 
       {pdfError && (
         <div style={{
@@ -218,7 +223,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
       <div 
         id={id || "invoice-preview-content"}
         style={{
-          transform: `scale(${scale * zoom})`,
+          transform: `scale(${scale * effectiveZoom})`,
           transformOrigin: 'center center',
           flexShrink: 0,
           width: `${a4Width}px`,

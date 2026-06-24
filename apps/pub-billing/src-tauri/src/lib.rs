@@ -383,6 +383,7 @@ pub fn run() {
             commands::invoice::delete_invoice,
             commands::invoice::update_invoice_sync_status,
             commands::invoice::update_sync_status,
+            commands::invoice::get_invoice_timeline,
             // File commands
             commands::file::get_files,
             commands::file::add_file,
@@ -407,6 +408,7 @@ pub fn run() {
             commands::file::get_all_tags,
             commands::file::get_all_file_tags,
             commands::file::read_file_bytes,
+            commands::file::remove_file_physically,
             // Workflow commands
             commands::workflow::get_naskah,
             commands::workflow::add_naskah,
