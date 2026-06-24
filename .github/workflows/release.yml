@@ -47,6 +47,10 @@ jobs:
           [System.IO.File]::WriteAllBytes("cert.pfx", $pfx_cert_byte)
         shell: powershell
 
+      - name: Setup Signtool (Windows only)
+        if: matrix.platform == 'windows-latest'
+        uses: egor-tensin/setup-signtool@v1
+
       - name: Build Tauri App & Publish Release
         uses: tauri-apps/tauri-action@v0
         env:
