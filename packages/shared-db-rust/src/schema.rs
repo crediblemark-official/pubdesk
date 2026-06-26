@@ -823,5 +823,23 @@ pub fn build_schema(conn: &Connection) -> Result<()> {
         }
     }
 
+    // SEED DEFAULT ADMINS IF EMPTY
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM tim", [], |r| r.get(0)).unwrap_or(0);
+    if count == 0 {
+        let default_admins = vec![
+            ("Admin Master", "Admin Master", "Tim Manajemen", "Default Admin (PubAdmin)", "123456", "admin"),
+            ("Admin Produksi", "Admin Produksi", "Tim Manajemen", "Default Admin (PubOps)", "123456", "ops"),
+            ("Budi Keuangan", "Billing Specialist", "Keuangan", "Default Admin (PubBilling)", "123456", "billing"),
+            ("Dina Arsip", "File Manager", "Arsip & Dokumentasi", "Default Admin (PubFiles)", "123456", "files"),
+        ];
+
+        for (name, role, dept, notes, pin, app) in default_admins {
+            let _ = conn.execute(
+                "INSERT INTO tim (name, role, department, is_active, weekly_target, notes, pin, app, created_at, updated_at) VALUES (?1, ?2, ?3, 1, 0, ?4, ?5, ?6, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))",
+                rusqlite::params![name, role, dept, notes, pin, app]
+            );
+        }
+    }
+
     Ok(())
 }
