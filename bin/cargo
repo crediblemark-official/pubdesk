@@ -1,0 +1,3 @@
+#!/bin/bash
+# Shim untuk memaksa Tauri CLI menggunakan cargo-xwin saat cross-compile
+exec cargo-xwin "$@"
