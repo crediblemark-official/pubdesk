@@ -45,9 +45,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ matrix.app }}-v__VERSION__ # Diganti otomatis dengan versi dari tauri.conf.json
-          releaseName: '${{ matrix.app }} v__VERSION__'
-          releaseBody: 'Unduh installer binary untuk ${{ matrix.app }} di bawah ini.'
-          releaseDraft: true
+          tagName: ${{ matrix.app }}-v__VERSION__
+          releaseName: '🚀 ${{ matrix.app }} v__VERSION__ - Pembaruan & Peningkatan Sistem'
+          releaseBody: |
+            ## 🎉 Rilis Terbaru: ${{ matrix.app }} v__VERSION__
+            
+            Pembaruan terbaru untuk **${{ matrix.app }}** kini tersedia! Rilis ini membawa sejumlah pembaruan penting untuk memastikan sistem berjalan lebih cepat dan stabil.
+            
+            ### 📝 Changelog / Catatan Rilis
+            - **Fitur & Perbaikan:** Peningkatan stabilitas dan perbaikan *bug* minor dari versi sebelumnya.
+            - **Performa:** Pengoptimalan sinkronisasi database lokal.
+            - **Sistem Login:** Inisialisasi otomatis akun *Admin* default (PIN: `123456`) untuk instalasi baru di PC kosong.
+            
+            ---
+            
+            💡 **Cara Install:** Unduh *installer* yang sesuai dengan PC Anda (Windows `.exe` atau Linux `.deb`) pada bagian **Assets** di bawah ini, lalu jalankan.
+          releaseDraft: false
           prerelease: false
           projectPath: './apps/${{ matrix.app }}'
