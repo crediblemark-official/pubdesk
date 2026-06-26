@@ -24,6 +24,7 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
+        shell: bash
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "commits<<$EOF" >> $GITHUB_OUTPUT
