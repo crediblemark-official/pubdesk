@@ -19,6 +19,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "commits<<$EOF" >> $GITHUB_OUTPUT
+          git log --since="midnight" --pretty=format:"- %s" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,10 +63,8 @@ jobs:
             
             Pembaruan terbaru untuk **${{ matrix.app }}** kini tersedia! Rilis ini membawa sejumlah pembaruan penting untuk memastikan sistem berjalan lebih cepat dan stabil.
             
-            ### 📝 Changelog / Catatan Rilis
-            - **Fitur & Perbaikan:** Peningkatan stabilitas dan perbaikan *bug* minor dari versi sebelumnya.
-            - **Performa:** Pengoptimalan sinkronisasi database lokal.
-            - **Sistem Login:** Inisialisasi otomatis akun *Admin* default (PIN: `123456`) untuk instalasi baru di PC kosong.
+            ### 📝 Changelog Hari Ini
+            ${{ steps.changelog.outputs.commits }}
             
             ---
             
