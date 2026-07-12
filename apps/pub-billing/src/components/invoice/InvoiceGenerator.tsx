@@ -32,26 +32,34 @@ const InvoiceGenerator: React.FC = () => {
   } = useInvoiceContext();
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
+  const [lastGeneratedProfileId, setLastGeneratedProfileId] = useState<string | null>(null);
 
   // Auto-generate nomor invoice secara dinamis berdasarkan format profil aktif
   useEffect(() => {
     if (!editingInvoiceId) {
-      const format = activeProfile?.invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}';
-      const now = new Date();
-      const year = String(now.getFullYear());
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const seq = String(invoices.length + 1).padStart(4, '0');
+      const profileId = activeProfile?.id || null;
+      const isProfileChanged = profileId !== lastGeneratedProfileId;
+      const isInvoiceNoEmpty = !invoiceNo;
 
-      const generatedNo = format
-        .replace(/{year}/g, year)
-        .replace(/{month}/g, month)
-        .replace(/{day}/g, day)
-        .replace(/{seq}/g, seq);
+      if (isProfileChanged || isInvoiceNoEmpty) {
+        const format = activeProfile?.invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}';
+        const now = new Date();
+        const year = String(now.getFullYear());
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const seq = String(invoices.length + 1).padStart(4, '0');
 
-      setInvoiceNo(generatedNo);
+        const generatedNo = format
+          .replace(/{year}/g, year)
+          .replace(/{month}/g, month)
+          .replace(/{day}/g, day)
+          .replace(/{seq}/g, seq);
+
+        setInvoiceNo(generatedNo);
+        setLastGeneratedProfileId(profileId);
+      }
     }
-  }, [invoices.length, activeProfile, setInvoiceNo, editingInvoiceId]);
+  }, [invoices.length, activeProfile, setInvoiceNo, editingInvoiceId, invoiceNo, lastGeneratedProfileId]);
 
   // Validasi data sebelum menyimpan
   const validateInvoice = (): boolean => {
