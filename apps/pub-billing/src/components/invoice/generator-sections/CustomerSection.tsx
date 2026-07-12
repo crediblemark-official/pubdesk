@@ -15,34 +15,6 @@ export const CustomerSection: React.FC = () => {
     showToast 
   } = useAppContext();
   const [waInput, setWaInput] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setSearchQuery(val);
-    setShowSuggestions(true);
-    
-    const exactMatch = allContactOptions.find(
-      (o) => (o as any).name?.toLowerCase() === val.trim().toLowerCase()
-    );
-    
-    if (exactMatch) {
-      setCustomer((prev) => ({
-        ...prev,
-        name: val,
-        wa_number: exactMatch.wa_number || prev.wa_number || '',
-        email: exactMatch.email || prev.email || '',
-        address: exactMatch.address || prev.address || '',
-        isPenulis: exactMatch.isPenulis || false,
-      }));
-    } else {
-      setCustomer((prev) => ({
-        ...prev,
-        name: val,
-      }));
-    }
-  };
 
   const [createFormData, setCreateFormData] = useState({
     name: '',
@@ -389,111 +361,125 @@ export const CustomerSection: React.FC = () => {
         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
       </div>
 
-      <div style={{ position: 'relative', marginBottom: '16px' }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-          Nama Pelanggan / Penulis <span style={{ color: '#d93838' }}>*</span>
-        </label>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <input
-            type="text"
-            required
-            placeholder="Ketik nama pelanggan..."
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              outline: 'none',
-              boxSizing: 'border-box'
-            }}
-            value={customer.name || ''}
-            onChange={handleNameChange}
-            onFocus={() => {
-              setSearchQuery(customer.name || '');
-              setShowSuggestions(true);
-            }}
-            onBlur={() => {
-              setTimeout(() => setShowSuggestions(false), 200);
-            }}
-          />
-          {selectedValue && (
-            <span
-              style={{
-                position: 'absolute',
-                right: '12px',
-                color: '#0f9960',
-                fontSize: '11px',
-                fontWeight: '600',
-                background: 'rgba(15, 153, 96, 0.08)',
-                padding: '3px 8px',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                userSelect: 'none'
-              }}
-              title="Terhubung dengan data Master Kontak"
-            >
-              ✓ Terhubung
-            </span>
-          )}
-        </div>
-
-        {showSuggestions && searchQuery.trim() && allContactOptions.filter(o => (o as any).name?.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              zIndex: 100,
-              marginTop: '4px',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
-            }}
-          >
-            {allContactOptions
-              .filter(o => (o as any).name?.toLowerCase().includes(searchQuery.toLowerCase()))
-              .map((opt) => (
-                <div
-                  key={opt.value}
-                  onClick={() => {
-                    handleSelect(opt.value, opt);
-                    setShowSuggestions(false);
-                  }}
-                  style={{
-                    padding: '10px 14px',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    color: 'var(--text-primary)',
-                    borderBottom: '1px solid var(--border)',
-                    transition: 'background 0.1s ease',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(0,0,0,0.03)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
+      <div style={{ marginBottom: '12px' }}>
+        <SmartRelationField
+          label="Nama Pelanggan / Penulis"
+          options={allContactOptions}
+          value={selectedValue}
+          onChange={handleSelect}
+          placeholder="Ketik nama atau + Kontak Baru jika belum ada"
+          emptyMessage="Belum ada data. Klik '+ Baru' untuk membuat."
+          entityLabel="Kontak"
+          entityLabelPlural="Kontak"
+          fullWidth
+          onEditOption={handleEditOption}
+          onDeleteOption={handleDeleteOption}
+          mode="autocomplete"
+          renderCreateForm={({ onSave, onCancel }) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <input
+                type="text"
+                placeholder="Nama lengkap"
+                defaultValue={createFormData.name}
+                onChange={(e) => setCreateFormData((prev) => ({ ...prev, name: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Nomor WhatsApp"
+                defaultValue={createFormData.wa_number}
+                onChange={(e) => setCreateFormData((prev) => ({ ...prev, wa_number: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                defaultValue={createFormData.email}
+                onChange={(e) => setCreateFormData((prev) => ({ ...prev, email: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Alamat"
+                defaultValue={createFormData.address}
+                onChange={(e) => setCreateFormData((prev) => ({ ...prev, address: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none', margin: '4px 0' }}>
+                <input
+                  type="checkbox"
+                  checked={createFormData.isPenulis}
+                  onChange={(e) => setCreateFormData((prev) => ({ ...prev, isPenulis: e.target.checked }))}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Centang jika penulis (simpan sebagai penulis & pelanggan)
+              </label>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button className="btn-secondary" type="button" onClick={onCancel}>
+                  Batal
+                </button>
+                <button
+                  className="btn-primary"
+                  type="button"
+                  onClick={() => handleCreateSave(() => onSave({}))}
                 >
-                  <span style={{ fontWeight: '500' }}>{opt.name}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-panel)', padding: '2px 6px', borderRadius: '4px' }}>
-                    {opt.source}
-                  </span>
-                </div>
-              ))}
-          </div>
-        )}
+                  Simpan
+                </button>
+              </div>
+            </div>
+          )}
+          duplicateWarning={duplicateWarning}
+          onSelectExisting={(val) => {
+            const option = allContactOptions.find((o) => o.value === val);
+            handleSelect(val, option);
+            setDuplicateWarning(null);
+          }}
+          onConfirmCreateAnyway={() => {
+            actuallyCreate({
+              name: createFormData.name,
+              wa_number: createFormData.wa_number,
+              email: createFormData.email,
+              address: createFormData.address,
+              isPenulis: customer.isPenulis || false,
+            }).then(() => setDuplicateWarning(null));
+          }}
+        />
       </div>
 
       <div style={{ marginBottom: '12px' }}>

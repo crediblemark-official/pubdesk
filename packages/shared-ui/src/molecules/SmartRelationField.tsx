@@ -55,6 +55,7 @@ export interface SmartRelationFieldProps {
   onUseSnapshot?: (snapshot: string) => void;
   onEditOption?: (value: string, e: React.MouseEvent) => void;
   onDeleteOption?: (value: string, e: React.MouseEvent) => void;
+  mode?: 'select' | 'autocomplete';
 }
 
 /**
@@ -88,6 +89,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
   onUseSnapshot,
   onEditOption,
   onDeleteOption,
+  mode = 'select',
 }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -164,6 +166,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
             fullWidth
             onEditOption={onEditOption}
             onDeleteOption={onDeleteOption}
+            mode={mode}
           />
         </div>
 

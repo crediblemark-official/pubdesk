@@ -17,6 +17,7 @@ interface SearchableSelectProps {
   autoFocus?: boolean;
   onEditOption?: (value: string, e: React.MouseEvent) => void;
   onDeleteOption?: (value: string, e: React.MouseEvent) => void;
+  mode?: 'select' | 'autocomplete';
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -31,6 +32,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   autoFocus,
   onEditOption,
   onDeleteOption,
+  mode = 'select',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -75,12 +77,24 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    if (!isOpen) setIsOpen(true);
+    const val = e.target.value;
+    setSearch(val);
+    if (mode === 'autocomplete') {
+      setIsOpen(val.trim().length > 0);
+    } else {
+      if (!isOpen) setIsOpen(true);
+    }
   };
 
   const handleInputFocus = () => {
-    setIsOpen(true);
+    if (mode === 'autocomplete') {
+      if (selectedLabel) {
+        setSearch(selectedLabel);
+        setIsOpen(true);
+      }
+    } else {
+      setIsOpen(true);
+    }
   };
 
   const handleClear = () => {
@@ -178,15 +192,17 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
               ✕
             </span>
           )}
-          <span style={{
-            fontSize: '10px',
-            color: 'var(--text-secondary)',
-            opacity: isOpen ? 0.5 : 0.35,
-            transition: 'transform 0.2s ease',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}>
-            ▼
-          </span>
+          {mode !== 'autocomplete' && (
+            <span style={{
+              fontSize: '10px',
+              color: 'var(--text-secondary)',
+              opacity: isOpen ? 0.5 : 0.35,
+              transition: 'transform 0.2s ease',
+              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}>
+              ▼
+            </span>
+          )}
         </div>
       </div>
 
