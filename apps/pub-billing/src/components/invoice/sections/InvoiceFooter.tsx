@@ -171,7 +171,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
 
           {profile?.companyName && (
             <text
-              x="35"
+              x="61"
               y="49"
               fill="#ffffff"
               fontFamily='"Montserrat", "Segoe UI", sans-serif'
@@ -189,7 +189,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
 
           {profile?.showCompanyContact && (
             <text
-              x="1010"
+              x="984"
               y="48"
               textAnchor="end"
               fill="#ffffff"
