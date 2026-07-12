@@ -4,21 +4,19 @@ import { useAppContext } from '../../contexts/AppContext';
 const CARDS_CONFIG = [
   { key: 'pelanggan', label: 'Pelanggan', color: '#3b82f6', icon: '👤', module: 'pelanggan' as const, desc: 'Kelola data pelanggan & klien' },
   { key: 'services', label: 'Layanan', color: '#06b6d4', icon: '🛠️', module: 'services' as const, desc: 'Daftar layanan jasa penerbitan' },
-  { key: 'books', label: 'Naskah', color: '#a855f7', icon: '📚', module: 'services' as const, desc: 'Data naskah & order buku' },
   { key: 'invoices', label: 'Invoice', color: '#10b981', icon: '🧾', module: 'invoice' as const, desc: 'Riwayat tagihan & kuitansi' },
 ] as const;
 
 const DashboardMasterData: React.FC = () => {
-  const { contacts, services, books, invoices, setActiveModule } = useAppContext();
+  const { contacts, services, invoices, setActiveModule } = useAppContext();
 
   const pelanggan = useMemo(() => contacts.filter(c => c.type === 'customer'), [contacts]);
 
   const counts = useMemo(() => ({
     pelanggan: pelanggan.length,
     services: services.length,
-    books: books.length,
     invoices: invoices.length,
-  }), [pelanggan, services, books, invoices]);
+  }), [pelanggan, services, invoices]);
 
   const totalData = Object.values(counts).reduce((acc, curr) => acc + curr, 0);
 
@@ -196,7 +194,7 @@ const DashboardMasterData: React.FC = () => {
             fontSize: '12px',
             color: 'var(--text-secondary)'
           }}>
-            <strong>Tip:</strong> Data naskah dan invoice dapat diakses dari menu masing-masing di sidebar utama.
+            <strong>Tip:</strong> Data invoice dapat diakses dari menu masing-masing di sidebar utama.
           </div>
         </div>
       </div>
