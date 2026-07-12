@@ -47,11 +47,11 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '6px' }}>{getSignatureLocationDateLabel()}</div>
           <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px' }}>{getSignatureRoleLabel()}</div>
           
-          <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '15px' }}>
+          <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '25px' }}>
             {profile?.signatureImg ? (
               <div style={{ 
                 position: 'absolute', 
-                top: '-10px', 
+                top: '-15px', 
                 left: '50%',
                 transform: 'translateX(-50%)',
                 height: '55px', 
@@ -84,7 +84,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               </div>
             )}
             
-            <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: profile?.signatureImg ? '40px 0 8px 0' : '15px 0 8px 0', zIndex: 1 }} />
+            <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: profile?.signatureImg ? '35px 0 4px 0' : '2px 0 4px 0', zIndex: 1 }} />
             
             <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', zIndex: 1 }}>
               {getSignatureNameLabel()}
