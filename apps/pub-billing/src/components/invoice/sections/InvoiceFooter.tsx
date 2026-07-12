@@ -194,7 +194,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           )}
 
           {profile?.showCompanyContact && (
-            <foreignObject x="310" y="20" width="700" height="50">
+            <foreignObject x="310" y="20" width="712" height="50">
               <div style={{
                 width: '100%',
                 height: '100%',
