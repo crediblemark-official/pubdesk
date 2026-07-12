@@ -202,7 +202,7 @@ const InvoiceGenerator: React.FC = () => {
       const blob = new Blob([bytes as any], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const filename = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}.pdf`;
+      const filename = `Invoice ${activeProfile?.name || 'Invoice'} - ${invoiceNo ? invoiceNo.replace(/\//g, '-') : 'DRAF'}.pdf`;
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);

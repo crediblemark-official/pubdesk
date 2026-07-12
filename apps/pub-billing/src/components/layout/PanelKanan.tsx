@@ -20,7 +20,7 @@ const PanelKanan: React.FC = () => {
   } = useAppContext();
 
   const { files, selectedFileId, setSelectedFileId, setRightPanelVisible } = useFileState();
-  const { invoiceNo } = useInvoiceContext();
+  const { invoiceNo, activeProfile } = useInvoiceContext();
 
   const { activeModule } = appState;
 
@@ -34,7 +34,7 @@ const PanelKanan: React.FC = () => {
     try {
       const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('panel-kanan-preview');
-      const defaultFileName = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}.pdf`;
+      const defaultFileName = `Invoice ${activeProfile?.name || 'Invoice'} - ${invoiceNo ? invoiceNo.replace(/\//g, '-') : 'DRAF'}.pdf`;
       const saved = await downloadPDFBytes(bytes, defaultFileName);
       if (saved) {
         showToast('PDF berhasil diunduh', 'success');
