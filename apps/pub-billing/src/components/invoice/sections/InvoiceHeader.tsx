@@ -35,7 +35,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="130%">
             <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#000000" floodOpacity="0.3" />
           </filter>
-          <filter id="drop-shadow-middle" x="-30%" y="-30%" width="160%" height="160%">
+          <filter id="drop-shadow-middle" filterUnits="userSpaceOnUse" x="180" y="35" width="200" height="110">
             <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#000000" floodOpacity="0.5" />
           </filter>
         </defs>
