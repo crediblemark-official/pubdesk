@@ -31,7 +31,7 @@ const ContactSection: React.FC = () => {
           style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }}
         />
         <label htmlFor="showCompanyContact" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', cursor: 'pointer' }}>
-          Tampilkan Informasi Kontak di Invoice (di bawah detail bank)
+          Tampilkan Informasi Kontak di Invoice (di bar footer paling bawah)
         </label>
       </div>
 
