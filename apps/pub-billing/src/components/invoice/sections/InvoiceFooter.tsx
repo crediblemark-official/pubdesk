@@ -165,12 +165,12 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           </defs>
 
           <g filter="url(#drop-shadow-footer)">
-            <path d="M 0 20 H 312 L 349.5 70 H 0 Z" fill={footerBgColor} />
-            <path d="M 388.25 20 H 1045 V 70 H 425.75 Z" fill={footerPrimaryColor} />
+            <path d="M 0 20 H 272 L 309.5 70 H 0 Z" fill={footerBgColor} />
+            <path d="M 348.25 20 H 1045 V 70 H 385.75 Z" fill={footerPrimaryColor} />
           </g>
 
           {profile?.companyName && (
-            <foreignObject x="0" y="20" width="400" height="50">
+            <foreignObject x="0" y="20" width="270" height="50">
               <div style={{
                 height: '100%',
                 display: 'flex',
@@ -192,7 +192,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           )}
 
           {profile?.showCompanyContact && (
-            <foreignObject x="350" y="20" width="695" height="50">
+            <foreignObject x="310" y="20" width="735" height="50">
               <div style={{
                 height: '100%',
                 display: 'flex',
@@ -240,8 +240,8 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           )}
 
           <g filter="url(#drop-shadow-middle-footer)">
-            <path d="M 320 5 H 359 L 407.75 70 H 368.75 Z" fill={footerSecondaryColor} />
-            <path d="M 359 5 H 377 L 425.75 70 H 407.75 Z" fill="#ffffff" />
+            <path d="M 280 5 H 319 L 367.75 70 H 328.75 Z" fill={footerSecondaryColor} />
+            <path d="M 319 5 H 337 L 385.75 70 H 367.75 Z" fill="#ffffff" />
           </g>
         </svg>
       </div>
