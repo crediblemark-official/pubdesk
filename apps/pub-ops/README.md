@@ -11,16 +11,26 @@ Aplikasi ini adalah modul manajemen produksi dan operasional dalam ekosistem mon
 
 ## Pengembangan Lokal
 
-Untuk menjalankan aplikasi ini dalam mode development:
+Anda dapat menjalankan aplikasi ini menggunakan salah satu metode berikut:
 
+### Metode 1: Dari Direktori Root Monorepo
+Jalankan perintah ini di direktori utama proyek:
 ```bash
 # Menjalankan dev server pub-ops
 bun run dev:ops
-```
 
-Untuk melakukan build produksi:
-
-```bash
 # Membuat bundle produksi pub-ops
 bun run build:ops
+```
+
+### Metode 2: Dari Dalam Direktori Aplikasi
+Masuk ke subfolder aplikasi terlebih dahulu:
+```bash
+cd apps/pub-ops
+
+# Menjalankan dev server
+bun run dev
+
+# Membuat bundle produksi
+bun run build
 ```

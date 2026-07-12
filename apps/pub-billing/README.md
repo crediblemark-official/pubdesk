@@ -12,16 +12,26 @@ Aplikasi ini adalah modul keuangan dan penagihan dalam ekosistem monorepo PubDes
 
 ## Pengembangan Lokal
 
-Untuk menjalankan aplikasi ini dalam mode development:
+Anda dapat menjalankan aplikasi ini menggunakan salah satu metode berikut:
 
+### Metode 1: Dari Direktori Root Monorepo
+Jalankan perintah ini di direktori utama proyek:
 ```bash
 # Menjalankan dev server pub-billing
 bun run dev:billing
-```
 
-Untuk melakukan build produksi:
-
-```bash
 # Membuat bundle produksi pub-billing
 bun run build:billing
+```
+
+### Metode 2: Dari Dalam Direktori Aplikasi
+Masuk ke subfolder aplikasi terlebih dahulu:
+```bash
+cd apps/pub-billing
+
+# Menjalankan dev server
+bun run dev
+
+# Membuat bundle produksi
+bun run build
 ```

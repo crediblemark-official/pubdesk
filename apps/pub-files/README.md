@@ -11,16 +11,26 @@ Aplikasi ini adalah modul penyimpanan berkas dan manajemen aset digital dalam ek
 
 ## Pengembangan Lokal
 
-Untuk menjalankan aplikasi ini dalam mode development:
+Anda dapat menjalankan aplikasi ini menggunakan salah satu metode berikut:
 
+### Metode 1: Dari Direktori Root Monorepo
+Jalankan perintah ini di direktori utama proyek:
 ```bash
 # Menjalankan dev server pub-files
 bun run dev:files
-```
 
-Untuk melakukan build produksi:
-
-```bash
 # Membuat bundle produksi pub-files
 bun run build:files
+```
+
+### Metode 2: Dari Dalam Direktori Aplikasi
+Masuk ke subfolder aplikasi terlebih dahulu:
+```bash
+cd apps/pub-files
+
+# Menjalankan dev server
+bun run dev
+
+# Membuat bundle produksi
+bun run build
 ```
