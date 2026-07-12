@@ -12,8 +12,6 @@ const ContentSection: React.FC = () => {
     setSalamPembuka,
     salamPenutup,
     setSalamPenutup,
-    actionLabel,
-    setActionLabel,
     shippingType,
     setShippingType
   } = useSettingsForm();
