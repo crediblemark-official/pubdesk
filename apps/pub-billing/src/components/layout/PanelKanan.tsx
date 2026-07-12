@@ -20,7 +20,7 @@ const PanelKanan: React.FC = () => {
   } = useAppContext();
 
   const { files, selectedFileId, setSelectedFileId, setRightPanelVisible } = useFileState();
-  const { tempPreviewProfile, activeProfile, invoiceNo } = useInvoiceContext();
+  const { invoiceNo } = useInvoiceContext();
 
   const { activeModule } = appState;
 
