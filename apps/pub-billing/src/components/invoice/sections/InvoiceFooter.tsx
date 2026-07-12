@@ -49,33 +49,33 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#1f2937', position: 'relative' }}>
           <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '2px' }}>{getSignatureOfficeLabel()}</div>
           <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '6px' }}>{getSignatureLocationDateLabel()}</div>
-          
+
           <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '25px' }}>
             {profile?.signatureImg ? (
-              <div style={{ 
-                position: 'absolute', 
-                top: '-15px', 
+              <div style={{
+                position: 'absolute',
+                top: '-15px',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                height: '55px', 
-                width: '130px', 
-                pointerEvents: 'none', 
+                height: '55px',
+                width: '130px',
+                pointerEvents: 'none',
                 zIndex: 2,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <img 
-                  src={profile.signatureImg} 
-                  alt="Tanda Tangan" 
-                  style={{ height: '55px', width: 'auto', maxWidth: '130px', objectFit: 'contain' }} 
+                <img
+                  src={profile.signatureImg}
+                  alt="Tanda Tangan"
+                  style={{ height: '55px', width: 'auto', maxWidth: '130px', objectFit: 'contain' }}
                 />
               </div>
             ) : (
-              <div style={{ 
-                fontFamily: '"Playball", cursive', 
-                fontSize: '22px', 
-                color: accentColor, 
+              <div style={{
+                fontFamily: '"Playball", cursive',
+                fontSize: '22px',
+                color: accentColor,
                 lineHeight: '1',
                 marginBottom: '-4px',
                 textAlign: 'center',
@@ -103,11 +103,11 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
 
         {/* Sisi Kanan: Rekening Bank */}
         {profile?.showBankInfo ? (
-          <div style={{ 
-            width: '500px', 
-            fontSize: '9.5px', 
+          <div style={{
+            width: '500px',
+            fontSize: '9.5px',
             color: '#1f2937',
-            textAlign: 'right', 
+            textAlign: 'right',
             lineHeight: '1.6',
             fontFamily: '"Montserrat", "Segoe UI", sans-serif',
             display: 'flex',
@@ -116,13 +116,13 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             alignItems: 'flex-end',
             marginBottom: '4px'
           }}>
-            <div style={{ 
-              fontSize: '9.5px', 
-              fontWeight: '800', 
-              color: accentColor, 
-              letterSpacing: '0.5px', 
-              marginBottom: '4px', 
-              textTransform: 'uppercase' 
+            <div style={{
+              fontSize: '9.5px',
+              fontWeight: '800',
+              color: accentColor,
+              letterSpacing: '0.5px',
+              marginBottom: '4px',
+              textTransform: 'uppercase'
             }}>
               Silahkan Transfer Ke:
             </div>
@@ -145,7 +145,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
       </div>
 
       {/* Footer SVG */}
-      <div className="invoice-footer" style={{ flexShrink: 0 }}>
+      <div className="invoice-footer" style={{ flexShrink: 0, padding: '0 35px' }}>
         <svg
           viewBox="0 0 1045 80"
           xmlns="http://www.w3.org/2000/svg"
@@ -177,7 +177,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
-                paddingLeft: '13%',
+                paddingLeft: '0',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '11px',
                 fontWeight: '700',
@@ -202,7 +202,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'end',
-                paddingRight: '4.8%',
+                paddingRight: '0',
                 gap: '11px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '9.2px',
