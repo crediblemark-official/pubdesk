@@ -365,20 +365,29 @@ export const ItemsSection: React.FC = () => {
               renderCreateForm={({ onSave, onCancel }) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Tab Selector */}
-                  <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div style={{
+                    display: 'flex',
+                    background: 'var(--bg-panel)',
+                    padding: '4px',
+                    borderRadius: '8px',
+                    gap: '4px',
+                    border: '1px solid var(--border)'
+                  }}>
                     <button
                       type="button"
                       onClick={() => setCreateType('service')}
                       style={{
                         flex: 1,
-                        padding: '8px',
-                        background: createType === 'service' ? 'var(--btn-primary-bg)' : 'transparent',
-                        color: createType === 'service' ? 'var(--btn-primary-text)' : 'var(--text-primary)',
+                        padding: '8px 12px',
+                        background: createType === 'service' ? 'var(--bg-card)' : 'transparent',
+                        color: createType === 'service' ? 'var(--text-primary)' : 'var(--text-secondary)',
                         border: 'none',
+                        borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: '500',
+                        fontWeight: createType === 'service' ? '600' : '500',
                         fontSize: '12px',
-                        transition: 'all 0.2s',
+                        boxShadow: createType === 'service' ? '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                        transition: 'all 0.2s ease',
                       }}
                     >
                       Layanan (Jasa)
@@ -388,14 +397,16 @@ export const ItemsSection: React.FC = () => {
                       onClick={() => setCreateType('book')}
                       style={{
                         flex: 1,
-                        padding: '8px',
-                        background: createType === 'book' ? 'var(--btn-primary-bg)' : 'transparent',
-                        color: createType === 'book' ? 'var(--btn-primary-text)' : 'var(--text-primary)',
+                        padding: '8px 12px',
+                        background: createType === 'book' ? 'var(--bg-card)' : 'transparent',
+                        color: createType === 'book' ? 'var(--text-primary)' : 'var(--text-secondary)',
                         border: 'none',
+                        borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: '500',
+                        fontWeight: createType === 'book' ? '600' : '500',
                         fontSize: '12px',
-                        transition: 'all 0.2s',
+                        boxShadow: createType === 'book' ? '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                        transition: 'all 0.2s ease',
                       }}
                     >
                       Karya (Buku)
