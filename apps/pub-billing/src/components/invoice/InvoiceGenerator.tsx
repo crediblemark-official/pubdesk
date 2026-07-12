@@ -199,7 +199,7 @@ const InvoiceGenerator: React.FC = () => {
       // Generate & download PDF
       const { generateInvoicePDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('invoice-preview-export');
-      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const blob = new Blob([bytes as any], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       const filename = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}.pdf`;
