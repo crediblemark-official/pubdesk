@@ -34,16 +34,14 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     clonedElement.querySelectorAll('*').forEach(el => {
       const tag = el.tagName.toLowerCase();
       if (tag === 'img' || tag === 'image') {
-        const src = el.getAttribute('src') || '';
+        const src = el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('xlink:href') || '';
         if (!src.startsWith('data:')) {
           el.remove();
         }
       }
       const htmlEl = el as HTMLElement;
       if (htmlEl.style?.backgroundImage && htmlEl.style.backgroundImage.includes('url(')) {
-        if (!htmlEl.style.backgroundImage.includes('data:')) {
-          htmlEl.style.backgroundImage = 'none';
-        }
+        htmlEl.style.backgroundImage = 'none';
       }
     });
 
