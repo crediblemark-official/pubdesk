@@ -171,29 +171,6 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
           {selectedOption.wa_number && <span>WA: {selectedOption.wa_number}</span>}
           {selectedOption.email && <span>Email: {selectedOption.email}</span>}
           {selectedOption.address && <span>Alamat: {selectedOption.address}</span>}
-          
-          {(onEditOption || onDeleteOption) && (
-            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
-              {onEditOption && (
-                <span
-                  onClick={(e) => onEditOption(selectedOption.value, e)}
-                  style={{ cursor: 'pointer', color: 'var(--accent)', fontWeight: 600 }}
-                  title={`Edit ${entityLabel}`}
-                >
-                  ✏️ Edit
-                </span>
-              )}
-              {onDeleteOption && (
-                <span
-                  onClick={(e) => onDeleteOption(selectedOption.value, e)}
-                  style={{ cursor: 'pointer', color: 'var(--text-secondary)', fontWeight: 600 }}
-                  title={`Hapus ${entityLabel}`}
-                >
-                  🗑️ Hapus
-                </span>
-              )}
-            </div>
-          )}
         </div>
       )}
 
