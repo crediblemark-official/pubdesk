@@ -45,7 +45,6 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#1f2937', position: 'relative' }}>
           <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '2px' }}>{getSignatureOfficeLabel()}</div>
           <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '6px' }}>{getSignatureLocationDateLabel()}</div>
-          <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px' }}>{getSignatureRoleLabel()}</div>
           
           <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '25px' }}>
             {profile?.signatureImg ? (
@@ -82,11 +81,20 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               </div>
             )}
             
-            <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: profile?.signatureImg ? '35px 0 4px 0' : '0px 0 4px 0', zIndex: 1 }} />
-            
-            <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', zIndex: 1 }}>
-              {getSignatureNameLabel()}
-            </div>
+            <div style={{ height: profile?.signatureImg ? '35px' : '0px' }} />
+          </div>
+
+          {/* Nama Terang */}
+          <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', zIndex: 1, marginTop: '2px' }}>
+            {getSignatureNameLabel()}
+          </div>
+
+          {/* Garis / Underline */}
+          <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: '2px 0 4px 0', zIndex: 1 }} />
+
+          {/* Jabatan */}
+          <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#6b7280', zIndex: 1 }}>
+            {getSignatureRoleLabel()}
           </div>
         </div>
 
