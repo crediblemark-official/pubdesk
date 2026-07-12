@@ -170,14 +170,14 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           </g>
 
           {profile?.companyName && (
-            <foreignObject x="35" y="20" width="235" height="50">
+            <foreignObject x="0" y="20" width="270" height="50">
               <div style={{
                 width: '100%',
                 height: '100%',
                 boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
-                paddingLeft: '0',
+                paddingLeft: '35px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '11px',
                 fontWeight: '700',
@@ -194,7 +194,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           )}
 
           {profile?.showCompanyContact && (
-            <foreignObject x="310" y="20" width="712" height="50">
+            <foreignObject x="310" y="20" width="735" height="50">
               <div style={{
                 width: '100%',
                 height: '100%',
@@ -202,7 +202,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'end',
-                paddingRight: '0',
+                paddingRight: '35px',
                 gap: '11px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '9.2px',
