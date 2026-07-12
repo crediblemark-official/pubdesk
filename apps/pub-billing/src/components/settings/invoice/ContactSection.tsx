@@ -18,19 +18,17 @@ const ContactSection: React.FC = () => {
     setShowCompanyContact,
     showFooterBranding,
     setShowFooterBranding,
-    companyFooterName,
-    setCompanyFooterName,
-    companyFooterTagline,
-    setCompanyFooterTagline
+    footerNoteText,
+    setFooterNoteText
   } = useSettingsForm();
 
   const { rightPanelVisible } = useAppContext();
 
   return (
     <>
-      {/* BAGIAN A: BRANDING FOOTER (KIRI) */}
+      {/* BAGIAN A: KETERANGAN FOOTER (SISI KIRI) */}
       <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        📢 Branding Footer (Sisi Kiri)
+        📢 Keterangan Footer (Sisi Kiri)
       </h3>
       
       <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -42,33 +40,21 @@ const ContactSection: React.FC = () => {
           style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }}
         />
         <label htmlFor="showFooterBranding" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', cursor: 'pointer' }}>
-          Tampilkan Nama & Tagline Lembaga di Footer
+          Tampilkan Teks Keterangan di Footer
         </label>
       </div>
 
       {showFooterBranding && (
-        <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginBottom: '16px' }}>
           <div className="compact-form-group">
-            <label className="compact-label">Nama Lembaga di Footer (Kustom)</label>
+            <label className="compact-label">Teks Keterangan Footer</label>
             <input
               type="text"
               className="compact-input"
               style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={companyFooterName}
-              onChange={(e) => setCompanyFooterName(e.target.value)}
-              placeholder="Kosongkan untuk menyamakan dengan Kop Surat"
-            />
-          </div>
-
-          <div className="compact-form-group">
-            <label className="compact-label">Tagline Lembaga di Footer (Kustom)</label>
-            <input
-              type="text"
-              className="compact-input"
-              style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={companyFooterTagline}
-              onChange={(e) => setCompanyFooterTagline(e.target.value)}
-              placeholder="Kosongkan untuk menyamakan dengan Kop Surat"
+              value={footerNoteText}
+              onChange={(e) => setFooterNoteText(e.target.value)}
+              placeholder="Contoh: CV KBM Sastrabook / Hak Cipta dilindungi undang-undang"
             />
           </div>
         </div>

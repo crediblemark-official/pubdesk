@@ -92,6 +92,5 @@ export interface InvoiceProfile {
   companyPhone?: string;
   showCompanyContact?: boolean;
   showFooterBranding?: boolean;
-  companyFooterName?: string;
-  companyFooterTagline?: string;
+  footerNoteText?: string;
 }
