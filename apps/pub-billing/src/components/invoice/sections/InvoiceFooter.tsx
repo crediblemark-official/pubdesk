@@ -185,20 +185,43 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             </text>
           )}
 
-          {profile?.showBankInfo && (
-            <text 
-              x="1010" 
-              y="49" 
-              textAnchor="end"
-              fill="#ffffff" 
-              fontFamily='"Montserrat", "Segoe UI", sans-serif' 
-              fontSize="12.5" 
-              fontWeight="600"
-              letterSpacing="0.2"
-            >
-              {profile.bankName} | {profile.bankAccountNo} | a/n. {profile.bankAccountOwner}
-            </text>
-          )}
+          {profile?.showBankInfo && (() => {
+            const bankNames = profile.bankName ? profile.bankName.split('|') : [];
+            const bankAccountNos = profile.bankAccountNo ? profile.bankAccountNo.split('|') : [];
+            const bankAccountOwners = profile.bankAccountOwner ? profile.bankAccountOwner.split('|') : [];
+            const count = bankNames.length;
+            
+            return bankNames.map((name, i) => {
+              const no = bankAccountNos[i] || '';
+              const owner = bankAccountOwners[i] || '';
+              
+              let yVal = 49;
+              let fontSizeVal = "12.5";
+              if (count === 2) {
+                yVal = i === 0 ? 39 : 57;
+                fontSizeVal = "11.5";
+              } else if (count >= 3) {
+                yVal = i === 0 ? 33 : i === 1 ? 49 : 65;
+                fontSizeVal = "10.5";
+              }
+              
+              return (
+                <text 
+                  key={i}
+                  x="1010" 
+                  y={yVal}
+                  textAnchor="end"
+                  fill="#ffffff" 
+                  fontFamily='"Montserrat", "Segoe UI", sans-serif' 
+                  fontSize={fontSizeVal} 
+                  fontWeight="600"
+                  letterSpacing="0.2"
+                >
+                  {name} | {no} | a/n. {owner}
+                </text>
+              );
+            });
+          })()}
 
           <g filter="url(#drop-shadow-middle-footer)">
             <path d="M 320 5 H 359 L 407.75 70 H 368.75 Z" fill={footerSecondaryColor} />

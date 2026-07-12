@@ -169,7 +169,20 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       let bankText = '';
       if (activeProfile.showBankInfo) {
-        bankText = `${activeProfile.bankName} - No: ${activeProfile.bankAccountNo} a.n. ${activeProfile.bankAccountOwner}`;
+        if (activeProfile.bankName && activeProfile.bankName.includes('|')) {
+          const names = activeProfile.bankName.split('|');
+          const nos = activeProfile.bankAccountNo ? activeProfile.bankAccountNo.split('|') : [];
+          const owners = activeProfile.bankAccountOwner ? activeProfile.bankAccountOwner.split('|') : [];
+          const lines: string[] = [];
+          for (let i = 0; i < names.length; i++) {
+            if (names[i] || nos[i] || owners[i]) {
+              lines.push(`${names[i] || ''} - No: ${nos[i] || ''} a.n. ${owners[i] || ''}`);
+            }
+          }
+          bankText = lines.join('\n');
+        } else {
+          bankText = `${activeProfile.bankName || ''} - No: ${activeProfile.bankAccountNo || ''} a.n. ${activeProfile.bankAccountOwner || ''}`;
+        }
       }
       setBankAccountInfo(bankText);
     }
