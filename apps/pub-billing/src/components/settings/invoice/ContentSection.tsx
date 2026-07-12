@@ -4,10 +4,6 @@ import { useAppContext } from '../../../contexts/AppContext';
 
 const ContentSection: React.FC = () => {
   const {
-    defaultHal,
-    setDefaultHal,
-    defaultLampiran,
-    setDefaultLampiran,
     salamPembuka,
     setSalamPembuka,
     salamPenutup,
