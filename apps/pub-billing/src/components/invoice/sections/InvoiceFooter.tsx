@@ -209,15 +209,18 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                   anchorVal = "end";
                 }
               } else if (count >= 3) {
-                fontSizeVal = "9.0";
+                fontSizeVal = "10.5";
                 if (i === 0) {
-                  xVal = 440;
-                  anchorVal = "start";
-                } else if (i === 1) {
-                  xVal = 712;
+                  xVal = 680;
+                  yVal = 38;
                   anchorVal = "middle";
+                } else if (i === 1) {
+                  xVal = 984;
+                  yVal = 38;
+                  anchorVal = "end";
                 } else {
                   xVal = 984;
+                  yVal = 54;
                   anchorVal = "end";
                 }
               }
