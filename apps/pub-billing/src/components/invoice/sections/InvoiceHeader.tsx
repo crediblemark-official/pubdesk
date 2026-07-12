@@ -23,14 +23,14 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   return (
     <div className="invoice-header" style={{ flexShrink: 0 }}>
       <svg
-        viewBox="0 0 657 139"
+        viewBox="0 35 657 104"
         xmlns="http://www.w3.org/2000/svg"
         aria-label="Invoice header"
         shapeRendering="geometricPrecision"
         style={{ display: 'block', width: '100%' }}
       >
         <rect x="0" y="0" width="657" height="139" fill="#ffffff" />
-        <rect x="0" y="0" width="657" height="2" fill="#dddddd" />
+        <rect x="0" y="35" width="657" height="2" fill="#dddddd" />
         <defs>
           <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="130%">
             <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#000000" floodOpacity="0.3" />
