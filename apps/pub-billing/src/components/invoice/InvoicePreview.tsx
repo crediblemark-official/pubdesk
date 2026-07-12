@@ -107,7 +107,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
     try {
       const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('invoice-preview-export');
-      const defaultFileName = `Invoice ${profile?.name || 'Invoice'} - ${invoiceNo ? invoiceNo.replace(/\//g, '-') : 'DRAF'}.pdf`;
+      const defaultFileName = `Invoice ${profile?.name || 'Invoice'} - ${invoiceNo ? invoiceNo.replace(/\//g, '∕') : 'DRAF'}.pdf`;
       await downloadPDFBytes(bytes, defaultFileName);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
