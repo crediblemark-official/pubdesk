@@ -73,18 +73,16 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 fontFamily: '"Playball", cursive', 
                 fontSize: '22px', 
                 color: accentColor, 
-                height: '32px', 
-                display: 'flex', 
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '3px 0',
+                lineHeight: '1',
+                marginBottom: '-4px',
+                textAlign: 'center',
                 zIndex: 1
               }}>
                 {getSignatureNameLabel().split(',')[0]}
               </div>
             )}
             
-            <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: profile?.signatureImg ? '35px 0 4px 0' : '2px 0 4px 0', zIndex: 1 }} />
+            <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: profile?.signatureImg ? '35px 0 4px 0' : '0px 0 4px 0', zIndex: 1 }} />
             
             <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', zIndex: 1 }}>
               {getSignatureNameLabel()}
