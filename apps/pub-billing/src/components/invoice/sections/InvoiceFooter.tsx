@@ -198,11 +198,11 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               let yVal = 49;
               let fontSizeVal = "12.5";
               if (count === 2) {
-                yVal = i === 0 ? 39 : 57;
-                fontSizeVal = "11.5";
-              } else if (count >= 3) {
-                yVal = i === 0 ? 33 : i === 1 ? 49 : 65;
+                yVal = i === 0 ? 38 : 54;
                 fontSizeVal = "10.5";
+              } else if (count >= 3) {
+                yVal = i === 0 ? 35 : i === 1 ? 47 : 59;
+                fontSizeVal = "9.0";
               }
               
               return (
