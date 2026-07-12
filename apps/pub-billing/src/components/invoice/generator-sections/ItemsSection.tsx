@@ -358,7 +358,7 @@ export const ItemsSection: React.FC = () => {
               value={selectedValue}
               onChange={handleSelect}
               placeholder="Ketik nama layanan / karya atau pilih dari Master..."
-              emptyMessage="Ketik nama baru untuk menambahkan item khusus."
+              emptyMessage="Belum ada data. Klik '+ Baru' untuk membuat."
               entityLabel="Layanan/Karya Baru"
               entityLabelPlural="Layanan/Karya"
               fullWidth
