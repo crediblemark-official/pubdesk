@@ -225,8 +225,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </div>
       )}
 
-      <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4' }}>
-        Demikian rincian biaya {getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.
+      <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
+        {profile?.salamPenutup 
+          ? profile.salamPenutup 
+          : `Demikian rincian biaya ${getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
       </div>
     </div>
   );

@@ -32,6 +32,8 @@ export interface SettingsFormContextType {
   setDefaultLampiran: (v: string) => void;
   salamPembuka: string;
   setSalamPembuka: (v: string) => void;
+  salamPenutup: string;
+  setSalamPenutup: (v: string) => void;
   actionLabel: string;
   setActionLabel: (v: string) => void;
   tableType: string;

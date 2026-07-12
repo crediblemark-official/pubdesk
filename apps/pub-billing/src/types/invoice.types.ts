@@ -62,6 +62,7 @@ export interface InvoiceProfile {
   defaultHal: string;
   defaultLampiran: string;
   salamPembuka: string;
+  salamPenutup?: string;
   actionLabel: string;
   tableType: string;
   notes: string[];

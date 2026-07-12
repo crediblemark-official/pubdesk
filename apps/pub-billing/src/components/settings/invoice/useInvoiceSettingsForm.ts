@@ -32,6 +32,7 @@ export function useInvoiceSettingsForm() {
   const [defaultHal, setDefaultHal] = useState('');
   const [defaultLampiran, setDefaultLampiran] = useState('-');
   const [salamPembuka, setSalamPembuka] = useState('');
+  const [salamPenutup, setSalamPenutup] = useState('');
   const [actionLabel, setActionLabel] = useState('');
   const [tableType, setTableType] = useState<string>('');
   const [notes, setNotes] = useState<string[]>([]);
@@ -96,6 +97,7 @@ export function useInvoiceSettingsForm() {
       setDefaultHal('Perihal Invoice');
       setDefaultLampiran('-');
       setSalamPembuka('Bersama surat ini kami memberikan gambaran rincian biaya dengan ketentuan sebagai berikut:');
+      setSalamPenutup('Demikian rincian biaya transaksi anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.');
       setActionLabel('transaksi');
       setTableType('');
       setNotes([]);
@@ -151,6 +153,7 @@ export function useInvoiceSettingsForm() {
         setDefaultHal(profile.defaultHal || '');
         setDefaultLampiran(profile.defaultLampiran || '-');
         setSalamPembuka(profile.salamPembuka || '');
+        setSalamPenutup(profile.salamPenutup || `Demikian rincian biaya ${profile.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`);
         setActionLabel(profile.actionLabel || '');
         setTableType(profile.tableType || '');
         setNotes(profile.notes || []);
@@ -212,6 +215,7 @@ export function useInvoiceSettingsForm() {
     defaultHal,
     defaultLampiran,
     salamPembuka,
+    salamPenutup,
     actionLabel,
     tableType,
     notes,
@@ -265,6 +269,7 @@ export function useInvoiceSettingsForm() {
     defaultHal,
     defaultLampiran,
     salamPembuka,
+    salamPenutup,
     actionLabel,
     tableType,
     notes,
@@ -335,6 +340,7 @@ export function useInvoiceSettingsForm() {
     setDefaultHal(p.defaultHal || '');
     setDefaultLampiran(p.defaultLampiran || '-');
     setSalamPembuka(p.salamPembuka || '');
+    setSalamPenutup(p.salamPenutup || `Demikian rincian biaya ${p.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`);
     setActionLabel(p.actionLabel || '');
     setTableType(p.tableType || '');
     setNotes(p.notes || []);
@@ -492,6 +498,8 @@ export function useInvoiceSettingsForm() {
     setDefaultLampiran,
     salamPembuka,
     setSalamPembuka,
+    salamPenutup,
+    setSalamPenutup,
     actionLabel,
     setActionLabel,
     tableType,

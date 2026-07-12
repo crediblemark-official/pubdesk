@@ -27,7 +27,8 @@ const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => {
     showCompanyContact: (t.profile as any).showCompanyContact !== undefined ? (t.profile as any).showCompanyContact : isKBMTmpl,
     footerBgColor: (t.profile as any).footerBgColor || t.profile.headerBgColor || '#222933',
     footerPrimaryColor: (t.profile as any).footerPrimaryColor || t.profile.headerPrimaryColor || t.profile.accentColor || '#c01c1c',
-    footerSecondaryColor: (t.profile as any).footerSecondaryColor || t.profile.headerSecondaryColor || t.profile.accentColor || '#c01c1c'
+    footerSecondaryColor: (t.profile as any).footerSecondaryColor || t.profile.headerSecondaryColor || t.profile.accentColor || '#c01c1c',
+    salamPenutup: (t.profile as any).salamPenutup || `Demikian rincian biaya ${t.profile.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`
   };
 }) as InvoiceProfile[];
 
@@ -112,18 +113,16 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Suntik tableColumns default jika profil lama belum memilikinya
           const migrasiParsed = parsed.map((p: any) => {
-            if (!p.tableColumns) {
-              const matchingDefault = defaultProfiles.find(dp => dp.id === p.id) 
-                || defaultProfiles.find(dp => dp.tableType === p.tableType)
-                || defaultProfiles[0];
-              return {
-                ...p,
-                tableColumns: matchingDefault.tableColumns
-              };
-            }
-            return p;
+            const matchingDefault = defaultProfiles.find(dp => dp.id === p.id) 
+              || defaultProfiles.find(dp => dp.tableType === p.tableType)
+              || defaultProfiles[0];
+            return {
+              ...matchingDefault,
+              ...p,
+              tableColumns: p.tableColumns || matchingDefault.tableColumns,
+              salamPenutup: p.salamPenutup || matchingDefault.salamPenutup || `Demikian rincian biaya ${p.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`
+            };
           });
           setProfilesState(migrasiParsed);
           const activeId = localStorage.getItem('active_profile_id') || migrasiParsed[0].id;
