@@ -80,8 +80,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 {getSignatureNameLabel().split(',')[0]}
               </div>
             )}
-            
-            <div style={{ height: profile?.signatureImg ? '35px' : '0px' }} />
+            <div style={{ height: profile?.signatureImg ? '48px' : '0px' }} />
           </div>
 
           {/* Nama Terang */}
