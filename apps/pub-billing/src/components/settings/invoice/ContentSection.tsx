@@ -21,30 +21,6 @@ const ContentSection: React.FC = () => {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-        <div className="compact-form-group">
-          <label className="compact-label">Perihal Bawaan (Default Hal)</label>
-          <input
-            type="text"
-            className="compact-input"
-            style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={defaultHal}
-            onChange={(e) => setDefaultHal(e.target.value)}
-            placeholder="Contoh: Pengadaan Modul Ajar"
-          />
-        </div>
-
-        <div className="compact-form-group">
-          <label className="compact-label">Lampiran Bawaan (Default Lampiran)</label>
-          <input
-            type="text"
-            className="compact-input"
-            style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={defaultLampiran}
-            onChange={(e) => setDefaultLampiran(e.target.value)}
-            placeholder="Contoh: 1 Lembar"
-          />
-        </div>
-
         <div style={{ gridColumn: rightPanelVisible ? 'span 1' : 'span 2' }} className="compact-form-group">
           <label className="compact-label">Salam Pembuka Bawaan</label>
           <textarea

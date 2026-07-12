@@ -90,9 +90,12 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
 
       <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
         <div>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Hal (Perihal)</label>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+            Hal (Perihal) <span style={{ color: '#d93838' }}>*</span>
+          </label>
           <input
             type="text"
+            required
             style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
             value={invoiceHal}
             onChange={(e) => setInvoiceHal(e.target.value)}
@@ -100,13 +103,16 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
           />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Lampiran</label>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+            Lampiran <span style={{ color: '#d93838' }}>*</span>
+          </label>
           <input
             type="text"
+            required
             style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
             value={invoiceLampiran}
             onChange={(e) => setInvoiceLampiran(e.target.value)}
-            placeholder="-"
+            placeholder="Isi - jika tidak ada lampiran"
           />
         </div>
       </div>

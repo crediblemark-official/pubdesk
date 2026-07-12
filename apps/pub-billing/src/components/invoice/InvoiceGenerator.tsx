@@ -59,6 +59,14 @@ const InvoiceGenerator: React.FC = () => {
       showToast('Nama pelanggan harus diisi!', 'error');
       return false;
     }
+    if (!invoiceHal.trim()) {
+      showToast('Hal (Perihal) harus diisi!', 'error');
+      return false;
+    }
+    if (!invoiceLampiran.trim()) {
+      showToast('Lampiran harus diisi! Jika tidak ada, isi dengan "-"', 'error');
+      return false;
+    }
     if (items.length === 0) {
       showToast('Item pesanan tidak boleh kosong!', 'error');
       return false;

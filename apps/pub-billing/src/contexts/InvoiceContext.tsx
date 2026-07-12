@@ -99,7 +99,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [invoiceType, setInvoiceType] = useState<string>(defaultProfiles[0]?.id ?? '');
   const [invoiceNo, setInvoiceNo] = useState('');
   const [invoiceHal, setInvoiceHal] = useState('');
-  const [invoiceLampiran, setInvoiceLampiran] = useState('-');
+  const [invoiceLampiran, setInvoiceLampiran] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(getIndonesianDate());
   const [paymentStatus, setPaymentStatus] = useState('LUNAS');
   const [spesifikasiFasilitas, setSpesifikasiFasilitas] = useState('Sesuai poster paket yang diambil');
@@ -244,8 +244,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setEditingInvoiceId(null);
     
     if (activeProfile) {
-      setInvoiceHal(activeProfile.defaultHal);
-      setInvoiceLampiran(activeProfile.defaultLampiran);
+      setInvoiceHal('');
+      setInvoiceLampiran('');
       setSpesifikasiFasilitas(activeProfile.defaultSpesifikasi);
     }
   };
@@ -350,7 +350,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setAdminFee(invoice.admin_fee || 0);
       setInvoiceNo(metadata.invoiceNo || '');
       setInvoiceHal(metadata.invoiceHal || '');
-      setInvoiceLampiran(metadata.invoiceLampiran || '-');
+      setInvoiceLampiran(metadata.invoiceLampiran || '');
       setInvoiceDate(metadata.invoiceDate || '');
       setPaymentStatus(metadata.paymentStatus || 'LUNAS');
       setSpesifikasiFasilitas(metadata.spesifikasiFasilitas || '');
