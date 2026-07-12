@@ -7,7 +7,9 @@ const NotesSection: React.FC = () => {
     notes,
     setNotes,
     showSpesifikasi,
-    setShowSpesifikasi
+    setShowSpesifikasi,
+    showNotes,
+    setShowNotes
   } = useSettingsForm();
 
   const [newNoteText, setNewNoteText] = useState('');
@@ -44,38 +46,54 @@ const NotesSection: React.FC = () => {
         </div>
 
         <div>
-          <label className="compact-label">Daftar Catatan (Note)</label>
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <input
-              type="text"
-              className="compact-input"
-              style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-              value={newNoteText}
-              onChange={(e) => setNewNoteText(e.target.value)}
-              placeholder="Ketik catatan baru..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddNote();
-                }
-              }}
+              type="checkbox"
+              id="showNotes"
+              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              checked={showNotes}
+              onChange={(e) => setShowNotes(e.target.checked)}
             />
-            <button type="button" className="btn-primary compact-btn" onClick={handleAddNote}>Tambah</button>
+            <label htmlFor="showNotes" style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', cursor: 'pointer' }}>
+              Tampilkan Daftar Catatan (Note)
+            </label>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '100px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px', background: 'var(--bg-card)' }}>
-            {notes.length === 0 ? (
-              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic', padding: '2px' }}>
-                Tidak ada catatan.
+          
+          {showNotes && (
+            <>
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                <input
+                  type="text"
+                  className="compact-input"
+                  style={{ flex: 1, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  value={newNoteText}
+                  onChange={(e) => setNewNoteText(e.target.value)}
+                  placeholder="Ketik catatan baru..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddNote();
+                    }
+                  }}
+                />
+                <button type="button" className="btn-primary compact-btn" onClick={handleAddNote}>Tambah</button>
               </div>
-            ) : (
-              notes.map((note, index) => (
-                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', background: 'var(--bg-panel)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px' }}>
-                  <span style={{ color: 'var(--text-primary)', wordBreak: 'break-all' }}>{index + 1}. {note}</span>
-                  <button type="button" style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '12px' }} onClick={() => handleRemoveNote(index)}>✕</button>
-                </div>
-              ))
-            )}
-          </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '100px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px', background: 'var(--bg-card)' }}>
+                {notes.length === 0 ? (
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic', padding: '2px' }}>
+                    Tidak ada catatan.
+                  </div>
+                ) : (
+                  notes.map((note, index) => (
+                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', background: 'var(--bg-panel)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                      <span style={{ color: 'var(--text-primary)', wordBreak: 'break-all' }}>{index + 1}. {note}</span>
+                      <button type="button" style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '12px' }} onClick={() => handleRemoveNote(index)}>✕</button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

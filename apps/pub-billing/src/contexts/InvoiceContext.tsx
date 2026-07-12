@@ -28,7 +28,8 @@ const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => {
     footerBgColor: (t.profile as any).footerBgColor || t.profile.headerBgColor || '#222933',
     footerPrimaryColor: (t.profile as any).footerPrimaryColor || t.profile.headerPrimaryColor || t.profile.accentColor || '#c01c1c',
     footerSecondaryColor: (t.profile as any).footerSecondaryColor || t.profile.headerSecondaryColor || t.profile.accentColor || '#c01c1c',
-    salamPenutup: (t.profile as any).salamPenutup || `Demikian rincian biaya ${t.profile.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`
+    salamPenutup: (t.profile as any).salamPenutup || `Demikian rincian biaya ${t.profile.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`,
+    showNotes: (t.profile as any).showNotes !== undefined ? (t.profile as any).showNotes : true
   };
 }) as InvoiceProfile[];
 
@@ -121,7 +122,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
               ...matchingDefault,
               ...p,
               tableColumns: p.tableColumns || matchingDefault.tableColumns,
-              salamPenutup: p.salamPenutup || matchingDefault.salamPenutup || `Demikian rincian biaya ${p.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`
+              salamPenutup: p.salamPenutup || matchingDefault.salamPenutup || `Demikian rincian biaya ${p.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`,
+              showNotes: p.showNotes !== undefined ? p.showNotes : (matchingDefault.showNotes !== undefined ? matchingDefault.showNotes : true)
             };
           });
           setProfilesState(migrasiParsed);

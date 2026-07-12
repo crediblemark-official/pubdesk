@@ -66,6 +66,7 @@ export interface InvoiceProfile {
   actionLabel: string;
   tableType: string;
   notes: string[];
+  showNotes?: boolean;
   showSpesifikasi: boolean;
   defaultSpesifikasi: string;
   signatureOffice: string;

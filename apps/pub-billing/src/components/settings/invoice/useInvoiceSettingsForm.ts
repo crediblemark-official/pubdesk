@@ -37,6 +37,7 @@ export function useInvoiceSettingsForm() {
   const [tableType, setTableType] = useState<string>('');
   const [notes, setNotes] = useState<string[]>([]);
   const [showSpesifikasi, setShowSpesifikasi] = useState(false);
+  const [showNotes, setShowNotes] = useState(true);
   const [defaultSpesifikasi, setDefaultSpesifikasi] = useState('');
   const [signatureOffice, setSignatureOffice] = useState('');
   const [signatureLocation, setSignatureLocation] = useState('');
@@ -102,6 +103,7 @@ export function useInvoiceSettingsForm() {
       setTableType('');
       setNotes([]);
       setShowSpesifikasi(false);
+      setShowNotes(true);
       setDefaultSpesifikasi('');
       setSignatureOffice('Kantor Utama');
       setSignatureLocation('Kota Asal');
@@ -158,6 +160,7 @@ export function useInvoiceSettingsForm() {
         setTableType(profile.tableType || '');
         setNotes(profile.notes || []);
         setShowSpesifikasi(profile.showSpesifikasi || false);
+        setShowNotes(profile.showNotes !== undefined ? profile.showNotes : true);
         setDefaultSpesifikasi(profile.defaultSpesifikasi || '');
         setSignatureOffice(profile.signatureOffice || '');
         setSignatureLocation(profile.signatureLocation || '');
@@ -220,6 +223,7 @@ export function useInvoiceSettingsForm() {
     tableType,
     notes,
     showSpesifikasi,
+    showNotes,
     defaultSpesifikasi,
     signatureOffice,
     signatureLocation,
@@ -274,6 +278,7 @@ export function useInvoiceSettingsForm() {
     tableType,
     notes,
     showSpesifikasi,
+    showNotes,
     defaultSpesifikasi,
     signatureOffice,
     signatureLocation,
@@ -345,6 +350,7 @@ export function useInvoiceSettingsForm() {
     setTableType(p.tableType || '');
     setNotes(p.notes || []);
     setShowSpesifikasi(p.showSpesifikasi || false);
+    setShowNotes(p.showNotes !== undefined ? p.showNotes : true);
     setDefaultSpesifikasi(p.defaultSpesifikasi || '');
     setSignatureOffice(p.signatureOffice || '');
     setSignatureLocation(p.signatureLocation || '');
@@ -508,6 +514,8 @@ export function useInvoiceSettingsForm() {
     setNotes,
     showSpesifikasi,
     setShowSpesifikasi,
+    showNotes,
+    setShowNotes,
     defaultSpesifikasi,
     setDefaultSpesifikasi,
     signatureOffice,

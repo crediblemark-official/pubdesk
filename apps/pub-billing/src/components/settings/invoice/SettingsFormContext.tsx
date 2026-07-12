@@ -40,6 +40,8 @@ export interface SettingsFormContextType {
   setTableType: (v: string) => void;
   notes: string[];
   setNotes: (v: string[]) => void;
+  showNotes: boolean;
+  setShowNotes: (v: boolean) => void;
   showSpesifikasi: boolean;
   setShowSpesifikasi: (v: boolean) => void;
   defaultSpesifikasi: string;

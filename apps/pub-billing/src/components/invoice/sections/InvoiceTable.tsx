@@ -214,7 +214,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </div>
       )}
 
-      {profile?.notes && profile.notes.length > 0 && (
+      {profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
         <div style={{ marginTop: '10px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
           <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
           {profile.notes.map((note, idx) => (
