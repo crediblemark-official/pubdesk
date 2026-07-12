@@ -19,6 +19,19 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   footerPrimaryColor,
   footerSecondaryColor
 }) => {
+  const getContactsText = () => {
+    const parts: string[] = [];
+    if (profile?.companyWebsite) parts.push(`🌐 ${profile.companyWebsite}`);
+    if (profile?.companyEmail) parts.push(`✉️ ${profile.companyEmail}`);
+    if (profile?.companyPhone) parts.push(`📞 ${profile.companyPhone}`);
+    if (profile?.companyInstagram) parts.push(`📸 ${profile.companyInstagram}`);
+    return parts.join('   •   ');
+  };
+
+  const bankNames = profile?.bankName ? profile.bankName.split('|') : [];
+  const bankAccountNos = profile?.bankAccountNo ? profile.bankAccountNo.split('|') : [];
+  const bankAccountOwners = profile?.bankAccountOwner ? profile.bankAccountOwner.split('|') : [];
+
   const getSignatureOfficeLabel = () => {
     return profile?.signatureOffice || 'KBM Kreator Yogyakarta';
   };
@@ -97,52 +110,47 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           </div>
         </div>
 
-        {/* Sisi Kanan: Kontak Kustom */}
-        {profile?.showCompanyContact ? (
+        {/* Sisi Kanan: Rekening Bank */}
+        {profile?.showBankInfo ? (
           <div style={{ 
-            width: '240px', 
-            fontSize: '9px', 
-            color: '#4b5563',
+            width: '280px', 
+            fontSize: '9.5px', 
+            color: '#1f2937',
             textAlign: 'right', 
-            lineHeight: '1.5',
+            lineHeight: '1.6',
             fontFamily: '"Montserrat", "Segoe UI", sans-serif',
             display: 'flex',
             flexDirection: 'column',
             gap: '4px',
-            alignItems: 'flex-end'
+            alignItems: 'flex-end',
+            marginBottom: '4px'
           }}>
-            {profile.companyWebsite && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{profile.companyWebsite}</span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: accentColor }}><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              </div>
-            )}
-            {profile.companyEmail && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{profile.companyEmail}</span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: accentColor }}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-              </div>
-            )}
-            {profile.companyYoutube && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{profile.companyYoutube}</span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: accentColor }}><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.95 1.96C5.12 19.5 12 19.5 12 19.5s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 11.75a29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
-              </div>
-            )}
-            {profile.companyInstagram && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{profile.companyInstagram}</span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: accentColor }}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-              </div>
-            )}
-            {profile.companyPhone && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{profile.companyPhone}</span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: accentColor }}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-              </div>
-            )}
+            <div style={{ 
+              fontSize: '9.5px', 
+              fontWeight: '800', 
+              color: accentColor, 
+              letterSpacing: '0.5px', 
+              marginBottom: '4px', 
+              textTransform: 'uppercase' 
+            }}>
+              Silahkan Transfer Ke:
+            </div>
+            {bankNames.map((name, i) => {
+              const no = bankAccountNos[i] || '';
+              const owner = bankAccountOwners[i] || '';
+              if (!name && !no && !owner) return null;
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontWeight: '700', color: '#4b5563' }}>{name}</span>
+                  <span style={{ color: '#9ca3af' }}>|</span>
+                  <span style={{ fontWeight: '600' }}>{no}</span>
+                  <span style={{ color: '#9ca3af' }}>|</span>
+                  <span style={{ color: '#6b7280', fontSize: '9px' }}>a/n. {owner}</span>
+                </div>
+              );
+            })}
           </div>
-        ) : <div style={{ width: '240px' }} />}
+        ) : <div style={{ width: '280px' }} />}
       </div>
 
       {/* Footer SVG */}
@@ -170,78 +178,34 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             <path d="M 388.25 20 H 1045 V 70 H 425.75 Z" fill={footerPrimaryColor} />
           </g>
 
-          {profile?.showBankInfo && (
+          {profile?.companyName && (
             <text 
               x="61" 
               y="49" 
               fill="#ffffff" 
               fontFamily='"Montserrat", "Segoe UI", sans-serif' 
-              fontSize="12.5" 
-              fontWeight="600"
+              fontSize="10.0" 
+              fontWeight="700"
               letterSpacing="0.2"
             >
-              Silahkan transfer ke Rekening:
+              {profile.companyName} {profile.companyTagline ? `• ${profile.companyTagline}` : ''}
             </text>
           )}
 
-          {profile?.showBankInfo && (() => {
-            const bankNames = profile.bankName ? profile.bankName.split('|') : [];
-            const bankAccountNos = profile.bankAccountNo ? profile.bankAccountNo.split('|') : [];
-            const bankAccountOwners = profile.bankAccountOwner ? profile.bankAccountOwner.split('|') : [];
-            const count = bankNames.length;
-            
-            return bankNames.map((name, i) => {
-              const no = bankAccountNos[i] || '';
-              const owner = bankAccountOwners[i] || '';
-              
-              let xVal = 984;
-              let yVal = 49;
-              let fontSizeVal = "12.5";
-              let anchorVal: "start" | "middle" | "end" = "end";
-              
-              if (count === 2) {
-                fontSizeVal = "10.5";
-                if (i === 0) {
-                  xVal = 680;
-                  anchorVal = "middle";
-                } else {
-                  xVal = 984;
-                  anchorVal = "end";
-                }
-              } else if (count >= 3) {
-                fontSizeVal = "10.5";
-                if (i === 0) {
-                  xVal = 680;
-                  yVal = 38;
-                  anchorVal = "middle";
-                } else if (i === 1) {
-                  xVal = 984;
-                  yVal = 38;
-                  anchorVal = "end";
-                } else {
-                  xVal = 984;
-                  yVal = 54;
-                  anchorVal = "end";
-                }
-              }
-              
-              return (
-                <text 
-                  key={i}
-                  x={xVal} 
-                  y={yVal}
-                  textAnchor={anchorVal}
-                  fill="#ffffff" 
-                  fontFamily='"Montserrat", "Segoe UI", sans-serif' 
-                  fontSize={fontSizeVal} 
-                  fontWeight="600"
-                  letterSpacing="0.2"
-                >
-                  {name} | {no} | a/n. {owner}
-                </text>
-              );
-            });
-          })()}
+          {profile?.showCompanyContact && (
+            <text 
+              x="984" 
+              y="49" 
+              textAnchor="end"
+              fill="#ffffff" 
+              fontFamily='"Montserrat", "Segoe UI", sans-serif' 
+              fontSize="9.5" 
+              fontWeight="600"
+              letterSpacing="0.2"
+            >
+              {getContactsText()}
+            </text>
+          )}
 
           <g filter="url(#drop-shadow-middle-footer)">
             <path d="M 320 5 H 359 L 407.75 70 H 368.75 Z" fill={footerSecondaryColor} />
