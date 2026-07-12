@@ -166,6 +166,8 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
             gap: '12px',
             flexWrap: 'wrap',
             alignItems: 'center',
+            marginTop: '4px',
+            marginBottom: '12px',
           }}
         >
           {selectedOption.wa_number && <span>WA: {selectedOption.wa_number}</span>}
