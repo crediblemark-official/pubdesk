@@ -7,9 +7,7 @@ const NotesSection: React.FC = () => {
     notes,
     setNotes,
     showSpesifikasi,
-    setShowSpesifikasi,
-    defaultSpesifikasi,
-    setDefaultSpesifikasi
+    setShowSpesifikasi
   } = useSettingsForm();
 
   const [newNoteText, setNewNoteText] = useState('');
@@ -43,28 +41,6 @@ const NotesSection: React.FC = () => {
               Tampilkan Box Spesifikasi & Fasilitas
             </label>
           </div>
-          
-          {showSpesifikasi && (
-            <div className="compact-form-group">
-              <label className="compact-label">Teks Spesifikasi Bawaan</label>
-              <textarea
-                className="compact-input"
-                rows={3}
-                style={{ 
-                  width: '100%', 
-                  border: '1px solid var(--border)', 
-                  background: 'var(--bg-card)', 
-                  color: 'var(--text-primary)',
-                  fontFamily: 'inherit',
-                  padding: '6px 8px',
-                  resize: 'vertical'
-                }}
-                value={defaultSpesifikasi}
-                onChange={(e) => setDefaultSpesifikasi(e.target.value)}
-                placeholder="Contoh: Sesuai proposal kerjasama"
-              />
-            </div>
-          )}
         </div>
 
         <div>
