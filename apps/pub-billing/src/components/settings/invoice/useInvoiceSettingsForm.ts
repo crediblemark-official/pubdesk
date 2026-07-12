@@ -155,7 +155,7 @@ export function useInvoiceSettingsForm() {
         setDefaultHal(profile.defaultHal || '');
         setDefaultLampiran(profile.defaultLampiran || '-');
         setSalamPembuka(profile.salamPembuka || '');
-        setSalamPenutup(profile.salamPenutup || `Demikian rincian biaya ${profile.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`);
+        setSalamPenutup(profile.salamPenutup ?? `Demikian rincian biaya ${profile.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`);
         setActionLabel(profile.actionLabel || '');
         setTableType(profile.tableType || '');
         setNotes(profile.notes || []);
@@ -345,7 +345,7 @@ export function useInvoiceSettingsForm() {
     setDefaultHal(p.defaultHal || '');
     setDefaultLampiran(p.defaultLampiran || '-');
     setSalamPembuka(p.salamPembuka || '');
-    setSalamPenutup(p.salamPenutup || `Demikian rincian biaya ${p.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`);
+    setSalamPenutup(p.salamPenutup ?? `Demikian rincian biaya ${p.actionLabel || 'transaksi'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`);
     setActionLabel(p.actionLabel || '');
     setTableType(p.tableType || '');
     setNotes(p.notes || []);
