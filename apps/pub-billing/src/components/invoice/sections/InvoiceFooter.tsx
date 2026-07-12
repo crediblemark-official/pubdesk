@@ -131,7 +131,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               const owner = bankAccountOwners[i] || '';
               if (!name && !no && !owner) return null;
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end', width: '100%' }}>
                   <span style={{ fontWeight: '700', color: '#4b5563' }}>{name}</span>
                   <span style={{ color: '#9ca3af' }}>|</span>
                   <span style={{ fontWeight: '600' }}>{no}</span>
