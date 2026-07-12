@@ -1,12 +1,19 @@
 import React, { useMemo, useState } from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { SmartRelationField, SmartRelationOption } from '@pubhub/shared-ui';
+import { SmartRelationField, SmartRelationOption, Modal } from '@pubhub/shared-ui';
 import { findBestDuplicate, formatDuplicateReason } from '@pubhub/shared-utils';
 
 export const CustomerSection: React.FC = () => {
   const { customer, setCustomer } = useInvoiceContext();
-  const { contacts, addContact } = useAppContext();
+  const { 
+    contacts, 
+    addContact, 
+    updateContact, 
+    deleteContact, 
+    showConfirm, 
+    showToast 
+  } = useAppContext();
   const [waInput, setWaInput] = useState('');
 
   const [createFormData, setCreateFormData] = useState({
@@ -21,6 +28,103 @@ export const CustomerSection: React.FC = () => {
     similarity: number;
     reason: string;
   } | null>(null);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    id: 0,
+    name: '',
+    wa_number: '',
+    email: '',
+    address: '',
+    isPenulis: false,
+  });
+
+  const handleEditOption = (value: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const contact = contacts.find((c) => String(c.id) === value);
+    if (contact) {
+      setEditFormData({
+        id: contact.id || 0,
+        name: contact.name,
+        wa_number: contact.wa_number || '',
+        email: contact.email || '',
+        address: contact.address || '',
+        isPenulis: contact.type === 'penulis' || contact.type === 'both',
+      });
+      setShowEditModal(true);
+    }
+  };
+
+  const handleEditSave = async () => {
+    if (!editFormData.name.trim()) {
+      showToast('Nama tidak boleh kosong', 'error');
+      return;
+    }
+
+    try {
+      await updateContact({
+        id: editFormData.id,
+        name: editFormData.name.trim(),
+        wa_number: editFormData.wa_number.trim(),
+        email: editFormData.email.trim(),
+        address: editFormData.address.trim(),
+        type: editFormData.isPenulis ? 'both' : 'customer',
+        created_at: new Date().toISOString(),
+      });
+
+      // Update state customer di form saat ini jika yang diedit adalah customer yang terpilih
+      const oldContactName = contacts.find((c) => c.id === editFormData.id)?.name || '';
+      if (customer.name && oldContactName.toLowerCase() === customer.name.toLowerCase()) {
+        setCustomer((prev) => ({
+          ...prev,
+          name: editFormData.name.trim(),
+          wa_number: editFormData.wa_number.trim(),
+          email: editFormData.email.trim(),
+          address: editFormData.address.trim(),
+          isPenulis: editFormData.isPenulis,
+        }));
+      }
+
+      showToast('Kontak berhasil diperbarui', 'success');
+      setShowEditModal(false);
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal memperbarui kontak', 'error');
+    }
+  };
+
+  const handleDeleteOption = (value: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const contact = contacts.find((c) => String(c.id) === value);
+    if (!contact) return;
+
+    showConfirm({
+      title: 'Hapus Kontak',
+      message: `Apakah Anda yakin ingin menghapus kontak "${contact.name}"?`,
+      confirmText: 'Hapus',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteContact(contact.id!);
+          showToast('Kontak berhasil dihapus', 'success');
+
+          // Jika kontak yang dihapus sedang terpilih di form invoice, kosongkan
+          if (customer.name && contact.name.toLowerCase() === customer.name.toLowerCase()) {
+            setCustomer({
+              name: '',
+              wa_number: '',
+              email: '',
+              address: '',
+              isPenulis: false,
+            });
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal menghapus kontak', 'error');
+        }
+      },
+    });
+  };
 
   const allContactOptions: SmartRelationOption[] = useMemo(() => {
     // Kelompokkan kontak berdasarkan nama (case-insensitive) untuk menghilangkan duplikasi visual
@@ -267,6 +371,8 @@ export const CustomerSection: React.FC = () => {
         entityLabel="Kontak"
         entityLabelPlural="Kontak"
         fullWidth
+        onEditOption={handleEditOption}
+        onDeleteOption={handleDeleteOption}
         renderCreateForm={({ onSave, onCancel }) => (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <input
@@ -438,6 +544,119 @@ export const CustomerSection: React.FC = () => {
           placeholder="Alamat Pengiriman"
         />
       </div>
+
+      {showEditModal && (
+        <Modal
+          open={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="Edit Kontak"
+          width="480px"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Nama Lengkap
+              </label>
+              <input
+                type="text"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, name: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Nomor WhatsApp
+              </label>
+              <input
+                type="text"
+                value={editFormData.wa_number}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, wa_number: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Email
+              </label>
+              <input
+                type="email"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, email: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                Alamat
+              </label>
+              <input
+                type="text"
+                value={editFormData.address}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, address: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none', margin: '4px 0' }}>
+              <input
+                type="checkbox"
+                checked={editFormData.isPenulis}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, isPenulis: e.target.checked }))}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              Centang jika penulis (simpan sebagai penulis & pelanggan)
+            </label>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
+              <button className="btn-secondary" type="button" onClick={() => setShowEditModal(false)}>
+                Batal
+              </button>
+              <button
+                className="btn-primary"
+                type="button"
+                onClick={handleEditSave}
+              >
+                Perbarui
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   );
 };

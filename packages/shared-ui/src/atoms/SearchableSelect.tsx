@@ -15,6 +15,8 @@ interface SearchableSelectProps {
   emptyMessage?: string;
   required?: boolean;
   autoFocus?: boolean;
+  onEditOption?: (value: string, e: React.MouseEvent) => void;
+  onDeleteOption?: (value: string, e: React.MouseEvent) => void;
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -27,6 +29,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   emptyMessage = 'Tidak ada data',
   required,
   autoFocus,
+  onEditOption,
+  onDeleteOption,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -225,6 +229,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                   background: opt.value === value ? 'rgba(192, 28, 28, 0.06)' : 'transparent',
                   borderBottom: '1px solid var(--border)',
                   transition: 'background 0.1s ease',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
                 onMouseEnter={(e) => {
                   if (opt.value !== value) e.currentTarget.style.background = 'rgba(0,0,0,0.02)';
@@ -233,7 +241,68 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                   if (opt.value !== value) e.currentTarget.style.background = 'transparent';
                 }}
               >
-                {opt.label || `(${opt.value})`}
+                <span>{opt.label || `(${opt.value})`}</span>
+                
+                {(onEditOption || onDeleteOption) && (
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    {onEditOption && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditOption(opt.value, e);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '2px 4px',
+                          fontSize: '12px',
+                          lineHeight: '1',
+                          borderRadius: '4px',
+                          transition: 'background 0.1s',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'var(--border)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'none';
+                        }}
+                        title="Edit"
+                      >
+                        ✏️
+                      </button>
+                    )}
+                    {onDeleteOption && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteOption(opt.value, e);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '2px 4px',
+                          fontSize: '12px',
+                          lineHeight: '1',
+                          borderRadius: '4px',
+                          transition: 'background 0.1s',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'none';
+                        }}
+                        title="Hapus"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           )}

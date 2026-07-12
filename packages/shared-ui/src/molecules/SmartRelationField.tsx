@@ -53,6 +53,8 @@ export interface SmartRelationFieldProps {
   onSelectExisting?: (value: string) => void;
   /** Called when the user chooses to use a manual snapshot (free text) instead of creating master data. */
   onUseSnapshot?: (snapshot: string) => void;
+  onEditOption?: (value: string, e: React.MouseEvent) => void;
+  onDeleteOption?: (value: string, e: React.MouseEvent) => void;
 }
 
 /**
@@ -84,6 +86,8 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
   onConfirmCreateAnyway,
   onSelectExisting,
   onUseSnapshot,
+  onEditOption,
+  onDeleteOption,
 }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -134,6 +138,8 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
             emptyMessage={emptyMessage}
             required={required}
             fullWidth
+            onEditOption={onEditOption}
+            onDeleteOption={onDeleteOption}
           />
         </div>
 
@@ -159,11 +165,35 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
             display: 'flex',
             gap: '12px',
             flexWrap: 'wrap',
+            alignItems: 'center',
           }}
         >
           {selectedOption.wa_number && <span>WA: {selectedOption.wa_number}</span>}
           {selectedOption.email && <span>Email: {selectedOption.email}</span>}
           {selectedOption.address && <span>Alamat: {selectedOption.address}</span>}
+          
+          {(onEditOption || onDeleteOption) && (
+            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+              {onEditOption && (
+                <span
+                  onClick={(e) => onEditOption(selectedOption.value, e)}
+                  style={{ cursor: 'pointer', color: 'var(--accent)', fontWeight: 600 }}
+                  title={`Edit ${entityLabel}`}
+                >
+                  ✏️ Edit
+                </span>
+              )}
+              {onDeleteOption && (
+                <span
+                  onClick={(e) => onDeleteOption(selectedOption.value, e)}
+                  style={{ cursor: 'pointer', color: 'var(--text-secondary)', fontWeight: 600 }}
+                  title={`Hapus ${entityLabel}`}
+                >
+                  🗑️ Hapus
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
