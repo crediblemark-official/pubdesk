@@ -27,7 +27,7 @@ export interface SmartRelationFieldProps {
   value: string;
   onChange: (value: string, option?: SmartRelationOption) => void;
   placeholder?: string;
-  emptyMessage?: string;
+  emptyMessage?: React.ReactNode;
   /** Name of the entity, e.g. "Penulis", "Naskah", "Tim". */
   entityLabel: string;
   entityLabelPlural?: string;
@@ -122,6 +122,30 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
     setShowCreateModal(false);
   };
 
+  const renderedEmptyMessage = useMemo(() => {
+    if (!emptyMessage) return undefined;
+    if (typeof emptyMessage === 'string' && (emptyMessage.includes("'+ Baru'") || emptyMessage.includes("`+ Baru`"))) {
+      const targetStr = emptyMessage.includes("'+ Baru'") ? "'+ Baru'" : "`+ Baru`";
+      const parts = emptyMessage.split(targetStr);
+      return (
+        <span>
+          {parts[0]}
+          <span
+            style={{ color: 'var(--accent)', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCreateClick();
+            }}
+          >
+            + Baru
+          </span>
+          {parts[1]}
+        </span>
+      );
+    }
+    return emptyMessage;
+  }, [emptyMessage]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: fullWidth ? '100%' : undefined }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', width: '100%' }}>
@@ -135,7 +159,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
               onChange(val, option);
             }}
             placeholder={placeholder}
-            emptyMessage={emptyMessage}
+            emptyMessage={renderedEmptyMessage}
             required={required}
             fullWidth
             onEditOption={onEditOption}

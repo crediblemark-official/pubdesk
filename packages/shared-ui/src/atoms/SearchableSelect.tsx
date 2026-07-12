@@ -12,7 +12,7 @@ interface SearchableSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   fullWidth?: boolean;
-  emptyMessage?: string;
+  emptyMessage?: React.ReactNode;
   required?: boolean;
   autoFocus?: boolean;
   onEditOption?: (value: string, e: React.MouseEvent) => void;
