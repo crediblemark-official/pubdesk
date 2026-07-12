@@ -145,7 +145,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
       </div>
 
       {/* Footer SVG */}
-      <div className="invoice-footer" style={{ flexShrink: 0, padding: '0 35px' }}>
+      <div className="invoice-footer" style={{ flexShrink: 0 }}>
         <svg
           viewBox="0 0 1045 80"
           xmlns="http://www.w3.org/2000/svg"
@@ -177,7 +177,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
-                paddingLeft: '0',
+                paddingLeft: '35px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '11px',
                 fontWeight: '700',
@@ -202,7 +202,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'end',
-                paddingRight: '0',
+                paddingRight: '35px',
                 gap: '11px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '9.2px',
