@@ -64,7 +64,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 <img 
                   src={profile.signatureImg} 
                   alt="Tanda Tangan" 
-                  style={{ height: '100%', width: '100%', objectFit: 'contain' }} 
+                  style={{ height: '55px', width: 'auto', maxWidth: '130px', objectFit: 'contain' }} 
                 />
               </div>
             ) : (
