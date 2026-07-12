@@ -72,18 +72,6 @@ const ContentSection: React.FC = () => {
         </div>
 
         <div className="compact-form-group">
-          <label className="compact-label">Label Aksi Penutup</label>
-          <input
-            type="text"
-            className="compact-input"
-            style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={actionLabel}
-            onChange={(e) => setActionLabel(e.target.value)}
-            placeholder="Contoh: penerbitan buku"
-          />
-        </div>
-
-        <div className="compact-form-group">
           <label className="compact-label">Metode Ongkos Kirim</label>
           <select
             className="compact-select"
