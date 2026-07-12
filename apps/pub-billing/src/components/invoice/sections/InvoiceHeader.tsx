@@ -38,6 +38,9 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           <filter id="drop-shadow-middle" x="-30%" y="-30%" width="160%" height="160%">
             <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#000000" floodOpacity="0.5" />
           </filter>
+          <clipPath id="clip-header-middle">
+            <rect x="0" y="54" width="657" height="100" />
+          </clipPath>
         </defs>
 
         <g filter="url(#drop-shadow)">
@@ -45,9 +48,12 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
         </g>
 
-        <g filter="url(#drop-shadow-middle)">
+        <g filter="url(#drop-shadow-middle)" clip-path="url(#clip-header-middle)">
           <polygon points="220,54 236,54 284.5,139 268.5,139" fill="#ffffff" />
           <polygon points="236,54 271,54 320.6,139 284.5,139" fill={headerSecondaryColor} />
+          {/* Efek bayangan lipatan 3D horizontal di batas atas y=54 agar terkesan timbul membungkus */}
+          <polygon points="220,54 236,54 238.3,58 222.3,58" fill="#000000" opacity="0.25" />
+          <polygon points="236,54 271,54 273.3,58 238.3,58" fill="#000000" opacity="0.25" />
         </g>
 
         {(() => {
