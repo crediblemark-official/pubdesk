@@ -147,7 +147,7 @@ const InvoiceSettings: React.FC = () => {
               {renderAccordionSection(5, '5. Tanda Tangan Penutup', <SignatureSection />)}
               {renderAccordionSection(6, '6. Informasi Rekening Bank', <BankSection />)}
               {renderAccordionSection(7, '7. Kolom Tabel Rincian Invoice', <ColumnsSection />)}
-              {renderAccordionSection(8, '8. Informasi Kontak Profil', <ContactSection />)}
+              {renderAccordionSection(8, '8. Pengaturan Footer', <ContactSection />)}
             </div>
           </SettingsFormContext.Provider>
 

@@ -91,4 +91,7 @@ export interface InvoiceProfile {
   companyInstagram?: string;
   companyPhone?: string;
   showCompanyContact?: boolean;
+  showFooterBranding?: boolean;
+  companyFooterName?: string;
+  companyFooterTagline?: string;
 }

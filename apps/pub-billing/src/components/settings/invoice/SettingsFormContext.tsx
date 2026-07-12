@@ -90,6 +90,12 @@ export interface SettingsFormContextType {
   setCompanyPhone: (v: string) => void;
   showCompanyContact: boolean;
   setShowCompanyContact: (v: boolean) => void;
+  showFooterBranding: boolean;
+  setShowFooterBranding: (v: boolean) => void;
+  companyFooterName: string;
+  setCompanyFooterName: (v: string) => void;
+  companyFooterTagline: string;
+  setCompanyFooterTagline: (v: string) => void;
 }
 
 export const SettingsFormContext = createContext<SettingsFormContextType | undefined>(undefined);

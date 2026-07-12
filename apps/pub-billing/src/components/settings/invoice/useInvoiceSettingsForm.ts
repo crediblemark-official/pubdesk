@@ -61,6 +61,9 @@ export function useInvoiceSettingsForm() {
   const [companyInstagram, setCompanyInstagram] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
   const [showCompanyContact, setShowCompanyContact] = useState(false);
+  const [showFooterBranding, setShowFooterBranding] = useState(true);
+  const [companyFooterName, setCompanyFooterName] = useState('');
+  const [companyFooterTagline, setCompanyFooterTagline] = useState('');
   const [footerBgColor, setFooterBgColor] = useState('');
   const [footerPrimaryColor, setFooterPrimaryColor] = useState('');
   const [footerSecondaryColor, setFooterSecondaryColor] = useState('');
@@ -134,6 +137,9 @@ export function useInvoiceSettingsForm() {
       setCompanyInstagram('');
       setCompanyPhone('');
       setShowCompanyContact(false);
+      setShowFooterBranding(true);
+      setCompanyFooterName('');
+      setCompanyFooterTagline('');
       setFooterBgColor('#222933');
       setFooterPrimaryColor('#d93838');
       setFooterSecondaryColor('#d93838');
@@ -190,6 +196,9 @@ export function useInvoiceSettingsForm() {
         setCompanyInstagram(profile.companyInstagram || '');
         setCompanyPhone(profile.companyPhone || '');
         setShowCompanyContact(profile.showCompanyContact || false);
+        setShowFooterBranding(profile.showFooterBranding !== undefined ? profile.showFooterBranding : true);
+        setCompanyFooterName(profile.companyFooterName || '');
+        setCompanyFooterTagline(profile.companyFooterTagline || '');
       }
     }
   }, [selectedProfileId, isEditingNew, profiles]);
@@ -246,7 +255,10 @@ export function useInvoiceSettingsForm() {
     companyYoutube,
     companyInstagram,
     companyPhone,
-    showCompanyContact
+    showCompanyContact,
+    showFooterBranding,
+    companyFooterName,
+    companyFooterTagline
   };
 
   // Sinkronisasikan profil yang sedang diedit ke preview global di PanelKanan
@@ -302,6 +314,9 @@ export function useInvoiceSettingsForm() {
     companyInstagram,
     companyPhone,
     showCompanyContact,
+    showFooterBranding,
+    companyFooterName,
+    companyFooterTagline,
     setTempPreviewProfile
   ]);
 
@@ -562,6 +577,12 @@ export function useInvoiceSettingsForm() {
     setCompanyPhone,
     showCompanyContact,
     setShowCompanyContact,
+    showFooterBranding,
+    setShowFooterBranding,
+    companyFooterName,
+    setCompanyFooterName,
+    companyFooterTagline,
+    setCompanyFooterTagline,
     footerBgColor,
     setFooterBgColor,
     footerPrimaryColor,

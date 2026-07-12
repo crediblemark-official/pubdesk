@@ -169,7 +169,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             <path d="M 348.25 20 H 1045 V 70 H 385.75 Z" fill={footerPrimaryColor} />
           </g>
 
-          {profile?.companyName && (
+          {profile?.showFooterBranding !== false && (profile?.companyFooterName || profile?.companyName) && (
             <text
               x="61"
               y="49"
@@ -178,10 +178,10 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               fontSize="11.5"
               fontWeight="700"
             >
-              {profile.companyName}
-              {profile.companyTagline && (
+              {profile.companyFooterName || profile.companyName}
+              {(profile.companyFooterTagline || profile.companyTagline) && (
                 <tspan fontWeight="500" fillOpacity="0.8" dx="6">
-                  {`• ${profile.companyTagline}`}
+                  {`• ${profile.companyFooterTagline || profile.companyTagline}`}
                 </tspan>
               )}
             </text>
