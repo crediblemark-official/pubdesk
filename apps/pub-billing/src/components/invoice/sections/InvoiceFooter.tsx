@@ -145,14 +145,14 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
       </div>
 
       {/* Footer SVG */}
-      <div className="invoice-footer" style={{ flexShrink: 0, position: 'relative' }}>
+      <div className="invoice-footer" style={{ flexShrink: 0 }}>
         <svg
           viewBox="0 0 1045 80"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="none"
           shapeRendering="geometricPrecision"
           aria-label="Footer invoice"
-          style={{ display: 'block', width: '100%', height: '80px' }}
+          style={{ display: 'block', width: '100%' }}
         >
           <rect width="1045" height="80" fill="#ffffff" />
           <defs>
@@ -169,89 +169,85 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             <path d="M 348.25 20 H 1045 V 70 H 385.75 Z" fill={footerPrimaryColor} />
           </g>
 
+          {profile?.companyName && (
+            <foreignObject x="0" y="20" width="270" height="50">
+              <div style={{
+                width: '100%',
+                height: '100%',
+                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: '35px',
+                fontFamily: '"Montserrat", "Segoe UI", sans-serif',
+                fontSize: '11px',
+                fontWeight: '700',
+                color: '#ffffff'
+              }}>
+                <span>{profile.companyName}</span>
+                {profile.companyTagline && (
+                  <span style={{ fontWeight: '500', opacity: 0.8, marginLeft: '6px' }}>
+                    • {profile.companyTagline}
+                  </span>
+                )}
+              </div>
+            </foreignObject>
+          )}
+
+          {profile?.showCompanyContact && (
+            <foreignObject x="310" y="20" width="735" height="50">
+              <div style={{
+                width: '100%',
+                height: '100%',
+                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'end',
+                paddingRight: '35px',
+                gap: '11px',
+                fontFamily: '"Montserrat", "Segoe UI", sans-serif',
+                fontSize: '9.8px',
+                fontWeight: '600',
+                color: '#ffffff'
+              }}>
+                {profile.companyWebsite && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '10.5px' }}>🌐</span>
+                    <span>{profile.companyWebsite}</span>
+                  </div>
+                )}
+                {profile.companyEmail && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '11px', lineHeight: 1 }}>✉</span>
+                    <span>{profile.companyEmail}</span>
+                  </div>
+                )}
+                {profile.companyYoutube && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '11px', lineHeight: 1, color: '#ffffff' }}>▶</span>
+                    <span>{profile.companyYoutube}</span>
+                  </div>
+                )}
+                {profile.companyInstagram && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '10.5px' }}>📸</span>
+                    <span>{profile.companyInstagram}</span>
+                  </div>
+                )}
+                {profile.companyPhone && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '10.5px' }}>📞</span>
+                    <span>{profile.companyPhone}</span>
+                  </div>
+                )}
+              </div>
+            </foreignObject>
+          )}
+
           <g filter="url(#drop-shadow-middle-footer)">
             <path d="M 280 5 H 319 L 367.75 70 H 328.75 Z" fill={footerSecondaryColor} />
             <path d="M 319 5 H 337 L 385.75 70 H 367.75 Z" fill="#ffffff" />
           </g>
         </svg>
-
-        {/* Branding HTML Absolut */}
-        {profile?.companyName && (
-          <div style={{
-            position: 'absolute',
-            left: 0,
-            bottom: 0,
-            height: '50px',
-            width: '272px',
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '35px',
-            fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-            fontSize: '11px',
-            fontWeight: '700',
-            color: '#ffffff',
-            pointerEvents: 'none'
-          }}>
-            <span>{profile.companyName}</span>
-            {profile.companyTagline && (
-              <span style={{ fontWeight: '500', opacity: 0.8, marginLeft: '6px' }}>
-                • {profile.companyTagline}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Kontak HTML Absolut */}
-        {profile?.showCompanyContact && (
-          <div style={{
-            position: 'absolute',
-            right: 0,
-            bottom: 0,
-            height: '50px',
-            left: '310px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'end',
-            paddingRight: '35px',
-            gap: '11px',
-            fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-            fontSize: '9.8px',
-            fontWeight: '600',
-            color: '#ffffff',
-            pointerEvents: 'none'
-          }}>
-            {profile.companyWebsite && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '10.5px' }}>🌐</span>
-                <span>{profile.companyWebsite}</span>
-              </div>
-            )}
-            {profile.companyEmail && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '11px', lineHeight: 1 }}>✉</span>
-                <span>{profile.companyEmail}</span>
-              </div>
-            )}
-            {profile.companyYoutube && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '11px', lineHeight: 1, color: '#ffffff' }}>▶</span>
-                <span>{profile.companyYoutube}</span>
-              </div>
-            )}
-            {profile.companyInstagram && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '10.5px' }}>📸</span>
-                <span>{profile.companyInstagram}</span>
-              </div>
-            )}
-            {profile.companyPhone && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '10.5px' }}>📞</span>
-                <span>{profile.companyPhone}</span>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </>
   );
