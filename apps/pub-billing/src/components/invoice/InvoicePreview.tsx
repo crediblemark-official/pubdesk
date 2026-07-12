@@ -59,6 +59,42 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
   const [zoom, setZoom] = useState(1.0);
   const effectiveZoom = externalZoom ?? zoom;
 
+  const [isDragScrolling, setIsDragScrolling] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    if (!panelRef.current) return;
+
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('input') || target.closest('select') || target.closest('textarea')) {
+      return;
+    }
+
+    setIsDragScrolling(true);
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: panelRef.current.scrollLeft,
+      scrollTop: panelRef.current.scrollTop
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragScrolling || !panelRef.current) return;
+    e.preventDefault();
+
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+
+    panelRef.current.scrollLeft = dragStart.current.scrollLeft - dx;
+    panelRef.current.scrollTop = dragStart.current.scrollTop - dy;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragScrolling(false);
+  };
+
   const handleZoomIn = () => { if (externalZoom === undefined) setZoom(prev => Math.min(prev + 0.1, 2.0)); };
   const handleZoomOut = () => { if (externalZoom === undefined) setZoom(prev => Math.max(prev - 0.1, 0.5)); };
   const handleZoomReset = () => { if (externalZoom === undefined) setZoom(1.0); };
@@ -131,6 +167,10 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
   return (
     <div 
       ref={panelRef}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUpOrLeave}
+      onMouseLeave={handleMouseUpOrLeave}
       style={{ 
         position: 'relative', 
         width: '100%', 
@@ -140,7 +180,9 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px'
+        padding: '20px',
+        cursor: isDragScrolling ? 'grabbing' : 'grab',
+        userSelect: isDragScrolling ? 'none' : 'auto'
       }}
     >
 
