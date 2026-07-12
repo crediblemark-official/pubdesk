@@ -30,14 +30,20 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
 
     // Hapus <img>, SVG <image> + nonaktifkan CSS backgroundImage yang pakai url()
     // (watermark pakai data:image/svg+xml — di WebKitGTK bikin canvas taint)
+    // Kecualikan gambar berbasis Base64 Data URI (data:) agar tanda tangan/logo tetap tercetak
     clonedElement.querySelectorAll('*').forEach(el => {
       const tag = el.tagName.toLowerCase();
       if (tag === 'img' || tag === 'image') {
-        el.remove();
+        const src = el.getAttribute('src') || '';
+        if (!src.startsWith('data:')) {
+          el.remove();
+        }
       }
       const htmlEl = el as HTMLElement;
       if (htmlEl.style?.backgroundImage && htmlEl.style.backgroundImage.includes('url(')) {
-        htmlEl.style.backgroundImage = 'none';
+        if (!htmlEl.style.backgroundImage.includes('data:')) {
+          htmlEl.style.backgroundImage = 'none';
+        }
       }
     });
 
