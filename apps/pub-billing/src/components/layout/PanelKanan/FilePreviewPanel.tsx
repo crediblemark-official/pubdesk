@@ -279,18 +279,13 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
 
   const handleDownloadPdf = async () => {
     try {
-      const { generateInvoicePDFBytes } = await import('../../../utils/pdfGenerator');
+      const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('file-preview-panel-export');
-      const blob = new Blob([bytes as any], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = currentFileSelected?.filename || 'Invoice.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('PDF berhasil diunduh', 'success');
+      const defaultFileName = currentFileSelected?.filename || 'Invoice.pdf';
+      const saved = await downloadPDFBytes(bytes, defaultFileName);
+      if (saved) {
+        showToast('PDF berhasil diunduh', 'success');
+      }
     } catch (err) {
       console.error(err);
       showToast('Gagal mengunduh PDF', 'error');

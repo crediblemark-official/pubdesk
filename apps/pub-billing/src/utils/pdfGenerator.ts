@@ -112,3 +112,53 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     document.body.removeChild(container);
   }
 }
+
+export async function downloadPDFBytes(bytes: Uint8Array, defaultFileName: string): Promise<boolean> {
+  const isTauri = typeof window !== 'undefined' && (!!(window as any).__TAURI_INTERNALS__ || !!(window as any).__TAURI__);
+
+  if (isTauri) {
+    try {
+      const { save, ask } = await import('@tauri-apps/plugin-dialog');
+      const { invoke } = await import('@tauri-apps/api/core');
+      const { openPath } = await import('@tauri-apps/plugin-opener');
+
+      const filePath = await save({
+        filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
+        defaultPath: defaultFileName
+      });
+
+      if (!filePath) {
+        return false;
+      }
+
+      await invoke('write_binary_file', { path: filePath, bytes: Array.from(bytes) });
+
+      const shouldOpen = await ask('PDF berhasil disimpan. Apakah Anda ingin langsung membukanya?', {
+        title: 'Buka PDF',
+        kind: 'info',
+        okLabel: 'Buka',
+        cancelLabel: 'Tutup'
+      });
+
+      if (shouldOpen) {
+        await openPath(filePath);
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Gagal menyimpan PDF via Tauri:', err);
+      throw err;
+    }
+  } else {
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = defaultFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return true;
+  }
+}

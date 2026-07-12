@@ -20,7 +20,7 @@ const PanelKanan: React.FC = () => {
   } = useAppContext();
 
   const { files, selectedFileId, setSelectedFileId, setRightPanelVisible } = useFileState();
-  const { tempPreviewProfile, activeProfile } = useInvoiceContext();
+  const { tempPreviewProfile, activeProfile, invoiceNo } = useInvoiceContext();
 
   const { activeModule } = appState;
 
@@ -32,18 +32,13 @@ const PanelKanan: React.FC = () => {
 
   const handleDownloadPdf = async () => {
     try {
-      const { generateInvoicePDFBytes } = await import('../../utils/pdfGenerator');
+      const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('panel-kanan-preview');
-      const blob = new Blob([bytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Invoice.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('PDF berhasil diunduh', 'success');
+      const defaultFileName = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}.pdf`;
+      const saved = await downloadPDFBytes(bytes, defaultFileName);
+      if (saved) {
+        showToast('PDF berhasil diunduh', 'success');
+      }
     } catch (err) {
       console.error(err);
       showToast('Gagal mengunduh PDF', 'error');

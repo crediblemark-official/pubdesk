@@ -105,17 +105,10 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
     setDownloading(true);
     setPdfError(null);
     try {
-      const { generateInvoicePDFBytes } = await import('../../utils/pdfGenerator');
+      const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('invoice-preview-export');
-      const blob = new Blob([bytes as any], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const defaultFileName = `Invoice-${invoiceNo ? invoiceNo.replace(/\//g, '_') : 'DRAF'}.pdf`;
+      await downloadPDFBytes(bytes, defaultFileName);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Gagal generate PDF:', msg);
