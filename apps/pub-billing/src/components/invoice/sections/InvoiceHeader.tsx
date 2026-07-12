@@ -33,13 +33,13 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         <rect x="0" y="35" width="657" height="2" fill="#dddddd" />
         <defs>
           <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="130%">
-            <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#000000" floodOpacity="0.3" />
+            <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#000000" floodOpacity="0.25" />
           </filter>
           <filter id="drop-shadow-middle" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#000000" floodOpacity="0.5" />
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.4" />
           </filter>
           <clipPath id="header-clip">
-            <rect x="0" y="54" width="657" height="100" />
+            <rect x="0" y="50" width="657" height="100" />
           </clipPath>
         </defs>
 
