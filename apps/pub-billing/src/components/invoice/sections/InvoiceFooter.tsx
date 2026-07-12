@@ -170,77 +170,73 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           </g>
 
           {profile?.companyName && (
-            <foreignObject x="0" y="20" width="270" height="50">
-              <div style={{
-                width: '100%',
-                height: '100%',
-                boxSizing: 'border-box',
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: '35px',
-                fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-                fontSize: '11px',
-                fontWeight: '700',
-                color: '#ffffff'
-              }}>
-                <span>{profile.companyName}</span>
-                {profile.companyTagline && (
-                  <span style={{ fontWeight: '500', opacity: 0.8, marginLeft: '6px' }}>
-                    • {profile.companyTagline}
-                  </span>
-                )}
-              </div>
-            </foreignObject>
+            <text
+              x="35"
+              y="49"
+              fill="#ffffff"
+              fontFamily='"Montserrat", "Segoe UI", sans-serif'
+              fontSize="11.5"
+              fontWeight="700"
+            >
+              {profile.companyName}
+              {profile.companyTagline && (
+                <tspan fontWeight="500" fillOpacity="0.8" dx="6">
+                  {`• ${profile.companyTagline}`}
+                </tspan>
+              )}
+            </text>
           )}
 
           {profile?.showCompanyContact && (
-            <foreignObject x="310" y="20" width="735" height="50">
-              <div style={{
-                width: '100%',
-                height: '100%',
-                boxSizing: 'border-box',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'end',
-                paddingRight: '35px',
-                gap: '11px',
-                fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-                fontSize: '9.2px',
-                fontWeight: '600',
-                color: '#ffffff'
-              }}>
-                {profile.companyWebsite && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <span style={{ fontSize: '10.5px' }}>🌐</span>
-                    <span>{profile.companyWebsite}</span>
-                  </div>
-                )}
-                {profile.companyEmail && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <span style={{ fontSize: '11px', lineHeight: 1 }}>✉</span>
-                    <span>{profile.companyEmail}</span>
-                  </div>
-                )}
-                {profile.companyYoutube && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <span style={{ fontSize: '11px', lineHeight: 1, color: '#ffffff' }}>▶</span>
-                    <span>{profile.companyYoutube}</span>
-                  </div>
-                )}
-                {profile.companyInstagram && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <span style={{ fontSize: '10.5px' }}>📸</span>
-                    <span>{profile.companyInstagram}</span>
-                  </div>
-                )}
-                {profile.companyPhone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <span style={{ fontSize: '10.5px' }}>📞</span>
-                    <span>{profile.companyPhone}</span>
-                  </div>
-                )}
-              </div>
-            </foreignObject>
+            <text
+              x="1010"
+              y="48"
+              textAnchor="end"
+              fill="#ffffff"
+              fontFamily='"Montserrat", "Segoe UI", sans-serif'
+              fontSize="9.2"
+              fontWeight="600"
+            >
+              {(() => {
+                const elements: React.ReactNode[] = [];
+                if (profile.companyWebsite) {
+                  elements.push(
+                    <tspan key="web" fill="#ffffff">
+                      🌐 {profile.companyWebsite}
+                    </tspan>
+                  );
+                }
+                if (profile.companyEmail) {
+                  elements.push(
+                    <tspan key="email" fill="#ffffff" dx="11">
+                      ✉ {profile.companyEmail}
+                    </tspan>
+                  );
+                }
+                if (profile.companyYoutube) {
+                  elements.push(
+                    <tspan key="yt" fill="#ffffff" dx="11">
+                      ▶ {profile.companyYoutube}
+                    </tspan>
+                  );
+                }
+                if (profile.companyInstagram) {
+                  elements.push(
+                    <tspan key="ig" fill="#ffffff" dx="11">
+                      📸 {profile.companyInstagram}
+                    </tspan>
+                  );
+                }
+                if (profile.companyPhone) {
+                  elements.push(
+                    <tspan key="phone" fill="#ffffff" dx="11">
+                      📞 {profile.companyPhone}
+                    </tspan>
+                  );
+                }
+                return elements;
+              })()}
+            </text>
           )}
 
           <g filter="url(#drop-shadow-middle-footer)">
