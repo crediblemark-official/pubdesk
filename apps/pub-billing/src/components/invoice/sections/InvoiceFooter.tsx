@@ -194,22 +194,40 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               const no = bankAccountNos[i] || '';
               const owner = bankAccountOwners[i] || '';
               
+              let xVal = 984;
               let yVal = 49;
               let fontSizeVal = "12.5";
+              let anchorVal: "start" | "middle" | "end" = "end";
+              
               if (count === 2) {
-                yVal = i === 0 ? 38 : 54;
-                fontSizeVal = "11.5";
+                fontSizeVal = "10.5";
+                if (i === 0) {
+                  xVal = 680;
+                  anchorVal = "middle";
+                } else {
+                  xVal = 984;
+                  anchorVal = "end";
+                }
               } else if (count >= 3) {
-                yVal = i === 0 ? 34 : i === 1 ? 47 : 60;
-                fontSizeVal = "10.0";
+                fontSizeVal = "9.0";
+                if (i === 0) {
+                  xVal = 440;
+                  anchorVal = "start";
+                } else if (i === 1) {
+                  xVal = 712;
+                  anchorVal = "middle";
+                } else {
+                  xVal = 984;
+                  anchorVal = "end";
+                }
               }
               
               return (
                 <text 
                   key={i}
-                  x="984" 
+                  x={xVal} 
                   y={yVal}
-                  textAnchor="end"
+                  textAnchor={anchorVal}
                   fill="#ffffff" 
                   fontFamily='"Montserrat", "Segoe UI", sans-serif' 
                   fontSize={fontSizeVal} 
