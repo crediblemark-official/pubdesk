@@ -44,8 +44,8 @@ const DashboardMasterData: React.FC = () => {
 
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
         <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           background: 'var(--bg-card)',
           borderBottom: '1px solid var(--border)',
           borderRadius: '0px',
@@ -60,8 +60,7 @@ const DashboardMasterData: React.FC = () => {
                 key={card.key}
                 onClick={() => setActiveModule(card.module)}
                 style={{
-                  flex: '1 1 50%',
-                  minWidth: '250px',
+                  width: '100%',
                   padding: '20px',
                   cursor: 'pointer',
                   position: 'relative',
