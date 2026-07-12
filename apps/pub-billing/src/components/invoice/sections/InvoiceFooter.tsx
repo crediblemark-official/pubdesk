@@ -104,7 +104,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         {/* Sisi Kanan: Rekening Bank */}
         {profile?.showBankInfo ? (
           <div style={{ 
-            width: '280px', 
+            width: '500px', 
             fontSize: '9.5px', 
             color: '#1f2937',
             textAlign: 'right', 
@@ -175,7 +175,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 height: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                paddingLeft: '61px',
+                paddingLeft: '35px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '11px',
                 fontWeight: '700',
@@ -198,10 +198,10 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'end',
-                paddingRight: '61px',
-                gap: '14px',
+                paddingRight: '35px',
+                gap: '11px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-                fontSize: '10.5px',
+                fontSize: '9.8px',
                 fontWeight: '600',
                 color: '#ffffff'
               }}>
