@@ -120,7 +120,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                   {[
                     { module: 'invoice' as const, label: 'Invoice Generator', icon: '✍️' },
                     { module: 'invoice-manager' as const, label: 'Manajemen Invoice', icon: '🗃️' },
-                    { module: 'invoice-insight' as const, label: 'Insight Invoice', icon: '📊' },
                   ].map((sub) => {
                     const isSubActive = appState.activeModule === sub.module;
                     return (
