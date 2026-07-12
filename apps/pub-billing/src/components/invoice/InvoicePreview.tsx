@@ -262,65 +262,77 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         </div>
       )}
 
-      <div 
-        id={id || "invoice-preview-content"}
+      <div
         style={{
-          transform: `scale(${scale * effectiveZoom})`,
-          transformOrigin: 'center center',
-          flexShrink: 0,
-          width: `${a4Width}px`,
-          height: `${a4Height}px`,
-          background: '#ffffff',
-          borderRadius: '8px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-          overflow: 'hidden',
-          fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-        
-        {/* Kop Surat SVG */}
-        <InvoiceHeader 
-          profile={profile}
-          headerBgColor={headerBgColor}
-          headerPrimaryColor={headerPrimaryColor}
-          headerSecondaryColor={headerSecondaryColor}
-          invoiceNo={invoiceNo}
-        />
-        
-        {/* Info detail (kepada, perihal, lampiran, dll.) */}
-        <InvoiceInfo
-          customer={customer}
-          profile={profile}
-          invoiceHal={invoiceHal}
-          invoiceLampiran={invoiceLampiran}
-          invoiceDate={invoiceDate}
-        />
-
-        {/* Tabel rincian pesanan */}
-        <InvoiceTable
-          items={items}
-          profile={profile}
-          shippingCost={shippingCost}
-          adminFee={adminFee}
-          spesifikasiFasilitas={spesifikasiFasilitas}
-          calculateItemTotal={calculateItemTotal}
-          accentColor={accentColor}
-          accentColorDark={accentColorDark}
-        />
-
-        {/* Tanda tangan & Rekening Transfer */}
-        <InvoiceFooter
-          profile={profile}
-          invoiceDate={invoiceDate}
-          accentColor={accentColor}
-          footerBgColor={footerBgColor}
-          footerPrimaryColor={footerPrimaryColor}
-          footerSecondaryColor={footerSecondaryColor}
-        />
-
-        {/* Stempel watermark pembayaran */}
-        <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
+          margin: 'auto',
+          width: `${a4Width * scale * effectiveZoom}px`,
+          height: `${a4Height * scale * effectiveZoom}px`,
+          position: 'relative',
+          flexShrink: 0
+        }}
+      >
+        <div 
+          id={id || "invoice-preview-content"}
+          style={{
+            transform: `scale(${scale * effectiveZoom})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: `${a4Width}px`,
+            height: `${a4Height}px`,
+            background: '#ffffff',
+            borderRadius: '8px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+            overflow: 'hidden',
+            fontFamily: '"Montserrat", "Segoe UI", sans-serif',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+          
+          {/* Kop Surat SVG */}
+          <InvoiceHeader 
+            profile={profile}
+            headerBgColor={headerBgColor}
+            headerPrimaryColor={headerPrimaryColor}
+            headerSecondaryColor={headerSecondaryColor}
+            invoiceNo={invoiceNo}
+          />
+          
+          {/* Info detail (kepada, perihal, lampiran, dll.) */}
+          <InvoiceInfo
+            customer={customer}
+            profile={profile}
+            invoiceHal={invoiceHal}
+            invoiceLampiran={invoiceLampiran}
+            invoiceDate={invoiceDate}
+          />
+  
+          {/* Tabel rincian pesanan */}
+          <InvoiceTable
+            items={items}
+            profile={profile}
+            shippingCost={shippingCost}
+            accentColor={accentColor}
+            accentColorDark={accentColorDark}
+            adminFee={adminFee}
+            spesifikasiFasilitas={spesifikasiFasilitas}
+            calculateItemTotal={calculateItemTotal}
+          />
+  
+          {/* Tanda tangan & Rekening Transfer */}
+          <InvoiceFooter
+            profile={profile}
+            invoiceDate={invoiceDate}
+            accentColor={accentColor}
+            footerBgColor={footerBgColor}
+            footerPrimaryColor={footerPrimaryColor}
+            footerSecondaryColor={footerSecondaryColor}
+          />
+  
+          {/* Stempel watermark pembayaran */}
+          <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
+        </div>
       </div>
     </div>
   );
