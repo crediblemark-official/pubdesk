@@ -177,7 +177,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
-                paddingLeft: '35px',
+                paddingLeft: '13%',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
                 fontSize: '11px',
                 fontWeight: '700',
@@ -202,10 +202,10 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'end',
-                paddingRight: '35px',
+                paddingRight: '4.8%',
                 gap: '11px',
                 fontFamily: '"Montserrat", "Segoe UI", sans-serif',
-                fontSize: '9.8px',
+                fontSize: '9.2px',
                 fontWeight: '600',
                 color: '#ffffff'
               }}>
