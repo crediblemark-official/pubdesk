@@ -320,7 +320,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         spesifikasiFasilitas: '',
         customerName: '',
         customerWa: '',
-        customerAddress: ''
+        customerAddress: '',
+        selectedLayoutId: ''
       };
       
       if (invoice.file_path) {
