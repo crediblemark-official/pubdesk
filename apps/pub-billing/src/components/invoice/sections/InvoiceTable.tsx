@@ -108,16 +108,16 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 if (val === undefined || val === null || val === '' || val === 0) return;
 
                 const displayVal = col.type === 'currency'
-                  ? `Rp ${formatPrice(Number(val))}`
+                  ? formatPrice(Number(val))
                   : String(val);
                 detailParts.push(`${col.label}: ${displayVal}`);
               });
 
               const priceVal = item.price || 0;
-              const priceDisplay = `Rp ${formatPrice(priceVal)}`;
+              const priceDisplay = formatPrice(priceVal);
               const qtyVal = item.quantity ?? 1;
               const totalVal = calculateItemTotal(item);
-              const totalDisplay = `Rp ${formatPrice(totalVal)}`;
+              const totalDisplay = formatPrice(totalVal);
 
               return (
                 <tr key={index} style={{ background: rowBg }}>
@@ -154,7 +154,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     Subtotal
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
-                    Rp {formatPrice(subtotal)}
+                    {formatPrice(subtotal)}
                   </td>
                 </tr>
               )}
@@ -165,7 +165,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     Ongkos Kirim
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
-                    Rp {formatPrice(shippingCost)}
+                    {formatPrice(shippingCost)}
                   </td>
                 </tr>
               )}
@@ -176,7 +176,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     Biaya Admin
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
-                    Rp {formatPrice(adminFee)}
+                    {formatPrice(adminFee)}
                   </td>
                 </tr>
               )}
@@ -186,7 +186,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                   Total
                 </td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '10px', fontWeight: '800', color: accentColorDark, whiteSpace: 'nowrap' }}>
-                  Rp {formatPrice(total)}
+                  {formatPrice(total)}
                 </td>
               </tr>
             </>

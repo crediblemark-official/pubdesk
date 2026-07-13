@@ -13,6 +13,7 @@ export const ItemsSection: React.FC = () => {
     customer,
     items,
     addItem,
+    updateItem,
     removeItem,
     calculateItemTotal,
     activeProfile,
@@ -35,6 +36,8 @@ export const ItemsSection: React.FC = () => {
     regular_price: 0,
     author_id: '',
   });
+
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const penulisList = useMemo(() => {
     return contacts.filter(c => c.type === 'penulis' || c.type === 'both');
@@ -270,6 +273,113 @@ export const ItemsSection: React.FC = () => {
     return sortedFields;
   };
 
+  const handleStartEdit = (index: number) => {
+    const item = items[index];
+    setEditingIndex(index);
+    setCustomTitle(item.item_title);
+    
+    // Cari relasi
+    if (item.book_id) {
+      setSelectedBookIdState(String(item.book_id));
+      setSelectedServiceIdState('');
+      setSelectedNaskahIdState('');
+      setSelectedValue(`book_${item.book_id}`);
+    } else if (item.naskah_id) {
+      setSelectedNaskahIdState(String(item.naskah_id));
+      setSelectedBookIdState('');
+      setSelectedServiceIdState('');
+      setSelectedValue(`naskah_${item.naskah_id}`);
+    } else {
+      const matchedService = services.find(s => s.name === item.item_title);
+      if (matchedService) {
+        setSelectedServiceIdState(String(matchedService.id));
+        setSelectedBookIdState('');
+        setSelectedNaskahIdState('');
+        setSelectedValue(`service_${matchedService.id}`);
+      } else {
+        setSelectedServiceIdState('');
+        setSelectedBookIdState('');
+        setSelectedNaskahIdState('');
+        setSelectedValue('');
+      }
+    }
+
+    // Muat dynamic inputs
+    const inputs: Record<string, any> = {};
+    activeProfile?.tableColumns?.forEach(col => {
+      if (col.key in item) {
+        inputs[col.key] = item[col.key];
+      }
+    });
+    setDynamicInputs(inputs);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingIndex === null) return;
+    let finalTitle = customTitle.trim();
+    let finalPrice = parseFloat(dynamicInputs['price']) || 0;
+    const finalQty = parseInt(dynamicInputs['quantity']) || 1;
+
+    if (selectedServiceIdState) {
+      const service = services.find((s) => s.id === parseInt(selectedServiceIdState));
+      if (service) {
+        if (!finalTitle) finalTitle = service.name;
+        if (finalPrice === 0) finalPrice = service.price;
+      }
+    } else if (selectedBookIdState) {
+      const book = books.find((b) => b.id === parseInt(selectedBookIdState));
+      if (book) {
+        if (!finalTitle) finalTitle = book.title;
+        if (finalPrice === 0) finalPrice = book.regular_price;
+      }
+    }
+
+    if (!finalTitle) {
+      showToast('Nama layanan atau karya harus diisi!', 'error');
+      return;
+    }
+
+    const updatedItem: Partial<InvoiceItem> = {
+      book_id: selectedBookIdState ? parseInt(selectedBookIdState) : 0,
+      naskah_id: selectedNaskahIdState ? parseInt(selectedNaskahIdState) : undefined,
+      item_title: finalTitle,
+      quantity: finalQty,
+      price: finalPrice,
+    };
+
+    activeProfile?.tableColumns?.forEach(col => {
+      if (col.key !== 'item_title' && col.key !== 'price' && col.key !== 'quantity' && col.key !== 'total') {
+        updatedItem[col.key] = dynamicInputs[col.key];
+      }
+    });
+
+    updateItem(editingIndex, updatedItem);
+    showToast('Item berhasil diperbarui!', 'success');
+    handleCancelEdit();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+    setCustomTitle('');
+    setSelectedServiceIdState('');
+    setSelectedBookIdState('');
+    setSelectedNaskahIdState('');
+    setSelectedValue('');
+    
+    if (activeProfile?.tableColumns) {
+      const initialInputs: Record<string, any> = {};
+      activeProfile.tableColumns.forEach(col => {
+        if (col.key === 'item_title') return;
+        let defVal: any = '';
+        if (col.key === 'quantity') defVal = 1;
+        else if (col.key === 'price') defVal = 0;
+        else if (col.key === 'copyright_holder') defVal = customer.name || '';
+        initialInputs[col.key] = defVal;
+      });
+      setDynamicInputs(initialInputs);
+    }
+  };
+  
   const handleAddItem = () => {
     let finalTitle = customTitle.trim();
     let finalPrice = parseFloat(dynamicInputs['price']) || 0;
@@ -612,14 +722,33 @@ export const ItemsSection: React.FC = () => {
           })}
         </div>
 
-        {/* Tombol Tambah — full width di bawah form */}
-        <button
-          className="btn-primary"
-          onClick={handleAddItem}
-          style={{ width: '100%', padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', marginTop: '4px' }}
-        >
-          + Tambah Item
-        </button>
+        {/* Tombol Tambah / Edit */}
+        {editingIndex === null ? (
+          <button
+            className="btn-primary"
+            onClick={handleAddItem}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', marginTop: '4px' }}
+          >
+            + Tambah Item
+          </button>
+        ) : (
+          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <button
+              className="btn-secondary"
+              onClick={handleCancelEdit}
+              style={{ flex: 1, padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px' }}
+            >
+              Batal
+            </button>
+            <button
+              className="btn-primary"
+              onClick={handleSaveEdit}
+              style={{ flex: 2, padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px' }}
+            >
+              💾 Simpan Perubahan
+            </button>
+          </div>
+        )}
       </div>
 
       {/* List Item */}
@@ -634,17 +763,39 @@ export const ItemsSection: React.FC = () => {
                 {activeProfile?.tableColumns?.filter(col => col.type !== 'formula' && col.key !== 'item_title').map(col => {
                   const val = item[col.key];
                   if (val === undefined || val === null || val === '') return null;
-                  const displayVal = col.type === 'currency' ? `Rp ${formatPrice(Number(val))}` : String(val);
+                  const displayVal = col.type === 'currency' ? formatPrice(Number(val)) : String(val);
                   return `${col.label}: ${displayVal}`;
                 }).filter(Boolean).join(' | ')}
               </div>
             </div>
             <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
-              Rp {formatPrice(calculateItemTotal(item))}
+              {formatPrice(calculateItemTotal(item))}
             </span>
-            <button className="btn-danger" onClick={() => removeItem(index)} style={{ padding: '6px 10px', borderRadius: '6px' }}>
-              🗑️
-            </button>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button 
+                type="button"
+                className="btn-secondary" 
+                onClick={() => handleStartEdit(index)} 
+                title="Ubah Item"
+                style={{ padding: '6px 10px', borderRadius: '6px', minWidth: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                ✏️
+              </button>
+              <button 
+                type="button"
+                className="btn-danger" 
+                onClick={() => {
+                  if (editingIndex === index) {
+                    handleCancelEdit();
+                  }
+                  removeItem(index);
+                }} 
+                title="Hapus Item"
+                style={{ padding: '6px 10px', borderRadius: '6px', minWidth: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                🗑️
+              </button>
+            </div>
           </div>
         ))}
       </div>
