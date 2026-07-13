@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Penulis } from '../../types/data-master.types';
 import { useAppContext } from '../../contexts/AppContext';
+import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { TextField } from '../../ui/atoms/TextField';
 import { Select } from '../../ui/atoms/Select';
 import { Button } from '../../ui/atoms/Button';
@@ -17,6 +18,7 @@ interface PenulisFormProps {
 
 const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCancel }) => {
   const { showToast, setActiveModule } = useAppContext();
+  const { penerbit } = useDataMasterContext();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,6 +26,8 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
   const [address, setAddress] = useState('');
   const [job, setJob] = useState('');
   const [institution, setInstitution] = useState('');
+  const [isMitra, setIsMitra] = useState(false);
+  const [mitraPenerbitId, setMitraPenerbitId] = useState('');
   const [dataSource, setDataSource] = useState('');
   const [emailValid, setEmailValid] = useState(0);
   const [waValid, setWaValid] = useState(0);
@@ -39,7 +43,18 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
       setWaNumber(initialData.wa_number || '');
       setAddress(initialData.address || '');
       setJob(initialData.job || '');
-      setInstitution(initialData.institution || '');
+      
+      const instVal = initialData.institution || '';
+      if (instVal.startsWith('penerbit_id:')) {
+        setIsMitra(true);
+        setMitraPenerbitId(instVal.replace('penerbit_id:', ''));
+        setInstitution('');
+      } else {
+        setIsMitra(false);
+        setMitraPenerbitId('');
+        setInstitution(instVal);
+      }
+      
       setDataSource(initialData.data_source || '');
       setEmailValid(initialData.email_valid);
       setWaValid(initialData.wa_valid);
@@ -52,6 +67,8 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
       setAddress('');
       setJob('');
       setInstitution('');
+      setIsMitra(false);
+      setMitraPenerbitId('');
       setDataSource('');
       setEmailValid(0);
       setWaValid(0);
@@ -60,14 +77,18 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
     }
   }, [initialData]);
 
-
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       showToast('Nama kontak tidak boleh kosong!', 'error');
       return;
     }
+    if (isMitra && !mitraPenerbitId) {
+      showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
+      return;
+    }
+
+    const finalInstitution = isMitra ? `penerbit_id:${mitraPenerbitId}` : institution.trim();
 
     onSubmit({
       id: initialData?.id,
@@ -76,7 +97,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
       wa_number: waNumber.trim() ? formatWhatsAppNumber(waNumber.trim()) : undefined,
       address: address.trim() || undefined,
       job: job.trim() || undefined,
-      institution: institution.trim() || undefined,
+      institution: finalInstitution || undefined,
       data_source: dataSource.trim() || undefined,
       email_valid: emailValid,
       wa_valid: waValid,
@@ -192,7 +213,7 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
 
 
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'center' }}>
                 <TextField
                   label="Pekerjaan"
                   placeholder="Contoh: Dosen, Peneliti"
@@ -201,13 +222,57 @@ const PenulisForm: React.FC<PenulisFormProps> = ({ initialData, onSubmit, onCanc
                   fullWidth
                 />
 
-                <TextField
-                  label="Institusi / Afiliasi"
-                  placeholder="Contoh: Universitas Airlangga"
-                  value={institution}
-                  onChange={(e) => setInstitution(e.target.value)}
-                  fullWidth
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none', marginTop: '18px' }}>
+                    <input
+                      type="checkbox"
+                      checked={isMitra}
+                      onChange={(e) => setIsMitra(e.target.checked)}
+                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                    Kontak Mitra B2B / Satuan Penerbit Terpadu
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                {!isMitra ? (
+                  <TextField
+                    label="Institusi / Afiliasi"
+                    placeholder="Contoh: Universitas Airlangga"
+                    value={institution}
+                    onChange={(e) => setInstitution(e.target.value)}
+                    fullWidth
+                  />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Mitra Penerbit</label>
+                    <select
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '10px 14px',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                      value={mitraPenerbitId}
+                      onChange={(e) => setMitraPenerbitId(e.target.value)}
+                      required
+                    >
+                      <option value="">-- Pilih Penerbit Mitra --</option>
+                      {penerbit.map((p) => (
+                        <option key={p.id} value={String(p.id)}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

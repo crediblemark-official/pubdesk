@@ -17,7 +17,7 @@ interface PenulisManagerProps {
 }
 
 const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => {
-  const { penulis, addPenulis, updatePenulis, deletePenulis } = useDataMasterContext();
+  const { penulis, addPenulis, updatePenulis, deletePenulis, penerbit } = useDataMasterContext();
   const { 
     showConfirm, 
     showToast, 
@@ -525,6 +525,22 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
       />
     );
   }
+  const renderInstitutionInfo = (instVal?: string) => {
+    if (!instVal) return '-';
+    if (instVal.startsWith('penerbit_id:')) {
+      const pId = parseInt(instVal.replace('penerbit_id:', ''));
+      const partner = penerbit.find(p => p.id === pId);
+      if (partner) {
+        return (
+          <span style={{ fontSize: '11px', background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7', padding: '2px 6px', borderRadius: '4px', fontWeight: '600', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+            Mitra: {partner.name}
+          </span>
+        );
+      }
+      return 'Mitra';
+    }
+    return instVal;
+  };
 
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
@@ -663,7 +679,7 @@ const PenulisManager: React.FC<PenulisManagerProps> = ({ searchQuery = '' }) => 
                     {p.job || '-'}
                   </td>
                   <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', color: 'var(--text-secondary)' }}>
-                    {p.institution || '-'}
+                    {renderInstitutionInfo(p.institution)}
                   </td>
                   <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', color: 'var(--text-secondary)' }}>
                     {p.wa_number ? (

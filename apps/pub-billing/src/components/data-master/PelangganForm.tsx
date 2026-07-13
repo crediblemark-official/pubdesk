@@ -22,7 +22,8 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
   const [email, setEmail] = useState('');
   const [waNumber, setWaNumber] = useState('');
   const [address, setAddress] = useState('');
-  const [contactType, setContactType] = useState<'customer' | 'penulis' | 'both' | 'mitra' | 'customer_mitra'>('customer');
+  const [isAuthor, setIsAuthor] = useState(false);
+  const [isMitra, setIsMitra] = useState(false);
   const [mitraPenerbitId, setMitraPenerbitId] = useState<string>('');
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
 
@@ -34,9 +35,12 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
       setAddress(initialData.address || '');
       
       const typeStr = initialData.type || 'customer';
-      setContactType(typeStr as any);
+      setIsAuthor(typeStr === 'penulis' || typeStr === 'both');
       
-      if (typeStr === 'customer_mitra' && initialData.institution && initialData.institution.startsWith('penerbit_id:')) {
+      const isMitraType = typeStr === 'customer_mitra' || typeStr === 'mitra';
+      setIsMitra(isMitraType);
+      
+      if (isMitraType && initialData.institution && initialData.institution.startsWith('penerbit_id:')) {
         setMitraPenerbitId(initialData.institution.replace('penerbit_id:', ''));
       } else {
         setMitraPenerbitId('');
@@ -46,7 +50,8 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
       setEmail('');
       setWaNumber('');
       setAddress('');
-      setContactType('customer');
+      setIsAuthor(false);
+      setIsMitra(false);
       setMitraPenerbitId('');
     }
   }, [initialData]);
@@ -57,10 +62,12 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
       showToast('Nama pelanggan tidak boleh kosong!', 'error');
       return;
     }
-    if (contactType === 'customer_mitra' && !mitraPenerbitId) {
+    if (isMitra && !mitraPenerbitId) {
       showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
       return;
     }
+
+    const typeStr = isMitra ? 'customer_mitra' : (isAuthor ? 'both' : 'customer');
 
     onSubmit({
       id: initialData?.id,
@@ -68,8 +75,8 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
       email: email.trim() || undefined,
       wa_number: waNumber.trim() ? formatWhatsAppNumber(waNumber.trim()) : undefined,
       address: address.trim() || undefined,
-      type: contactType,
-      institution: contactType === 'customer_mitra' ? `penerbit_id:${mitraPenerbitId}` : undefined
+      type: typeStr,
+      institution: isMitra ? `penerbit_id:${mitraPenerbitId}` : undefined
     });
   };
 
@@ -112,34 +119,30 @@ const PelangganForm: React.FC<PelangganFormProps> = ({ initialData, onSubmit, on
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: contactType === 'customer_mitra' ? '1fr 1fr' : '1fr', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Klasifikasi Kontak</label>
-                  <select
-                    style={{
-                      width: '100%',
-                      height: '42px',
-                      padding: '10px 14px',
-                      border: '1px solid var(--border)',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      background: 'var(--bg-card)',
-                      color: 'var(--text-primary)',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    value={contactType}
-                    onChange={(e) => setContactType(e.target.value as any)}
-                  >
-                    <option value="customer">Pelanggan Umum KBM</option>
-                    <option value="penulis">Penulis KBM</option>
-                    <option value="both">Penulis & Pelanggan KBM</option>
-                    <option value="mitra">Penerbit Mitra (B2B)</option>
-                    <option value="customer_mitra">Pelanggan dari Penerbit Mitra</option>
-                  </select>
+              <div style={{ display: 'grid', gridTemplateColumns: isMitra ? '1fr 1fr' : '1fr', gap: '16px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={isAuthor}
+                      onChange={(e) => setIsAuthor(e.target.checked)}
+                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                    Juga merupakan Penulis Naskah
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={isMitra}
+                      onChange={(e) => setIsMitra(e.target.checked)}
+                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                    Kontak Mitra B2B / Satuan Penerbit Terpadu
+                  </label>
                 </div>
 
-                {contactType === 'customer_mitra' && (
+                {isMitra && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Mitra Penerbit</label>
                     <select

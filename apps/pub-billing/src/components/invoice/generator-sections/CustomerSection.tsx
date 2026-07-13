@@ -23,7 +23,8 @@ export const CustomerSection: React.FC = () => {
     wa_number: '',
     email: '',
     address: '',
-    type: 'customer',
+    isPenulis: false,
+    isMitra: false,
     mitraPenerbitId: '',
   });
   const [duplicateWarning, setDuplicateWarning] = useState<{
@@ -39,7 +40,8 @@ export const CustomerSection: React.FC = () => {
     wa_number: '',
     email: '',
     address: '',
-    type: 'customer',
+    isPenulis: false,
+    isMitra: false,
     mitraPenerbitId: '',
   });
 
@@ -48,8 +50,9 @@ export const CustomerSection: React.FC = () => {
     const contact = contacts.find((c) => String(c.id) === value);
     if (contact) {
       const typeStr = contact.type || 'customer';
+      const isMitraType = typeStr === 'customer_mitra' || typeStr === 'mitra';
       let mitraId = '';
-      if (typeStr === 'customer_mitra' && contact.institution && contact.institution.startsWith('penerbit_id:')) {
+      if (isMitraType && contact.institution && contact.institution.startsWith('penerbit_id:')) {
         mitraId = contact.institution.replace('penerbit_id:', '');
       }
       setEditFormData({
@@ -58,7 +61,8 @@ export const CustomerSection: React.FC = () => {
         wa_number: contact.wa_number || '',
         email: contact.email || '',
         address: contact.address || '',
-        type: typeStr as any,
+        isPenulis: typeStr === 'penulis' || typeStr === 'both',
+        isMitra: isMitraType,
         mitraPenerbitId: mitraId,
       });
       setShowEditModal(true);
@@ -70,10 +74,12 @@ export const CustomerSection: React.FC = () => {
       showToast('Nama tidak boleh kosong', 'error');
       return;
     }
-    if (editFormData.type === 'customer_mitra' && !editFormData.mitraPenerbitId) {
+    if (editFormData.isMitra && !editFormData.mitraPenerbitId) {
       showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
       return;
     }
+
+    const typeStr = editFormData.isMitra ? 'customer_mitra' : (editFormData.isPenulis ? 'both' : 'customer');
 
     try {
       await updateContact({
@@ -82,8 +88,8 @@ export const CustomerSection: React.FC = () => {
         wa_number: editFormData.wa_number.trim(),
         email: editFormData.email.trim(),
         address: editFormData.address.trim(),
-        type: editFormData.type,
-        institution: editFormData.type === 'customer_mitra' ? `penerbit_id:${editFormData.mitraPenerbitId}` : undefined,
+        type: typeStr,
+        institution: editFormData.isMitra ? `penerbit_id:${editFormData.mitraPenerbitId}` : undefined,
         created_at: new Date().toISOString(),
       });
 
@@ -96,7 +102,7 @@ export const CustomerSection: React.FC = () => {
           wa_number: editFormData.wa_number.trim(),
           email: editFormData.email.trim(),
           address: editFormData.address.trim(),
-          isPenulis: editFormData.type === 'penulis' || editFormData.type === 'both',
+          isPenulis: editFormData.isPenulis,
         }));
       }
 
@@ -267,15 +273,15 @@ export const CustomerSection: React.FC = () => {
   };
 
   const handleCreateSave = async (onSuccess: () => void) => {
-    const { name, wa_number, email, address, type, mitraPenerbitId } = createFormData;
+    const { name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId } = createFormData;
     if (!name.trim()) return;
-    if (type === 'customer_mitra' && !mitraPenerbitId) {
+    if (isMitra && !mitraPenerbitId) {
       showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
       return;
     }
 
     if (duplicateWarning) {
-      await actuallyCreate({ name, wa_number, email, address, type, mitraPenerbitId });
+      await actuallyCreate({ name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId });
       setDuplicateWarning(null);
       onSuccess();
       return;
@@ -286,7 +292,7 @@ export const CustomerSection: React.FC = () => {
       return;
     }
 
-    await actuallyCreate({ name, wa_number, email, address, type, mitraPenerbitId });
+    await actuallyCreate({ name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId });
     onSuccess();
   };
 
@@ -295,17 +301,19 @@ export const CustomerSection: React.FC = () => {
     wa_number: string;
     email: string;
     address: string;
-    type: string;
+    isPenulis: boolean;
+    isMitra: boolean;
     mitraPenerbitId: string;
   }) => {
+    const typeStr = data.isMitra ? 'customer_mitra' : (data.isPenulis ? 'both' : 'customer');
     try {
       await addContact({
         name: data.name.trim(),
         wa_number: data.wa_number.trim(),
         email: data.email.trim(),
         address: data.address.trim(),
-        type: data.type,
-        institution: data.type === 'customer_mitra' ? `penerbit_id:${data.mitraPenerbitId}` : undefined,
+        type: typeStr,
+        institution: data.isMitra ? `penerbit_id:${data.mitraPenerbitId}` : undefined,
         created_at: new Date().toISOString(),
       });
       setCustomer((prev) => ({
@@ -314,7 +322,7 @@ export const CustomerSection: React.FC = () => {
         wa_number: data.wa_number.trim(),
         email: data.email.trim(),
         address: data.address.trim(),
-        isPenulis: data.type === 'penulis' || data.type === 'both',
+        isPenulis: data.isPenulis,
       }));
       // Reset form
       setCreateFormData({
@@ -322,7 +330,8 @@ export const CustomerSection: React.FC = () => {
         wa_number: '',
         email: '',
         address: '',
-        type: 'customer',
+        isPenulis: false,
+        isMitra: false,
         mitraPenerbitId: '',
       });
     } catch (err) {
@@ -482,33 +491,29 @@ export const CustomerSection: React.FC = () => {
                   boxSizing: 'border-box',
                 }}
               />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Klasifikasi Kontak</label>
-                <select
-                  style={{
-                    width: '100%',
-                    height: '42px',
-                    padding: '10px 14px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                  value={createFormData.type}
-                  onChange={(e) => setCreateFormData((prev) => ({ ...prev, type: e.target.value as any }))}
-                >
-                  <option value="customer">Pelanggan Umum KBM</option>
-                  <option value="penulis">Penulis KBM</option>
-                  <option value="both">Penulis & Pelanggan KBM</option>
-                  <option value="mitra">Penerbit Mitra (B2B)</option>
-                  <option value="customer_mitra">Pelanggan dari Penerbit Mitra</option>
-                </select>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={createFormData.isPenulis}
+                    onChange={(e) => setCreateFormData((prev) => ({ ...prev, isPenulis: e.target.checked }))}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                  />
+                  Juga merupakan Penulis Naskah
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={createFormData.isMitra}
+                    onChange={(e) => setCreateFormData((prev) => ({ ...prev, isMitra: e.target.checked }))}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                  />
+                  Kontak Mitra B2B / Satuan Penerbit Terpadu
+                </label>
               </div>
 
-              {createFormData.type === 'customer_mitra' && (
+              {createFormData.isMitra && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Mitra Penerbit</label>
                   <select
@@ -564,7 +569,8 @@ export const CustomerSection: React.FC = () => {
               wa_number: createFormData.wa_number,
               email: createFormData.email,
               address: createFormData.address,
-              type: createFormData.type,
+              isPenulis: createFormData.isPenulis,
+              isMitra: createFormData.isMitra,
               mitraPenerbitId: createFormData.mitraPenerbitId,
             }).then(() => setDuplicateWarning(null));
           }}
@@ -725,33 +731,29 @@ export const CustomerSection: React.FC = () => {
                 }}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Klasifikasi Kontak</label>
-              <select
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  padding: '10px 14px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-                value={editFormData.type}
-                onChange={(e) => setEditFormData((prev) => ({ ...prev, type: e.target.value as any }))}
-              >
-                <option value="customer">Pelanggan Umum KBM</option>
-                <option value="penulis">Penulis KBM</option>
-                <option value="both">Penulis & Pelanggan KBM</option>
-                <option value="mitra">Penerbit Mitra (B2B)</option>
-                <option value="customer_mitra">Pelanggan dari Penerbit Mitra</option>
-              </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                <input
+                  type="checkbox"
+                  checked={editFormData.isPenulis}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, isPenulis: e.target.checked }))}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Juga merupakan Penulis Naskah
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                <input
+                  type="checkbox"
+                  checked={editFormData.isMitra}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, isMitra: e.target.checked }))}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Kontak Mitra B2B / Satuan Penerbit Terpadu
+              </label>
             </div>
 
-            {editFormData.type === 'customer_mitra' && (
+            {editFormData.isMitra && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Mitra Penerbit</label>
                 <select
