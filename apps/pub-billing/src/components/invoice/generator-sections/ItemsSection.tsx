@@ -930,7 +930,7 @@ export const ItemsSection: React.FC = () => {
 
       {/* Modal Edit Master Layanan / Karya */}
       <Modal
-        isOpen={showEditMasterModal}
+        open={showEditMasterModal}
         onClose={() => setShowEditMasterModal(false)}
         title={editMasterType === 'service' ? 'Ubah Data Master Layanan' : 'Ubah Data Master Karya'}
       >
