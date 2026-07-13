@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSettingsForm } from './SettingsFormContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { InvoiceTableColumn, CustomInvoiceLayout } from '../../../types/invoice.types';
+import { Modal } from '../../../ui/molecules/Modal';
 
 const generateKeyFromLabel = (label: string, index: number): string => {
   const clean = label
@@ -15,6 +16,10 @@ const ColumnsSection: React.FC = () => {
   const { tableColumns, setTableColumns, customLayouts, setCustomLayouts } = useSettingsForm();
   const { showConfirm } = useAppContext();
   const [activeLayoutId, setActiveLayoutId] = useState<string>('default');
+
+  // State untuk React Modal prompt layout baru
+  const [showPromptModal, setShowPromptModal] = useState(false);
+  const [newLayoutName, setNewLayoutName] = useState('');
 
   const getActiveColumns = (): InvoiceTableColumn[] => {
     if (activeLayoutId === 'default') {
@@ -115,13 +120,18 @@ const ColumnsSection: React.FC = () => {
   };
 
   const handleAddNewLayout = () => {
-    const name = prompt('Masukkan nama tabel / layout baru (misal: Jasa Layout, Desain Cover, Google Playbook):');
-    if (!name || !name.trim()) return;
-    
+    setNewLayoutName('');
+    setShowPromptModal(true);
+  };
+
+  const handleConfirmAddLayout = () => {
+    const trimmed = newLayoutName.trim();
+    if (!trimmed) return;
+
     const id = `layout_${Date.now()}`;
     const newLayout: CustomInvoiceLayout = {
       id,
-      name: name.trim(),
+      name: trimmed,
       tableColumns: [
         { key: 'item_title', label: 'Nama Item / Karya', type: 'text', align: 'left' },
         { key: 'quantity', label: 'Qty', type: 'number', align: 'center', width: '80px' },
@@ -130,9 +140,10 @@ const ColumnsSection: React.FC = () => {
       ],
       shippingType: 'none'
     };
-    
+
     setCustomLayouts(prev => [...prev, newLayout]);
     setActiveLayoutId(id);
+    setShowPromptModal(false);
   };
 
   const handleDeleteActiveLayout = () => {
@@ -425,6 +436,62 @@ const ColumnsSection: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal Prompt untuk Layout/Tabel Baru */}
+      <Modal
+        open={showPromptModal}
+        onClose={() => setShowPromptModal(false)}
+        title="Tambah Layout Tabel Baru"
+        width="440px"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+            Masukkan nama tabel / layout baru (misal: Jasa Layout, Desain Cover, Google Playbook):
+          </div>
+          <input
+            type="text"
+            style={{
+              width: '100%',
+              fontSize: '13px',
+              padding: '8px 12px',
+              border: '1px solid var(--border)',
+              borderRadius: '6px',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+            value={newLayoutName}
+            onChange={(e) => setNewLayoutName(e.target.value)}
+            placeholder="Masukkan nama layout..."
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleConfirmAddLayout();
+              }
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ padding: '6px 16px', fontSize: '12px', fontWeight: '600', height: '32px' }}
+              onClick={() => setShowPromptModal(false)}
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ padding: '6px 16px', fontSize: '12px', fontWeight: '600', height: '32px' }}
+              onClick={handleConfirmAddLayout}
+              disabled={!newLayoutName.trim()}
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };
