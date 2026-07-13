@@ -45,6 +45,14 @@ export interface Invoice {
   payment_notes?: string;
 }
 
+export interface CustomInvoiceLayout {
+  id: string;
+  name: string;
+  tableColumns: InvoiceTableColumn[];
+  shippingType?: 'none' | 'global' | 'item';
+  defaultHal?: string;
+}
+
 export interface InvoiceProfile {
   id: string;
   name: string;
@@ -93,4 +101,5 @@ export interface InvoiceProfile {
   showCompanyContact?: boolean;
   showFooterBranding?: boolean;
   footerNoteText?: string;
+  customLayouts?: CustomInvoiceLayout[];
 }

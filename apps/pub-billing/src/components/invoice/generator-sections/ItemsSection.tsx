@@ -16,6 +16,8 @@ export const ItemsSection: React.FC = () => {
     removeItem,
     calculateItemTotal,
     activeProfile,
+    selectedLayoutId,
+    setSelectedLayoutId,
   } = useInvoiceContext();
 
   const [customTitle, setCustomTitle] = useState('');
@@ -348,6 +350,48 @@ export const ItemsSection: React.FC = () => {
 
   return (
     <>
+      {activeProfile?.customLayouts && activeProfile.customLayouts.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', borderBottom: '1px solid var(--border)', paddingBottom: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setSelectedLayoutId('')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '12px',
+              fontWeight: '600',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              border: '1px solid ' + (selectedLayoutId === '' ? 'var(--accent)' : 'var(--border)'),
+              background: selectedLayoutId === '' ? 'var(--accent)' : 'transparent',
+              color: selectedLayoutId === '' ? '#fff' : 'var(--text-primary)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            Default / Bawaan
+          </button>
+          {activeProfile.customLayouts.map((layout) => (
+            <button
+              key={layout.id}
+              type="button"
+              onClick={() => setSelectedLayoutId(layout.id)}
+              style={{
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                border: '1px solid ' + (selectedLayoutId === layout.id ? 'var(--accent)' : 'var(--border)'),
+                background: selectedLayoutId === layout.id ? 'var(--accent)' : 'transparent',
+                color: selectedLayoutId === layout.id ? '#fff' : 'var(--text-primary)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {layout.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Input Form Item */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>

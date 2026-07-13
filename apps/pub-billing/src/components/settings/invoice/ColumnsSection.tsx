@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSettingsForm } from './SettingsFormContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { InvoiceTableColumn } from '../../../types/invoice.types';
@@ -12,51 +12,84 @@ const generateKeyFromLabel = (label: string, index: number): string => {
 };
 
 const ColumnsSection: React.FC = () => {
-  const { tableColumns, setTableColumns } = useSettingsForm();
+  const { tableColumns, setTableColumns, customLayouts, setCustomLayouts } = useSettingsForm();
   const { showConfirm } = useAppContext();
+  const [activeLayoutId, setActiveLayoutId] = useState<string>('default');
+
+  const getActiveColumns = (): InvoiceTableColumn[] => {
+    if (activeLayoutId === 'default') {
+      return tableColumns;
+    }
+    const matched = customLayouts.find(l => l.id === activeLayoutId);
+    return matched ? matched.tableColumns : [];
+  };
+
+  const activeCols = getActiveColumns();
 
   const handleUpdateColumn = (index: number, updates: Partial<InvoiceTableColumn>) => {
-    setTableColumns(prev => prev.map((col, i) => i === index ? { ...col, ...updates } : col));
+    if (activeLayoutId === 'default') {
+      setTableColumns(prev => prev.map((col, i) => i === index ? { ...col, ...updates } : col));
+    } else {
+      setCustomLayouts(prev => prev.map(l => {
+        if (l.id === activeLayoutId) {
+          const updatedCols = l.tableColumns.map((col, i) => i === index ? { ...col, ...updates } : col);
+          return { ...l, tableColumns: updatedCols };
+        }
+        return l;
+      }));
+    }
   };
 
   const handleAddColumn = () => {
     const newCol: InvoiceTableColumn = {
-      key: `kolom_${tableColumns.length + 1}`,
+      key: `kolom_${activeCols.length + 1}`,
       label: 'Kolom Baru',
       type: 'text',
       align: 'left',
       width: 'auto'
     };
-    setTableColumns(prev => {
-      // Jika setTableColumns menerima callback
-      if (typeof prev === 'function') {
-        const fn = prev as any;
-        return [...fn([]), newCol];
-      }
-      return [...prev, newCol];
-    });
+    if (activeLayoutId === 'default') {
+      setTableColumns(prev => {
+        if (typeof prev === 'function') {
+          const fn = prev as any;
+          return [...fn([]), newCol];
+        }
+        return [...prev, newCol];
+      });
+    } else {
+      setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, tableColumns: [...l.tableColumns, newCol] } : l));
+    }
   };
 
   const handleRemoveColumn = (index: number) => {
-    setTableColumns(prev => {
-      if (typeof prev === 'function') {
-        const fn = prev as any;
-        return fn([]).filter((_: any, i: number) => i !== index);
-      }
-      return prev.filter((_, i) => i !== index);
-    });
+    if (activeLayoutId === 'default') {
+      setTableColumns(prev => {
+        if (typeof prev === 'function') {
+          const fn = prev as any;
+          return fn([]).filter((_: any, i: number) => i !== index);
+        }
+        return prev.filter((_, i) => i !== index);
+      });
+    } else {
+      setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, tableColumns: l.tableColumns.filter((_, i) => i !== index) } : l));
+    }
   };
 
   const handleMoveColumn = (index: number, direction: 'up' | 'down') => {
     if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === tableColumns.length - 1) return;
+    if (direction === 'down' && index === activeCols.length - 1) return;
     
     const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    const updated = [...tableColumns];
+    const updated = [...activeCols];
     const temp = updated[index];
     updated[index] = updated[targetIdx];
     updated[targetIdx] = temp;
-    setTableColumns(updated);
+    
+    if (activeLayoutId === 'default') {
+      setTableColumns(updated);
+    } else {
+      setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, tableColumns: updated } : l));
+    }
   };
 
   const handleResetColumns = () => {
@@ -66,22 +99,142 @@ const ColumnsSection: React.FC = () => {
       confirmText: 'Reset',
       type: 'danger',
       onConfirm: () => {
-        setTableColumns([
+        const defaultCols: InvoiceTableColumn[] = [
           { key: 'item_title', label: 'Nama Item', type: 'text', align: 'left' },
           { key: 'quantity', label: 'Qty', type: 'number', align: 'center', width: '80px' },
           { key: 'price', label: 'Harga', type: 'currency', align: 'right', width: '110px' },
           { key: 'total', label: 'Total', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
-        ]);
+        ];
+        if (activeLayoutId === 'default') {
+          setTableColumns(defaultCols);
+        } else {
+          setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, tableColumns: defaultCols } : l));
+        }
+      }
+    });
+  };
+
+  const handleAddNewLayout = () => {
+    const name = prompt('Masukkan nama tabel / layout baru (misal: Jasa Layout, Desain Cover, Google Playbook):');
+    if (!name || !name.trim()) return;
+    
+    const id = `layout_${Date.now()}`;
+    const newLayout = {
+      id,
+      name: name.trim(),
+      tableColumns: [
+        { key: 'item_title', label: 'Nama Item / Karya', type: 'text', align: 'left' },
+        { key: 'quantity', label: 'Qty', type: 'number', align: 'center', width: '80px' },
+        { key: 'price', label: 'Harga', type: 'currency', align: 'right', width: '110px' },
+        { key: 'total', label: 'Total', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
+      ],
+      shippingType: 'none' as const
+    };
+    
+    setCustomLayouts(prev => [...prev, newLayout]);
+    setActiveLayoutId(id);
+  };
+
+  const handleDeleteActiveLayout = () => {
+    if (activeLayoutId === 'default') return;
+    showConfirm({
+      title: 'Hapus Layout Tabel',
+      message: 'Apakah Anda yakin ingin menghapus layout tabel ini?',
+      confirmText: 'Hapus',
+      type: 'danger',
+      onConfirm: () => {
+        setCustomLayouts(prev => prev.filter(l => l.id !== activeLayoutId));
+        setActiveLayoutId('default');
       }
     });
   };
 
   return (
     <>
+      {/* Tab bar untuk multi-layout */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+        <button
+          type="button"
+          onClick={() => setActiveLayoutId('default')}
+          style={{
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: '600',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            border: '1px solid ' + (activeLayoutId === 'default' ? 'var(--accent)' : 'var(--border)'),
+            background: activeLayoutId === 'default' ? 'var(--accent)' : 'transparent',
+            color: activeLayoutId === 'default' ? '#fff' : 'var(--text-primary)'
+          }}
+        >
+          Default / Bawaan
+        </button>
+        
+        {customLayouts.map(l => (
+          <button
+            key={l.id}
+            type="button"
+            onClick={() => setActiveLayoutId(l.id)}
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: '600',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              border: '1px solid ' + (activeLayoutId === l.id ? 'var(--accent)' : 'var(--border)'),
+              background: activeLayoutId === l.id ? 'var(--accent)' : 'transparent',
+              color: activeLayoutId === l.id ? '#fff' : 'var(--text-primary)'
+            }}
+          >
+            {l.name}
+          </button>
+        ))}
+
+        <button
+          type="button"
+          onClick={handleAddNewLayout}
+          style={{
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: '600',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            border: '1px dashed var(--accent)',
+            background: 'transparent',
+            color: 'var(--accent)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          ➕ Tambah Tabel / Layout
+        </button>
+
+        {activeLayoutId !== 'default' && (
+          <button
+            type="button"
+            onClick={handleDeleteActiveLayout}
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: '600',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              border: '1px solid #fecaca',
+              background: '#fef2f2',
+              color: '#dc2626',
+              marginLeft: 'auto'
+            }}
+          >
+            🗑️ Hapus Tabel
+          </button>
+        )}
+      </div>
+
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500' }}>
-            Sesuaikan kolom tabel rincian item:
+            Sesuaikan kolom untuk tabel <strong>{activeLayoutId === 'default' ? 'Default / Bawaan' : customLayouts.find(l => l.id === activeLayoutId)?.name}</strong>:
           </span>
           <div style={{ display: 'flex', gap: '6px' }}>
             <button
@@ -135,12 +288,12 @@ const ColumnsSection: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '380px', overflowY: 'auto', paddingRight: '2px' }}>
-          {tableColumns.length === 0 ? (
+          {activeCols.length === 0 ? (
             <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-secondary)', padding: '16px', fontStyle: 'italic' }}>
               Belum ada kolom tabel yang didefinisikan.
             </div>
           ) : (
-            tableColumns.map((col, idx) => {
+            activeCols.map((col, idx) => {
               const isLocked = col.key === 'item_title' || col.key === 'quantity' || col.key === 'price';
 
               const inputBase: React.CSSProperties = {
@@ -247,8 +400,8 @@ const ColumnsSection: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleMoveColumn(idx, 'down')}
-                      disabled={idx === tableColumns.length - 1}
-                      style={{ background: 'none', border: 'none', cursor: idx === tableColumns.length - 1 ? 'default' : 'pointer', padding: '1px', fontSize: '11px', color: 'var(--text-secondary)', opacity: idx === tableColumns.length - 1 ? 0.3 : 0.7, lineHeight: 1 }}
+                      disabled={idx === activeCols.length - 1}
+                      style={{ background: 'none', border: 'none', cursor: idx === activeCols.length - 1 ? 'default' : 'pointer', padding: '1px', fontSize: '11px', color: 'var(--text-secondary)', opacity: idx === activeCols.length - 1 ? 0.3 : 0.7, lineHeight: 1 }}
                     >▼</button>
                   </div>
 

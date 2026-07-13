@@ -165,6 +165,18 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!profile) return undefined;
 
     if (selectedLayoutId) {
+      // 1. Coba cari di customLayouts milik profil aktif terlebih dahulu
+      const customLayout = profile.customLayouts?.find(l => l.id === selectedLayoutId);
+      if (customLayout) {
+        return {
+          ...profile,
+          tableColumns: customLayout.tableColumns,
+          tableType: customLayout.shippingType || 'none',
+          defaultHal: customLayout.defaultHal || profile.defaultHal
+        };
+      }
+
+      // 2. Coba cari di template global bawaan system
       const matchedTemplate = invoiceTemplates.find(t => t.templateId === selectedLayoutId);
       if (matchedTemplate) {
         return {

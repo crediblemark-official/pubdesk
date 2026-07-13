@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { InvoiceProfile, InvoiceTableColumn } from '../../../types/invoice.types';
+import { InvoiceProfile, InvoiceTableColumn, CustomInvoiceLayout } from '../../../types/invoice.types';
 import { invoiceTemplates } from '../../../data/invoiceTemplates';
 
 export function useInvoiceSettingsForm() {
@@ -66,6 +66,7 @@ export function useInvoiceSettingsForm() {
   const [footerBgColor, setFooterBgColor] = useState('');
   const [footerPrimaryColor, setFooterPrimaryColor] = useState('');
   const [footerSecondaryColor, setFooterSecondaryColor] = useState('');
+  const [customLayouts, setCustomLayouts] = useState<CustomInvoiceLayout[]>([]);
   
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
@@ -118,6 +119,7 @@ export function useInvoiceSettingsForm() {
       setCompanyLogo('');
       setSignatureImg('');
       setHeaderType('logo_text');
+      setCustomLayouts([]);
       setTableColumns([
         { key: 'item_title', label: 'Judul', type: 'text', align: 'left' },
         { key: 'pages', label: 'Hal', type: 'text', align: 'center', width: '90px' },
@@ -188,6 +190,7 @@ export function useInvoiceSettingsForm() {
         setWatermarkColor(profile.watermarkColor || '');
         setWatermarkOpacity(profile.watermarkOpacity !== undefined ? profile.watermarkOpacity : 8);
         setInvoiceNoFormat(profile.invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}');
+        setCustomLayouts(profile.customLayouts || []);
         setCompanyWebsite(profile.companyWebsite || '');
         setCompanyEmail(profile.companyEmail || '');
         setCompanyYoutube(profile.companyYoutube || '');
@@ -325,7 +328,8 @@ export function useInvoiceSettingsForm() {
       ...currentEditingProfile,
       id: isEditingNew ? `profile_${Date.now()}` : selectedProfileId,
       tableColumns: getFullTableColumns(tableColumns, shippingType),
-      shippingType
+      shippingType,
+      customLayouts
     };
 
     addOrUpdateProfile(savedProfile);
@@ -586,6 +590,8 @@ export function useInvoiceSettingsForm() {
     setShowTemplateModal,
     expandedSection,
     setExpandedSection,
+    customLayouts,
+    setCustomLayouts,
     handleSave,
     handleCreateNew,
     handleLoadTemplate,

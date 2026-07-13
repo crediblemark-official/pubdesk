@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { InvoiceTableColumn } from '../../../types/invoice.types';
+import { InvoiceTableColumn, CustomInvoiceLayout } from '../../../types/invoice.types';
 
 export interface SettingsFormContextType {
   profileName: string;
@@ -94,6 +94,8 @@ export interface SettingsFormContextType {
   setShowFooterBranding: (v: boolean) => void;
   footerNoteText: string;
   setFooterNoteText: (v: string) => void;
+  customLayouts: CustomInvoiceLayout[];
+  setCustomLayouts: (v: CustomInvoiceLayout[] | ((prev: CustomInvoiceLayout[]) => CustomInvoiceLayout[])) => void;
 }
 
 export const SettingsFormContext = createContext<SettingsFormContextType | undefined>(undefined);
