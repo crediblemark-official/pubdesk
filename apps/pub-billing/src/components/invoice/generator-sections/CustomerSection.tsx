@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { SmartRelationField, SmartRelationOption, Modal } from '@pubhub/shared-ui';
@@ -34,13 +34,6 @@ export const CustomerSection: React.FC = () => {
     reason: string;
   } | null>(null);
 
-  // Reload data penerbit dari SQLite saat form/modal mendeteksi isMitra dicentang
-  useEffect(() => {
-    if (createFormData.isMitra || editFormData.isMitra) {
-      loadPenerbit().catch(err => console.error("Gagal reload penerbit:", err));
-    }
-  }, [createFormData.isMitra, editFormData.isMitra, loadPenerbit]);
-
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
     id: 0,
@@ -52,6 +45,13 @@ export const CustomerSection: React.FC = () => {
     isMitra: false,
     mitraPenerbitId: '',
   });
+
+  // Reload data penerbit dari SQLite saat form/modal mendeteksi isMitra dicentang
+  useEffect(() => {
+    if (createFormData.isMitra || editFormData.isMitra) {
+      loadPenerbit().catch(err => console.error("Gagal reload penerbit:", err));
+    }
+  }, [createFormData.isMitra, editFormData.isMitra, loadPenerbit]);
 
   const handleEditOption = (value: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
