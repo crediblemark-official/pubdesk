@@ -79,7 +79,8 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 lineHeight: '1',
                 marginBottom: '-4px',
                 textAlign: 'center',
-                zIndex: 1
+                zIndex: 1,
+                whiteSpace: 'nowrap'
               }}>
                 {getSignatureNameLabel().split(',')[0]}
               </div>
@@ -88,7 +89,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
           </div>
 
           {/* Nama Terang */}
-          <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', zIndex: 1, marginTop: '2px' }}>
+          <div style={{ fontSize: '8.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', zIndex: 1, marginTop: '2px', whiteSpace: 'nowrap' }}>
             {getSignatureNameLabel()}
           </div>
 
