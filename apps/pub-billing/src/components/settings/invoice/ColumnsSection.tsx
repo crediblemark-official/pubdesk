@@ -323,7 +323,7 @@ const ColumnsSection: React.FC = () => {
 
               return (
                 <div
-                  key={col.key}
+                  key={idx}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '20px 1.8fr 1fr 0.8fr 1fr 32px 32px',
