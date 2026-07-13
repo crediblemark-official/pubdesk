@@ -32,6 +32,7 @@ export const CustomerSection: React.FC = () => {
     reason: string;
   } | null>(null);
 
+  const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
     id: 0,
     name: '',
