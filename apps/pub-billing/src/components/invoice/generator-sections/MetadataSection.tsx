@@ -1,7 +1,6 @@
 import React from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { DatePicker } from '../../../ui/atoms/DatePicker';
-import { invoiceTemplates } from '../../../data/invoiceTemplates';
 
 interface MetadataSectionProps {
   rightPanelVisible: boolean;
@@ -24,8 +23,6 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
     setPaymentStatus,
     spesifikasiFasilitas,
     setSpesifikasiFasilitas,
-    selectedLayoutId,
-    setSelectedLayoutId,
   } = useInvoiceContext();
 
   return (
@@ -40,22 +37,6 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
           {profiles.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{ marginBottom: '12px' }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Format Kolom Item (Bidang Usaha / Jasa)</label>
-        <select
-          style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
-          value={selectedLayoutId}
-          onChange={(e) => setSelectedLayoutId(e.target.value)}
-        >
-          <option value="">-- Gunakan Kolom Bawaan Profil --</option>
-          {invoiceTemplates.map((t) => (
-            <option key={t.templateId} value={t.templateId}>
-              {t.label}
             </option>
           ))}
         </select>
