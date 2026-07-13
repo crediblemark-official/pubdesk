@@ -15,7 +15,7 @@ export const CustomerSection: React.FC = () => {
     showConfirm, 
     showToast 
   } = useAppContext();
-  const { penerbit } = useDataMasterContext();
+  const { penerbit, loadPenerbit } = useDataMasterContext();
   const [waInput, setWaInput] = useState('');
 
   const [createFormData, setCreateFormData] = useState({
@@ -27,11 +27,19 @@ export const CustomerSection: React.FC = () => {
     isMitra: false,
     mitraPenerbitId: '',
   });
+
   const [duplicateWarning, setDuplicateWarning] = useState<{
     matchedOption: SmartRelationOption;
     similarity: number;
     reason: string;
   } | null>(null);
+
+  // Reload data penerbit dari SQLite saat form/modal mendeteksi isMitra dicentang
+  useEffect(() => {
+    if (createFormData.isMitra || editFormData.isMitra) {
+      loadPenerbit().catch(err => console.error("Gagal reload penerbit:", err));
+    }
+  }, [createFormData.isMitra, editFormData.isMitra, loadPenerbit]);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
