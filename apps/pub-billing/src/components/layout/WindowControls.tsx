@@ -17,13 +17,13 @@ export const WindowControls: React.FC = () => {
 
     if (appWindow) {
       appWindow.onCloseRequested(async (event: any) => {
+        // Blokir penutupan window secara instan secara sinkron!
+        event.preventDefault();
+
         try {
           const activeSession = await invoke<any>('get_active_work_session');
           if (activeSession) {
-            // Cegah window dari penutupan
-            event.preventDefault();
-            
-            // Tampilkan pesan dialog secara asinkron
+            // Tampilkan pesan dialog secara asinkron jika ada sesi aktif
             const dialog = await import('@tauri-apps/plugin-dialog');
             await dialog.message(
               'Sesi jam kerja Anda masih aktif. Harap hentikan (stop) sesi kerja terlebih dahulu sebelum menutup aplikasi!',
@@ -32,9 +32,13 @@ export const WindowControls: React.FC = () => {
                 kind: 'warning',
               }
             );
+          } else {
+            // Jika tidak ada sesi aktif, hancurkan/tutup window paksa
+            appWindow.destroy().catch(console.error);
           }
         } catch (err) {
-          console.error('Gagal memeriksa status jam kerja saat onCloseRequested:', err);
+          // Jika error (misal belum login), tetap hancurkan/tutup window
+          appWindow.destroy().catch(console.error);
         }
       }).then((unsub: any) => {
         unlisten = unsub;
@@ -54,30 +58,12 @@ export const WindowControls: React.FC = () => {
     appWindow ? appWindow.toggleMaximize().catch(console.error) : console.log('Maximize window (browser mock)');
   };
 
-  const handleClose = async () => {
-    if (!appWindow) {
+  const handleClose = () => {
+    if (appWindow) {
+      appWindow.close().catch(console.error);
+    } else {
       console.log('Close window (browser mock)');
-      return;
     }
-
-    try {
-      const activeSession = await invoke<any>('get_active_work_session');
-      if (activeSession) {
-        const dialog = await import('@tauri-apps/plugin-dialog');
-        await dialog.message(
-          'Sesi jam kerja Anda masih aktif. Harap hentikan (stop) sesi kerja terlebih dahulu sebelum menutup aplikasi!',
-          {
-            title: 'Sesi Kerja Masih Aktif',
-            kind: 'warning',
-          }
-        );
-        return;
-      }
-    } catch (err) {
-      console.error('Gagal memeriksa status jam kerja saat handleClose:', err);
-    }
-
-    appWindow.close().catch(console.error);
   };
 
   const handleDragStart = () => {
@@ -89,12 +75,13 @@ export const WindowControls: React.FC = () => {
       {/* Drag Handle Button untuk menggeser window */}
       <button 
         className="top-bar-window-btn top-bar-window-drag-btn" 
-        onMouseDown={handleDragStart} 
+        onMouseDown={handleDragStart}
+        data-tauri-drag-region
         style={{ cursor: 'grab' }}
         title="Geser Window"
         aria-label="Drag Window"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
           <circle cx="9" cy="5" r="1" />
           <circle cx="9" cy="12" r="1" />
           <circle cx="9" cy="19" r="1" />
