@@ -283,24 +283,20 @@ export const ItemsSection: React.FC = () => {
       setSelectedBookIdState(String(item.book_id));
       setSelectedServiceIdState('');
       setSelectedNaskahIdState('');
-      setSelectedValue(`book_${item.book_id}`);
     } else if (item.naskah_id) {
       setSelectedNaskahIdState(String(item.naskah_id));
       setSelectedBookIdState('');
       setSelectedServiceIdState('');
-      setSelectedValue(`naskah_${item.naskah_id}`);
     } else {
       const matchedService = services.find(s => s.name === item.item_title);
       if (matchedService) {
         setSelectedServiceIdState(String(matchedService.id));
         setSelectedBookIdState('');
         setSelectedNaskahIdState('');
-        setSelectedValue(`service_${matchedService.id}`);
       } else {
         setSelectedServiceIdState('');
         setSelectedBookIdState('');
         setSelectedNaskahIdState('');
-        setSelectedValue('');
       }
     }
 
@@ -364,7 +360,6 @@ export const ItemsSection: React.FC = () => {
     setSelectedServiceIdState('');
     setSelectedBookIdState('');
     setSelectedNaskahIdState('');
-    setSelectedValue('');
     
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
