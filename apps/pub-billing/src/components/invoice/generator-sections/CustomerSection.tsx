@@ -1,3 +1,8 @@
+import React, { useMemo, useState } from 'react';
+import { useInvoiceContext } from '../../../contexts/InvoiceContext';
+import { useAppContext } from '../../../contexts/AppContext';
+import { SmartRelationField, SmartRelationOption, Modal } from '@pubhub/shared-ui';
+import { findBestDuplicate, formatDuplicateReason } from '@pubhub/shared-utils';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 
 export const CustomerSection: React.FC = () => {
