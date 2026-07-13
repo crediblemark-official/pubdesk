@@ -42,7 +42,15 @@ const DesignSection: React.FC = () => {
             className="compact-input"
             style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
             value={profileName}
-            onChange={(e) => setProfileName(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setProfileName(val);
+              const clean = val
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+              setTableType(clean);
+            }}
             placeholder="Contoh: Profil Cetak Kustom"
           />
         </div>
