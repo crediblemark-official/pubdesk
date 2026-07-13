@@ -74,15 +74,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (mode === 'autocomplete' && search.trim().length > 0 && filteredOptions.length === 0 && isOpen) {
-      const timer = setTimeout(() => {
-        onNoResults?.(search);
-        setIsOpen(false);
-      }, 900);
-      return () => clearTimeout(timer);
-    }
-  }, [search, filteredOptions.length, isOpen, mode, onNoResults]);
+
 
   const handleSelect = (opt: SelectOption) => {
     onChange(opt.value);
