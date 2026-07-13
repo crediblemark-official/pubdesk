@@ -4,10 +4,10 @@ import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { InvoiceItem } from '../../../types/invoice.types';
 import { formatPrice } from '../../../utils/format';
-import { SmartRelationField, SmartRelationOption } from '@pubhub/shared-ui';
+import { SmartRelationField, SmartRelationOption, Modal } from '@pubhub/shared-ui';
 
 export const ItemsSection: React.FC = () => {
-  const { services, books, showToast, addService, addBook, contacts } = useAppContext();
+  const { services, books, showToast, addService, addBook, updateService, deleteService, updateBook, deleteBook, contacts, showConfirm } = useAppContext();
   const { naskah } = useDataMasterContext();
   const {
     customer,
@@ -38,6 +38,17 @@ export const ItemsSection: React.FC = () => {
   });
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // State untuk edit/ubah data master layanan & karya langsung dari dropdown
+  const [showEditMasterModal, setShowEditMasterModal] = useState(false);
+  const [editMasterType, setEditMasterType] = useState<'service' | 'book'>('service');
+  const [editMasterData, setEditMasterData] = useState({
+    id: 0,
+    name: '',
+    price: 0,
+    description: '',
+    author_id: '',
+  });
 
   const penulisList = useMemo(() => {
     return contacts.filter(c => c.type === 'penulis' || c.type === 'both');
@@ -271,6 +282,126 @@ export const ItemsSection: React.FC = () => {
     if (priceField) sortedFields.push(priceField);
     
     return sortedFields;
+  };
+
+  const handleEditMasterOption = (value: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (value.startsWith('service-')) {
+      const id = parseInt(value.replace('service-', ''));
+      const s = services.find(item => item.id === id);
+      if (s) {
+        setEditMasterType('service');
+        setEditMasterData({
+          id: s.id || 0,
+          name: s.name,
+          price: s.price,
+          description: s.description || '',
+          author_id: '',
+        });
+        setShowEditMasterModal(true);
+      }
+    } else if (value.startsWith('book-')) {
+      const id = parseInt(value.replace('book-', ''));
+      const b = books.find(item => item.id === id);
+      if (b) {
+        setEditMasterType('book');
+        setEditMasterData({
+          id: b.id || 0,
+          name: b.title,
+          price: b.regular_price,
+          description: '',
+          author_id: b.author_id ? String(b.author_id) : '',
+        });
+        setShowEditMasterModal(true);
+      }
+    }
+  };
+
+  const handleDeleteMasterOption = (value: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (value.startsWith('service-')) {
+      const id = parseInt(value.replace('service-', ''));
+      const s = services.find(item => item.id === id);
+      if (s) {
+        showConfirm({
+          title: 'Hapus Layanan',
+          message: `Apakah Anda yakin ingin menghapus layanan "${s.name}" dari master?`,
+          confirmText: 'Hapus',
+          type: 'danger',
+          onConfirm: async () => {
+            try {
+              await deleteService(id);
+              showToast('Layanan berhasil dihapus dari master!', 'success');
+            } catch {
+              showToast('Gagal menghapus layanan', 'error');
+            }
+          }
+        });
+      }
+    } else if (value.startsWith('book-')) {
+      const id = parseInt(value.replace('book-', ''));
+      const b = books.find(item => item.id === id);
+      if (b) {
+        showConfirm({
+          title: 'Hapus Karya / Buku',
+          message: `Apakah Anda yakin ingin menghapus karya "${b.title}" dari master?`,
+          confirmText: 'Hapus',
+          type: 'danger',
+          onConfirm: async () => {
+            try {
+              await deleteBook(id);
+              showToast('Karya berhasil dihapus dari master!', 'success');
+            } catch {
+              showToast('Gagal menghapus karya', 'error');
+            }
+          }
+        });
+      }
+    }
+  };
+
+  const handleSaveMasterEdit = async () => {
+    if (editMasterType === 'service') {
+      if (!editMasterData.name.trim()) {
+        showToast('Nama layanan tidak boleh kosong!', 'error');
+        return;
+      }
+      try {
+        const s = services.find(item => item.id === editMasterData.id);
+        if (s) {
+          await updateService({
+            ...s,
+            name: editMasterData.name.trim(),
+            price: editMasterData.price,
+            description: editMasterData.description,
+          });
+          showToast('Data master layanan berhasil diperbarui!', 'success');
+          setShowEditMasterModal(false);
+        }
+      } catch {
+        showToast('Gagal memperbarui data master layanan', 'error');
+      }
+    } else {
+      if (!editMasterData.name.trim()) {
+        showToast('Judul karya tidak boleh kosong!', 'error');
+        return;
+      }
+      try {
+        const b = books.find(item => item.id === editMasterData.id);
+        if (b) {
+          await updateBook({
+            ...b,
+            title: editMasterData.name.trim(),
+            regular_price: editMasterData.price,
+            author_id: editMasterData.author_id ? parseInt(editMasterData.author_id) : undefined,
+          });
+          showToast('Data master karya berhasil diperbarui!', 'success');
+          setShowEditMasterModal(false);
+        }
+      } catch {
+        showToast('Gagal memperbarui data master karya', 'error');
+      }
+    }
   };
 
   const handleStartEdit = (index: number) => {
@@ -512,6 +643,8 @@ export const ItemsSection: React.FC = () => {
               entityLabelPlural="Layanan/Karya"
               fullWidth
               mode="autocomplete"
+              onEditOption={handleEditMasterOption}
+              onDeleteOption={handleDeleteMasterOption}
               onSearchChange={(search) => setCreateFormData(prev => ({ ...prev, name: search, title: search }))}
               renderCreateForm={({ onSave, onCancel }) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -794,6 +927,74 @@ export const ItemsSection: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Modal Edit Master Layanan / Karya */}
+      <Modal
+        isOpen={showEditMasterModal}
+        onClose={() => setShowEditMasterModal(false)}
+        title={editMasterType === 'service' ? 'Ubah Data Master Layanan' : 'Ubah Data Master Karya'}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '4px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+              {editMasterType === 'service' ? 'Nama Layanan' : 'Judul Karya'}
+            </label>
+            <input
+              type="text"
+              value={editMasterData.name}
+              onChange={(e) => setEditMasterData(prev => ({ ...prev, name: e.target.value }))}
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+              {editMasterType === 'service' ? 'Tarif (Rp)' : 'Harga Reguler (Rp)'}
+            </label>
+            <input
+              type="number"
+              value={editMasterData.price}
+              onChange={(e) => setEditMasterData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          {editMasterType === 'service' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Deskripsi</label>
+              <input
+                type="text"
+                value={editMasterData.description}
+                onChange={(e) => setEditMasterData(prev => ({ ...prev, description: e.target.value }))}
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', boxSizing: 'border-box' }}
+              />
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Penulis</label>
+              <select
+                value={editMasterData.author_id}
+                onChange={(e) => setEditMasterData(prev => ({ ...prev, author_id: e.target.value }))}
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', boxSizing: 'border-box' }}
+              >
+                <option value="">-- Pilih Penulis --</option>
+                {penulisList.map(p => (
+                  <option key={p.id} value={String(p.id)}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
+            <button className="btn-secondary" type="button" onClick={() => setShowEditMasterModal(false)}>
+              Batal
+            </button>
+            <button className="btn-primary" type="button" onClick={handleSaveMasterEdit}>
+              Perbarui
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };
