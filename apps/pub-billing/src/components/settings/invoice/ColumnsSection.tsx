@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSettingsForm } from './SettingsFormContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { InvoiceTableColumn } from '../../../types/invoice.types';
+import { InvoiceTableColumn, CustomInvoiceLayout } from '../../../types/invoice.types';
 
 const generateKeyFromLabel = (label: string, index: number): string => {
   const clean = label
@@ -119,7 +119,7 @@ const ColumnsSection: React.FC = () => {
     if (!name || !name.trim()) return;
     
     const id = `layout_${Date.now()}`;
-    const newLayout = {
+    const newLayout: CustomInvoiceLayout = {
       id,
       name: name.trim(),
       tableColumns: [
@@ -128,7 +128,7 @@ const ColumnsSection: React.FC = () => {
         { key: 'price', label: 'Harga', type: 'currency', align: 'right', width: '110px' },
         { key: 'total', label: 'Total', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
       ],
-      shippingType: 'none' as const
+      shippingType: 'none'
     };
     
     setCustomLayouts(prev => [...prev, newLayout]);
