@@ -468,7 +468,8 @@ export function useInvoiceSettingsForm() {
         try {
           const parsed = JSON.parse(event.target?.result as string);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const isValid = parsed.every((p) => p.id && p.name && p.companyName);
+            // Validasi: p.id dan p.name wajib ada. companyName opsional dan bisa kosong (falsy).
+            const isValid = parsed.every((p) => p && p.id && p.name);
             if (isValid) {
               setProfiles(parsed);
               setSelectedProfileId(parsed[0].id);
@@ -483,6 +484,8 @@ export function useInvoiceSettingsForm() {
         } catch (error) {
           console.error(error);
           showToast('Gagal mengurai berkas JSON backup.', 'error');
+        } finally {
+          e.target.value = '';
         }
       };
     }
