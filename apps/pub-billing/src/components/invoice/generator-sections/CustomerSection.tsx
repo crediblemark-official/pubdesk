@@ -375,12 +375,13 @@ export const CustomerSection: React.FC = () => {
           onEditOption={handleEditOption}
           onDeleteOption={handleDeleteOption}
           mode="autocomplete"
+          onSearchChange={(search) => setCreateFormData(prev => ({ ...prev, name: search }))}
           renderCreateForm={({ onSave, onCancel }) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <input
                 type="text"
                 placeholder="Nama lengkap"
-                defaultValue={createFormData.name}
+                value={createFormData.name || ''}
                 onChange={(e) => setCreateFormData((prev) => ({ ...prev, name: e.target.value }))}
                 style={{
                   width: '100%',

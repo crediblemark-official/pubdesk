@@ -363,6 +363,7 @@ export const ItemsSection: React.FC = () => {
               entityLabelPlural="Layanan/Karya"
               fullWidth
               mode="autocomplete"
+              onSearchChange={(search) => setCreateFormData(prev => ({ ...prev, name: search, title: search }))}
               renderCreateForm={({ onSave, onCancel }) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Tab Selector */}

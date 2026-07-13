@@ -56,6 +56,8 @@ export interface SmartRelationFieldProps {
   onEditOption?: (value: string, e: React.MouseEvent) => void;
   onDeleteOption?: (value: string, e: React.MouseEvent) => void;
   mode?: 'select' | 'autocomplete';
+  onNoResults?: (search: string) => void;
+  onSearchChange?: (search: string) => void;
 }
 
 /**
@@ -90,6 +92,8 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
   onEditOption,
   onDeleteOption,
   mode = 'select',
+  onNoResults,
+  onSearchChange,
 }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -99,6 +103,14 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
     () => options.find((o) => o.value === value),
     [options, value]
   );
+
+  const handleNoResults = (search: string) => {
+    if (onNoResults) {
+      onNoResults(search);
+    } else if (renderCreateForm) {
+      setShowCreateModal(true);
+    }
+  };
 
   const handleCreateClick = () => {
     if (onRequestCreate) {
@@ -167,6 +179,8 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
             onEditOption={onEditOption}
             onDeleteOption={onDeleteOption}
             mode={mode}
+            onNoResults={handleNoResults}
+            onSearchChange={onSearchChange}
           />
         </div>
 

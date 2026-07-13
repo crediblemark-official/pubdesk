@@ -18,6 +18,8 @@ interface SearchableSelectProps {
   onEditOption?: (value: string, e: React.MouseEvent) => void;
   onDeleteOption?: (value: string, e: React.MouseEvent) => void;
   mode?: 'select' | 'autocomplete';
+  onNoResults?: (search: string) => void;
+  onSearchChange?: (search: string) => void;
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -33,6 +35,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   onEditOption,
   onDeleteOption,
   mode = 'select',
+  onNoResults,
+  onSearchChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -70,6 +74,16 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (mode === 'autocomplete' && search.trim().length > 0 && filteredOptions.length === 0 && isOpen) {
+      const timer = setTimeout(() => {
+        onNoResults?.(search);
+        setIsOpen(false);
+      }, 900);
+      return () => clearTimeout(timer);
+    }
+  }, [search, filteredOptions.length, isOpen, mode, onNoResults]);
+
   const handleSelect = (opt: SelectOption) => {
     onChange(opt.value);
     setIsOpen(false);
@@ -79,6 +93,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearch(val);
+    onSearchChange?.(val);
     if (mode === 'autocomplete') {
       setIsOpen(val.trim().length > 0);
     } else {
@@ -100,6 +115,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const handleClear = () => {
     onChange('');
     setSearch('');
+    onSearchChange?.('');
     inputRef.current?.focus();
   };
 
@@ -157,8 +173,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
               setIsOpen(false);
               setSearch('');
             }
-            if (e.key === 'Enter' && filteredOptions.length === 1) {
-              handleSelect(filteredOptions[0]);
+            if (e.key === 'Enter') {
+              if (filteredOptions.length === 1) {
+                handleSelect(filteredOptions[0]);
+              } else if (mode === 'autocomplete' && filteredOptions.length === 0 && search.trim().length > 0) {
+                e.preventDefault();
+                onNoResults?.(search);
+                setIsOpen(false);
+              }
             }
           }}
         />
