@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
+import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { Contact } from '../../types/contact.types';
 import { Button } from '../../ui/atoms/Button';
 import { TableEmptyState } from '../../ui/molecules/EmptyState';
@@ -15,6 +16,7 @@ interface PelangganManagerProps {
 
 const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' }) => {
   const { contacts, addContact, updateContact, deleteContact, showConfirm, showToast, setRightPanelVisible, selectedCustomerId, setSelectedCustomerId, addFile, files, registerImportExportActions, directAddNewModule, setDirectAddNewModule } = useAppContext();
+  const { penerbit } = useDataMasterContext();
 
   useEffect(() => {
     const actions = {
@@ -324,6 +326,48 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
     );
   }
 
+  const renderContactTypeBadge = (contact: Contact) => {
+    if (contact.type === 'mitra') {
+      return (
+        <span style={{ fontSize: '9px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
+          Mitra B2B
+        </span>
+      );
+    }
+    if (contact.type === 'customer_mitra') {
+      let partnerName = 'Mitra';
+      if (contact.institution && contact.institution.startsWith('penerbit_id:')) {
+        const pId = parseInt(contact.institution.replace('penerbit_id:', ''));
+        const partner = penerbit.find(p => p.id === pId);
+        if (partner) partnerName = partner.name;
+      }
+      return (
+        <span style={{ fontSize: '9px', background: 'rgba(168, 85, 247, 0.1)', color: '#9333ea', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+          Pelanggan {partnerName}
+        </span>
+      );
+    }
+    if (contact.type === 'penulis') {
+      return (
+        <span style={{ fontSize: '9px', background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+          Penulis KBM
+        </span>
+      );
+    }
+    if (contact.type === 'both') {
+      return (
+        <span style={{ fontSize: '9px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+          Penulis & Pelanggan
+        </span>
+      );
+    }
+    return (
+      <span style={{ fontSize: '9px', background: 'rgba(107, 114, 128, 0.1)', color: '#4b5563', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', border: '1px solid rgba(107, 114, 128, 0.2)' }}>
+        Pelanggan
+      </span>
+    );
+  };
+
   return (
     <div className="customer-list-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-dark)' }}>
       <input
@@ -440,6 +484,7 @@ const PelangganManager: React.FC<PelangganManagerProps> = ({ searchQuery = '' })
                   </td>
                   <td style={{ padding: '10px 12px', fontWeight: '500', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {p.name}
+                    {renderContactTypeBadge(p)}
                     {p.needs_review === 1 && (
                       <span style={{
                         fontSize: '9px',
