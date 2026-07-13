@@ -138,24 +138,28 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
 
   const renderedEmptyMessage = useMemo(() => {
     if (!emptyMessage) return undefined;
-    if (typeof emptyMessage === 'string' && (emptyMessage.includes("'+ Baru'") || emptyMessage.includes("`+ Baru`"))) {
-      const targetStr = emptyMessage.includes("'+ Baru'") ? "'+ Baru'" : "`+ Baru`";
-      const parts = emptyMessage.split(targetStr);
-      return (
-        <span>
-          {parts[0]}
-          <span
-            style={{ color: 'var(--accent)', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCreateClick();
-            }}
-          >
-            + Baru
+    if (typeof emptyMessage === 'string') {
+      const match = emptyMessage.match(/['`]?\+.*?Baru['`]?/);
+      if (match) {
+        const triggerText = match[0];
+        const parts = emptyMessage.split(triggerText);
+        const cleanText = triggerText.replace(/['`]/g, '');
+        return (
+          <span>
+            {parts[0]}
+            <span
+              style={{ color: 'var(--accent)', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCreateClick();
+              }}
+            >
+              {cleanText}
+            </span>
+            {parts[1]}
           </span>
-          {parts[1]}
-        </span>
-      );
+        );
+      }
     }
     return emptyMessage;
   }, [emptyMessage]);

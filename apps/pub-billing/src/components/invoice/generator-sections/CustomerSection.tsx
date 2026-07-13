@@ -368,7 +368,7 @@ export const CustomerSection: React.FC = () => {
           value={selectedValue}
           onChange={handleSelect}
           placeholder="Ketik nama atau + Kontak Baru jika belum ada"
-          emptyMessage="Belum ada data. Klik '+ Baru' untuk membuat."
+          emptyMessage="Belum ada data. Tekan Enter atau klik + Kontak Baru untuk membuat."
           entityLabel="Kontak"
           entityLabelPlural="Kontak"
           fullWidth
