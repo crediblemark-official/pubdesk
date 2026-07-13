@@ -80,7 +80,7 @@ export const WindowControls: React.FC = () => {
     appWindow.close().catch(console.error);
   };
 
-  const handleDragStart = (e: React.MouseEvent) => {
+  const handleDragStart = () => {
     appWindow ? appWindow.startDragging().catch(console.error) : console.log('Drag window (browser mock)');
   };
 
