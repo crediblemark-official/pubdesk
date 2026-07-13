@@ -1,0 +1,65 @@
+{
+  "templateId": "layanan_umum",
+  "label": "Layanan Umum / Jasa Standar",
+  "description": "Kolom: Nama Jasa / Item, Jumlah, Harga Satuan, Total",
+  "category": "Layanan",
+  "name": "Layanan Umum",
+  "companyName": "COMPANY",
+  "companyTagline": "Tagline Lembaga/Perusahaan",
+  "invoiceTitleText": "INVOICE",
+  "accentColor": "#c01c1c",
+  "accentColorDark": "#991b1b",
+  "headerBgColor": "#222933",
+  "headerPrimaryColor": "#c01c1c",
+  "headerSecondaryColor": "#c01c1c",
+  "defaultHal": "Layanan Jasa",
+  "defaultLampiran": "-",
+  "salamPembuka": "Bersama surat ini kami memberikan gambaran rincian biaya layanan jasa dengan ketentuan sebagai berikut:",
+  "actionLabel": "layanan jasa",
+  "tableType": "umum",
+  "notes": [
+    "Jika terkait pajak maka pajak ditanggung pemesan.",
+    "Fasilitas sesuai paket yang diambil."
+  ],
+  "showSpesifikasi": false,
+  "defaultSpesifikasi": "",
+  "signatureOffice": "Kantor Administrasi",
+  "signatureLocation": "Kota",
+  "signatureRole": "Admin Keuangan",
+  "signatureName": "Nama Penandatangan",
+  "showBankInfo": true,
+  "bankName": "Nama Bank",
+  "bankAccountNo": "Nomor Rekening",
+  "bankAccountOwner": "Nama Pemilik Rekening",
+  "headerType": "logo_text",
+  "tableColumns": [
+    {
+      "key": "item_title",
+      "label": "Nama Jasa / Karya",
+      "type": "text",
+      "align": "left"
+    },
+    {
+      "key": "quantity",
+      "label": "Jml.",
+      "type": "number",
+      "align": "center",
+      "width": "80px"
+    },
+    {
+      "key": "price",
+      "label": "Harga",
+      "type": "currency",
+      "align": "right",
+      "width": "130px"
+    },
+    {
+      "key": "total",
+      "label": "Total",
+      "type": "formula",
+      "formula": "{price} * {quantity}",
+      "align": "right",
+      "width": "130px"
+    }
+  ]
+}

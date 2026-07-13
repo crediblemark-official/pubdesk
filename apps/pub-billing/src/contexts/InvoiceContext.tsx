@@ -49,6 +49,8 @@ interface InvoiceContextType {
   profiles: InvoiceProfile[];
   activeProfileId: string;
   activeProfile: InvoiceProfile | undefined;
+  selectedLayoutId: string;
+  setSelectedLayoutId: (id: string) => void;
   setCustomer: (customer: InvoiceCustomerData | ((prev: InvoiceCustomerData) => InvoiceCustomerData)) => void;
   addItem: (item: InvoiceItem) => void;
   updateItem: (index: number, item: Partial<InvoiceItem>) => void;
@@ -106,6 +108,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [bankAccountInfo, setBankAccountInfo] = useState('');
   const [editingInvoiceId, setEditingInvoiceId] = useState<number | null>(null);
   const [tempPreviewProfile, setTempPreviewProfile] = useState<InvoiceProfile | null>(null);
+  const [selectedLayoutId, setSelectedLayoutId] = useState<string>('');
 
   // Load profiles from localStorage on mount
   useEffect(() => {
@@ -152,12 +155,27 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const setActiveProfileId = (id: string) => {
     setActiveProfileIdState(id);
     localStorage.setItem('active_profile_id', id);
+    // Reset layout override ke default layout profil yang baru dipilih
+    setSelectedLayoutId('');
   };
 
-  // Find active profile
+  // Find active profile with dynamic column layout override
   const activeProfile = useMemo(() => {
-    return profiles.find(p => p.id === activeProfileId);
-  }, [profiles, activeProfileId]);
+    const profile = profiles.find(p => p.id === activeProfileId);
+    if (!profile) return undefined;
+
+    if (selectedLayoutId) {
+      const matchedTemplate = invoiceTemplates.find(t => t.templateId === selectedLayoutId);
+      if (matchedTemplate) {
+        return {
+          ...profile,
+          tableColumns: matchedTemplate.profile.tableColumns,
+          tableType: matchedTemplate.profile.tableType
+        };
+      }
+    }
+    return profile;
+  }, [profiles, activeProfileId, selectedLayoutId]);
 
   // Sync state values with active profile details
   useEffect(() => {
@@ -242,6 +260,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setInvoiceDate(getIndonesianDate());
     setPaymentStatus('LUNAS');
     setEditingInvoiceId(null);
+    setSelectedLayoutId('');
     
     if (activeProfile) {
       setInvoiceHal('');
@@ -354,6 +373,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setInvoiceDate(metadata.invoiceDate || '');
       setPaymentStatus(metadata.paymentStatus || 'LUNAS');
       setSpesifikasiFasilitas(metadata.spesifikasiFasilitas || '');
+      setSelectedLayoutId(metadata.selectedLayoutId || '');
       
       // Cocokkan profile dengan export_format
       const matchingProfile = profiles.find(p => p.id === invoice.export_format || p.tableType === invoice.export_format);
@@ -393,6 +413,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       profiles,
       activeProfileId,
       activeProfile,
+      selectedLayoutId,
+      setSelectedLayoutId,
       setCustomer,
       addItem,
       updateItem,

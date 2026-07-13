@@ -28,7 +28,8 @@ const InvoiceGenerator: React.FC = () => {
     calculateItemTotal,
     resetInvoice,
     activeProfile,
-    editingInvoiceId
+    editingInvoiceId,
+    selectedLayoutId
   } = useInvoiceContext();
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
@@ -152,7 +153,8 @@ const InvoiceGenerator: React.FC = () => {
       invoiceNo, invoiceDate, invoiceHal, invoiceLampiran, paymentStatus,
       spesifikasiFasilitas, invoiceType,
       customerName: customerNameTrimmed, customerWa: customer.wa_number || '',
-      customerEmail: customer.email || '', customerAddress: customer.address || '', isPenulis
+      customerEmail: customer.email || '', customerAddress: customer.address || '', isPenulis,
+      selectedLayoutId
     };
 
     return {
