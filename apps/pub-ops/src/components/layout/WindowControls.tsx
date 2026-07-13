@@ -1,16 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 export const WindowControls: React.FC = () => {
-  const [appWindow, setAppWindow] = useState<any>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
-      import('@tauri-apps/api/window')
-        .then((m) => setAppWindow(m.getCurrentWindow()))
-        .catch((err) => console.error('Gagal memuat Tauri Window API:', err));
-    }
-  }, []);
+  const appWindow = typeof window !== 'undefined' ? getCurrentWindow() : null;
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;
