@@ -47,6 +47,20 @@ pub fn init_db(db_path: &PathBuf) -> Result<(), DbError> {
     // Sinkronisasi data pelanggan dari invoice lama ke tabel contacts jika contacts kosong
     let _ = session::sync_contacts_from_invoices(&conn);
     
+    // Bersihkan / auto-close sesi jam kerja yang mati (unclosed session akibat PC shutdown/crash)
+    let _ = conn.execute(
+        "UPDATE work_hours 
+         SET end_time = COALESCE(last_heartbeat, start_time), 
+             duration_seconds = CAST(
+                 (strftime('%s', COALESCE(last_heartbeat, start_time)) - strftime('%s', start_time)) 
+                 AS INTEGER
+             ),
+             notes = 'Auto-closed (system shutdown/crash)'
+         WHERE end_time IS NULL 
+           AND (last_heartbeat IS NULL OR (strftime('%s', 'now') - strftime('%s', last_heartbeat)) > 60)",
+        []
+    );
+    
     Ok(())
 }
 

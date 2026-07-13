@@ -642,13 +642,15 @@ pub fn build_schema(conn: &Connection) -> Result<()> {
             end_time TEXT,
             duration_seconds INTEGER DEFAULT 0,
             notes TEXT,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            last_heartbeat TEXT
         )",
         [],
     )?;
 
     // Migrasi ad-hoc untuk tabel legalitas & invoices & work_hours
     let _ = conn.execute("ALTER TABLE work_hours ADD COLUMN tim_id INTEGER", []);
+    let _ = conn.execute("ALTER TABLE work_hours ADD COLUMN last_heartbeat TEXT", []);
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN nomor_dokumen TEXT", []);
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN tanggal_keluar TEXT", []);
     let _ = conn.execute("ALTER TABLE legalitas ADD COLUMN tanggal_revisi TEXT", []);

@@ -83,6 +83,17 @@ pub async fn stop_work_session(state: State<'_, AppState>, id: i64, end_time: St
 }
 
 #[tauri::command]
+pub async fn heartbeat_work_session(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    let current_tim_id = {
+        let active = state.active_session.lock().unwrap();
+        active.as_ref().map(|s| s.tim_id).ok_or_else(|| "Pengguna belum login".to_string())?
+    };
+    let db = state.db.lock().unwrap();
+    let db = db.as_ref().ok_or("Database tidak diinisialisasi")?;
+    db.heartbeat_work_session(id, current_tim_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub async fn get_active_work_session(state: State<'_, AppState>) -> Result<Option<WorkSession>, String> {
     let current_tim_id = {
         let active = state.active_session.lock().unwrap();

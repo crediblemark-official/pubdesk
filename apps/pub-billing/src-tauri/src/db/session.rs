@@ -449,6 +449,15 @@ impl Database {
         Ok(())
     }
 
+    pub fn heartbeat_work_session(&self, id: i64, tim_id: i64) -> Result<(), DbError> {
+        let now = chrono::Local::now().to_rfc3339();
+        self.conn.execute(
+            "UPDATE work_hours SET last_heartbeat = ?1 WHERE id = ?2 AND tim_id = ?3",
+            params![now, id, tim_id]
+        )?;
+        Ok(())
+    }
+
     pub fn get_active_work_session(&self, tim_id: i64) -> Result<Option<WorkSession>, DbError> {
         let mut stmt = self.conn.prepare(
             "SELECT id, tim_id, start_time, end_time, duration_seconds, notes, created_at FROM work_hours WHERE tim_id = ?1 AND end_time IS NULL ORDER BY id DESC LIMIT 1"

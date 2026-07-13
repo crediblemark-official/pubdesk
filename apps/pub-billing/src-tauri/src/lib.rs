@@ -441,6 +441,7 @@ pub fn run() {
             commands::session::get_current_user,
             commands::session::start_work_session,
             commands::session::stop_work_session,
+            commands::session::heartbeat_work_session,
             commands::session::get_active_work_session,
             commands::session::get_work_sessions,
             commands::session::get_activity_log,

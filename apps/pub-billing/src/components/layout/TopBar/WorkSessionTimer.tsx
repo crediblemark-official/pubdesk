@@ -57,6 +57,24 @@ export const WorkSessionTimer: React.FC<WorkSessionTimerProps> = ({ showToast, o
     };
   }, [isTimerRunning, activeSession]);
 
+  // Send heartbeat every 10 seconds if active work session is running
+  useEffect(() => {
+    let hbInterval: any = null;
+    if (isTimerRunning && activeSession?.id) {
+      // Send initial heartbeat immediately
+      invoke('heartbeat_work_session', { id: activeSession.id })
+        .catch(err => console.error('Gagal mengirim heartbeat awal:', err));
+
+      hbInterval = setInterval(() => {
+        invoke('heartbeat_work_session', { id: activeSession.id })
+          .catch(err => console.error('Gagal mengirim heartbeat berkala:', err));
+      }, 10000);
+    }
+    return () => {
+      if (hbInterval) clearInterval(hbInterval);
+    };
+  }, [isTimerRunning, activeSession]);
+
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
