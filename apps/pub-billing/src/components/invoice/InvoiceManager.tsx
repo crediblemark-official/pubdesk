@@ -21,7 +21,6 @@ const PAYMENT_STATUSES = [
   { value: 'LUNAS', label: 'Lunas', color: '#16a34a' },
   { value: 'DP', label: 'DP', color: '#2563eb' },
   { value: 'BERMASALAH', label: 'Bermasalah', color: '#d97706' },
-  { value: 'BELUM LUNAS', label: 'Belum Lunas', color: '#dc2626' },
 ];
 
 const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => {

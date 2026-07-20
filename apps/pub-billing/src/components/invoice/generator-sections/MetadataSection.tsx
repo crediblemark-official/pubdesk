@@ -126,7 +126,6 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
             onChange={(e) => setPaymentStatus(e.target.value)}
           >
             <option value="LUNAS">LUNAS</option>
-            <option value="BELUM LUNAS">BELUM LUNAS</option>
             <option value="DP">DP</option>
             <option value="BERMASALAH">BERMASALAH</option>
           </select>
