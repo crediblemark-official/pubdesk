@@ -53,6 +53,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
 
   // Filter status pembayaran — pola identik dengan Smart Folders
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [syncingInvoiceId, setSyncingInvoiceId] = useState<number | null>(null);
 
   const handleSort = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status' | 'fileStatus') => {
     if (sortField === field) {
@@ -293,11 +294,17 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
 
   // Aksi sinkronisasi manual per invoice
   const handleSyncCloud = async (invoice: Invoice) => {
-    const ok = await syncOneInvoice(invoice);
-    if (ok) {
-      showToast('Sinkronisasi cloud berhasil!', 'success');
-    } else {
-      showToast('Gagal sinkronisasi ke cloud!', 'error');
+    if (!invoice.id) return;
+    setSyncingInvoiceId(invoice.id);
+    try {
+      const ok = await syncOneInvoice(invoice);
+      if (ok) {
+        showToast('Sinkronisasi cloud berhasil!', 'success');
+      } else {
+        showToast('Gagal sinkronisasi ke cloud!', 'error');
+      }
+    } finally {
+      setSyncingInvoiceId(null);
     }
   };
 
@@ -574,7 +581,14 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
             height: '24px', flexShrink: 0
           }}
         >
-          <span>☁️</span> {syncingAll ? 'Menyinkron...' : 'Sinkron GAS'}
+          {syncingAll ? (
+            <>
+              <span className="button-spinner" style={{ width: '10px', height: '10px' }}></span>
+              Menyinkron...
+            </>
+          ) : (
+            <><span>☁️</span> Sinkron GAS</>
+          )}
         </button>
 
         <FilterDivider />
@@ -835,12 +849,13 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                         {inv.sync_status !== 'synced' && (
                           <button
                             onClick={() => handleSyncCloud(inv)}
-                            title="Sinkronkan Ulang ke Cloud"
+                            title={syncingInvoiceId === inv.id ? "Sedang menyinkronkan..." : "Sinkronkan Ulang ke Cloud"}
+                            disabled={syncingInvoiceId !== null}
                             style={{
                               border: 'none',
                               background: 'transparent',
                               color: 'var(--text-secondary)',
-                              cursor: 'pointer',
+                              cursor: syncingInvoiceId !== null ? 'not-allowed' : 'pointer',
                               padding: '4px',
                               borderRadius: '4px',
                               display: 'flex',
@@ -848,9 +863,13 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                               justifyContent: 'center'
                             }}
                           >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-                            </svg>
+                            {syncingInvoiceId === inv.id ? (
+                              <span className="button-spinner" style={{ width: '10px', height: '10px' }}></span>
+                            ) : (
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                              </svg>
+                            )}
                           </button>
                         )}
                         
