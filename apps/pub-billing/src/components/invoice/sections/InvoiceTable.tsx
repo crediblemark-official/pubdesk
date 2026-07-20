@@ -196,7 +196,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 </td>
               </tr>
 
-              {(paymentStatus === 'DP' || paymentStatus === 'BELUM LUNAS') && (
+              {paymentStatus === 'DP' && (
                 <>
                   <tr>
                     <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>

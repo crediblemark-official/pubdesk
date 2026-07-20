@@ -969,7 +969,7 @@ export const ItemsSection: React.FC = () => {
         ))}
       </div>
 
-      {((paymentStatus === 'DP' || paymentStatus === 'BELUM LUNAS') && (
+      {(paymentStatus === 'DP' && (
         <div style={{ 
           marginTop: '20px', 
           padding: '16px', 
