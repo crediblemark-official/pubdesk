@@ -221,7 +221,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </tbody>
       </table>
 
-      {profile?.showSpesifikasi && (
+      {profile?.showSpesifikasi && (spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas.trim() !== '' : !!profile.defaultSpesifikasi) && (
         <div style={{ 
           marginTop: '10px', 
           border: `1.5px solid ${accentColor}`, 
@@ -237,7 +237,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
           wordBreak: 'break-word',
           overflowWrap: 'break-word'
         }}>
-          {spesifikasiFasilitas || profile.defaultSpesifikasi}
+          {spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas : profile.defaultSpesifikasi}
         </div>
       )}
 
