@@ -76,9 +76,18 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
       const metadata = getInvoiceMetadata(inv);
       const invoiceNoLower = (metadata.invoiceNo || '').toLowerCase();
       const customerNameLower = (metadata.customerName || '').toLowerCase();
+      const invoiceDateStr = metadata.invoiceDate ? metadata.invoiceDate : '';
+      const invoiceDateIdStr = metadata.invoiceDate ? formatDateId(metadata.invoiceDate).toLowerCase() : '';
+      const createdAtStr = inv.created_at ? new Date(inv.created_at).toLocaleDateString('id-ID').toLowerCase() : '';
       const searchLower = searchQuery.toLowerCase();
       
-      const matchesSearch = invoiceNoLower.includes(searchLower) || customerNameLower.includes(searchLower);
+      const matchesSearch = 
+        invoiceNoLower.includes(searchLower) || 
+        customerNameLower.includes(searchLower) ||
+        invoiceDateStr.includes(searchLower) ||
+        invoiceDateIdStr.includes(searchLower) ||
+        createdAtStr.includes(searchLower);
+      
       const matchesStatus = selectedStatus === null || (metadata.paymentStatus || 'BERMASALAH') === selectedStatus;
       
       return matchesSearch && matchesStatus;
