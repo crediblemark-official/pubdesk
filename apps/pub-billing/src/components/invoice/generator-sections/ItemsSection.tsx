@@ -603,7 +603,7 @@ export const ItemsSection: React.FC = () => {
               transition: 'all 0.15s ease'
             }}
           >
-            Default / Bawaan
+            {activeProfile?.defaultLayoutName || 'Default / Bawaan'}
           </button>
           {activeProfile.customLayouts.map((layout) => (
             <button

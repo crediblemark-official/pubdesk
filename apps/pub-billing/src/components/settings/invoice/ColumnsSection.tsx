@@ -13,7 +13,7 @@ const generateKeyFromLabel = (label: string, index: number): string => {
 };
 
 const ColumnsSection: React.FC = () => {
-  const { tableColumns, setTableColumns, customLayouts, setCustomLayouts } = useSettingsForm();
+  const { tableColumns, setTableColumns, customLayouts, setCustomLayouts, defaultLayoutName, setDefaultLayoutName } = useSettingsForm();
   const { showConfirm } = useAppContext();
   const [activeLayoutId, setActiveLayoutId] = useState<string>('default');
 
@@ -178,7 +178,7 @@ const ColumnsSection: React.FC = () => {
             color: activeLayoutId === 'default' ? '#fff' : 'var(--text-primary)'
           }}
         >
-          Default / Bawaan
+          {defaultLayoutName || 'Default / Bawaan'}
         </button>
         
         {customLayouts.map(l => (
@@ -242,10 +242,40 @@ const ColumnsSection: React.FC = () => {
         )}
       </div>
 
+      {/* Ubah Nama Layout / Tabel */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'var(--bg-panel)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', maxWidth: '400px' }}>
+        <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+          Nama Layout / Tabel:
+        </span>
+        <input
+          type="text"
+          value={activeLayoutId === 'default' ? defaultLayoutName : (customLayouts.find(l => l.id === activeLayoutId)?.name || '')}
+          onChange={(e) => {
+            const newName = e.target.value;
+            if (activeLayoutId === 'default') {
+              setDefaultLayoutName(newName);
+            } else {
+              setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, name: newName } : l));
+            }
+          }}
+          placeholder="Nama layout..."
+          style={{
+            fontSize: '12px',
+            padding: '6px 10px',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            outline: 'none',
+            flex: 1,
+          }}
+        />
+      </div>
+
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500' }}>
-            Sesuaikan kolom untuk tabel <strong>{activeLayoutId === 'default' ? 'Default / Bawaan' : customLayouts.find(l => l.id === activeLayoutId)?.name}</strong>:
+            Sesuaikan kolom untuk tabel <strong>{activeLayoutId === 'default' ? (defaultLayoutName || 'Default / Bawaan') : customLayouts.find(l => l.id === activeLayoutId)?.name}</strong>:
           </span>
           <div style={{ display: 'flex', gap: '6px' }}>
             <button

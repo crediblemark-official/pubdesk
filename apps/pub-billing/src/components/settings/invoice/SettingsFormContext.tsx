@@ -94,6 +94,8 @@ export interface SettingsFormContextType {
   setShowFooterBranding: (v: boolean) => void;
   footerNoteText: string;
   setFooterNoteText: (v: string) => void;
+  defaultLayoutName: string;
+  setDefaultLayoutName: (v: string) => void;
   customLayouts: CustomInvoiceLayout[];
   setCustomLayouts: (v: CustomInvoiceLayout[] | ((prev: CustomInvoiceLayout[]) => CustomInvoiceLayout[])) => void;
 }

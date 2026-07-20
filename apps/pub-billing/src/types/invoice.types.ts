@@ -101,5 +101,6 @@ export interface InvoiceProfile {
   showCompanyContact?: boolean;
   showFooterBranding?: boolean;
   footerNoteText?: string;
+  defaultLayoutName?: string;
   customLayouts?: CustomInvoiceLayout[];
 }

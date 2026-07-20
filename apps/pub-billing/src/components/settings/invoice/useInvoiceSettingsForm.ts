@@ -67,6 +67,7 @@ export function useInvoiceSettingsForm() {
   const [footerPrimaryColor, setFooterPrimaryColor] = useState('');
   const [footerSecondaryColor, setFooterSecondaryColor] = useState('');
   const [customLayouts, setCustomLayouts] = useState<CustomInvoiceLayout[]>([]);
+  const [defaultLayoutName, setDefaultLayoutName] = useState('Default / Bawaan');
   
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
@@ -120,6 +121,7 @@ export function useInvoiceSettingsForm() {
       setSignatureImg('');
       setHeaderType('logo_text');
       setCustomLayouts([]);
+      setDefaultLayoutName('Default / Bawaan');
       setTableColumns([
         { key: 'item_title', label: 'Judul', type: 'text', align: 'left' },
         { key: 'pages', label: 'Hal', type: 'text', align: 'center', width: '90px' },
@@ -191,6 +193,7 @@ export function useInvoiceSettingsForm() {
         setWatermarkOpacity(profile.watermarkOpacity !== undefined ? profile.watermarkOpacity : 8);
         setInvoiceNoFormat(profile.invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}');
         setCustomLayouts(profile.customLayouts || []);
+        setDefaultLayoutName(profile.defaultLayoutName || 'Default / Bawaan');
         setCompanyWebsite(profile.companyWebsite || '');
         setCompanyEmail(profile.companyEmail || '');
         setCompanyYoutube(profile.companyYoutube || '');
@@ -213,6 +216,7 @@ export function useInvoiceSettingsForm() {
   const currentEditingProfile: InvoiceProfile = {
     id: isEditingNew ? `profile_preview_${Date.now()}` : selectedProfileId,
     name: profileName,
+    defaultLayoutName,
     companyName,
     companyTagline,
     invoiceTitleText,
@@ -315,6 +319,7 @@ export function useInvoiceSettingsForm() {
     showCompanyContact,
     showFooterBranding,
     footerNoteText,
+    defaultLayoutName,
     setTempPreviewProfile
   ]);
 
@@ -388,6 +393,7 @@ export function useInvoiceSettingsForm() {
     setWatermarkColor(p.watermarkColor || '');
     setWatermarkOpacity(p.watermarkOpacity !== undefined ? p.watermarkOpacity : 8);
     setInvoiceNoFormat((p as any).invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}');
+    setDefaultLayoutName(p.defaultLayoutName || 'Default / Bawaan');
     setCompanyWebsite((p as any).companyWebsite || '');
     setCompanyEmail((p as any).companyEmail || '');
     setCompanyYoutube((p as any).companyYoutube || '');
@@ -609,6 +615,8 @@ export function useInvoiceSettingsForm() {
     setExpandedSection,
     customLayouts,
     setCustomLayouts,
+    defaultLayoutName,
+    setDefaultLayoutName,
     handleSave,
     handleCreateNew,
     handleLoadTemplate,
