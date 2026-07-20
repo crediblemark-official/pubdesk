@@ -178,7 +178,7 @@ const ColumnsSection: React.FC = () => {
             fontSize: '12px',
             fontWeight: '600',
             borderRadius: '6px',
-            cursor: 'pointer',
+            cursor: activeLayoutId === 'default' && isEditingName ? 'default' : 'pointer',
             border: '1px solid ' + (activeLayoutId === 'default' ? 'var(--accent)' : 'var(--border)'),
             background: activeLayoutId === 'default' ? 'var(--accent)' : 'transparent',
             color: activeLayoutId === 'default' ? '#fff' : 'var(--text-primary)',
@@ -187,79 +187,145 @@ const ColumnsSection: React.FC = () => {
             gap: '6px'
           }}
         >
-          <span>{defaultLayoutName || 'Default / Bawaan'}</span>
-          {activeLayoutId === 'default' && (
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditingName(!isEditingName);
+          {activeLayoutId === 'default' && isEditingName ? (
+            <input
+              type="text"
+              value={defaultLayoutName}
+              onChange={(e) => setDefaultLayoutName(e.target.value)}
+              onBlur={() => setIsEditingName(false)}
+              onClick={(e) => e.stopPropagation()}
+              onFocus={(e) => e.target.select()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setIsEditingName(false);
+                }
               }}
+              autoFocus
               style={{
-                cursor: 'pointer',
-                opacity: 0.8,
-                fontSize: '11px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '2px',
-                borderRadius: '4px',
+                border: 'none',
                 background: 'rgba(255,255,255,0.2)',
-                transition: 'background 0.2s',
-                lineHeight: 1
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: '600',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                outline: 'none',
+                width: '120px',
               }}
-              title="Ubah nama"
-            >
-              ✏️
-            </span>
+            />
+          ) : (
+            <>
+              <span>{defaultLayoutName || 'Default / Bawaan'}</span>
+              {activeLayoutId === 'default' && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingName(true);
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    opacity: 0.8,
+                    fontSize: '11px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '2px',
+                    borderRadius: '4px',
+                    background: 'rgba(255,255,255,0.2)',
+                    transition: 'background 0.2s',
+                    lineHeight: 1
+                  }}
+                  title="Ubah nama"
+                >
+                  ✏️
+                </span>
+              )}
+            </>
           )}
         </button>
         
-        {customLayouts.map(l => (
-          <button
-            key={l.id}
-            type="button"
-            onClick={() => setActiveLayoutId(l.id)}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              fontWeight: '600',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              border: '1px solid ' + (activeLayoutId === l.id ? 'var(--accent)' : 'var(--border)'),
-              background: activeLayoutId === l.id ? 'var(--accent)' : 'transparent',
-              color: activeLayoutId === l.id ? '#fff' : 'var(--text-primary)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <span>{l.name}</span>
-            {activeLayoutId === l.id && (
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditingName(!isEditingName);
-                }}
-                style={{
-                  cursor: 'pointer',
-                  opacity: 0.8,
-                  fontSize: '11px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '2px',
-                  borderRadius: '4px',
-                  background: 'rgba(255,255,255,0.2)',
-                  transition: 'background 0.2s',
-                  lineHeight: 1
-                }}
-                title="Ubah nama"
-              >
-                ✏️
-              </span>
-            )}
-          </button>
-        ))}
+        {customLayouts.map(l => {
+          const isActive = activeLayoutId === l.id;
+          return (
+            <button
+              key={l.id}
+              type="button"
+              onClick={() => setActiveLayoutId(l.id)}
+              style={{
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '6px',
+                cursor: isActive && isEditingName ? 'default' : 'pointer',
+                border: '1px solid ' + (isActive ? 'var(--accent)' : 'var(--border)'),
+                background: isActive ? 'var(--accent)' : 'transparent',
+                color: isActive ? '#fff' : 'var(--text-primary)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              {isActive && isEditingName ? (
+                <input
+                  type="text"
+                  value={l.name}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setCustomLayouts(prev => prev.map(item => item.id === l.id ? { ...item, name: newName } : item));
+                  }}
+                  onBlur={() => setIsEditingName(false)}
+                  onClick={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.target.select()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setIsEditingName(false);
+                    }
+                  }}
+                  autoFocus
+                  style={{
+                    border: 'none',
+                    background: 'rgba(255,255,255,0.2)',
+                    color: '#fff',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    outline: 'none',
+                    width: '120px',
+                  }}
+                />
+              ) : (
+                <>
+                  <span>{l.name}</span>
+                  {isActive && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditingName(true);
+                      }}
+                      style={{
+                        cursor: 'pointer',
+                        opacity: 0.8,
+                        fontSize: '11px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '2px',
+                        borderRadius: '4px',
+                        background: 'rgba(255,255,255,0.2)',
+                        transition: 'background 0.2s',
+                        lineHeight: 1
+                      }}
+                      title="Ubah nama"
+                    >
+                      ✏️
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
+          );
+        })}
 
         <button
           type="button"
@@ -302,38 +368,6 @@ const ColumnsSection: React.FC = () => {
         )}
       </div>
 
-      {/* Ubah Nama Layout / Tabel */}
-      {isEditingName && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'var(--bg-panel)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', maxWidth: '400px' }}>
-          <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-            Nama Layout / Tabel:
-          </span>
-          <input
-            type="text"
-            value={activeLayoutId === 'default' ? defaultLayoutName : (customLayouts.find(l => l.id === activeLayoutId)?.name || '')}
-            onChange={(e) => {
-              const newName = e.target.value;
-              if (activeLayoutId === 'default') {
-                setDefaultLayoutName(newName);
-              } else {
-                setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, name: newName } : l));
-              }
-            }}
-            placeholder="Nama layout..."
-            style={{
-              fontSize: '12px',
-              padding: '6px 10px',
-              border: '1px solid var(--border)',
-              borderRadius: '6px',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              outline: 'none',
-              flex: 1,
-            }}
-            autoFocus
-          />
-        </div>
-      )}
 
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
