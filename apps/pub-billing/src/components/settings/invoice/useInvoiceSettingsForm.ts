@@ -428,20 +428,34 @@ export function useInvoiceSettingsForm() {
     try {
       const dataStr = JSON.stringify(profiles, null, 2);
       const bytes = new TextEncoder().encode(dataStr);
-      const filename = `pubdesk_invoice_profiles_backup.json`;
 
-      const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
-      const physicalPath = await tauriInvoke<string>('create_physical_file', {
-        filename,
-        bytes: Array.from(bytes),
-        folder: 'backups'
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const filePath = await save({
+        filters: [{ name: 'JSON Backup', extensions: ['json'] }],
+        defaultPath: 'pubdesk_invoice_profiles_backup.json'
       });
 
-      const alreadyExists = files.some((f) => f.filename === filename && f.type === 'other');
+      if (!filePath) {
+        // User membatalkan dialog
+        return;
+      }
+
+      const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+      
+      // Menulis file backup ke path yang dipilih user
+      await tauriInvoke('write_binary_file', {
+        path: filePath,
+        bytes: Array.from(bytes)
+      });
+
+      // Ekstrak nama file dari path untuk log database/files lokal
+      const filename = filePath.split(/[/\\]/).pop() || 'pubdesk_invoice_profiles_backup.json';
+
+      const alreadyExists = files.some((f) => f.path === filePath && f.type === 'other');
       if (!alreadyExists) {
         const fileData = {
           filename,
-          path: physicalPath,
+          path: filePath,
           type: 'other',
           project_id: undefined,
           version_label: 'Backup',
@@ -452,8 +466,8 @@ export function useInvoiceSettingsForm() {
         await addFile(fileData);
       }
 
-      showToast(`Backup berhasil diekspor ke: ${physicalPath}`, 'success');
-      await tauriInvoke('open_file_location_physically', { path: physicalPath });
+      showToast(`Backup berhasil diekspor ke: ${filePath}`, 'success');
+      await tauriInvoke('open_file_location_physically', { path: filePath });
     } catch (error) {
       console.error(error);
       showToast('Gagal mengekspor backup.', 'error');
