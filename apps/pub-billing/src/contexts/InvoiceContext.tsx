@@ -329,7 +329,9 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         customerName: '',
         customerWa: '',
         customerAddress: '',
-        selectedLayoutId: ''
+        selectedLayoutId: '',
+        paidAmount: 0,
+        paymentNotes: ''
       };
       
       if (invoice.file_path) {
