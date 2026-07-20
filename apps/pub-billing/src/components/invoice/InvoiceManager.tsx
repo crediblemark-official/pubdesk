@@ -734,17 +734,17 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                     </td>
                     
                     {/* Nominal */}
-                    <td style={{ padding: '6px 12px', textAlign: 'right' }}>
-                      <span style={{ fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', fontSize: '13px' }}>
+                    <td style={{ padding: '6px 12px', textAlign: 'right', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
                         {formatPrice(inv.total)}
                       </span>
-                      {(status === 'DP' || status === 'BELUM LUNAS') && inv.paid_amount && inv.paid_amount > 0 && (
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                          {' – '}
+                      {status === 'DP' && inv.paid_amount && inv.paid_amount > 0 && (
+                        <>
+                          <span style={{ color: 'var(--text-secondary)', margin: '0 4px' }}>–</span>
                           <span style={{ color: '#2563eb', fontWeight: '600' }}>DP: {formatPrice(inv.paid_amount)}</span>
-                          {' – '}
-                          <span style={{ color: '#dc2626', fontWeight: '500' }}>Sisa: {formatPrice(inv.total - inv.paid_amount)}</span>
-                        </span>
+                          <span style={{ color: 'var(--text-secondary)', margin: '0 4px' }}>–</span>
+                          <span style={{ color: '#dc2626', fontWeight: '600' }}>Sisa: {formatPrice(inv.total - inv.paid_amount)}</span>
+                        </>
                       )}
                     </td>
                     
