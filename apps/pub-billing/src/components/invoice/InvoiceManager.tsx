@@ -734,8 +734,20 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                     </td>
                     
                     {/* Total */}
-                    <td style={{ padding: '6px 12px', textAlign: 'right', fontWeight: '700', color: 'var(--text-primary)' }}>
-                      {formatPrice(inv.total)}
+                    <td style={{ padding: '6px 12px', textAlign: 'right' }}>
+                      <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {formatPrice(inv.total)}
+                      </div>
+                      {(status === 'DP' || status === 'BELUM LUNAS') && inv.paid_amount && inv.paid_amount > 0 && (
+                        <div style={{ marginTop: '2px' }}>
+                          <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: '600' }}>
+                            DP: {formatPrice(inv.paid_amount)}
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: '500', marginLeft: '6px' }}>
+                            Sisa: {formatPrice(inv.total - inv.paid_amount)}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     
                     {/* Status Invoice */}
