@@ -462,7 +462,7 @@ export const ItemsSection: React.FC = () => {
     }
 
     if (!finalTitle) {
-      showToast('Nama layanan atau karya harus diisi!', 'error');
+      showToast('Judul buku atau layanan harus diisi!', 'error');
       return;
     }
 
@@ -535,7 +535,7 @@ export const ItemsSection: React.FC = () => {
     }
 
     if (!finalTitle) {
-      showToast('Nama layanan atau karya harus diisi!', 'error');
+      showToast('Judul buku atau layanan harus diisi!', 'error');
       return;
     }
 
@@ -633,14 +633,14 @@ export const ItemsSection: React.FC = () => {
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '250px' }}>
             <SmartRelationField
-              label="Nama Layanan / Karya"
+              label="Judul Buku / Layanan"
               options={allItemOptions}
               value={selectedValue}
               onChange={handleSelect}
-              placeholder="Ketik nama layanan / karya atau pilih dari Master..."
-              emptyMessage="Belum ada data. Tekan Enter atau klik + Layanan/Karya Baru untuk membuat."
-              entityLabel="Layanan/Karya Baru"
-              entityLabelPlural="Layanan/Karya"
+              placeholder="Ketik judul buku / layanan atau pilih dari Master..."
+              emptyMessage="Belum ada data. Tekan Enter atau klik + Buku/Layanan Baru untuk membuat."
+              entityLabel="Buku/Layanan"
+              entityLabelPlural="Buku/Layanan"
               fullWidth
               mode="autocomplete"
               onEditOption={handleEditMasterOption}

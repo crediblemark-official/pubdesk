@@ -133,7 +133,7 @@ const ColumnsSection: React.FC = () => {
       id,
       name: trimmed,
       tableColumns: [
-        { key: 'item_title', label: 'Nama Item / Karya', type: 'text', align: 'left' },
+        { key: 'item_title', label: 'Judul Buku / Layanan', type: 'text', align: 'left' },
         { key: 'quantity', label: 'Qty', type: 'number', align: 'center', width: '80px' },
         { key: 'price', label: 'Harga', type: 'currency', align: 'right', width: '110px' },
         { key: 'total', label: 'Total', type: 'formula', align: 'right', width: '110px', formula: '{price} * {quantity}' }
