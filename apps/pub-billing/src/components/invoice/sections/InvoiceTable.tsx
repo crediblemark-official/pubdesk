@@ -12,6 +12,9 @@ interface InvoiceTableProps {
   calculateItemTotal: (item: InvoiceItem) => number;
   accentColor: string;
   accentColorDark: string;
+  paymentStatus?: string;
+  paidAmount?: number;
+  paymentNotes?: string;
 }
 
 export const InvoiceTable: React.FC<InvoiceTableProps> = ({
@@ -22,7 +25,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   spesifikasiFasilitas,
   calculateItemTotal,
   accentColor,
-  accentColorDark
+  accentColorDark,
+  paymentStatus,
+  paidAmount = 0,
+  paymentNotes
 }) => {
   const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
@@ -189,6 +195,27 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                   {formatPrice(total)}
                 </td>
               </tr>
+
+              {(paymentStatus === 'DP' || paymentStatus === 'BELUM LUNAS') && (
+                <>
+                  <tr>
+                    <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                      Telah Dibayar (DP)
+                    </td>
+                    <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#2563eb', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                      {formatPrice(paidAmount)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#1f2937' }}>
+                      Sisa Pembayaran
+                    </td>
+                    <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '10px', fontWeight: '800', color: '#dc2626', whiteSpace: 'nowrap' }}>
+                      {formatPrice(Math.max(0, total - paidAmount))}
+                    </td>
+                  </tr>
+                </>
+              )}
             </>
           )}
         </tbody>
@@ -222,6 +249,12 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               {idx + 1}. {note}<br />
             </React.Fragment>
           ))}
+        </div>
+      )}
+
+      {paymentNotes && (
+        <div style={{ marginTop: '8px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
+          <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Catatan Pembayaran:</span> {paymentNotes}
         </div>
       )}
 

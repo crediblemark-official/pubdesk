@@ -27,6 +27,8 @@ interface InvoicePreviewProps {
     invoiceDate: string;
     paymentStatus?: string;
     spesifikasiFasilitas?: string;
+    paidAmount?: number;
+    paymentNotes?: string;
   };
   hideToolbar?: boolean;
   externalZoom?: number;
@@ -48,6 +50,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
   const invoiceDate = overrideInvoice ? overrideInvoice.invoiceDate : contextData.invoiceDate;
   const paymentStatus = overrideInvoice ? overrideInvoice.paymentStatus : contextData.paymentStatus;
   const spesifikasiFasilitas = overrideInvoice ? overrideInvoice.spesifikasiFasilitas : contextData.spesifikasiFasilitas;
+  const paidAmount = overrideInvoice ? overrideInvoice.paidAmount : contextData.paidAmount;
+  const paymentNotes = overrideInvoice ? overrideInvoice.paymentNotes : contextData.paymentNotes;
   
   const calculateItemTotal = contextData.calculateItemTotal;
   const profiles = contextData.profiles;
@@ -311,6 +315,9 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
             adminFee={adminFee}
             spesifikasiFasilitas={spesifikasiFasilitas}
             calculateItemTotal={calculateItemTotal}
+            paymentStatus={paymentStatus}
+            paidAmount={paidAmount}
+            paymentNotes={paymentNotes}
           />
   
           {/* Tanda tangan & Rekening Transfer */}

@@ -78,6 +78,10 @@ interface InvoiceContextType {
   loadInvoiceToForm: (invoice: any) => Promise<void>;
   tempPreviewProfile: InvoiceProfile | null;
   setTempPreviewProfile: (profile: InvoiceProfile | null) => void;
+  paidAmount: number;
+  setPaidAmount: (amount: number) => void;
+  paymentNotes: string;
+  setPaymentNotes: (notes: string) => void;
 }
 
 const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
@@ -109,6 +113,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [editingInvoiceId, setEditingInvoiceId] = useState<number | null>(null);
   const [tempPreviewProfile, setTempPreviewProfile] = useState<InvoiceProfile | null>(null);
   const [selectedLayoutId, setSelectedLayoutId] = useState<string>('');
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [paymentNotes, setPaymentNotes] = useState('');
 
   // Load profiles from localStorage on mount
   useEffect(() => {
@@ -273,6 +279,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setPaymentStatus('LUNAS');
     setEditingInvoiceId(null);
     setSelectedLayoutId('');
+    setPaidAmount(0);
+    setPaymentNotes('');
     
     if (activeProfile) {
       setInvoiceHal('');
@@ -387,6 +395,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setPaymentStatus(metadata.paymentStatus || 'LUNAS');
       setSpesifikasiFasilitas(metadata.spesifikasiFasilitas || '');
       setSelectedLayoutId(metadata.selectedLayoutId || '');
+      setPaidAmount(invoice.paid_amount || metadata.paidAmount || 0);
+      setPaymentNotes(invoice.payment_notes || metadata.paymentNotes || '');
       
       // Cocokkan profile dengan export_format
       const matchingProfile = profiles.find(p => p.id === invoice.export_format || p.tableType === invoice.export_format);
@@ -455,6 +465,10 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       loadInvoiceToForm,
       tempPreviewProfile,
       setTempPreviewProfile,
+      paidAmount,
+      setPaidAmount,
+      paymentNotes,
+      setPaymentNotes,
     }}>
       {children}
     </InvoiceContext.Provider>

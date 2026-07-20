@@ -610,7 +610,9 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
         invoiceLampiran: meta.invoiceLampiran || '',
         invoiceDate: meta.invoiceDate || '',
         paymentStatus: meta.paymentStatus || 'LUNAS',
-        spesifikasiFasilitas: meta.spesifikasiFasilitas || ''
+        spesifikasiFasilitas: meta.spesifikasiFasilitas || '',
+        paidAmount: invoice.paid_amount ?? meta.paidAmount ?? 0,
+        paymentNotes: invoice.payment_notes ?? meta.paymentNotes ?? ''
       };
       return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-panel)' }}>
@@ -686,7 +688,9 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
       invoiceLampiran: metadata.invoiceLampiran || '',
       invoiceDate: metadata.invoiceDate || '',
       paymentStatus: metadata.paymentStatus || 'LUNAS',
-      spesifikasiFasilitas: metadata.spesifikasiFasilitas || ''
+      spesifikasiFasilitas: metadata.spesifikasiFasilitas || '',
+      paidAmount: invoice.paid_amount ?? metadata.paidAmount ?? 0,
+      paymentNotes: invoice.payment_notes ?? metadata.paymentNotes ?? ''
     };
 
     return (

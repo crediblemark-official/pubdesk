@@ -29,7 +29,9 @@ const InvoiceGenerator: React.FC = () => {
     resetInvoice,
     activeProfile,
     editingInvoiceId,
-    selectedLayoutId
+    selectedLayoutId,
+    paidAmount,
+    paymentNotes,
   } = useInvoiceContext();
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
@@ -148,13 +150,17 @@ const InvoiceGenerator: React.FC = () => {
     const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
     const globalShip = hasItemShipping ? 0 : shippingCost;
     const total = itemsTotal + globalShip + adminFee;
+    const finalPaidAmount = paymentStatus === 'LUNAS' ? total : paidAmount;
+    const remainingAmount = Math.max(0, total - finalPaidAmount);
 
     const metadata = {
       invoiceNo, invoiceDate, invoiceHal, invoiceLampiran, paymentStatus,
       spesifikasiFasilitas, invoiceType,
       customerName: customerNameTrimmed, customerWa: customer.wa_number || '',
       customerEmail: customer.email || '', customerAddress: customer.address || '', isPenulis,
-      selectedLayoutId
+      selectedLayoutId,
+      paidAmount: finalPaidAmount,
+      paymentNotes
     };
 
     return {
@@ -171,7 +177,10 @@ const InvoiceGenerator: React.FC = () => {
         name: customerNameTrimmed, wa_number: customer.wa_number || '',
         email: customer.email || '', address: customer.address || '', isPenulis
       }),
-      payment_status: paymentStatus
+      payment_status: paymentStatus,
+      paid_amount: finalPaidAmount,
+      remaining_amount: remainingAmount,
+      payment_notes: paymentNotes
     };
   };
 

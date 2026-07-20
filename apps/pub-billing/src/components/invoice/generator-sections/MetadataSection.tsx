@@ -23,6 +23,10 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
     setPaymentStatus,
     spesifikasiFasilitas,
     setSpesifikasiFasilitas,
+    paidAmount,
+    setPaidAmount,
+    paymentNotes,
+    setPaymentNotes,
   } = useInvoiceContext();
 
   return (
@@ -131,6 +135,30 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
             <option value="BERMASALAH">BERMASALAH</option>
           </select>
         </div>
+        {((paymentStatus === 'DP' || paymentStatus === 'BELUM LUNAS') && (
+          <div style={{ display: 'grid', gridTemplateColumns: rightPanelVisible ? '1fr' : '1fr 1fr', gap: '12px', gridColumn: 'span 2' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nominal Dibayar (DP)</label>
+              <input
+                type="number"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={paidAmount}
+                onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Catatan Pembayaran</label>
+              <input
+                type="text"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                placeholder="Catatan transfer, nomor referensi, dll."
+              />
+            </div>
+          </div>
+        ))}
         {activeProfile?.showSpesifikasi && (
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Spesifikasi & Fasilitas</label>
