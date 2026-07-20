@@ -735,17 +735,17 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                     
                     {/* Nominal */}
                     <td style={{ padding: '6px 12px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                          {formatPrice(inv.total)}
+                      <span style={{ fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', fontSize: '13px' }}>
+                        {formatPrice(inv.total)}
+                      </span>
+                      {(status === 'DP' || status === 'BELUM LUNAS') && inv.paid_amount && inv.paid_amount > 0 && (
+                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                          {' – '}
+                          <span style={{ color: '#2563eb', fontWeight: '600' }}>DP: {formatPrice(inv.paid_amount)}</span>
+                          {' – '}
+                          <span style={{ color: '#dc2626', fontWeight: '500' }}>Sisa: {formatPrice(inv.total - inv.paid_amount)}</span>
                         </span>
-                        {(status === 'DP' || status === 'BELUM LUNAS') && inv.paid_amount && inv.paid_amount > 0 && (
-                          <>
-                            <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: '600', whiteSpace: 'nowrap' }}>DP: {formatPrice(inv.paid_amount)}</span>
-                            <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: '500', whiteSpace: 'nowrap' }}>Sisa: {formatPrice(inv.total - inv.paid_amount)}</span>
-                          </>
-                        )}
-                      </div>
+                      )}
                     </td>
                     
                     {/* Status Invoice */}
