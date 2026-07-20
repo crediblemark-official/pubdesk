@@ -142,7 +142,7 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({ rightPanelVisi
               <input
                 type="number"
                 style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                value={paidAmount}
+                value={paidAmount === 0 ? '' : paidAmount}
                 onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
                 placeholder="0"
               />

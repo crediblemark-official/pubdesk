@@ -834,7 +834,7 @@ export const ItemsSection: React.FC = () => {
                 <input
                   type={field.type === 'number' || field.type === 'currency' ? 'number' : 'text'}
                   style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
-                  value={dynamicInputs[field.key] !== undefined ? dynamicInputs[field.key] : ''}
+                  value={dynamicInputs[field.key] !== undefined ? (dynamicInputs[field.key] === 0 ? '' : dynamicInputs[field.key]) : ''}
                   onChange={(e) => {
                     const val = e.target.value;
                     setDynamicInputs(prev => ({
@@ -953,7 +953,7 @@ export const ItemsSection: React.FC = () => {
             </label>
             <input
               type="number"
-              value={editMasterData.price}
+              value={editMasterData.price === 0 ? '' : editMasterData.price}
               onChange={(e) => setEditMasterData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
               style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', boxSizing: 'border-box' }}
             />

@@ -16,7 +16,7 @@ export const GlobalCostsSection: React.FC = () => {
         <input
           type="number"
           style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-          value={shippingCost}
+          value={shippingCost === 0 ? '' : shippingCost}
           onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
           placeholder="0"
         />
@@ -26,7 +26,7 @@ export const GlobalCostsSection: React.FC = () => {
         <input
           type="number"
           style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-          value={adminFee}
+          value={adminFee === 0 ? '' : adminFee}
           onChange={(e) => setAdminFee(parseFloat(e.target.value) || 0)}
           placeholder="0"
         />

@@ -4,6 +4,17 @@
   box-sizing: border-box;
 }
 
+/* Sembunyikan spin buttons (panah atas bawah) pada input bertipe number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 :root {
   --bg-dark: #f6f5f4;
   --bg-panel: #eae8e6;
