@@ -98,3 +98,24 @@ export const getWhatsAppLink = (phone: string): string => {
   }
   return `https://wa.me/${cleaned}`;
 };
+
+/**
+ * Format nominal angka dengan pemisah ribuan (tanpa simbol mata uang).
+ * Contoh: 200000 → "200.000"
+ */
+export const formatThousand = (value: number | string): string => {
+  if (value === undefined || value === null || value === '' || value === 0 || value === '0') return '';
+  const num = typeof value === 'number' ? value : parseInt(value.toString().replace(/\D/g, ''), 10);
+  if (isNaN(num)) return '';
+  return new Intl.NumberFormat('id-ID').format(num);
+};
+
+/**
+ * Parsing string dengan pemisah ribuan kembali ke number murni.
+ * Contoh: "200.000" → 200000
+ */
+export const parseThousand = (value: string): number => {
+  const clean = value.replace(/\./g, '');
+  const num = parseInt(clean, 10);
+  return isNaN(num) ? 0 : num;
+};

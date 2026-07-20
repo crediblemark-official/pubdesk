@@ -3,7 +3,7 @@ import { useAppContext } from '../../../contexts/AppContext';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { InvoiceItem } from '../../../types/invoice.types';
-import { formatPrice } from '../../../utils/format';
+import { formatPrice, formatThousand, parseThousand } from '../../../utils/format';
 import { SmartRelationField, SmartRelationOption, Modal } from '@pubhub/shared-ui';
 
 export const ItemsSection: React.FC = () => {
@@ -837,14 +837,18 @@ export const ItemsSection: React.FC = () => {
               <div key={field.key} style={{ flex: field.key === 'copyright_holder' ? 2 : 1, minWidth: '110px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
                 <input
-                  type={field.type === 'number' || field.type === 'currency' ? 'number' : 'text'}
+                  type={field.type === 'currency' ? 'text' : (field.type === 'number' ? 'number' : 'text')}
                   style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
-                  value={dynamicInputs[field.key] !== undefined ? (dynamicInputs[field.key] === 0 ? '' : dynamicInputs[field.key]) : ''}
+                  value={field.type === 'currency' 
+                    ? formatThousand(dynamicInputs[field.key] ?? '') 
+                    : (dynamicInputs[field.key] !== undefined ? (dynamicInputs[field.key] === 0 ? '' : dynamicInputs[field.key]) : '')}
                   onChange={(e) => {
                     const val = e.target.value;
                     setDynamicInputs(prev => ({
                       ...prev,
-                      [field.key]: field.type === 'number' || field.type === 'currency' ? (parseFloat(val) || 0) : val
+                      [field.key]: field.type === 'currency' 
+                        ? parseThousand(val) 
+                        : (field.type === 'number' ? (parseFloat(val) || 0) : val)
                     }));
                   }}
                   placeholder={`Masukkan ${field.label.toLowerCase()}...`}
@@ -947,10 +951,10 @@ export const ItemsSection: React.FC = () => {
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nominal Dibayar (DP)</label>
             <input
-              type="number"
+              type="text"
               style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text-primary)', boxSizing: 'border-box' }}
-              value={paidAmount === 0 ? '' : paidAmount}
-              onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+              value={formatThousand(paidAmount)}
+              onChange={(e) => setPaidAmount(parseThousand(e.target.value))}
               placeholder="0"
             />
           </div>
@@ -991,9 +995,9 @@ export const ItemsSection: React.FC = () => {
               {editMasterType === 'service' ? 'Tarif (Rp)' : 'Harga Reguler (Rp)'}
             </label>
             <input
-              type="number"
-              value={editMasterData.price === 0 ? '' : editMasterData.price}
-              onChange={(e) => setEditMasterData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+              type="text"
+              value={formatThousand(editMasterData.price)}
+              onChange={(e) => setEditMasterData(prev => ({ ...prev, price: parseThousand(e.target.value) }))}
               style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', boxSizing: 'border-box' }}
             />
           </div>
