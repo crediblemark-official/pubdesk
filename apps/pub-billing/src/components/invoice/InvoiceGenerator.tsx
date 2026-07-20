@@ -36,6 +36,9 @@ const InvoiceGenerator: React.FC = () => {
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
   const [lastGeneratedProfileId, setLastGeneratedProfileId] = useState<string | null>(null);
+  const [loadingSimpanCatat, setLoadingSimpanCatat] = useState(false);
+  const [loadingCatatOnly, setLoadingCatatOnly] = useState(false);
+  const [loadingReset, setLoadingReset] = useState(false);
 
   // Auto-generate nomor invoice secara dinamis berdasarkan format profil aktif
   useEffect(() => {
@@ -187,6 +190,7 @@ const InvoiceGenerator: React.FC = () => {
   // Simpan saja (Catat) — tanpa PDF, tanpa GAS
   const handleCatatOnly = async () => {
     if (!validateInvoice()) return;
+    setLoadingCatatOnly(true);
     try {
       const invoiceData = await prepareInvoiceData();
       if (editingInvoiceId) {
@@ -200,12 +204,15 @@ const InvoiceGenerator: React.FC = () => {
     } catch (error) {
       console.error(error);
       showToast(`Gagal menyimpan: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    } finally {
+      setLoadingCatatOnly(false);
     }
   };
 
   // Simpan & Catat + Download PDF
   const handleSimpanCatat = async () => {
     if (!validateInvoice()) return;
+    setLoadingSimpanCatat(true);
     try {
       const invoiceData = await prepareInvoiceData();
       let invoiceId = editingInvoiceId;
@@ -255,6 +262,18 @@ const InvoiceGenerator: React.FC = () => {
     } catch (error) {
       console.error(error);
       showToast(`Gagal: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    } finally {
+      setLoadingSimpanCatat(false);
+    }
+  };
+
+  const handleReset = async () => {
+    setLoadingReset(true);
+    try {
+      resetInvoice();
+      await new Promise(resolve => setTimeout(resolve, 400));
+    } finally {
+      setLoadingReset(false);
     }
   };
 
@@ -318,14 +337,50 @@ const InvoiceGenerator: React.FC = () => {
 
       {/* Aksi Utama */}
       <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-        <button className="btn-primary" style={{ flex: 1 }} onClick={handleSimpanCatat}>
-          💾 Simpan &amp; Catat
+        <button
+          className="btn-primary"
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          onClick={handleSimpanCatat}
+          disabled={loadingSimpanCatat || loadingCatatOnly || loadingReset}
+        >
+          {loadingSimpanCatat ? (
+            <>
+              <span className="button-spinner"></span>
+              Menyimpan...
+            </>
+          ) : (
+            <>💾 Simpan &amp; Catat</>
+          )}
         </button>
-        <button className="btn-secondary" style={{ flex: 1 }} onClick={handleCatatOnly}>
-          📝 Catat Saja
+        <button
+          className="btn-secondary"
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          onClick={handleCatatOnly}
+          disabled={loadingSimpanCatat || loadingCatatOnly || loadingReset}
+        >
+          {loadingCatatOnly ? (
+            <>
+              <span className="button-spinner"></span>
+              Mencatat...
+            </>
+          ) : (
+            <>📝 Catat Saja</>
+          )}
         </button>
-        <button className="btn-secondary" style={{ flex: 1 }} onClick={() => resetInvoice()}>
-          🔄 Reset
+        <button
+          className="btn-secondary"
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          onClick={handleReset}
+          disabled={loadingSimpanCatat || loadingCatatOnly || loadingReset}
+        >
+          {loadingReset ? (
+            <>
+              <span className="button-spinner"></span>
+              Mereset...
+            </>
+          ) : (
+            <>🔄 Reset</>
+          )}
         </button>
       </div>
 
