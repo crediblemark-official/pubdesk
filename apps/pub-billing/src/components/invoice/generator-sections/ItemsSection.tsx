@@ -128,6 +128,10 @@ export const ItemsSection: React.FC = () => {
         isBook: false,
         isNaskah: false,
         source: 'Layanan',
+        // Extra fields untuk auto-fill form
+        _autoFill: {
+          price: s.price,
+        },
       })),
       ...books.map((b) => ({
         value: `book-${b.id}`,
@@ -137,18 +141,38 @@ export const ItemsSection: React.FC = () => {
         isBook: true,
         isNaskah: false,
         source: 'Karya',
+        // Extra fields untuk auto-fill form
+        _autoFill: {
+          price: b.regular_price,
+        },
       })),
-      ...naskah.map((n) => ({
-        value: `naskah-${n.id}`,
-        label: `${n.title} [Naskah]`,
-        name: n.title,
-        price: 0,
-        isBook: false,
-        isNaskah: true,
-        source: 'Naskah',
-      })),
+      ...naskah.map((n) => {
+        // Cari penulis dari daftar kontak berdasarkan penulis_id
+        const penulisContact = contacts.find(c => c.id === n.penulis_id);
+        return {
+          value: `naskah-${n.id}`,
+          label: `${n.title} [Naskah]`,
+          name: n.title,
+          price: 0,
+          isBook: false,
+          isNaskah: true,
+          source: 'Naskah',
+          // Extra fields untuk auto-fill form
+          _autoFill: {
+            price: 0,
+            // Kolom halaman — dari total_pages naskah
+            pages: n.total_pages ? String(n.total_pages) : '',
+            // Kolom jenis naskah — dari legal_type
+            paper_type: n.legal_type || '',
+            // Kolom jumlah cetak — dari copies naskah jika ada
+            quantity: n.copies || 1,
+            // Kolom copyright_holder — nama penulis
+            copyright_holder: penulisContact?.name || '',
+          },
+        };
+      }),
     ];
-  }, [services, books, naskah]);
+  }, [services, books, naskah, contacts]);
 
   const selectedValue = useMemo(() => {
     if (selectedServiceIdState) return `service-${selectedServiceIdState}`;
@@ -185,9 +209,17 @@ export const ItemsSection: React.FC = () => {
       setSelectedNaskahIdState('');
     }
 
+    // Auto-fill semua field yang tersedia dari opsi yang dipilih
+    const autoFill = (option as any)._autoFill || {};
     setDynamicInputs((prev) => ({
       ...prev,
-      price: (option as any).price || 0,
+      // Spread semua field dari autoFill, hanya isi jika belum diisi atau nilai berbeda
+      // Filter field kosong supaya tidak menimpa nilai yang sudah diisi user
+      ...Object.fromEntries(
+        Object.entries(autoFill).filter(([_, v]) => v !== '' && v !== 0 && v !== undefined && v !== null)
+      ),
+      // price selalu dioverride dari pilihan
+      price: autoFill.price ?? ((option as any).price || 0),
     }));
   };
   
