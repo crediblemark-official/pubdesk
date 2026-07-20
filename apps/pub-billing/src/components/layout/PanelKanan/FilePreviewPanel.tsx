@@ -293,11 +293,11 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
   };
 
   const renderInspectorContent = (currentFile: any) => {
+    const invoiceId = currentFile.version_label ? parseInt(currentFile.version_label) : null;
     // 1. Dapatkan metadata invoice tiruan jika metadata semantik null
     let resolvedMetadata = fileMetadata;
 
     if (currentFile.type === 'invoice' && (!resolvedMetadata || !resolvedMetadata.summary)) {
-      const invoiceId = currentFile.version_label ? parseInt(currentFile.version_label) : null;
       const invoice = invoices.find(inv => inv.id === invoiceId);
       let invoiceNo = 'DRAF';
       let customerName = 'Umum';
@@ -513,17 +513,67 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
           </div>
         </div>
 
-        {/* Linimasa Versi — invoice: riwayat aktivitas; non-invoice: file relations */}
+        {/* Linimasa Versi — invoice: riwayat aktivitas & daftar berkas; non-invoice: file relations */}
         <div>
           <h5 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '12px' }}>Linimasa Versi</h5>
           {currentFile.type === 'invoice' ? (
-            displayTimeline.length === 0 ? (
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
-                Belum ada riwayat aktivitas untuk invoice ini.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid var(--border)', gap: '12px', marginLeft: '6px' }}>
-                {displayTimeline.map((item: any, idx: number) => {
+            <>
+              {(() => {
+                const invoicePDFs = files.filter(f => f.type === 'invoice' && f.version_label === String(invoiceId));
+                if (invoicePDFs.length === 0) return null;
+                return (
+                  <div style={{ marginBottom: '20px' }}>
+                    <h6 style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Daftar Dokumen PDF (Cetak)</h6>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {invoicePDFs.map((pdf, pIdx) => (
+                        <div key={pIdx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                            <span style={{ fontSize: '16px' }}>📄</span>
+                            <span style={{ fontWeight: '600', color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={pdf.filename}>
+                              {pdf.filename}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+                                await tauriInvoke('open_file_physically', { path: pdf.path });
+                              } catch (err) {
+                                console.error('Gagal membuka file:', err);
+                                showToast('Gagal membuka file PDF', 'error');
+                              }
+                            }}
+                            style={{
+                              background: 'var(--accent)',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '4px 8px',
+                              fontSize: '10px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              marginLeft: '8px',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            Buka PDF
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <h6 style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Linimasa Aktivitas</h6>
+              {displayTimeline.length === 0 ? (
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                  Belum ada riwayat aktivitas untuk invoice ini.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid var(--border)', gap: '12px', marginLeft: '6px' }}>
+                  {displayTimeline.map((item: any, idx: number) => {
                   const isCreate = item.action === 'CREATE';
                   const isPaymentChange = item.action === 'PAYMENT_CHANGE';
                   const isSync = item.action === 'SYNC' || (item.description || '').includes('sinkronisasi');
