@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSettingsForm } from './SettingsFormContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { InvoiceTableColumn, CustomInvoiceLayout } from '../../../types/invoice.types';
@@ -16,6 +16,12 @@ const ColumnsSection: React.FC = () => {
   const { tableColumns, setTableColumns, customLayouts, setCustomLayouts, defaultLayoutName, setDefaultLayoutName } = useSettingsForm();
   const { showConfirm } = useAppContext();
   const [activeLayoutId, setActiveLayoutId] = useState<string>('default');
+  const [isEditingName, setIsEditingName] = useState(false);
+
+  // Reset mode edit saat activeLayoutId berubah
+  useEffect(() => {
+    setIsEditingName(false);
+  }, [activeLayoutId]);
 
   // State untuk React Modal prompt layout baru
   const [showPromptModal, setShowPromptModal] = useState(false);
@@ -175,10 +181,37 @@ const ColumnsSection: React.FC = () => {
             cursor: 'pointer',
             border: '1px solid ' + (activeLayoutId === 'default' ? 'var(--accent)' : 'var(--border)'),
             background: activeLayoutId === 'default' ? 'var(--accent)' : 'transparent',
-            color: activeLayoutId === 'default' ? '#fff' : 'var(--text-primary)'
+            color: activeLayoutId === 'default' ? '#fff' : 'var(--text-primary)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
         >
-          {defaultLayoutName || 'Default / Bawaan'}
+          <span>{defaultLayoutName || 'Default / Bawaan'}</span>
+          {activeLayoutId === 'default' && (
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingName(!isEditingName);
+              }}
+              style={{
+                cursor: 'pointer',
+                opacity: 0.8,
+                fontSize: '11px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '2px',
+                borderRadius: '4px',
+                background: 'rgba(255,255,255,0.2)',
+                transition: 'background 0.2s',
+                lineHeight: 1
+              }}
+              title="Ubah nama"
+            >
+              ✏️
+            </span>
+          )}
         </button>
         
         {customLayouts.map(l => (
@@ -194,10 +227,37 @@ const ColumnsSection: React.FC = () => {
               cursor: 'pointer',
               border: '1px solid ' + (activeLayoutId === l.id ? 'var(--accent)' : 'var(--border)'),
               background: activeLayoutId === l.id ? 'var(--accent)' : 'transparent',
-              color: activeLayoutId === l.id ? '#fff' : 'var(--text-primary)'
+              color: activeLayoutId === l.id ? '#fff' : 'var(--text-primary)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
-            {l.name}
+            <span>{l.name}</span>
+            {activeLayoutId === l.id && (
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditingName(!isEditingName);
+                }}
+                style={{
+                  cursor: 'pointer',
+                  opacity: 0.8,
+                  fontSize: '11px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '2px',
+                  borderRadius: '4px',
+                  background: 'rgba(255,255,255,0.2)',
+                  transition: 'background 0.2s',
+                  lineHeight: 1
+                }}
+                title="Ubah nama"
+              >
+                ✏️
+              </span>
+            )}
           </button>
         ))}
 
@@ -243,34 +303,37 @@ const ColumnsSection: React.FC = () => {
       </div>
 
       {/* Ubah Nama Layout / Tabel */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'var(--bg-panel)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', maxWidth: '400px' }}>
-        <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-          Nama Layout / Tabel:
-        </span>
-        <input
-          type="text"
-          value={activeLayoutId === 'default' ? defaultLayoutName : (customLayouts.find(l => l.id === activeLayoutId)?.name || '')}
-          onChange={(e) => {
-            const newName = e.target.value;
-            if (activeLayoutId === 'default') {
-              setDefaultLayoutName(newName);
-            } else {
-              setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, name: newName } : l));
-            }
-          }}
-          placeholder="Nama layout..."
-          style={{
-            fontSize: '12px',
-            padding: '6px 10px',
-            border: '1px solid var(--border)',
-            borderRadius: '6px',
-            background: 'var(--bg-card)',
-            color: 'var(--text-primary)',
-            outline: 'none',
-            flex: 1,
-          }}
-        />
-      </div>
+      {isEditingName && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'var(--bg-panel)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', maxWidth: '400px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+            Nama Layout / Tabel:
+          </span>
+          <input
+            type="text"
+            value={activeLayoutId === 'default' ? defaultLayoutName : (customLayouts.find(l => l.id === activeLayoutId)?.name || '')}
+            onChange={(e) => {
+              const newName = e.target.value;
+              if (activeLayoutId === 'default') {
+                setDefaultLayoutName(newName);
+              } else {
+                setCustomLayouts(prev => prev.map(l => l.id === activeLayoutId ? { ...l, name: newName } : l));
+              }
+            }}
+            placeholder="Nama layout..."
+            style={{
+              fontSize: '12px',
+              padding: '6px 10px',
+              border: '1px solid var(--border)',
+              borderRadius: '6px',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              flex: 1,
+            }}
+            autoFocus
+          />
+        </div>
+      )}
 
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
