@@ -607,7 +607,8 @@ const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({ selectedFileId }) =
                   );
                 })}
               </div>
-            )
+            )}
+          </>
           ) : (
             displayRelated.length === 0 ? (
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
