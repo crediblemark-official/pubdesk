@@ -15,7 +15,12 @@ export const AccordionSection: React.FC<AccordionSectionProps> = ({
 }) => {
   const isOpen = expandedSection === index;
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)' }}>
+    <div style={{ 
+      border: '1px solid var(--border)', 
+      borderRadius: '8px', 
+      overflow: isOpen ? 'visible' : 'hidden', 
+      background: 'var(--bg-card)' 
+    }}>
       <button
         type="button"
         onClick={() => onToggle(isOpen ? null : index)}
