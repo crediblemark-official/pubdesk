@@ -35,6 +35,7 @@ export const CustomerSection: React.FC = () => {
   } | null>(null);
 
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editFormData, setEditFormData] = useState({
     id: 0,
     name: '',
@@ -78,18 +79,20 @@ export const CustomerSection: React.FC = () => {
   };
 
   const handleEditSave = async () => {
-    if (!editFormData.name.trim()) {
-      showToast('Nama tidak boleh kosong', 'error');
-      return;
-    }
-    if (editFormData.isMitra && !editFormData.mitraPenerbitId) {
-      showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
-      return;
-    }
-
-    const typeStr = editFormData.isMitra ? 'customer_mitra' : (editFormData.isPenulis ? 'both' : 'customer');
-
+    if (isSaving) return;
+    setIsSaving(true);
     try {
+      if (!editFormData.name.trim()) {
+        showToast('Nama tidak boleh kosong', 'error');
+        return;
+      }
+      if (editFormData.isMitra && !editFormData.mitraPenerbitId) {
+        showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
+        return;
+      }
+
+      const typeStr = editFormData.isMitra ? 'customer_mitra' : (editFormData.isPenulis ? 'both' : 'customer');
+
       await updateContact({
         id: editFormData.id,
         name: editFormData.name.trim(),
@@ -119,6 +122,8 @@ export const CustomerSection: React.FC = () => {
     } catch (err) {
       console.error(err);
       showToast('Gagal memperbarui kontak', 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -281,27 +286,33 @@ export const CustomerSection: React.FC = () => {
   };
 
   const handleCreateSave = async (onSuccess: () => void) => {
-    const { name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId } = createFormData;
-    if (!name.trim()) return;
-    if (isMitra && !mitraPenerbitId) {
-      showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
-      return;
-    }
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const { name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId } = createFormData;
+      if (!name.trim()) return;
+      if (isMitra && !mitraPenerbitId) {
+        showToast('Pilih penerbit mitra pemilik kontak ini!', 'error');
+        return;
+      }
 
-    if (duplicateWarning) {
+      if (duplicateWarning) {
+        await actuallyCreate({ name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId });
+        setDuplicateWarning(null);
+        onSuccess();
+        return;
+      }
+
+      const hasDuplicate = checkDuplicate({ name, wa_number, email });
+      if (hasDuplicate) {
+        return;
+      }
+
       await actuallyCreate({ name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId });
-      setDuplicateWarning(null);
       onSuccess();
-      return;
+    } finally {
+      setIsSaving(false);
     }
-
-    const hasDuplicate = checkDuplicate({ name, wa_number, email });
-    if (hasDuplicate) {
-      return;
-    }
-
-    await actuallyCreate({ name, wa_number, email, address, isPenulis, isMitra, mitraPenerbitId });
-    onSuccess();
   };
 
   const actuallyCreate = async (data: {
@@ -561,12 +572,13 @@ export const CustomerSection: React.FC = () => {
                 <button className="btn-secondary" type="button" onClick={onCancel}>
                   Batal
                 </button>
-                <button
-                  className="btn-primary"
-                  type="submit"
-                >
-                  Simpan
-                </button>
+                 <button
+                   className="btn-primary"
+                   type="submit"
+                   disabled={isSaving}
+                 >
+                   {isSaving ? 'Menyimpan...' : 'Simpan'}
+                 </button>
               </div>
             </form>
           )}
@@ -808,8 +820,9 @@ export const CustomerSection: React.FC = () => {
               <button
                 className="btn-primary"
                 type="submit"
+                disabled={isSaving}
               >
-                Perbarui
+                {isSaving ? 'Memperbarui...' : 'Perbarui'}
               </button>
             </div>
           </form>

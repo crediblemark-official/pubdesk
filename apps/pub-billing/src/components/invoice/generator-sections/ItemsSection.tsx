@@ -44,6 +44,7 @@ export const ItemsSection: React.FC = () => {
   });
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // State untuk dropdown kontekstual dinamis
   const [linkedPackageId, setLinkedPackageId] = useState<string>('');
@@ -204,65 +205,71 @@ export const ItemsSection: React.FC = () => {
   };
 
   const handleCreateItem = async () => {
-    if (createType === 'service') {
-      if (!createFormData.name.trim()) {
-        showToast("Nama layanan harus diisi!", "error");
-        return;
-      }
-      try {
-        const newServiceId = await addService({
-          name: createFormData.name.trim(),
-          price: createFormData.price,
-          description: createFormData.description.trim(),
-          category: 'umum',
-        });
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (createType === 'service') {
+        if (!createFormData.name.trim()) {
+          showToast("Nama layanan harus diisi!", "error");
+          return;
+        }
+        try {
+          const newServiceId = await addService({
+            name: createFormData.name.trim(),
+            price: createFormData.price,
+            description: createFormData.description.trim(),
+            category: 'umum',
+          });
 
-        setCustomTitle(createFormData.name.trim());
-        setSelectedServiceIdState(String(newServiceId));
-        setSelectedBookIdState('');
-        setDynamicInputs(prev => ({ ...prev, price: createFormData.price }));
-        showToast("Layanan berhasil ditambahkan!", "success");
-      } catch (err) {
-        console.error("Gagal menambahkan layanan baru:", err);
-        showToast("Gagal menambahkan layanan baru", "error");
-        return;
-      }
-    } else {
-      if (!createFormData.title.trim()) {
-        showToast("Judul karya harus diisi!", "error");
-        return;
-      }
-      try {
-        const newBookId = await addBook({
-          title: createFormData.title.trim(),
-          regular_price: createFormData.regular_price,
-          po_price: createFormData.regular_price,
-          weight_grams: 0,
-          author_id: createFormData.author_id ? parseInt(createFormData.author_id) : undefined,
-        });
+          setCustomTitle(createFormData.name.trim());
+          setSelectedServiceIdState(String(newServiceId));
+          setSelectedBookIdState('');
+          setDynamicInputs(prev => ({ ...prev, price: createFormData.price }));
+          showToast("Layanan berhasil ditambahkan!", "success");
+        } catch (err) {
+          console.error("Gagal menambahkan layanan baru:", err);
+          showToast("Gagal menambahkan layanan baru", "error");
+          return;
+        }
+      } else {
+        if (!createFormData.title.trim()) {
+          showToast("Judul karya harus diisi!", "error");
+          return;
+        }
+        try {
+          const newBookId = await addBook({
+            title: createFormData.title.trim(),
+            regular_price: createFormData.regular_price,
+            po_price: createFormData.regular_price,
+            weight_grams: 0,
+            author_id: createFormData.author_id ? parseInt(createFormData.author_id) : undefined,
+          });
 
-        setCustomTitle(createFormData.title.trim());
-        setSelectedBookIdState(String(newBookId));
-        setSelectedServiceIdState('');
-        setDynamicInputs(prev => ({ ...prev, price: createFormData.regular_price }));
-        showToast("Karya berhasil ditambahkan!", "success");
-      } catch (err) {
-        console.error("Gagal menambahkan karya baru:", err);
-        showToast("Gagal menambahkan karya baru", "error");
-        return;
+          setCustomTitle(createFormData.title.trim());
+          setSelectedBookIdState(String(newBookId));
+          setSelectedServiceIdState('');
+          setDynamicInputs(prev => ({ ...prev, price: createFormData.regular_price }));
+          showToast("Karya berhasil ditambahkan!", "success");
+        } catch (err) {
+          console.error("Gagal menambahkan karya baru:", err);
+          showToast("Gagal menambahkan karya baru", "error");
+          return;
+        }
       }
+
+      // Reset form
+      setCreateFormData({
+        name: '',
+        price: 0,
+        description: '',
+        title: '',
+        regular_price: 0,
+        author_id: '',
+      });
+      setAuthorSearchQuery('');
+    } finally {
+      setIsSaving(false);
     }
-
-    // Reset form
-    setCreateFormData({
-      name: '',
-      price: 0,
-      description: '',
-      title: '',
-      regular_price: 0,
-      author_id: '',
-    });
-    setAuthorSearchQuery('');
   };
 
   const allItemOptions: SmartRelationOption[] = useMemo(() => {
@@ -564,46 +571,52 @@ export const ItemsSection: React.FC = () => {
   };
 
   const handleSaveMasterEdit = async () => {
-    if (editMasterType === 'service') {
-      if (!editMasterData.name.trim()) {
-        showToast('Nama layanan tidak boleh kosong!', 'error');
-        return;
-      }
-      try {
-        const s = services.find(item => item.id === editMasterData.id);
-        if (s) {
-          await updateService({
-            ...s,
-            name: editMasterData.name.trim(),
-            price: editMasterData.price,
-            description: editMasterData.description,
-          });
-          showToast('Data master layanan berhasil diperbarui!', 'success');
-          setShowEditMasterModal(false);
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (editMasterType === 'service') {
+        if (!editMasterData.name.trim()) {
+          showToast('Nama layanan tidak boleh kosong!', 'error');
+          return;
         }
-      } catch {
-        showToast('Gagal memperbarui data master layanan', 'error');
-      }
-    } else {
-      if (!editMasterData.name.trim()) {
-        showToast('Judul karya tidak boleh kosong!', 'error');
-        return;
-      }
-      try {
-        const b = books.find(item => item.id === editMasterData.id);
-        if (b) {
-          await updateBook({
-            ...b,
-            title: editMasterData.name.trim(),
-            regular_price: editMasterData.price,
-            author_id: editMasterData.author_id ? parseInt(editMasterData.author_id) : undefined,
-          });
-          showToast('Data master karya berhasil diperbarui!', 'success');
-          setShowEditMasterModal(false);
+        try {
+          const s = services.find(item => item.id === editMasterData.id);
+          if (s) {
+            await updateService({
+              ...s,
+              name: editMasterData.name.trim(),
+              price: editMasterData.price,
+              description: editMasterData.description,
+            });
+            showToast('Data master layanan berhasil diperbarui!', 'success');
+            setShowEditMasterModal(false);
+          }
+        } catch {
+          showToast('Gagal memperbarui data master layanan', 'error');
         }
-      } catch {
-        showToast('Gagal memperbarui data master karya', 'error');
+      } else {
+        if (!editMasterData.name.trim()) {
+          showToast('Judul karya tidak boleh kosong!', 'error');
+          return;
+        }
+        try {
+          const b = books.find(item => item.id === editMasterData.id);
+          if (b) {
+            await updateBook({
+              ...b,
+              title: editMasterData.name.trim(),
+              regular_price: editMasterData.price,
+              author_id: editMasterData.author_id ? parseInt(editMasterData.author_id) : undefined,
+            });
+            showToast('Data master karya berhasil diperbarui!', 'success');
+            setShowEditMasterModal(false);
+          }
+        } catch {
+          showToast('Gagal memperbarui data master karya', 'error');
+        }
       }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1312,9 +1325,10 @@ export const ItemsSection: React.FC = () => {
                       type="button"
                       className="btn-primary"
                       onClick={handleCreateItem}
+                      disabled={isSaving}
                       style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
-                      Simpan
+                      {isSaving ? 'Menyimpan...' : 'Simpan'}
                     </button>
                   </>
                 ) : (
@@ -1403,9 +1417,10 @@ export const ItemsSection: React.FC = () => {
                       type="button"
                       className="btn-primary"
                       onClick={handleCreateItem}
+                      disabled={isSaving}
                       style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
-                      Simpan
+                      {isSaving ? 'Menyimpan...' : 'Simpan'}
                     </button>
                   </>
                 )
@@ -1716,9 +1731,14 @@ export const ItemsSection: React.FC = () => {
             <button className="btn-secondary" type="button" onClick={() => setShowEditMasterModal(false)}>
               Batal
             </button>
-            <button className="btn-primary" type="button" onClick={handleSaveMasterEdit}>
-              Perbarui
-            </button>
+             <button
+               className="btn-primary"
+               type="button"
+               onClick={handleSaveMasterEdit}
+               disabled={isSaving}
+             >
+               {isSaving ? 'Memperbarui...' : 'Perbarui'}
+             </button>
           </div>
         </div>
       </Modal>
