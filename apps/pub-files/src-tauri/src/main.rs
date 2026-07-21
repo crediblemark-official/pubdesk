@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    pubhub_desktop_lib::run()
+    pubhub_files_lib::run()
 }
