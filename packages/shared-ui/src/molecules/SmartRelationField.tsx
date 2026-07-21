@@ -276,7 +276,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
           }}>
             <div style={{
               display: 'flex',
-              justify: 'space-between',
+              justifyContent: 'space-between',
               alignItems: 'center',
               paddingBottom: '8px',
               borderBottom: '1px solid var(--border)',
