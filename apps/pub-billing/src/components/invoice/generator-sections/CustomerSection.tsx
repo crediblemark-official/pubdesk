@@ -511,6 +511,12 @@ export const CustomerSection: React.FC = () => {
                     type="checkbox"
                     checked={createFormData.isPenulis}
                     onChange={(e) => setCreateFormData((prev) => ({ ...prev, isPenulis: e.target.checked }))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setCreateFormData((prev) => ({ ...prev, isPenulis: !prev.isPenulis }));
+                      }
+                    }}
                     style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                   />
                   Juga merupakan Penulis Naskah
@@ -521,6 +527,12 @@ export const CustomerSection: React.FC = () => {
                     type="checkbox"
                     checked={createFormData.isMitra}
                     onChange={(e) => setCreateFormData((prev) => ({ ...prev, isMitra: e.target.checked }))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setCreateFormData((prev) => ({ ...prev, isMitra: !prev.isMitra }));
+                      }
+                    }}
                     style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                   />
                   Kontak Mitra B2B / Satuan Penerbit Terpadu
@@ -756,6 +768,12 @@ export const CustomerSection: React.FC = () => {
                   type="checkbox"
                   checked={editFormData.isPenulis}
                   onChange={(e) => setEditFormData((prev) => ({ ...prev, isPenulis: e.target.checked }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setEditFormData((prev) => ({ ...prev, isPenulis: !prev.isPenulis }));
+                    }
+                  }}
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 Juga merupakan Penulis Naskah
@@ -766,6 +784,12 @@ export const CustomerSection: React.FC = () => {
                   type="checkbox"
                   checked={editFormData.isMitra}
                   onChange={(e) => setEditFormData((prev) => ({ ...prev, isMitra: e.target.checked }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setEditFormData((prev) => ({ ...prev, isMitra: !prev.isMitra }));
+                    }
+                  }}
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 Kontak Mitra B2B / Satuan Penerbit Terpadu
