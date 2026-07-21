@@ -626,50 +626,76 @@ export const ItemsSection: React.FC = () => {
     setCustomTitle(item.item_title);
 
     let isLinkedPackage = false;
+    let isLinkedBook = false;
 
     // Cari relasi
-    if (item.book_id) {
-      // Jika ini ditambahkan sebagai Buku
+    if (item.service_id) {
+      // Jika ini ditambahkan sebagai Layanan
+      setSelectedServiceIdState(String(item.service_id));
+      setSelectedBookIdState('');
+      setSelectedNaskahIdState('');
+
+      if (item.book_id) {
+        setLinkedBookId(`book-${item.book_id}`);
+        isLinkedBook = true;
+      } else if (item.naskah_id) {
+        setLinkedBookId(`naskah-${item.naskah_id}`);
+        isLinkedBook = true;
+      }
+    } else if (item.book_id && !item.package_name) {
+      // Jika Buku murni tanpa link package
       setSelectedBookIdState(String(item.book_id));
       setSelectedServiceIdState('');
       setSelectedNaskahIdState('');
-
-      // Cek apakah ada paket penerbitan yang terhubung
-      if (item.package_name) {
-        const service = services.find(s => s.name === item.package_name);
-        if (service) {
-          setLinkedPackageId(String(service.id));
-          isLinkedPackage = true;
-        }
-      }
-    } else if (item.naskah_id) {
+    } else if (item.naskah_id && !item.package_name) {
+      // Jika Naskah murni tanpa link package
       setSelectedNaskahIdState(String(item.naskah_id));
       setSelectedBookIdState('');
       setSelectedServiceIdState('');
-
-      // Cek apakah ada paket penerbitan yang terhubung
-      if (item.package_name) {
-        const service = services.find(s => s.name === item.package_name);
-        if (service) {
-          setLinkedPackageId(String(service.id));
-          isLinkedPackage = true;
-        }
-      }
     } else {
-      const matchedService = services.find(s => s.name === item.item_title);
+      // Fallback lama / data lama
+      const matchedService = services.find(s => s.name === item.item_title || item.item_title.endsWith(` - ${s.name}`));
       if (matchedService) {
         setSelectedServiceIdState(String(matchedService.id));
         setSelectedBookIdState('');
         setSelectedNaskahIdState('');
+        
+        if (item.book_id) {
+          setLinkedBookId(`book-${item.book_id}`);
+          isLinkedBook = true;
+        } else if (item.naskah_id) {
+          setLinkedBookId(`naskah-${item.naskah_id}`);
+          isLinkedBook = true;
+        }
       } else {
-        setSelectedServiceIdState('');
-        setSelectedBookIdState('');
-        setSelectedNaskahIdState('');
+        if (item.book_id) {
+          setSelectedBookIdState(String(item.book_id));
+          setSelectedServiceIdState('');
+          setSelectedNaskahIdState('');
+          if (item.package_name) {
+            const service = services.find(s => s.name === item.package_name);
+            if (service) {
+              setLinkedPackageId(String(service.id));
+              isLinkedPackage = true;
+            }
+          }
+        } else if (item.naskah_id) {
+          setSelectedNaskahIdState(String(item.naskah_id));
+          setSelectedBookIdState('');
+          setSelectedServiceIdState('');
+          if (item.package_name) {
+            const service = services.find(s => s.name === item.package_name);
+            if (service) {
+              setLinkedPackageId(String(service.id));
+              isLinkedPackage = true;
+            }
+          }
+        }
       }
     }
 
     if (!isLinkedPackage) setLinkedPackageId('');
-    setLinkedBookId(''); // reset linked book saat edit dimulai
+    if (!isLinkedBook) setLinkedBookId('');
     setLinkedPackageQuery('');
     setLinkedBookQuery('');
 
@@ -721,6 +747,7 @@ export const ItemsSection: React.FC = () => {
     }
 
     const updatedItem: Partial<InvoiceItem> = {
+      service_id: selectedServiceIdState ? parseInt(selectedServiceIdState) : undefined,
       book_id: finalBookId,
       naskah_id: finalNaskahId,
       item_title: finalTitle,
@@ -810,6 +837,7 @@ export const ItemsSection: React.FC = () => {
     }
 
     const newItem: InvoiceItem = {
+      service_id: selectedServiceIdState ? parseInt(selectedServiceIdState) : undefined,
       book_id: finalBookId,
       naskah_id: finalNaskahId,
       item_title: finalTitle,

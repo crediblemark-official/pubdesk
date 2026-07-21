@@ -13,6 +13,7 @@ export interface InvoiceTableColumn {
 
 export interface InvoiceItem {
   book_id: number;
+  service_id?: number;
   item_title: string;
   quantity: number;
   price: number;
