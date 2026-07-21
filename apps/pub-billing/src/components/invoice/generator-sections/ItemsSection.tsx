@@ -69,7 +69,7 @@ export const ItemsSection: React.FC = () => {
           description: createFormData.description.trim(),
           category: 'umum',
         });
-        
+
         setCustomTitle(createFormData.name.trim());
         setSelectedServiceIdState(String(newServiceId));
         setSelectedBookIdState('');
@@ -105,7 +105,7 @@ export const ItemsSection: React.FC = () => {
         return;
       }
     }
-    
+
     // Reset form
     setCreateFormData({
       name: '',
@@ -238,15 +238,15 @@ export const ItemsSection: React.FC = () => {
       price: autoFill.price ?? ((option as any).price || 0),
     }));
   };
-  
+
   // Dynamically set default values when activeProfile changes
   useEffect(() => {
     if (!activeProfile?.tableColumns) return;
-    
+
     const initialInputs: Record<string, any> = {};
     activeProfile.tableColumns.forEach(col => {
       if (col.key === 'item_title') return;
-      
+
       let defVal: any = '';
       if (col.key === 'quantity') {
         defVal = 1;
@@ -265,7 +265,7 @@ export const ItemsSection: React.FC = () => {
       }
       initialInputs[col.key] = defVal;
     });
-    
+
     setDynamicInputs(initialInputs);
     setCustomTitle('');
   }, [activeProfile, customer.name]);
@@ -273,9 +273,9 @@ export const ItemsSection: React.FC = () => {
   // Dapatkan daftar field input yang diperlukan untuk profil aktif
   const getRequiredFields = () => {
     if (!activeProfile?.tableColumns) return [];
-    
+
     const fieldsMap = new Map<string, { key: string; label: string; type: 'text' | 'number' | 'currency' }>();
-    
+
     activeProfile.tableColumns.forEach(col => {
       if (col.type !== 'formula') {
         fieldsMap.set(col.key, {
@@ -291,7 +291,7 @@ export const ItemsSection: React.FC = () => {
           if (!fieldsMap.has(tokenKey)) {
             let label = tokenKey;
             let type: 'text' | 'number' | 'currency' = 'text';
-            
+
             if (tokenKey === 'quantity') {
               label = 'Jumlah';
               type = 'number';
@@ -314,26 +314,26 @@ export const ItemsSection: React.FC = () => {
               label = 'Pemegang Hak Cipta';
               type = 'text';
             }
-            
+
             fieldsMap.set(tokenKey, { key: tokenKey, label, type });
           }
         }
       }
     });
-    
+
     const fields = Array.from(fieldsMap.values());
     const titleField = fields.find(f => f.key === 'item_title');
     const priceField = fields.find(f => f.key === 'price');
     const qtyField = fields.find(f => f.key === 'quantity');
-    
+
     const otherFields = fields.filter(f => f.key !== 'item_title' && f.key !== 'price' && f.key !== 'quantity');
-    
+
     const sortedFields = [];
     if (titleField) sortedFields.push(titleField);
     sortedFields.push(...otherFields);
     if (qtyField) sortedFields.push(qtyField);
     if (priceField) sortedFields.push(priceField);
-    
+
     return sortedFields;
   };
 
@@ -461,7 +461,7 @@ export const ItemsSection: React.FC = () => {
     const item = items[index];
     setEditingIndex(index);
     setCustomTitle(item.item_title);
-    
+
     // Cari relasi
     if (item.book_id) {
       setSelectedBookIdState(String(item.book_id));
@@ -544,7 +544,7 @@ export const ItemsSection: React.FC = () => {
     setSelectedServiceIdState('');
     setSelectedBookIdState('');
     setSelectedNaskahIdState('');
-    
+
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
       activeProfile.tableColumns.forEach(col => {
@@ -558,7 +558,7 @@ export const ItemsSection: React.FC = () => {
       setDynamicInputs(initialInputs);
     }
   };
-  
+
   const handleAddItem = () => {
     let finalTitle = customTitle.trim();
     let finalPrice = parseFloat(dynamicInputs['price']) || 0;
@@ -609,12 +609,12 @@ export const ItemsSection: React.FC = () => {
     setSelectedServiceIdState('');
     setSelectedBookIdState('');
     setSelectedNaskahIdState('');
-    
+
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
       activeProfile.tableColumns.forEach(col => {
         if (col.key === 'item_title') return;
-        
+
         let defVal: any = '';
         if (col.key === 'quantity') {
           defVal = 1;
@@ -902,7 +902,7 @@ export const ItemsSection: React.FC = () => {
                       onClick={handleCreateItem}
                       style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
-                      Simpan Layanan
+                      Simpan
                     </button>
                   </>
                 ) : (
@@ -950,7 +950,7 @@ export const ItemsSection: React.FC = () => {
                       onClick={handleCreateItem}
                       style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
-                      Simpan Karya
+                      Simpan
                     </button>
                   </>
                 )
@@ -971,15 +971,15 @@ export const ItemsSection: React.FC = () => {
                 <input
                   type={field.type === 'currency' ? 'text' : (field.type === 'number' ? 'number' : 'text')}
                   style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
-                  value={field.type === 'currency' 
-                    ? formatThousand(dynamicInputs[field.key] ?? '') 
+                  value={field.type === 'currency'
+                    ? formatThousand(dynamicInputs[field.key] ?? '')
                     : (dynamicInputs[field.key] !== undefined ? (dynamicInputs[field.key] === 0 ? '' : dynamicInputs[field.key]) : '')}
                   onChange={(e) => {
                     const val = e.target.value;
                     setDynamicInputs(prev => ({
                       ...prev,
-                      [field.key]: field.type === 'currency' 
-                        ? parseThousand(val) 
+                      [field.key]: field.type === 'currency'
+                        ? parseThousand(val)
                         : (field.type === 'number' ? (parseFloat(val) || 0) : val)
                     }));
                   }}
@@ -1041,24 +1041,24 @@ export const ItemsSection: React.FC = () => {
               {formatPrice(calculateItemTotal(item))}
             </span>
             <div style={{ display: 'flex', gap: '4px' }}>
-              <button 
+              <button
                 type="button"
-                className="btn-secondary" 
-                onClick={() => handleStartEdit(index)} 
+                className="btn-secondary"
+                onClick={() => handleStartEdit(index)}
                 title="Ubah Item"
                 style={{ padding: '6px 10px', borderRadius: '6px', minWidth: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ✏️
               </button>
-              <button 
+              <button
                 type="button"
-                className="btn-danger" 
+                className="btn-danger"
                 onClick={() => {
                   if (editingIndex === index) {
                     handleCancelEdit();
                   }
                   removeItem(index);
-                }} 
+                }}
                 title="Hapus Item"
                 style={{ padding: '6px 10px', borderRadius: '6px', minWidth: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
@@ -1070,15 +1070,15 @@ export const ItemsSection: React.FC = () => {
       </div>
 
       {(paymentStatus === 'DP' && (
-        <div style={{ 
-          marginTop: '20px', 
-          padding: '16px', 
-          background: 'var(--bg-panel)', 
-          borderRadius: '8px', 
+        <div style={{
+          marginTop: '20px',
+          padding: '16px',
+          background: 'var(--bg-panel)',
+          borderRadius: '8px',
           border: '1px solid var(--border)',
-          display: 'grid', 
-          gridTemplateColumns: '1fr 1fr', 
-          gap: '12px' 
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '12px'
         }}>
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Nominal Dibayar (DP)</label>
