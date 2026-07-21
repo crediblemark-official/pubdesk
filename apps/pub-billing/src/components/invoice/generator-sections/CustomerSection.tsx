@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { SmartRelationField, SmartRelationOption, Modal } from '@pubhub/shared-ui';
@@ -52,6 +52,44 @@ export const CustomerSection: React.FC = () => {
       loadPenerbit().catch(err => console.error("Gagal reload penerbit:", err));
     }
   }, [createFormData.isMitra, editFormData.isMitra, loadPenerbit]);
+
+  // Deteksi penekanan tombol Space 1 kali / 2 kali untuk modal tambah kontak
+  const spaceTimeoutRef = useRef<any>(null);
+  const spaceCountRef = useRef<number>(0);
+
+  const handleSpacePress = () => {
+    spaceCountRef.current += 1;
+    if (spaceTimeoutRef.current) {
+      clearTimeout(spaceTimeoutRef.current);
+    }
+    spaceTimeoutRef.current = setTimeout(() => {
+      if (spaceCountRef.current === 1) {
+        setCreateFormData((prev) => ({ ...prev, isPenulis: !prev.isPenulis }));
+      } else if (spaceCountRef.current >= 2) {
+        setCreateFormData((prev) => ({ ...prev, isMitra: !prev.isMitra }));
+      }
+      spaceCountRef.current = 0;
+    }, 250);
+  };
+
+  // Deteksi penekanan tombol Space 1 kali / 2 kali untuk modal edit kontak
+  const editSpaceTimeoutRef = useRef<any>(null);
+  const editSpaceCountRef = useRef<number>(0);
+
+  const handleEditSpacePress = () => {
+    editSpaceCountRef.current += 1;
+    if (editSpaceTimeoutRef.current) {
+      clearTimeout(editSpaceTimeoutRef.current);
+    }
+    editSpaceTimeoutRef.current = setTimeout(() => {
+      if (editSpaceCountRef.current === 1) {
+        setEditFormData((prev) => ({ ...prev, isPenulis: !prev.isPenulis }));
+      } else if (editSpaceCountRef.current >= 2) {
+        setEditFormData((prev) => ({ ...prev, isMitra: !prev.isMitra }));
+      }
+      editSpaceCountRef.current = 0;
+    }, 250);
+  };
 
   const handleEditOption = (value: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -439,6 +477,19 @@ export const CustomerSection: React.FC = () => {
                 e.preventDefault();
                 handleCreateSave(() => onSave({}));
               }}
+              onKeyDown={(e) => {
+                const target = e.target as HTMLElement;
+                const isTextInput = target.tagName === 'INPUT' && 
+                                    (target as HTMLInputElement).type !== 'checkbox';
+                const isButton = target.tagName === 'BUTTON';
+                const isSelect = target.tagName === 'SELECT';
+                if (isTextInput || isButton || isSelect) return;
+
+                if (e.key === ' ') {
+                  e.preventDefault();
+                  handleSpacePress();
+                }
+              }}
               style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
               <input
@@ -667,6 +718,19 @@ export const CustomerSection: React.FC = () => {
             onSubmit={(e) => {
               e.preventDefault();
               handleEditSave();
+            }}
+            onKeyDown={(e) => {
+              const target = e.target as HTMLElement;
+              const isTextInput = target.tagName === 'INPUT' && 
+                                  (target as HTMLInputElement).type !== 'checkbox';
+              const isButton = target.tagName === 'BUTTON';
+              const isSelect = target.tagName === 'SELECT';
+              if (isTextInput || isButton || isSelect) return;
+
+              if (e.key === ' ') {
+                e.preventDefault();
+                handleEditSpacePress();
+              }
             }}
             style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
           >
