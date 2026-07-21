@@ -187,6 +187,23 @@ export const ItemsSection: React.FC = () => {
     return '';
   }, [selectedServiceIdState, selectedBookIdState, selectedNaskahIdState, customTitle, allItemOptions]);
 
+  // Matched items dari DB berdasarkan query yang diketik di form create
+  const searchQuery = createType === 'service' ? createFormData.name : createFormData.title;
+  const matchedItems = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return allItemOptions
+      .filter(o => {
+        const isRightType = createType === 'service'
+          ? !(o as any).isBook && !(o as any).isNaskah
+          : (o as any).isBook;
+        return isRightType && (o as any).name?.toLowerCase().includes(q);
+      })
+      .slice(0, 6);
+  }, [searchQuery, createType, allItemOptions]);
+
+  const hasMatches = matchedItems.length > 0;
+
   const handleSelect = (value: string, option?: SmartRelationOption) => {
     if (!option) {
       setCustomTitle(value);
@@ -667,90 +684,106 @@ export const ItemsSection: React.FC = () => {
         </div>
       )}
 
-      {/* Input Form Item */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '250px' }}>
-            <SmartRelationField
-              label="Judul Buku / Layanan"
-              options={allItemOptions}
-              value={selectedValue}
-              onChange={handleSelect}
-              placeholder="Ketik judul buku / layanan atau pilih dari Master..."
-              emptyMessage="Belum ada data. Ketik nama baru di form di bawah untuk membuat."
-              entityLabel="Buku/Layanan"
-              entityLabelPlural="Buku/Layanan"
-              fullWidth
-              mode="autocomplete"
-              onEditOption={handleEditMasterOption}
-              onDeleteOption={handleDeleteMasterOption}
-              allowCreate={false}
-            />
-          </div>
-        </div>
+      {/* === Unified Search + Create Form === */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
 
-        {/* Form Buat Layanan / Karya Baru — selalu tampil */}
-        <>
-          {/* Header + Tab */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-              + Buat Baru:
+        {/* Item sudah dipilih — tampilkan state terpilih */}
+        {selectedValue ? (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '8px 12px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+          }}>
+            <span style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: '600' }}>✓</span>
+            <span style={{ fontSize: '13px', color: 'var(--text-primary)', flex: 1 }}>
+              {allItemOptions.find(o => o.value === selectedValue)?.name ?? customTitle}
             </span>
-            <div style={{
-              display: 'flex',
-              background: 'var(--bg-card)',
-              padding: '3px',
-              borderRadius: '7px',
-              gap: '3px',
-              border: '1px solid var(--border)',
-            }}>
-              <button
-                type="button"
-                onClick={() => setCreateType('service')}
-                style={{
-                  padding: '5px 14px',
-                  background: createType === 'service' ? 'var(--accent)' : 'transparent',
-                  color: createType === 'service' ? '#fff' : 'var(--text-secondary)',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '12px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                Layanan (Jasa)
-              </button>
-              <button
-                type="button"
-                onClick={() => setCreateType('book')}
-                style={{
-                  padding: '5px 14px',
-                  background: createType === 'book' ? 'var(--accent)' : 'transparent',
-                  color: createType === 'book' ? '#fff' : 'var(--text-secondary)',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '12px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                Karya (Buku)
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedServiceIdState('');
+                setSelectedBookIdState('');
+                setSelectedNaskahIdState('');
+                setCustomTitle('');
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                fontSize: '12px',
+                cursor: 'pointer',
+                padding: '2px 8px',
+                borderRadius: '5px',
+              }}
+            >
+              × Ganti
+            </button>
           </div>
+        ) : (
+          <>
+            {/* Tab Layanan / Karya */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                Tipe:
+              </span>
+              <div style={{
+                display: 'flex',
+                background: 'var(--bg-card)',
+                padding: '3px',
+                borderRadius: '7px',
+                gap: '3px',
+                border: '1px solid var(--border)',
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setCreateType('service')}
+                  style={{
+                    padding: '5px 14px',
+                    background: createType === 'service' ? 'var(--accent)' : 'transparent',
+                    color: createType === 'service' ? '#fff' : 'var(--text-secondary)',
+                    border: 'none', borderRadius: '5px', cursor: 'pointer',
+                    fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
+                  }}
+                >
+                  Layanan (Jasa)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreateType('book')}
+                  style={{
+                    padding: '5px 14px',
+                    background: createType === 'book' ? 'var(--accent)' : 'transparent',
+                    color: createType === 'book' ? '#fff' : 'var(--text-secondary)',
+                    border: 'none', borderRadius: '5px', cursor: 'pointer',
+                    fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
+                  }}
+                >
+                  Karya (Buku)
+                </button>
+              </div>
+            </div>
 
-          {/* Fields */}
-          {createType === 'service' ? (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {/* Baris utama: input nama + (match list ATAU extra fields + tombol) */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              {/* Input nama / judul — selalu tampil */}
               <input
                 type="text"
-                placeholder="Nama Layanan Baru *"
-                value={createFormData.name}
-                onChange={(e) => setCreateFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder={createType === 'service' ? 'Nama layanan — ketik untuk cari atau buat baru...' : 'Judul karya — ketik untuk cari atau buat baru...'}
+                value={createType === 'service' ? createFormData.name : createFormData.title}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCreateFormData(prev =>
+                    createType === 'service'
+                      ? { ...prev, name: val }
+                      : { ...prev, title: val }
+                  );
+                }}
                 style={{
-                  flex: 2, minWidth: '160px',
+                  flex: 2, minWidth: '200px',
                   padding: '8px 12px',
                   border: '1px solid var(--border)',
                   borderRadius: '7px',
@@ -759,106 +792,149 @@ export const ItemsSection: React.FC = () => {
                   color: 'var(--text-primary)',
                 }}
               />
-              <input
-                type="number"
-                placeholder="Tarif (Rp)"
-                value={createFormData.price || ''}
-                onChange={(e) => setCreateFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                style={{
-                  flex: 1, minWidth: '120px',
-                  padding: '8px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '7px',
-                  fontSize: '13px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Deskripsi (opsional)"
-                value={createFormData.description}
-                onChange={(e) => setCreateFormData(prev => ({ ...prev, description: e.target.value }))}
-                style={{
-                  flex: 2, minWidth: '160px',
-                  padding: '8px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '7px',
-                  fontSize: '13px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleCreateItem}
-                style={{ padding: '8px 16px', fontSize: '13px', fontWeight: '600', borderRadius: '7px', whiteSpace: 'nowrap' }}
-              >
-                Simpan Layanan
-              </button>
+
+              {/* Jika ada match di DB: sembunyikan extra fields, tampilkan daftar match + tombol Pilih */}
+              {hasMatches ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', flex: 3, minWidth: '240px' }}>
+                  {matchedItems.map((item) => (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => {
+                        handleSelect(item.value, item);
+                        // Reset query setelah pilih
+                        setCreateFormData(prev =>
+                          createType === 'service' ? { ...prev, name: '' } : { ...prev, title: '' }
+                        );
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent)';
+                        (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent)';
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)';
+                        (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
+                      }}
+                    >
+                      <span>{(item as any).name}</span>
+                      <span style={{ fontSize: '11px', opacity: 0.6 }}>[{(item as any).source}]</span>
+                      <span style={{
+                        background: 'var(--accent)',
+                        color: '#fff',
+                        padding: '1px 7px',
+                        borderRadius: '10px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                      }}>Pilih</span>
+                    </button>
+                  ))}
+                </div>
+              ) : searchQuery.trim() ? (
+                // Tidak ada match — tampilkan extra fields + tombol simpan
+                createType === 'service' ? (
+                  <>
+                    <input
+                      type="number"
+                      placeholder="Tarif (Rp)"
+                      value={createFormData.price || ''}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                      style={{
+                        flex: 1, minWidth: '120px',
+                        padding: '8px 12px',
+                        border: '1px solid var(--border)',
+                        borderRadius: '7px',
+                        fontSize: '13px',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Deskripsi (opsional)"
+                      value={createFormData.description}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, description: e.target.value }))}
+                      style={{
+                        flex: 2, minWidth: '160px',
+                        padding: '8px 12px',
+                        border: '1px solid var(--border)',
+                        borderRadius: '7px',
+                        fontSize: '13px',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={handleCreateItem}
+                      style={{ padding: '8px 16px', fontSize: '13px', fontWeight: '600', borderRadius: '7px', whiteSpace: 'nowrap' }}
+                    >
+                      Simpan Layanan
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="number"
+                      placeholder="Harga (Rp)"
+                      value={createFormData.regular_price || ''}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, regular_price: parseFloat(e.target.value) || 0 }))}
+                      style={{
+                        flex: 1, minWidth: '120px',
+                        padding: '8px 12px',
+                        border: '1px solid var(--border)',
+                        borderRadius: '7px',
+                        fontSize: '13px',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                    <select
+                      value={createFormData.author_id}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, author_id: e.target.value }))}
+                      style={{
+                        flex: 1, minWidth: '140px',
+                        padding: '8px 12px',
+                        border: '1px solid var(--border)',
+                        borderRadius: '7px',
+                        fontSize: '13px',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      <option value="">-- Penulis --</option>
+                      {penulisList.map((p) => (
+                        <option key={p.id} value={String(p.id)}>{p.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={handleCreateItem}
+                      style={{ padding: '8px 16px', fontSize: '13px', fontWeight: '600', borderRadius: '7px', whiteSpace: 'nowrap' }}
+                    >
+                      Simpan Karya
+                    </button>
+                  </>
+                )
+              ) : null}
             </div>
-          ) : (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <input
-                type="text"
-                placeholder="Judul Karya Baru *"
-                value={createFormData.title}
-                onChange={(e) => setCreateFormData(prev => ({ ...prev, title: e.target.value }))}
-                style={{
-                  flex: 2, minWidth: '160px',
-                  padding: '8px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '7px',
-                  fontSize: '13px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <input
-                type="number"
-                placeholder="Harga (Rp)"
-                value={createFormData.regular_price || ''}
-                onChange={(e) => setCreateFormData(prev => ({ ...prev, regular_price: parseFloat(e.target.value) || 0 }))}
-                style={{
-                  flex: 1, minWidth: '120px',
-                  padding: '8px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '7px',
-                  fontSize: '13px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <select
-                value={createFormData.author_id}
-                onChange={(e) => setCreateFormData(prev => ({ ...prev, author_id: e.target.value }))}
-                style={{
-                  flex: 1, minWidth: '140px',
-                  padding: '8px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '7px',
-                  fontSize: '13px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                <option value="">-- Penulis --</option>
-                {penulisList.map((p) => (
-                  <option key={p.id} value={String(p.id)}>{p.name}</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleCreateItem}
-                style={{ padding: '8px 16px', fontSize: '13px', fontWeight: '600', borderRadius: '7px', whiteSpace: 'nowrap' }}
-              >
-                Simpan Karya
-              </button>
-            </div>
-          )}
-        </>
+          </>
+        )}
+
 
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
