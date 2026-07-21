@@ -25,7 +25,7 @@ export const AccordionSection: React.FC<AccordionSectionProps> = ({
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '0 16px',
-          height: '48px',
+          height: '40px',
           boxSizing: 'border-box',
           background: isOpen ? 'var(--bg-panel)' : 'transparent',
           border: 'none',
@@ -42,8 +42,8 @@ export const AccordionSection: React.FC<AccordionSectionProps> = ({
         <span style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span>{icon && <span>{icon} </span>}{title}</span>
           {headerAction && (
-            <span 
-              onClick={(e) => e.stopPropagation()} 
+            <span
+              onClick={(e) => e.stopPropagation()}
               style={{ display: 'flex', gap: '8px', textTransform: 'initial', letterSpacing: 'initial' }}
             >
               {headerAction}

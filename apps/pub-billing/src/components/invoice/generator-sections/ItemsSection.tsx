@@ -16,8 +16,6 @@ export const ItemsSection: React.FC = () => {
     removeItem,
     calculateItemTotal,
     activeProfile,
-    selectedLayoutId,
-    setSelectedLayoutId,
     paymentStatus,
     paidAmount,
     setPaidAmount,
