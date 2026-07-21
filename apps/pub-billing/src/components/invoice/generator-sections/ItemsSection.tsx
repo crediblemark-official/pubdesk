@@ -726,50 +726,59 @@ export const ItemsSection: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Tab Layanan / Karya */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                Tipe:
-              </span>
-              <div style={{
-                display: 'flex',
-                background: 'var(--bg-card)',
-                padding: '3px',
-                borderRadius: '7px',
-                gap: '3px',
-                border: '1px solid var(--border)',
-              }}>
-                <button
-                  type="button"
-                  onClick={() => setCreateType('service')}
-                  style={{
-                    padding: '5px 14px',
-                    background: createType === 'service' ? 'var(--accent)' : 'transparent',
-                    color: createType === 'service' ? '#fff' : 'var(--text-secondary)',
-                    border: 'none', borderRadius: '5px', cursor: 'pointer',
-                    fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
-                  }}
-                >
-                  Layanan (Jasa)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCreateType('book')}
-                  style={{
-                    padding: '5px 14px',
-                    background: createType === 'book' ? 'var(--accent)' : 'transparent',
-                    color: createType === 'book' ? '#fff' : 'var(--text-secondary)',
-                    border: 'none', borderRadius: '5px', cursor: 'pointer',
-                    fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
-                  }}
-                >
-                  Karya (Buku)
-                </button>
+            {/* Baris utama: Tipe + input nama + (match list ATAU extra fields + tombol) */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Tab Layanan / Karya */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '42px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                  Tipe:
+                </span>
+                <div style={{
+                  display: 'flex',
+                  background: 'var(--bg-card)',
+                  padding: '3px',
+                  borderRadius: '7px',
+                  gap: '3px',
+                  border: '1px solid var(--border)',
+                  height: '32px',
+                  alignItems: 'center',
+                  boxSizing: 'border-box',
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setCreateType('service')}
+                    style={{
+                      padding: '2px 12px',
+                      background: createType === 'service' ? 'var(--accent)' : 'transparent',
+                      color: createType === 'service' ? '#fff' : 'var(--text-secondary)',
+                      border: 'none', borderRadius: '5px', cursor: 'pointer',
+                      fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    Layanan (Jasa)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateType('book')}
+                    style={{
+                      padding: '2px 12px',
+                      background: createType === 'book' ? 'var(--accent)' : 'transparent',
+                      color: createType === 'book' ? '#fff' : 'var(--text-secondary)',
+                      border: 'none', borderRadius: '5px', cursor: 'pointer',
+                      fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    Karya (Buku)
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Baris utama: input nama + (match list ATAU extra fields + tombol) */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
               {/* Input nama / judul — selalu tampil */}
               <input
                 type="text"
