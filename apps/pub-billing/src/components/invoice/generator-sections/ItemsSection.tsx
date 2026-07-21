@@ -864,7 +864,7 @@ export const ItemsSection: React.FC = () => {
                   <>
                     <input
                       type="number"
-                      placeholder="Tarif (Rp)"
+                      placeholder="Harga Satuan (Rp)"
                       value={createFormData.price || ''}
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                       style={{
@@ -1124,7 +1124,7 @@ export const ItemsSection: React.FC = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              {editMasterType === 'service' ? 'Tarif (Rp)' : 'Harga Reguler (Rp)'}
+              {editMasterType === 'service' ? 'Harga Satuan (Rp)' : 'Harga Reguler (Rp)'}
             </label>
             <input
               type="text"
