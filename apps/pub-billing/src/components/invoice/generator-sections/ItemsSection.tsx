@@ -8,6 +8,9 @@ import { evaluateItemFormula } from '../../../utils/invoice';
 import { SmartRelationOption, Modal } from '@pubhub/shared-ui';
 export const ItemsSection: React.FC = () => {
   const { services, books, showToast, addService, addBook, updateService, deleteService, updateBook, deleteBook, contacts, showConfirm } = useAppContext();
+  const penulisList = useMemo(() => {
+    return contacts.filter(c => c.type === 'penulis' || c.type === 'both');
+  }, [contacts]);
   const { naskah } = useDataMasterContext();
   const {
     customer,
@@ -48,6 +51,22 @@ export const ItemsSection: React.FC = () => {
   const [linkedPackageQuery, setLinkedPackageQuery] = useState<string>('');
   const [linkedBookQuery, setLinkedBookQuery] = useState<string>('');
 
+  // State untuk pencarian autocomplete Penulis
+  const [authorSearchQuery, setAuthorSearchQuery] = useState<string>('');
+  const [editMasterAuthorSearchQuery, setEditMasterAuthorSearchQuery] = useState<string>('');
+
+  const matchedAuthors = useMemo(() => {
+    if (!authorSearchQuery.trim()) return [];
+    const q = authorSearchQuery.toLowerCase();
+    return penulisList.filter(p => p.name.toLowerCase().includes(q)).slice(0, 5);
+  }, [authorSearchQuery, penulisList]);
+
+  const matchedEditMasterAuthors = useMemo(() => {
+    if (!editMasterAuthorSearchQuery.trim()) return [];
+    const q = editMasterAuthorSearchQuery.toLowerCase();
+    return penulisList.filter(p => p.name.toLowerCase().includes(q)).slice(0, 5);
+  }, [editMasterAuthorSearchQuery, penulisList]);
+
   const bookAndNaskahOptions = useMemo(() => {
     return [
       ...books.map(b => ({ id: `book-${b.id}`, title: b.title, type: 'book', original: b })),
@@ -78,9 +97,6 @@ export const ItemsSection: React.FC = () => {
     author_id: '',
   });
 
-  const penulisList = useMemo(() => {
-    return contacts.filter(c => c.type === 'penulis' || c.type === 'both');
-  }, [contacts]);
 
   const handleLinkPackage = (serviceId: string) => {
     setLinkedPackageId(serviceId);
@@ -228,6 +244,7 @@ export const ItemsSection: React.FC = () => {
       regular_price: 0,
       author_id: '',
     });
+    setAuthorSearchQuery('');
   };
 
   const allItemOptions: SmartRelationOption[] = useMemo(() => {
@@ -471,6 +488,8 @@ export const ItemsSection: React.FC = () => {
       const b = books.find(item => item.id === id);
       if (b) {
         setEditMasterType('book');
+        const author = contacts.find(c => c.id === b.author_id);
+        setEditMasterAuthorSearchQuery(author?.name || '');
         setEditMasterData({
           id: b.id || 0,
           name: b.title,
@@ -1299,26 +1318,68 @@ export const ItemsSection: React.FC = () => {
                         boxSizing: 'border-box',
                       }}
                     />
-                    <select
-                      value={createFormData.author_id}
-                      onChange={(e) => setCreateFormData(prev => ({ ...prev, author_id: e.target.value }))}
-                      style={{
-                        flex: 1, minWidth: '140px',
-                        padding: '10px 14px',
-                        border: '1px solid var(--border)',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        background: 'var(--bg-card)',
-                        color: 'var(--text-primary)',
-                        height: '42px',
-                        boxSizing: 'border-box',
-                      }}
-                    >
-                      <option value="">-- Penulis --</option>
-                      {penulisList.map((p) => (
-                        <option key={p.id} value={String(p.id)}>{p.name}</option>
-                      ))}
-                    </select>
+                    <div style={{ flex: 1, minWidth: '140px', position: 'relative' }}>
+                      <input
+                        type="text"
+                        placeholder="Cari Penulis..."
+                        value={authorSearchQuery}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setAuthorSearchQuery(val);
+                          if (!val.trim()) {
+                            setCreateFormData(prev => ({ ...prev, author_id: '' }));
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          height: '42px',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      {matchedAuthors.length > 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '46px',
+                          left: 0,
+                          right: 0,
+                          background: 'var(--bg-panel)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                          zIndex: 50,
+                          maxHeight: '180px',
+                          overflowY: 'auto',
+                        }}>
+                          {matchedAuthors.map((p) => (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                setCreateFormData(prev => ({ ...prev, author_id: String(p.id) }));
+                                setAuthorSearchQuery(p.name);
+                              }}
+                              style={{
+                                padding: '8px 12px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                color: 'var(--text-primary)',
+                                borderBottom: '1px solid var(--border)',
+                                transition: 'background 0.2s',
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                              👤 {p.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <button
                       type="button"
                       className="btn-primary"
@@ -1566,18 +1627,68 @@ export const ItemsSection: React.FC = () => {
               />
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
               <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Penulis</label>
-              <select
-                value={editMasterData.author_id}
-                onChange={(e) => setEditMasterData(prev => ({ ...prev, author_id: e.target.value }))}
-                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', boxSizing: 'border-box' }}
-              >
-                <option value="">-- Pilih Penulis --</option>
-                {penulisList.map(p => (
-                  <option key={p.id} value={String(p.id)}>{p.name}</option>
-                ))}
-              </select>
+              <input
+                type="text"
+                placeholder="Cari Penulis..."
+                value={editMasterAuthorSearchQuery}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEditMasterAuthorSearchQuery(val);
+                  if (!val.trim()) {
+                    setEditMasterData(prev => ({ ...prev, author_id: '' }));
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  height: '42px',
+                }}
+              />
+              {matchedEditMasterAuthors.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '64px',
+                  left: 0,
+                  right: 0,
+                  background: 'var(--bg-panel)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                  zIndex: 50,
+                  maxHeight: '180px',
+                  overflowY: 'auto',
+                }}>
+                  {matchedEditMasterAuthors.map((p) => (
+                    <div
+                      key={p.id}
+                      onClick={() => {
+                        setEditMasterData(prev => ({ ...prev, author_id: String(p.id) }));
+                        setEditMasterAuthorSearchQuery(p.name);
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        color: 'var(--text-primary)',
+                        borderBottom: '1px solid var(--border)',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      👤 {p.name}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
