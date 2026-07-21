@@ -44,6 +44,8 @@ export const ItemsSection: React.FC = () => {
   // State untuk dropdown kontekstual dinamis
   const [linkedPackageId, setLinkedPackageId] = useState<string>('');
   const [linkedBookId, setLinkedBookId] = useState<string>('');
+  const [linkedPackageQuery, setLinkedPackageQuery] = useState<string>('');
+  const [linkedBookQuery, setLinkedBookQuery] = useState<string>('');
 
   const bookAndNaskahOptions = useMemo(() => {
     return [
@@ -51,6 +53,18 @@ export const ItemsSection: React.FC = () => {
       ...naskah.map(n => ({ id: `naskah-${n.id}`, title: n.title, type: 'naskah', original: n }))
     ];
   }, [books, naskah]);
+
+  const matchedLinkedPackages = useMemo(() => {
+    if (!linkedPackageQuery.trim()) return [];
+    const q = linkedPackageQuery.toLowerCase();
+    return services.filter(s => s.name.toLowerCase().includes(q)).slice(0, 5);
+  }, [linkedPackageQuery, services]);
+
+  const matchedLinkedBooks = useMemo(() => {
+    if (!linkedBookQuery.trim()) return [];
+    const q = linkedBookQuery.toLowerCase();
+    return bookAndNaskahOptions.filter(b => b.title.toLowerCase().includes(q)).slice(0, 5);
+  }, [linkedBookQuery, bookAndNaskahOptions]);
 
   // State untuk edit/ubah data master layanan & karya langsung dari dropdown
   const [showEditMasterModal, setShowEditMasterModal] = useState(false);
@@ -113,12 +127,13 @@ export const ItemsSection: React.FC = () => {
       const bookId = parseInt(id.replace('book-', ''));
       const book = books.find(b => b.id === bookId);
       if (book) {
+        const bookAuthorContact = contacts.find(c => c.id === book.author_id);
         setCustomTitle(book.title);
         setDynamicInputs(prev => ({
           ...prev,
           pages: '',
           paper_type: '',
-          copyright_holder: book.author || customer.name || '',
+          copyright_holder: bookAuthorContact?.name || customer.name || '',
         }));
       }
     } else if (id.startsWith('naskah-')) {
@@ -544,7 +559,6 @@ export const ItemsSection: React.FC = () => {
     setCustomTitle(item.item_title);
 
     let isLinkedPackage = false;
-    let isLinkedBook = false;
 
     // Cari relasi
     if (item.book_id) {
@@ -589,6 +603,8 @@ export const ItemsSection: React.FC = () => {
 
     if (!isLinkedPackage) setLinkedPackageId('');
     setLinkedBookId(''); // reset linked book saat edit dimulai
+    setLinkedPackageQuery('');
+    setLinkedBookQuery('');
 
     // Muat dynamic inputs
     const inputs: Record<string, any> = {};
@@ -664,6 +680,8 @@ export const ItemsSection: React.FC = () => {
     setSelectedNaskahIdState('');
     setLinkedPackageId('');
     setLinkedBookId('');
+    setLinkedPackageQuery('');
+    setLinkedBookQuery('');
 
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
@@ -743,6 +761,8 @@ export const ItemsSection: React.FC = () => {
     setSelectedNaskahIdState('');
     setLinkedPackageId('');
     setLinkedBookId('');
+    setLinkedPackageQuery('');
+    setLinkedBookQuery('');
 
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
