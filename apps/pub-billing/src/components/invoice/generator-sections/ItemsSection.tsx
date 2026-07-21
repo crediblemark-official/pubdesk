@@ -41,6 +41,17 @@ export const ItemsSection: React.FC = () => {
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
+  // State untuk dropdown kontekstual dinamis
+  const [linkedPackageId, setLinkedPackageId] = useState<string>('');
+  const [linkedBookId, setLinkedBookId] = useState<string>('');
+
+  const bookAndNaskahOptions = useMemo(() => {
+    return [
+      ...books.map(b => ({ id: `book-${b.id}`, title: b.title, type: 'book', original: b })),
+      ...naskah.map(n => ({ id: `naskah-${n.id}`, title: n.title, type: 'naskah', original: n }))
+    ];
+  }, [books, naskah]);
+
   // State untuk edit/ubah data master layanan & karya langsung dari dropdown
   const [showEditMasterModal, setShowEditMasterModal] = useState(false);
   const [editMasterType, setEditMasterType] = useState<'service' | 'book'>('service');
@@ -55,6 +66,76 @@ export const ItemsSection: React.FC = () => {
   const penulisList = useMemo(() => {
     return contacts.filter(c => c.type === 'penulis' || c.type === 'both');
   }, [contacts]);
+
+  const handleLinkPackage = (serviceId: string) => {
+    setLinkedPackageId(serviceId);
+    if (!serviceId) {
+      let originalPrice = 0;
+      if (selectedBookIdState) {
+        const book = books.find(b => b.id === parseInt(selectedBookIdState));
+        if (book) originalPrice = book.regular_price;
+      }
+      setDynamicInputs(prev => ({
+        ...prev,
+        price: originalPrice,
+        package_name: '',
+      }));
+      return;
+    }
+
+    const service = services.find(s => s.id === parseInt(serviceId));
+    if (service) {
+      setDynamicInputs(prev => ({
+        ...prev,
+        price: service.price,
+        package_name: service.name,
+      }));
+    }
+  };
+
+  const handleLinkBook = (id: string) => {
+    setLinkedBookId(id);
+    if (!id) {
+      if (selectedServiceIdState) {
+        const service = services.find(s => s.id === parseInt(selectedServiceIdState));
+        if (service) setCustomTitle(service.name);
+      }
+      setDynamicInputs(prev => ({
+        ...prev,
+        pages: '',
+        paper_type: '',
+        copyright_holder: customer.name || '',
+      }));
+      return;
+    }
+
+    if (id.startsWith('book-')) {
+      const bookId = parseInt(id.replace('book-', ''));
+      const book = books.find(b => b.id === bookId);
+      if (book) {
+        setCustomTitle(book.title);
+        setDynamicInputs(prev => ({
+          ...prev,
+          pages: '',
+          paper_type: '',
+          copyright_holder: book.author || customer.name || '',
+        }));
+      }
+    } else if (id.startsWith('naskah-')) {
+      const naskahId = parseInt(id.replace('naskah-', ''));
+      const n = naskah.find(nk => nk.id === naskahId);
+      if (n) {
+        const penulisContact = contacts.find(c => c.id === n.penulis_id);
+        setCustomTitle(n.title);
+        setDynamicInputs(prev => ({
+          ...prev,
+          pages: n.total_pages ? String(n.total_pages) : '',
+          paper_type: n.legal_type || '',
+          copyright_holder: penulisContact?.name || customer.name || '',
+        }));
+      }
+    }
+  };
 
   const handleCreateItem = async () => {
     if (createType === 'service') {
@@ -462,15 +543,37 @@ export const ItemsSection: React.FC = () => {
     setEditingIndex(index);
     setCustomTitle(item.item_title);
 
+    let isLinkedPackage = false;
+    let isLinkedBook = false;
+
     // Cari relasi
     if (item.book_id) {
+      // Jika ini ditambahkan sebagai Buku
       setSelectedBookIdState(String(item.book_id));
       setSelectedServiceIdState('');
       setSelectedNaskahIdState('');
+
+      // Cek apakah ada paket penerbitan yang terhubung
+      if (item.package_name) {
+        const service = services.find(s => s.name === item.package_name);
+        if (service) {
+          setLinkedPackageId(String(service.id));
+          isLinkedPackage = true;
+        }
+      }
     } else if (item.naskah_id) {
       setSelectedNaskahIdState(String(item.naskah_id));
       setSelectedBookIdState('');
       setSelectedServiceIdState('');
+
+      // Cek apakah ada paket penerbitan yang terhubung
+      if (item.package_name) {
+        const service = services.find(s => s.name === item.package_name);
+        if (service) {
+          setLinkedPackageId(String(service.id));
+          isLinkedPackage = true;
+        }
+      }
     } else {
       const matchedService = services.find(s => s.name === item.item_title);
       if (matchedService) {
@@ -483,6 +586,9 @@ export const ItemsSection: React.FC = () => {
         setSelectedNaskahIdState('');
       }
     }
+
+    if (!isLinkedPackage) setLinkedPackageId('');
+    setLinkedBookId(''); // reset linked book saat edit dimulai
 
     // Muat dynamic inputs
     const inputs: Record<string, any> = {};
@@ -500,11 +606,23 @@ export const ItemsSection: React.FC = () => {
     let finalPrice = parseFloat(dynamicInputs['price']) || 0;
     const finalQty = parseInt(dynamicInputs['quantity']) || 1;
 
+    let finalBookId = selectedBookIdState ? parseInt(selectedBookIdState) : 0;
+    let finalNaskahId = selectedNaskahIdState ? parseInt(selectedNaskahIdState) : undefined;
+
     if (selectedServiceIdState) {
       const service = services.find((s) => s.id === parseInt(selectedServiceIdState));
       if (service) {
         if (!finalTitle) finalTitle = service.name;
         if (finalPrice === 0) finalPrice = service.price;
+      }
+      
+      // Jika di Layanan dihubungkan ke Buku
+      if (linkedBookId) {
+        if (linkedBookId.startsWith('book-')) {
+          finalBookId = parseInt(linkedBookId.replace('book-', ''));
+        } else if (linkedBookId.startsWith('naskah-')) {
+          finalNaskahId = parseInt(linkedBookId.replace('naskah-', ''));
+        }
       }
     } else if (selectedBookIdState) {
       const book = books.find((b) => b.id === parseInt(selectedBookIdState));
@@ -520,8 +638,8 @@ export const ItemsSection: React.FC = () => {
     }
 
     const updatedItem: Partial<InvoiceItem> = {
-      book_id: selectedBookIdState ? parseInt(selectedBookIdState) : 0,
-      naskah_id: selectedNaskahIdState ? parseInt(selectedNaskahIdState) : undefined,
+      book_id: finalBookId,
+      naskah_id: finalNaskahId,
       item_title: finalTitle,
       quantity: finalQty,
       price: finalPrice,
@@ -544,6 +662,8 @@ export const ItemsSection: React.FC = () => {
     setSelectedServiceIdState('');
     setSelectedBookIdState('');
     setSelectedNaskahIdState('');
+    setLinkedPackageId('');
+    setLinkedBookId('');
 
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
@@ -564,12 +684,24 @@ export const ItemsSection: React.FC = () => {
     let finalPrice = parseFloat(dynamicInputs['price']) || 0;
     const finalQty = parseInt(dynamicInputs['quantity']) || 1;
 
+    let finalBookId = selectedBookIdState ? parseInt(selectedBookIdState) : 0;
+    let finalNaskahId = selectedNaskahIdState ? parseInt(selectedNaskahIdState) : undefined;
+
     if (selectedServiceIdState) {
       const service = services.find((s) => s.id === parseInt(selectedServiceIdState));
       if (service) {
         if (!finalTitle) finalTitle = service.name;
         if (finalPrice === 0) {
           finalPrice = service.price;
+        }
+      }
+
+      // Jika di Layanan dihubungkan ke Buku
+      if (linkedBookId) {
+        if (linkedBookId.startsWith('book-')) {
+          finalBookId = parseInt(linkedBookId.replace('book-', ''));
+        } else if (linkedBookId.startsWith('naskah-')) {
+          finalNaskahId = parseInt(linkedBookId.replace('naskah-', ''));
         }
       }
     } else if (selectedBookIdState) {
@@ -593,8 +725,8 @@ export const ItemsSection: React.FC = () => {
     }
 
     const newItem: InvoiceItem = {
-      book_id: selectedBookIdState ? parseInt(selectedBookIdState) : 0,
-      naskah_id: selectedNaskahIdState ? parseInt(selectedNaskahIdState) : undefined,
+      book_id: finalBookId,
+      naskah_id: finalNaskahId,
       item_title: finalTitle,
       quantity: finalQty,
       price: finalPrice,
@@ -609,6 +741,8 @@ export const ItemsSection: React.FC = () => {
     setSelectedServiceIdState('');
     setSelectedBookIdState('');
     setSelectedNaskahIdState('');
+    setLinkedPackageId('');
+    setLinkedBookId('');
 
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
@@ -644,42 +778,109 @@ export const ItemsSection: React.FC = () => {
 
         {/* Item sudah dipilih — tampilkan state terpilih */}
         {selectedValue ? (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '10px 14px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            borderRadius: '8px',
-            height: '42px',
-            boxSizing: 'border-box',
-          }}>
-            <span style={{ fontSize: '14px', color: 'var(--accent)', fontWeight: '600' }}>✓</span>
-            <span style={{ fontSize: '14px', color: 'var(--text-primary)', flex: 1 }}>
-              {allItemOptions.find(o => o.value === selectedValue)?.name ?? customTitle}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedServiceIdState('');
-                setSelectedBookIdState('');
-                setSelectedNaskahIdState('');
-                setCustomTitle('');
-              }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                fontSize: '13px',
-                cursor: 'pointer',
-                padding: '2px 8px',
-                borderRadius: '5px',
-              }}
-            >
-              × Ganti
-            </button>
-          </div>
+          <>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '10px 14px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              height: '42px',
+              boxSizing: 'border-box',
+            }}>
+              <span style={{ fontSize: '14px', color: 'var(--accent)', fontWeight: '600' }}>✓</span>
+              <span style={{ fontSize: '14px', color: 'var(--text-primary)', flex: 1 }}>
+                {allItemOptions.find(o => o.value === selectedValue)?.name ?? customTitle}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedServiceIdState('');
+                  setSelectedBookIdState('');
+                  setSelectedNaskahIdState('');
+                  setCustomTitle('');
+                  setLinkedPackageId('');
+                  setLinkedBookId('');
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  padding: '2px 8px',
+                  borderRadius: '5px',
+                }}
+              >
+                × Ganti
+              </button>
+            </div>
+
+            {/* === Dropdown Kontekstual Dinamis === */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', width: '100%', marginTop: '4px' }}>
+              {/* Skenario A: Buku/Naskah terpilih -> Tampilkan dropdown Paket Layanan */}
+              {(selectedBookIdState || selectedNaskahIdState) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '200px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                    Paket Layanan / Penerbitan:
+                  </label>
+                  <select
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      background: 'var(--bg-panel)',
+                      color: 'var(--text-primary)',
+                      height: '42px',
+                      boxSizing: 'border-box'
+                    }}
+                    value={linkedPackageId}
+                    onChange={(e) => handleLinkPackage(e.target.value)}
+                  >
+                    <option value="">-- Jual Retail (Gunakan Harga Jual Buku) --</option>
+                    {services.map(s => (
+                      <option key={s.id} value={String(s.id)}>{s.name} ({formatPrice(s.price)})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Skenario B: Layanan terpilih -> Tampilkan dropdown Hubungkan Buku */}
+              {selectedServiceIdState && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '200px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                    Hubungkan dengan Buku / Karya:
+                  </label>
+                  <select
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      background: 'var(--bg-panel)',
+                      color: 'var(--text-primary)',
+                      height: '42px',
+                      boxSizing: 'border-box'
+                    }}
+                    value={linkedBookId}
+                    onChange={(e) => handleLinkBook(e.target.value)}
+                  >
+                    <option value="">-- Tanpa Hubungkan Buku --</option>
+                    {bookAndNaskahOptions.map(opt => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.title} [{opt.type === 'book' ? 'Karya' : 'Naskah'}]
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
           <>
             {/* Baris utama: Tipe + input nama + (match list ATAU extra fields + tombol) */}
@@ -971,43 +1172,7 @@ export const ItemsSection: React.FC = () => {
           {getRequiredFields().map((field) => {
             if (field.key === 'item_title') return null;
 
-            if (field.key === 'package_name') {
-              return (
-                <div key={field.key} style={{ flex: 1.5, minWidth: '150px' }}>
-                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
-                  <select
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      border: '1px solid var(--border)',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      background: 'var(--bg-panel)',
-                      color: 'var(--text-primary)',
-                      height: '42px',
-                      boxSizing: 'border-box'
-                    }}
-                    value={dynamicInputs['package_name'] || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const matchedService = services.find(s => s.name === val);
-                      setDynamicInputs(prev => {
-                        const updated = { ...prev, package_name: val };
-                        if (matchedService) {
-                          updated['price'] = matchedService.price;
-                        }
-                        return updated;
-                      });
-                    }}
-                  >
-                    <option value="">-- Pilihlah Paket --</option>
-                    {services.map(s => (
-                      <option key={s.id} value={s.name}>{s.name} ({formatPrice(s.price)})</option>
-                    ))}
-                  </select>
-                </div>
-              );
-            }
+            if (field.key === 'package_name') return null;
 
             return (
               <div key={field.key} style={{ flex: field.key === 'copyright_holder' ? 2 : 1, minWidth: '110px' }}>
