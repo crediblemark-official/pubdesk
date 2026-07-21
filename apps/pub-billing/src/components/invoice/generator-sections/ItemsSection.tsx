@@ -67,6 +67,22 @@ export const ItemsSection: React.FC = () => {
     return penulisList.filter(p => p.name.toLowerCase().includes(q)).slice(0, 5);
   }, [editMasterAuthorSearchQuery, penulisList]);
 
+  const selectedAuthor = useMemo(() => {
+    return penulisList.find(p => String(p.id) === createFormData.author_id);
+  }, [createFormData.author_id, penulisList]);
+
+  const showAuthorDropdown = useMemo(() => {
+    return authorSearchQuery.trim() !== '' && (!selectedAuthor || selectedAuthor.name !== authorSearchQuery);
+  }, [authorSearchQuery, selectedAuthor]);
+
+  const selectedEditMasterAuthor = useMemo(() => {
+    return penulisList.find(p => String(p.id) === editMasterData.author_id);
+  }, [editMasterData.author_id, penulisList]);
+
+  const showEditMasterAuthorDropdown = useMemo(() => {
+    return editMasterAuthorSearchQuery.trim() !== '' && (!selectedEditMasterAuthor || selectedEditMasterAuthor.name !== editMasterAuthorSearchQuery);
+  }, [editMasterAuthorSearchQuery, selectedEditMasterAuthor]);
+
   const bookAndNaskahOptions = useMemo(() => {
     return [
       ...books.map(b => ({ id: `book-${b.id}`, title: b.title, type: 'book', original: b })),
@@ -1326,7 +1342,8 @@ export const ItemsSection: React.FC = () => {
                         onChange={(e) => {
                           const val = e.target.value;
                           setAuthorSearchQuery(val);
-                          if (!val.trim()) {
+                          const selected = penulisList.find(p => String(p.id) === createFormData.author_id);
+                          if (!selected || selected.name !== val) {
                             setCreateFormData(prev => ({ ...prev, author_id: '' }));
                           }
                         }}
@@ -1342,7 +1359,7 @@ export const ItemsSection: React.FC = () => {
                           boxSizing: 'border-box',
                         }}
                       />
-                      {matchedAuthors.length > 0 && (
+                      {showAuthorDropdown && matchedAuthors.length > 0 && (
                         <div style={{
                           position: 'absolute',
                           top: '46px',
@@ -1636,7 +1653,8 @@ export const ItemsSection: React.FC = () => {
                 onChange={(e) => {
                   const val = e.target.value;
                   setEditMasterAuthorSearchQuery(val);
-                  if (!val.trim()) {
+                  const selected = penulisList.find(p => String(p.id) === editMasterData.author_id);
+                  if (!selected || selected.name !== val) {
                     setEditMasterData(prev => ({ ...prev, author_id: '' }));
                   }
                 }}
@@ -1652,7 +1670,7 @@ export const ItemsSection: React.FC = () => {
                   height: '42px',
                 }}
               />
-              {matchedEditMasterAuthors.length > 0 && (
+              {showEditMasterAuthorDropdown && matchedEditMasterAuthors.length > 0 && (
                 <div style={{
                   position: 'absolute',
                   top: '64px',
