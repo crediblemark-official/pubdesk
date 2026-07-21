@@ -4,8 +4,7 @@ import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { InvoiceItem } from '../../../types/invoice.types';
 import { formatPrice, formatThousand, parseThousand } from '../../../utils/format';
-import { SmartRelationField, SmartRelationOption, Modal } from '@pubhub/shared-ui';
-
+import { SmartRelationOption, Modal } from '@pubhub/shared-ui';
 export const ItemsSection: React.FC = () => {
   const { services, books, showToast, addService, addBook, updateService, deleteService, updateBook, deleteBook, contacts, showConfirm } = useAppContext();
   const { naskah } = useDataMasterContext();
@@ -797,49 +796,95 @@ export const ItemsSection: React.FC = () => {
               {hasMatches ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', flex: 3, minWidth: '240px' }}>
                   {matchedItems.map((item) => (
-                    <button
+                    <div
                       key={item.value}
-                      type="button"
-                      onClick={() => {
-                        handleSelect(item.value, item);
-                        // Reset query setelah pilih
-                        setCreateFormData(prev =>
-                          createType === 'service' ? { ...prev, name: '' } : { ...prev, title: '' }
-                        );
-                      }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
-                        padding: '6px 12px',
+                        padding: '4px 6px 4px 12px',
                         background: 'var(--bg-card)',
                         border: '1px solid var(--border)',
                         borderRadius: '20px',
                         fontSize: '12px',
                         color: 'var(--text-primary)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent)';
-                        (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent)';
-                      }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)';
-                        (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
                       }}
                     >
-                      <span>{(item as any).name}</span>
-                      <span style={{ fontSize: '11px', opacity: 0.6 }}>[{(item as any).source}]</span>
-                      <span style={{
-                        background: 'var(--accent)',
-                        color: '#fff',
-                        padding: '1px 7px',
-                        borderRadius: '10px',
-                        fontSize: '11px',
-                        fontWeight: '600',
-                      }}>Pilih</span>
-                    </button>
+                      <span
+                        onClick={() => {
+                          handleSelect(item.value, item);
+                          setCreateFormData(prev =>
+                            createType === 'service' ? { ...prev, name: '' } : { ...prev, title: '' }
+                          );
+                        }}
+                        style={{ cursor: 'pointer', fontWeight: '500' }}
+                        title="Klik untuk memilih"
+                      >
+                        {(item as any).name} <span style={{ fontSize: '11px', opacity: 0.6 }}>[{(item as any).source}]</span>
+                      </span>
+
+                      {/* Tombol Edit Master */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleEditMasterOption(item.value, e)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--text-secondary)',
+                          fontSize: '11px',
+                          padding: '2px 4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        title="Edit Master"
+                      >
+                        ✏️
+                      </button>
+
+                      {/* Tombol Hapus Master */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteMasterOption(item.value, e)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--text-secondary)',
+                          fontSize: '11px',
+                          padding: '2px 4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        title="Hapus Master"
+                      >
+                        🗑️
+                      </button>
+
+                      {/* Tombol Pilih */}
+                      <span
+                        onClick={() => {
+                          handleSelect(item.value, item);
+                          setCreateFormData(prev =>
+                            createType === 'service' ? { ...prev, name: '' } : { ...prev, title: '' }
+                          );
+                        }}
+                        style={{
+                          background: 'var(--accent)',
+                          color: '#fff',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          marginLeft: '2px',
+                        }}
+                      >
+                        Pilih
+                      </span>
+                    </div>
                   ))}
                 </div>
               ) : searchQuery.trim() ? (
