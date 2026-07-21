@@ -971,6 +971,34 @@ export const ItemsSection: React.FC = () => {
           {getRequiredFields().map((field) => {
             if (field.key === 'item_title') return null;
 
+            if (field.key === 'package_name') {
+              return (
+                <div key={field.key} style={{ flex: 1, minWidth: '130px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
+                  <select
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)', height: '42px', boxSizing: 'border-box' }}
+                    value={dynamicInputs[field.key] || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const selectedService = services.find(s => s.name === val);
+                      setDynamicInputs(prev => {
+                        const next = { ...prev, [field.key]: val };
+                        if (selectedService && 'price' in prev) {
+                          next['price'] = selectedService.price;
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    <option value="">-- Pilih Paket --</option>
+                    {services.map(s => (
+                      <option key={s.id} value={s.name}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              );
+            }
+
             return (
               <div key={field.key} style={{ flex: field.key === 'copyright_holder' ? 2 : 1, minWidth: '110px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
