@@ -27,6 +27,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
   const { 
     invoices, 
     deleteInvoice, 
+    updateInvoice,
     showConfirm, 
     showToast, 
     setActiveModule, 
@@ -53,6 +54,82 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
   // Filter status pembayaran — pola identik dengan Smart Folders
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [syncingInvoiceId, setSyncingInvoiceId] = useState<number | null>(null);
+
+  // State untuk invoice yang ditandai (dipilih)
+  const [markedInvoiceIds, setMarkedInvoiceIds] = useState<number[]>([]);
+
+  // Kosongkan seleksi saat status filter atau pencarian berubah
+  useEffect(() => {
+    setMarkedInvoiceIds([]);
+  }, [selectedStatus, searchQuery]);
+
+  const handleToggleSelectAll = () => {
+    if (markedInvoiceIds.length === filteredInvoices.length && filteredInvoices.length > 0) {
+      setMarkedInvoiceIds([]);
+    } else {
+      setMarkedInvoiceIds(filteredInvoices.map(inv => inv.id!));
+    }
+  };
+
+  const handleBulkMarkBermasalah = async () => {
+    if (markedInvoiceIds.length === 0) return;
+
+    try {
+      let updatedCount = 0;
+      for (const id of markedInvoiceIds) {
+        const inv = invoices.find(i => i.id === id);
+        if (!inv) continue;
+
+        const metadata = getInvoiceMetadata(inv);
+        metadata.paymentStatus = 'BERMASALAH';
+
+        const updatedInvoice: Invoice = {
+          ...inv,
+          file_path: JSON.stringify(metadata)
+        };
+
+        await updateInvoice(updatedInvoice);
+        updatedCount++;
+      }
+      showToast(`${updatedCount} invoice berhasil ditandai Bermasalah!`, 'success');
+      setMarkedInvoiceIds([]);
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal menandai invoice!', 'error');
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (markedInvoiceIds.length === 0) return;
+
+    showConfirm({
+      title: 'Hapus Invoice Terpilih',
+      message: `Apakah Anda yakin ingin menghapus ${markedInvoiceIds.length} invoice terpilih? Tindakan ini juga akan menghapus berkas PDF fisiknya di Smart Folders.`,
+      confirmText: 'Hapus Semua',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          let successCount = 0;
+          for (const invoiceId of markedInvoiceIds) {
+            // Hapus entri invoice dari SQLite
+            await deleteInvoice(invoiceId);
+
+            // Cari & Hapus entri file terkait di SQLite
+            const fileEntry = files.find(f => f.type === 'invoice' && f.version_label === String(invoiceId));
+            if (fileEntry && fileEntry.id) {
+              await deleteFile(fileEntry.id);
+            }
+            successCount++;
+          }
+          showToast(`${successCount} invoice berhasil dihapus!`, 'success');
+          setMarkedInvoiceIds([]);
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal menghapus beberapa invoice!', 'error');
+        }
+      }
+    });
+  };
 
   const handleSort = (field: 'date' | 'invoiceNo' | 'customerName' | 'total' | 'status' | 'fileStatus') => {
     if (sortField === field) {
@@ -615,11 +692,90 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
         </FilterGroup>
       </FilterBar>
 
+      {/* Panel Aksi Massal */}
+      {markedInvoiceIds.length > 0 && (
+        <div style={{
+          background: 'rgba(217, 119, 6, 0.1)',
+          borderBottom: '1px solid var(--border)',
+          padding: '8px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          flexShrink: 0
+        }}>
+          <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)' }}>
+            <strong>{markedInvoiceIds.length}</strong> invoice terpilih
+          </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={handleBulkMarkBermasalah}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid #d97706',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                background: '#d97706',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              ⚠️ Tandai Bermasalah
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid #dc2626',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                background: '#dc2626',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              🗑️ Hapus Terpilih
+            </button>
+            <button
+              onClick={() => setMarkedInvoiceIds([])}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                background: 'var(--bg-card)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Invoice Table Container */}
       <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-card)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+              <th style={{ padding: '8px 12px', width: '3%', textAlign: 'center' }}>
+                <input 
+                  type="checkbox" 
+                  checked={filteredInvoices.length > 0 && markedInvoiceIds.length === filteredInvoices.length}
+                  onChange={handleToggleSelectAll}
+                  style={{ cursor: 'pointer' }}
+                />
+              </th>
               <th 
                 onClick={() => handleSort('date')}
                 style={{ padding: '8px 12px', fontWeight: '600', width: '10%', cursor: 'pointer', userSelect: 'none' }}
@@ -669,7 +825,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
           <tbody>
             {filteredInvoices.length === 0 ? (
               <TableEmptyState
-                colSpan={8}
+                colSpan={9}
                 icon="🧾"
                 message="Tidak ada invoice yang ditemukan"
                 description={searchQuery ? `Tidak ada hasil untuk "${searchQuery}"` : undefined}
@@ -711,6 +867,19 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                     onMouseEnter={(e) => e.currentTarget.style.background = isSelected ? 'rgba(192, 28, 28, 0.18)' : 'rgba(0, 0, 0, 0.015)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = isSelected ? 'rgba(192, 28, 28, 0.12)' : 'transparent'}
                   >
+                    {/* Checkbox Seleksi */}
+                    <td onClick={(e) => e.stopPropagation()} style={{ padding: '6px 12px', textAlign: 'center' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={markedInvoiceIds.includes(inv.id!)}
+                        onChange={() => {
+                          setMarkedInvoiceIds(prev => 
+                            prev.includes(inv.id!) ? prev.filter(x => x !== inv.id!) : [...prev, inv.id!]
+                          );
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </td>
                     {/* Tanggal */}
                     <td style={{ padding: '6px 12px', color: 'var(--text-primary)', fontWeight: '500', whiteSpace: 'nowrap' }}>
                       {metadata.invoiceDate ? formatDateId(metadata.invoiceDate) : new Date(inv.created_at).toLocaleDateString('id-ID')}
@@ -890,30 +1059,7 @@ const InvoiceManager: React.FC<InvoiceManagerProps> = ({ searchQuery = '' }) => 
                             )}
                           </button>
                         )}
-                        
-                        {/* Hapus */}
-                        <button
-                          onClick={() => handleDeleteInvoice(inv.id!, metadata.invoiceNo || 'DRAF')}
-                          title="Hapus Invoice"
-                          style={{
-                            border: 'none',
-                            background: 'transparent',
-                            color: 'var(--accent)',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                          </svg>
-                        </button>
+
                       </div>
                     </td>
                   </tr>
