@@ -737,10 +737,10 @@ export const ItemsSection: React.FC = () => {
                   display: 'flex',
                   background: 'var(--bg-card)',
                   padding: '3px',
-                  borderRadius: '7px',
+                  borderRadius: '8px',
                   gap: '3px',
                   border: '1px solid var(--border)',
-                  height: '32px',
+                  height: '42px',
                   alignItems: 'center',
                   boxSizing: 'border-box',
                 }}>
@@ -748,12 +748,12 @@ export const ItemsSection: React.FC = () => {
                     type="button"
                     onClick={() => setCreateType('service')}
                     style={{
-                      padding: '2px 12px',
+                      padding: '2px 14px',
                       background: createType === 'service' ? 'var(--accent)' : 'transparent',
                       color: createType === 'service' ? '#fff' : 'var(--text-secondary)',
-                      border: 'none', borderRadius: '5px', cursor: 'pointer',
-                      fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
-                      height: '24px',
+                      border: 'none', borderRadius: '6px', cursor: 'pointer',
+                      fontWeight: '600', fontSize: '13px', transition: 'all 0.2s ease',
+                      height: '34px',
                       display: 'flex',
                       alignItems: 'center',
                     }}
@@ -764,12 +764,12 @@ export const ItemsSection: React.FC = () => {
                     type="button"
                     onClick={() => setCreateType('book')}
                     style={{
-                      padding: '2px 12px',
+                      padding: '2px 14px',
                       background: createType === 'book' ? 'var(--accent)' : 'transparent',
                       color: createType === 'book' ? '#fff' : 'var(--text-secondary)',
-                      border: 'none', borderRadius: '5px', cursor: 'pointer',
-                      fontWeight: '600', fontSize: '12px', transition: 'all 0.2s ease',
-                      height: '24px',
+                      border: 'none', borderRadius: '6px', cursor: 'pointer',
+                      fontWeight: '600', fontSize: '13px', transition: 'all 0.2s ease',
+                      height: '34px',
                       display: 'flex',
                       alignItems: 'center',
                     }}
