@@ -7,10 +7,11 @@ interface AccordionSectionProps {
   expandedSection: number | null;
   onToggle: (index: number | null) => void;
   children: React.ReactNode;
+  headerAction?: React.ReactNode;
 }
 
 export const AccordionSection: React.FC<AccordionSectionProps> = ({
-  index, title, icon, expandedSection, onToggle, children
+  index, title, icon, expandedSection, onToggle, children, headerAction
 }) => {
   const isOpen = expandedSection === index;
   return (
@@ -36,7 +37,17 @@ export const AccordionSection: React.FC<AccordionSectionProps> = ({
           outline: 'none',
         }}
       >
-        <span>{icon && <span>{icon} </span>}{title}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span>{icon && <span>{icon} </span>}{title}</span>
+          {headerAction && (
+            <span 
+              onClick={(e) => e.stopPropagation()} 
+              style={{ display: 'flex', gap: '8px', textTransform: 'initial', letterSpacing: 'initial' }}
+            >
+              {headerAction}
+            </span>
+          )}
+        </span>
         <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{isOpen ? '▲' : '▼'}</span>
       </button>
       {isOpen && (

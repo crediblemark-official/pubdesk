@@ -30,6 +30,7 @@ const InvoiceGenerator: React.FC = () => {
     activeProfile,
     editingInvoiceId,
     selectedLayoutId,
+    setSelectedLayoutId,
     paidAmount,
     paymentNotes,
   } = useInvoiceContext();
@@ -324,7 +325,55 @@ const InvoiceGenerator: React.FC = () => {
           <CustomerSection />
         </AccordionSection>
 
-        <AccordionSection index={3} title="📦 Rincian Item" expandedSection={expandedSection} onToggle={setExpandedSection}>
+        <AccordionSection
+          index={3}
+          title="📦 Rincian Item"
+          expandedSection={expandedSection}
+          onToggle={setExpandedSection}
+          headerAction={
+            activeProfile?.customLayouts && activeProfile.customLayouts.length > 0 ? (
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedLayoutId('')}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    border: '1px solid ' + (selectedLayoutId === '' ? 'var(--accent)' : 'var(--border)'),
+                    background: selectedLayoutId === '' ? 'var(--accent)' : 'transparent',
+                    color: selectedLayoutId === '' ? '#fff' : 'var(--text-primary)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {activeProfile?.defaultLayoutName || 'Default / Bawaan'}
+                </button>
+                {activeProfile.customLayouts.map((layout) => (
+                  <button
+                    key={layout.id}
+                    type="button"
+                    onClick={() => setSelectedLayoutId(layout.id)}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      border: '1px solid ' + (selectedLayoutId === layout.id ? 'var(--accent)' : 'var(--border)'),
+                      background: selectedLayoutId === layout.id ? 'var(--accent)' : 'transparent',
+                      color: selectedLayoutId === layout.id ? '#fff' : 'var(--text-primary)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {layout.name}
+                  </button>
+                ))}
+              </div>
+            ) : undefined
+          }
+        >
           <ItemsSection />
         </AccordionSection>
 
