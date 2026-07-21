@@ -973,26 +973,36 @@ export const ItemsSection: React.FC = () => {
 
             if (field.key === 'package_name') {
               return (
-                <div key={field.key} style={{ flex: 1, minWidth: '130px' }}>
+                <div key={field.key} style={{ flex: 1.5, minWidth: '150px' }}>
                   <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
                   <select
-                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)', height: '42px', boxSizing: 'border-box' }}
-                    value={dynamicInputs[field.key] || ''}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      background: 'var(--bg-panel)',
+                      color: 'var(--text-primary)',
+                      height: '42px',
+                      boxSizing: 'border-box'
+                    }}
+                    value={dynamicInputs['package_name'] || ''}
                     onChange={(e) => {
                       const val = e.target.value;
-                      const selectedService = services.find(s => s.name === val);
+                      const matchedService = services.find(s => s.name === val);
                       setDynamicInputs(prev => {
-                        const next = { ...prev, [field.key]: val };
-                        if (selectedService && 'price' in prev) {
-                          next['price'] = selectedService.price;
+                        const updated = { ...prev, package_name: val };
+                        if (matchedService) {
+                          updated['price'] = matchedService.price;
                         }
-                        return next;
+                        return updated;
                       });
                     }}
                   >
-                    <option value="">-- Pilih Paket --</option>
+                    <option value="">-- Pilihlah Paket --</option>
                     {services.map(s => (
-                      <option key={s.id} value={s.name}>{s.name}</option>
+                      <option key={s.id} value={s.name}>{s.name} ({formatPrice(s.price)})</option>
                     ))}
                   </select>
                 </div>
