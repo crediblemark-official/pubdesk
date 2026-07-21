@@ -434,7 +434,13 @@ export const CustomerSection: React.FC = () => {
           mode="autocomplete"
           onSearchChange={(search) => setCreateFormData(prev => ({ ...prev, name: search }))}
           renderCreateForm={({ onSave, onCancel }) => (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateSave(() => onSave({}));
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+            >
               <input
                 type="text"
                 placeholder="Nama lengkap"
@@ -557,13 +563,12 @@ export const CustomerSection: React.FC = () => {
                 </button>
                 <button
                   className="btn-primary"
-                  type="button"
-                  onClick={() => handleCreateSave(() => onSave({}))}
+                  type="submit"
                 >
                   Simpan
                 </button>
               </div>
-            </div>
+            </form>
           )}
           duplicateWarning={duplicateWarning}
           onSelectExisting={(val) => {
@@ -658,7 +663,13 @@ export const CustomerSection: React.FC = () => {
           title="Edit Kontak"
           width="480px"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleEditSave();
+            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+          >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
                 Nama Lengkap
@@ -796,13 +807,12 @@ export const CustomerSection: React.FC = () => {
               </button>
               <button
                 className="btn-primary"
-                type="button"
-                onClick={handleEditSave}
+                type="submit"
               >
                 Perbarui
               </button>
             </div>
-          </div>
+          </form>
         </Modal>
       )}
     </>
