@@ -802,12 +802,14 @@ export const ItemsSection: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
-                        padding: '4px 6px 4px 12px',
+                        padding: '8px 8px 8px 12px',
                         background: 'var(--bg-card)',
                         border: '1px solid var(--border)',
-                        borderRadius: '20px',
-                        fontSize: '12px',
+                        borderRadius: '7px',
+                        fontSize: '13px',
                         color: 'var(--text-primary)',
+                        height: '37px',
+                        boxSizing: 'border-box',
                       }}
                     >
                       <span
