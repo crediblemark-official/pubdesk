@@ -704,33 +704,39 @@ export const ItemsSection: React.FC = () => {
                     type="button"
                     onClick={() => setCreateType('service')}
                     style={{
-                      padding: '2px 14px',
+                      width: '34px',
+                      height: '34px',
                       background: createType === 'service' ? 'var(--accent)' : 'transparent',
                       color: createType === 'service' ? '#fff' : 'var(--text-secondary)',
                       border: 'none', borderRadius: '6px', cursor: 'pointer',
-                      fontWeight: '600', fontSize: '13px', transition: 'all 0.2s ease',
-                      height: '34px',
+                      fontSize: '15px', transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
+                      boxSizing: 'border-box',
                     }}
+                    title="Layanan (Paket)"
                   >
-                    Layanan (Paket)
+                    💼
                   </button>
                   <button
                     type="button"
                     onClick={() => setCreateType('book')}
                     style={{
-                      padding: '2px 14px',
+                      width: '34px',
+                      height: '34px',
                       background: createType === 'book' ? 'var(--accent)' : 'transparent',
                       color: createType === 'book' ? '#fff' : 'var(--text-secondary)',
                       border: 'none', borderRadius: '6px', cursor: 'pointer',
-                      fontWeight: '600', fontSize: '13px', transition: 'all 0.2s ease',
-                      height: '34px',
+                      fontSize: '15px', transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
+                      boxSizing: 'border-box',
                     }}
+                    title="Karya (Buku)"
                   >
-                    Karya (Buku)
+                    📖
                   </button>
                 </div>
               </div>
