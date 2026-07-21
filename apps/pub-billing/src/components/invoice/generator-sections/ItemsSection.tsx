@@ -75,13 +75,7 @@ export const ItemsSection: React.FC = () => {
     return authorSearchQuery.trim() !== '' && (!selectedAuthor || selectedAuthor.name !== authorSearchQuery);
   }, [authorSearchQuery, selectedAuthor]);
 
-  const selectedEditMasterAuthor = useMemo(() => {
-    return penulisList.find(p => String(p.id) === editMasterData.author_id);
-  }, [editMasterData.author_id, penulisList]);
 
-  const showEditMasterAuthorDropdown = useMemo(() => {
-    return editMasterAuthorSearchQuery.trim() !== '' && (!selectedEditMasterAuthor || selectedEditMasterAuthor.name !== editMasterAuthorSearchQuery);
-  }, [editMasterAuthorSearchQuery, selectedEditMasterAuthor]);
 
   const bookAndNaskahOptions = useMemo(() => {
     return [
@@ -112,6 +106,14 @@ export const ItemsSection: React.FC = () => {
     description: '',
     author_id: '',
   });
+
+  const selectedEditMasterAuthor = useMemo(() => {
+    return penulisList.find(p => String(p.id) === editMasterData.author_id);
+  }, [editMasterData.author_id, penulisList]);
+
+  const showEditMasterAuthorDropdown = useMemo(() => {
+    return editMasterAuthorSearchQuery.trim() !== '' && (!selectedEditMasterAuthor || selectedEditMasterAuthor.name !== editMasterAuthorSearchQuery);
+  }, [editMasterAuthorSearchQuery, selectedEditMasterAuthor]);
 
 
   const handleLinkPackage = (serviceId: string) => {
