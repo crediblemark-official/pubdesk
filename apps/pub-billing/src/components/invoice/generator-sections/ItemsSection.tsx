@@ -692,13 +692,15 @@ export const ItemsSection: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            padding: '8px 12px',
+            padding: '10px 14px',
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: '8px',
+            height: '42px',
+            boxSizing: 'border-box',
           }}>
-            <span style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: '600' }}>✓</span>
-            <span style={{ fontSize: '13px', color: 'var(--text-primary)', flex: 1 }}>
+            <span style={{ fontSize: '14px', color: 'var(--accent)', fontWeight: '600' }}>✓</span>
+            <span style={{ fontSize: '14px', color: 'var(--text-primary)', flex: 1 }}>
               {allItemOptions.find(o => o.value === selectedValue)?.name ?? customTitle}
             </span>
             <button
@@ -713,7 +715,7 @@ export const ItemsSection: React.FC = () => {
                 background: 'transparent',
                 border: 'none',
                 color: 'var(--text-secondary)',
-                fontSize: '12px',
+                fontSize: '13px',
                 cursor: 'pointer',
                 padding: '2px 8px',
                 borderRadius: '5px',
@@ -783,12 +785,14 @@ export const ItemsSection: React.FC = () => {
                 }}
                 style={{
                   flex: 2, minWidth: '200px',
-                  padding: '8px 12px',
+                  padding: '10px 14px',
                   border: '1px solid var(--border)',
-                  borderRadius: '7px',
-                  fontSize: '13px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
                   background: 'var(--bg-card)',
                   color: 'var(--text-primary)',
+                  height: '42px',
+                  boxSizing: 'border-box',
                 }}
               />
 
@@ -802,13 +806,13 @@ export const ItemsSection: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
-                        padding: '8px 8px 8px 12px',
+                        padding: '10px 8px 10px 14px',
                         background: 'var(--bg-card)',
                         border: '1px solid var(--border)',
-                        borderRadius: '7px',
-                        fontSize: '13px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
                         color: 'var(--text-primary)',
-                        height: '37px',
+                        height: '42px',
                         boxSizing: 'border-box',
                       }}
                     >
@@ -822,7 +826,7 @@ export const ItemsSection: React.FC = () => {
                         style={{ cursor: 'pointer', fontWeight: '500' }}
                         title="Klik untuk memilih"
                       >
-                        {(item as any).name} <span style={{ fontSize: '11px', opacity: 0.6 }}>[{(item as any).source}]</span>
+                        {(item as any).name} <span style={{ fontSize: '12px', opacity: 0.6 }}>[{(item as any).source}]</span>
                       </span>
 
                       {/* Tombol Edit Master */}
@@ -834,7 +838,7 @@ export const ItemsSection: React.FC = () => {
                           border: 'none',
                           cursor: 'pointer',
                           color: 'var(--text-secondary)',
-                          fontSize: '11px',
+                          fontSize: '13px',
                           padding: '2px 4px',
                           display: 'flex',
                           alignItems: 'center',
@@ -854,7 +858,7 @@ export const ItemsSection: React.FC = () => {
                           border: 'none',
                           cursor: 'pointer',
                           color: 'var(--text-secondary)',
-                          fontSize: '11px',
+                          fontSize: '13px',
                           padding: '2px 4px',
                           display: 'flex',
                           alignItems: 'center',
@@ -876,9 +880,9 @@ export const ItemsSection: React.FC = () => {
                         style={{
                           background: 'var(--accent)',
                           color: '#fff',
-                          padding: '2px 8px',
+                          padding: '3px 10px',
                           borderRadius: '12px',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: '600',
                           cursor: 'pointer',
                           marginLeft: '2px',
@@ -900,12 +904,14 @@ export const ItemsSection: React.FC = () => {
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                       style={{
                         flex: 1, minWidth: '120px',
-                        padding: '8px 12px',
+                        padding: '10px 14px',
                         border: '1px solid var(--border)',
-                        borderRadius: '7px',
-                        fontSize: '13px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
                         background: 'var(--bg-card)',
                         color: 'var(--text-primary)',
+                        height: '42px',
+                        boxSizing: 'border-box',
                       }}
                     />
                     <input
@@ -915,19 +921,21 @@ export const ItemsSection: React.FC = () => {
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, description: e.target.value }))}
                       style={{
                         flex: 2, minWidth: '160px',
-                        padding: '8px 12px',
+                        padding: '10px 14px',
                         border: '1px solid var(--border)',
-                        borderRadius: '7px',
-                        fontSize: '13px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
                         background: 'var(--bg-card)',
                         color: 'var(--text-primary)',
+                        height: '42px',
+                        boxSizing: 'border-box',
                       }}
                     />
                     <button
                       type="button"
                       className="btn-primary"
                       onClick={handleCreateItem}
-                      style={{ padding: '8px 16px', fontSize: '13px', fontWeight: '600', borderRadius: '7px', whiteSpace: 'nowrap' }}
+                      style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
                       Simpan Layanan
                     </button>
@@ -941,12 +949,14 @@ export const ItemsSection: React.FC = () => {
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, regular_price: parseFloat(e.target.value) || 0 }))}
                       style={{
                         flex: 1, minWidth: '120px',
-                        padding: '8px 12px',
+                        padding: '10px 14px',
                         border: '1px solid var(--border)',
-                        borderRadius: '7px',
-                        fontSize: '13px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
                         background: 'var(--bg-card)',
                         color: 'var(--text-primary)',
+                        height: '42px',
+                        boxSizing: 'border-box',
                       }}
                     />
                     <select
@@ -954,12 +964,14 @@ export const ItemsSection: React.FC = () => {
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, author_id: e.target.value }))}
                       style={{
                         flex: 1, minWidth: '140px',
-                        padding: '8px 12px',
+                        padding: '10px 14px',
                         border: '1px solid var(--border)',
-                        borderRadius: '7px',
-                        fontSize: '13px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
                         background: 'var(--bg-card)',
                         color: 'var(--text-primary)',
+                        height: '42px',
+                        boxSizing: 'border-box',
                       }}
                     >
                       <option value="">-- Penulis --</option>
@@ -971,7 +983,7 @@ export const ItemsSection: React.FC = () => {
                       type="button"
                       className="btn-primary"
                       onClick={handleCreateItem}
-                      style={{ padding: '8px 16px', fontSize: '13px', fontWeight: '600', borderRadius: '7px', whiteSpace: 'nowrap' }}
+                      style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
                       Simpan Karya
                     </button>
