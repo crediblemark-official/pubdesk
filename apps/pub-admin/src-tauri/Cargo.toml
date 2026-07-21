@@ -1,7 +1,7 @@
 [package]
 name = "pubhub-admin"
-version = "0.1.6"
-description = "A Tauri App"
+version = "0.1.19"
+description = "PubHub Admin Desktop Application"
 authors = ["you"]
 edition = "2021"
 
