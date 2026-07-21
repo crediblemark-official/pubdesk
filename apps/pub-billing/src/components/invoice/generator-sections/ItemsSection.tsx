@@ -758,7 +758,7 @@ export const ItemsSection: React.FC = () => {
                       alignItems: 'center',
                     }}
                   >
-                    Layanan (Jasa)
+                    Layanan (Paket)
                   </button>
                   <button
                     type="button"
@@ -782,7 +782,7 @@ export const ItemsSection: React.FC = () => {
               {/* Input nama / judul — selalu tampil */}
               <input
                 type="text"
-                placeholder={createType === 'service' ? 'Nama layanan — ketik untuk cari atau buat baru...' : 'Judul karya — ketik untuk cari atau buat baru...'}
+                placeholder={createType === 'service' ? 'Nama layanan (paket) — ketik untuk cari atau buat baru...' : 'Judul karya — ketik untuk cari atau buat baru...'}
                 value={createType === 'service' ? createFormData.name : createFormData.title}
                 onChange={(e) => {
                   const val = e.target.value;
