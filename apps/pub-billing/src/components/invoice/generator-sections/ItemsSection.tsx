@@ -690,15 +690,7 @@ export const ItemsSection: React.FC = () => {
         </div>
 
         {/* Form Buat Layanan / Karya Baru — selalu tampil */}
-        <div style={{
-          padding: '14px 16px',
-          background: 'var(--bg-panel)',
-          border: '1px solid var(--border)',
-          borderRadius: '10px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-        }}>
+        <>
           {/* Header + Tab */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
@@ -866,7 +858,8 @@ export const ItemsSection: React.FC = () => {
               </button>
             </div>
           )}
-        </div>
+        </>
+
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           {getRequiredFields().map((field) => {
