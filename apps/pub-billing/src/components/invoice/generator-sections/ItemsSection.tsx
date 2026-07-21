@@ -45,6 +45,11 @@ export const ItemsSection: React.FC = () => {
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [matchedItems]);
 
   // State untuk dropdown kontekstual dinamis
   const [linkedPackageId, setLinkedPackageId] = useState<string>('');
@@ -1213,6 +1218,25 @@ export const ItemsSection: React.FC = () => {
                         : { ...prev, title: val }
                     );
                   }}
+                  onKeyDown={(e) => {
+                    if (!hasMatches) return;
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setHighlightedIndex(prev => (prev + 1) % matchedItems.length);
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setHighlightedIndex(prev => (prev - 1 + matchedItems.length) % matchedItems.length);
+                    } else if (e.key === 'Enter') {
+                      if (highlightedIndex >= 0 && highlightedIndex < matchedItems.length) {
+                        e.preventDefault();
+                        const selectedItem = matchedItems[highlightedIndex];
+                        handleSelect(selectedItem.value, selectedItem);
+                        setCreateFormData(prev =>
+                          createType === 'service' ? { ...prev, name: '' } : { ...prev, title: '' }
+                        );
+                      }
+                    }
+                  }}
                   style={{
                     width: '100%',
                     padding: '10px 14px',
@@ -1243,7 +1267,7 @@ export const ItemsSection: React.FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                   }}>
-                    {matchedItems.map((item) => (
+                    {matchedItems.map((item, idx) => (
                       <div
                         key={item.value}
                         onClick={() => {
@@ -1262,9 +1286,9 @@ export const ItemsSection: React.FC = () => {
                           fontSize: '14px',
                           color: 'var(--text-primary)',
                           transition: 'background 0.2s ease',
+                          background: idx === highlightedIndex ? 'var(--bg-card)' : 'transparent',
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        onMouseEnter={() => setHighlightedIndex(idx)}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span>{item.source === 'Layanan' ? '💼' : '📖'}</span>
