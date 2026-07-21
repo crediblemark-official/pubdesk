@@ -680,6 +680,7 @@ export const ItemsSection: React.FC = () => {
               entityLabelPlural="Buku/Layanan"
               fullWidth
               inlineCreate
+              defaultOpenCreate
               mode="autocomplete"
               onEditOption={handleEditMasterOption}
               onDeleteOption={handleDeleteMasterOption}

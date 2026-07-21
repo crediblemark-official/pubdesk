@@ -47,6 +47,8 @@ export interface SmartRelationFieldProps {
   }) => React.ReactNode;
   /** Whether to render the create form inline instead of in a modal dialog. */
   inlineCreate?: boolean;
+  /** Whether the create form should be open by default on mount. */
+  defaultOpenCreate?: boolean;
   /** Current duplicate warning, if any. */
   duplicateWarning?: DuplicateWarning | null;
   /** Called when the user decides to create a new record despite the duplicate warning. */
@@ -88,6 +90,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
   onRequestCreate,
   renderCreateForm,
   inlineCreate = false,
+  defaultOpenCreate = false,
   duplicateWarning,
   onConfirmCreateAnyway,
   onSelectExisting,
@@ -98,7 +101,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
   onNoResults,
   onSearchChange,
 }) => {
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(defaultOpenCreate);
 
   const plural = entityLabelPlural || entityLabel;
 
