@@ -40,11 +40,13 @@ export interface SmartRelationFieldProps {
   allowManualSnapshot?: boolean;
   /** Called when the user clicks "+ Baru". If renderCreateForm is omitted, the parent is expected to open its own create flow. */
   onRequestCreate?: () => void;
-  /** Render prop for the inline quick-create form inside the modal. */
+  /** Render prop for the inline quick-create form inside the modal or inline. */
   renderCreateForm?: (props: {
     onSave: (data: Record<string, any>) => void;
     onCancel: () => void;
   }) => React.ReactNode;
+  /** Whether to render the create form inline instead of in a modal dialog. */
+  inlineCreate?: boolean;
   /** Current duplicate warning, if any. */
   duplicateWarning?: DuplicateWarning | null;
   /** Called when the user decides to create a new record despite the duplicate warning. */
@@ -85,6 +87,7 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
   allowManualSnapshot = false,
   onRequestCreate,
   renderCreateForm,
+  inlineCreate = false,
   duplicateWarning,
   onConfirmCreateAnyway,
   onSelectExisting,
@@ -258,34 +261,97 @@ export const SmartRelationField: React.FC<SmartRelationFieldProps> = ({
         </div>
       )}
 
-      {renderCreateForm && (
-        <Modal
-          open={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          title={duplicateWarning ? `Konfirmasi Duplikat ${entityLabel}` : `Buat ${entityLabel} Baru`}
-          width="480px"
-        >
-          {duplicateWarning ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
-                {duplicateWarning.reason}. Apakah Anda yakin ingin membuat {entityLabel.toLowerCase()} baru?
-              </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <Button type="button" variant="secondary" size="md" onClick={handleSelectExistingFromWarning}>
-                  Pilih yang Sudah Ada
-                </Button>
-                <Button type="button" variant="primary" size="md" onClick={handleConfirmCreateAnyway}>
-                  Tetap Buat Baru
-                </Button>
-              </div>
+      {renderCreateForm && showCreateModal && (
+        inlineCreate ? (
+          <div style={{
+            marginTop: '8px',
+            padding: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: '10px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}>
+            <div style={{
+              display: 'flex',
+              justify: 'space-between',
+              alignItems: 'center',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--border)',
+              fontWeight: 600,
+              fontSize: '14px',
+              color: 'var(--text-primary)'
+            }}>
+              <span>{duplicateWarning ? `Konfirmasi Duplikat ${entityLabel}` : `Buat ${entityLabel} Baru`}</span>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                  fontSize: '16px',
+                  lineHeight: 1,
+                  padding: '2px 6px',
+                }}
+                title="Tutup"
+              >
+                ✕
+              </button>
             </div>
-          ) : (
-            renderCreateForm({
-              onSave: handleSaveCreate,
-              onCancel: () => setShowCreateModal(false),
-            })
-          )}
-        </Modal>
+            {duplicateWarning ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  {duplicateWarning.reason}. Apakah Anda yakin ingin membuat {entityLabel.toLowerCase()} baru?
+                </p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button type="button" variant="secondary" size="md" onClick={handleSelectExistingFromWarning}>
+                    Pilih yang Sudah Ada
+                  </Button>
+                  <Button type="button" variant="primary" size="md" onClick={handleConfirmCreateAnyway}>
+                    Tetap Buat Baru
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              renderCreateForm({
+                onSave: handleSaveCreate,
+                onCancel: () => setShowCreateModal(false),
+              })
+            )}
+          </div>
+        ) : (
+          <Modal
+            open={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+            title={duplicateWarning ? `Konfirmasi Duplikat ${entityLabel}` : `Buat ${entityLabel} Baru`}
+            width="480px"
+          >
+            {duplicateWarning ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  {duplicateWarning.reason}. Apakah Anda yakin ingin membuat {entityLabel.toLowerCase()} baru?
+                </p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button type="button" variant="secondary" size="md" onClick={handleSelectExistingFromWarning}>
+                    Pilih yang Sudah Ada
+                  </Button>
+                  <Button type="button" variant="primary" size="md" onClick={handleConfirmCreateAnyway}>
+                    Tetap Buat Baru
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              renderCreateForm({
+                onSave: handleSaveCreate,
+                onCancel: () => setShowCreateModal(false),
+              })
+            )}
+          </Modal>
+        )
       )}
 
       {allowManualSnapshot && !value && onUseSnapshot && (
