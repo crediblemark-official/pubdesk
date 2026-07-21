@@ -47,10 +47,6 @@ export const ItemsSection: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  useEffect(() => {
-    setHighlightedIndex(-1);
-  }, [matchedItems]);
-
   // State untuk dropdown kontekstual dinamis
   const [linkedPackageId, setLinkedPackageId] = useState<string>('');
   const [linkedBookId, setLinkedBookId] = useState<string>('');
@@ -360,6 +356,10 @@ export const ItemsSection: React.FC = () => {
   }, [searchQuery, createType, allItemOptions]);
 
   const hasMatches = matchedItems.length > 0;
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [matchedItems]);
 
   const handleSelect = (value: string, option?: SmartRelationOption) => {
     if (!option) {
