@@ -4,6 +4,7 @@ import { useInvoiceContext } from '../../../contexts/InvoiceContext';
 import { useDataMasterContext } from '../../../contexts/DataMasterContext';
 import { InvoiceItem } from '../../../types/invoice.types';
 import { formatPrice, formatThousand, parseThousand } from '../../../utils/format';
+import { evaluateItemFormula } from '../../../utils/invoice';
 import { SmartRelationOption, Modal } from '@pubhub/shared-ui';
 export const ItemsSection: React.FC = () => {
   const { services, books, showToast, addService, addBook, updateService, deleteService, updateBook, deleteBook, contacts, showConfirm } = useAppContext();
@@ -83,12 +84,23 @@ export const ItemsSection: React.FC = () => {
 
   const handleLinkPackage = (serviceId: string) => {
     setLinkedPackageId(serviceId);
+
+    let bookTitle = '';
+    if (selectedBookIdState) {
+      const book = books.find(b => b.id === parseInt(selectedBookIdState));
+      if (book) bookTitle = book.title;
+    } else if (selectedNaskahIdState) {
+      const n = naskah.find(nk => nk.id === parseInt(selectedNaskahIdState));
+      if (n) bookTitle = n.title;
+    }
+
     if (!serviceId) {
       let originalPrice = 0;
       if (selectedBookIdState) {
         const book = books.find(b => b.id === parseInt(selectedBookIdState));
         if (book) originalPrice = book.regular_price;
       }
+      setCustomTitle(bookTitle);
       setDynamicInputs(prev => ({
         ...prev,
         price: originalPrice,
@@ -99,6 +111,7 @@ export const ItemsSection: React.FC = () => {
 
     const service = services.find(s => s.id === parseInt(serviceId));
     if (service) {
+      setCustomTitle(bookTitle ? `${bookTitle} - ${service.name}` : service.name);
       setDynamicInputs(prev => ({
         ...prev,
         price: service.price,
@@ -109,11 +122,15 @@ export const ItemsSection: React.FC = () => {
 
   const handleLinkBook = (id: string) => {
     setLinkedBookId(id);
+
+    let packageName = '';
+    if (selectedServiceIdState) {
+      const service = services.find(s => s.id === parseInt(selectedServiceIdState));
+      if (service) packageName = service.name;
+    }
+
     if (!id) {
-      if (selectedServiceIdState) {
-        const service = services.find(s => s.id === parseInt(selectedServiceIdState));
-        if (service) setCustomTitle(service.name);
-      }
+      setCustomTitle(packageName);
       setDynamicInputs(prev => ({
         ...prev,
         pages: '',
@@ -128,7 +145,7 @@ export const ItemsSection: React.FC = () => {
       const book = books.find(b => b.id === bookId);
       if (book) {
         const bookAuthorContact = contacts.find(c => c.id === book.author_id);
-        setCustomTitle(book.title);
+        setCustomTitle(packageName ? `${packageName} - ${book.title}` : book.title);
         setDynamicInputs(prev => ({
           ...prev,
           pages: '',
@@ -141,7 +158,7 @@ export const ItemsSection: React.FC = () => {
       const n = naskah.find(nk => nk.id === naskahId);
       if (n) {
         const penulisContact = contacts.find(c => c.id === n.penulis_id);
-        setCustomTitle(n.title);
+        setCustomTitle(packageName ? `${packageName} - ${n.title}` : n.title);
         setDynamicInputs(prev => ({
           ...prev,
           pages: n.total_pages ? String(n.total_pages) : '',
@@ -840,63 +857,197 @@ export const ItemsSection: React.FC = () => {
 
             {/* === Dropdown Kontekstual Dinamis === */}
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', width: '100%', marginTop: '4px' }}>
-              {/* Skenario A: Buku/Naskah terpilih -> Tampilkan dropdown Paket Layanan */}
+              {/* Skenario A: Buku/Naskah terpilih -> Tampilkan search Paket Layanan */}
               {(selectedBookIdState || selectedNaskahIdState) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '200px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '200px', position: 'relative' }}>
                   <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
                     Paket Layanan / Penerbitan:
                   </label>
-                  <select
-                    style={{
-                      width: '100%',
+                  {linkedPackageId ? (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
                       padding: '10px 14px',
                       border: '1px solid var(--border)',
                       borderRadius: '8px',
-                      fontSize: '14px',
-                      background: 'var(--bg-panel)',
-                      color: 'var(--text-primary)',
                       height: '42px',
-                      boxSizing: 'border-box'
-                    }}
-                    value={linkedPackageId}
-                    onChange={(e) => handleLinkPackage(e.target.value)}
-                  >
-                    <option value="">-- Jual Retail (Gunakan Harga Jual Buku) --</option>
-                    {services.map(s => (
-                      <option key={s.id} value={String(s.id)}>{s.name} ({formatPrice(s.price)})</option>
-                    ))}
-                  </select>
+                      boxSizing: 'border-box',
+                      background: 'var(--bg-panel)'
+                    }}>
+                      <span style={{ fontSize: '14px', color: 'var(--text-primary)', flex: 1 }}>
+                        {services.find(s => String(s.id) === linkedPackageId)?.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleLinkPackage('')}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-secondary)',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        × Lepas
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="Cari paket layanan..."
+                        value={linkedPackageQuery}
+                        onChange={(e) => setLinkedPackageQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-panel)',
+                          color: 'var(--text-primary)',
+                          height: '42px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      {matchedLinkedPackages.length > 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '62px',
+                          left: 0,
+                          right: 0,
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          zIndex: 10,
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px',
+                          padding: '8px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}>
+                          {matchedLinkedPackages.map(s => (
+                            <span
+                              key={s.id}
+                              onClick={() => {
+                                handleLinkPackage(String(s.id));
+                                setLinkedPackageQuery('');
+                              }}
+                              style={{
+                                background: 'var(--accent)',
+                                color: '#fff',
+                                padding: '3px 10px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {s.name} ({formatPrice(s.price)})
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
-              {/* Skenario B: Layanan terpilih -> Tampilkan dropdown Hubungkan Buku */}
+              {/* Skenario B: Layanan terpilih -> Tampilkan search Hubungkan Buku */}
               {selectedServiceIdState && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '200px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '200px', position: 'relative' }}>
                   <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
                     Hubungkan dengan Buku / Karya:
                   </label>
-                  <select
-                    style={{
-                      width: '100%',
+                  {linkedBookId ? (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
                       padding: '10px 14px',
                       border: '1px solid var(--border)',
                       borderRadius: '8px',
-                      fontSize: '14px',
-                      background: 'var(--bg-panel)',
-                      color: 'var(--text-primary)',
                       height: '42px',
-                      boxSizing: 'border-box'
-                    }}
-                    value={linkedBookId}
-                    onChange={(e) => handleLinkBook(e.target.value)}
-                  >
-                    <option value="">-- Tanpa Hubungkan Buku --</option>
-                    {bookAndNaskahOptions.map(opt => (
-                      <option key={opt.id} value={opt.id}>
-                        {opt.title} [{opt.type === 'book' ? 'Karya' : 'Naskah'}]
-                      </option>
-                    ))}
-                  </select>
+                      boxSizing: 'border-box',
+                      background: 'var(--bg-panel)'
+                    }}>
+                      <span style={{ fontSize: '14px', color: 'var(--text-primary)', flex: 1 }}>
+                        {bookAndNaskahOptions.find(b => b.id === linkedBookId)?.title}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleLinkBook('')}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-secondary)',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        × Lepas
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="Cari buku atau naskah..."
+                        value={linkedBookQuery}
+                        onChange={(e) => setLinkedBookQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: 'var(--bg-panel)',
+                          color: 'var(--text-primary)',
+                          height: '42px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      {matchedLinkedBooks.length > 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '62px',
+                          left: 0,
+                          right: 0,
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          zIndex: 10,
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px',
+                          padding: '8px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}>
+                          {matchedLinkedBooks.map(opt => (
+                            <span
+                              key={opt.id}
+                              onClick={() => {
+                                handleLinkBook(opt.id);
+                                setLinkedBookQuery('');
+                              }}
+                              style={{
+                                background: 'var(--accent)',
+                                color: '#fff',
+                                padding: '3px 10px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {opt.title} [{opt.type === 'book' ? 'Karya' : 'Naskah'}]
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -963,106 +1114,52 @@ export const ItemsSection: React.FC = () => {
               </div>
 
               {/* Input nama / judul — selalu tampil */}
-              <input
-                type="text"
-                placeholder={createType === 'service' ? 'Nama layanan (paket) — ketik untuk cari atau buat baru...' : 'Judul karya — ketik untuk cari atau buat baru...'}
-                value={createType === 'service' ? createFormData.name : createFormData.title}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setCreateFormData(prev =>
-                    createType === 'service'
-                      ? { ...prev, name: val }
-                      : { ...prev, title: val }
-                  );
-                }}
-                style={{
-                  flex: 2, minWidth: '200px',
-                  padding: '10px 14px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                  height: '42px',
-                  boxSizing: 'border-box',
-                }}
-              />
+              <div style={{ flex: 2, minWidth: '200px', position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder={createType === 'service' ? 'Nama layanan (paket) — ketik untuk cari atau buat baru...' : 'Judul karya — ketik untuk cari atau buat baru...'}
+                  value={createType === 'service' ? createFormData.name : createFormData.title}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCreateFormData(prev =>
+                      createType === 'service'
+                        ? { ...prev, name: val }
+                        : { ...prev, title: val }
+                    );
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    height: '42px',
+                    boxSizing: 'border-box',
+                  }}
+                />
 
-              {/* Jika ada match di DB: sembunyikan extra fields, tampilkan daftar match + tombol Pilih */}
-              {hasMatches ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', flex: 3, minWidth: '240px' }}>
-                  {matchedItems.map((item) => (
-                    <div
-                      key={item.value}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '10px 8px 10px 14px',
-                        background: 'var(--bg-card)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        color: 'var(--text-primary)',
-                        height: '42px',
-                        boxSizing: 'border-box',
-                      }}
-                    >
-                      <span
-                        onClick={() => {
-                          handleSelect(item.value, item);
-                          setCreateFormData(prev =>
-                            createType === 'service' ? { ...prev, name: '' } : { ...prev, title: '' }
-                          );
-                        }}
-                        style={{ cursor: 'pointer', fontWeight: '500' }}
-                        title="Klik untuk memilih"
-                      >
-                        {(item as any).name} <span style={{ fontSize: '12px', opacity: 0.6 }}>[{(item as any).source}]</span>
-                      </span>
-
-                      {/* Tombol Edit Master */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleEditMasterOption(item.value, e)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--text-secondary)',
-                          fontSize: '13px',
-                          padding: '2px 4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        title="Edit Master"
-                      >
-                        ✏️
-                      </button>
-
-                      {/* Tombol Hapus Master */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteMasterOption(item.value, e)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--text-secondary)',
-                          fontSize: '13px',
-                          padding: '2px 4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        title="Hapus Master"
-                      >
-                        🗑️
-                      </button>
-
-                      {/* Tombol Pilih */}
-                      <span
+                {/* Dropdown Suggestions Overlay */}
+                {hasMatches && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '46px',
+                    left: 0,
+                    right: 0,
+                    background: 'var(--bg-panel)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    zIndex: 50,
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}>
+                    {matchedItems.map((item) => (
+                      <div
+                        key={item.value}
                         onClick={() => {
                           handleSelect(item.value, item);
                           setCreateFormData(prev =>
@@ -1070,22 +1167,73 @@ export const ItemsSection: React.FC = () => {
                           );
                         }}
                         style={{
-                          background: 'var(--accent)',
-                          color: '#fff',
-                          padding: '3px 10px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '10px 14px',
+                          borderBottom: '1px solid var(--border)',
                           cursor: 'pointer',
-                          marginLeft: '2px',
+                          fontSize: '14px',
+                          color: 'var(--text-primary)',
+                          transition: 'background 0.2s ease',
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
-                        Pilih
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : searchQuery.trim() ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{item.source === 'Layanan' ? '💼' : '📖'}</span>
+                          <span style={{ fontWeight: '500' }}>{item.name}</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>[{item.source}]</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                          {/* Tombol Edit Master */}
+                          <button
+                            type="button"
+                            onClick={(e) => handleEditMasterOption(item.value, e)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: 'var(--text-secondary)',
+                              fontSize: '13px',
+                              padding: '4px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title="Edit Master"
+                          >
+                            ✏️
+                          </button>
+                          {/* Tombol Hapus Master */}
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteMasterOption(item.value, e)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: 'var(--text-secondary)',
+                              fontSize: '13px',
+                              padding: '4px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title="Hapus Master"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {!hasMatches && searchQuery.trim() ? (
                 // Tidak ada match — tampilkan extra fields + tombol simpan
                 createType === 'service' ? (
                   <>
@@ -1199,7 +1347,17 @@ export const ItemsSection: React.FC = () => {
                 <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
                 <input
                   type={field.type === 'currency' ? 'text' : (field.type === 'number' ? 'number' : 'text')}
-                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', background: 'var(--bg-panel)', color: 'var(--text-primary)' }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: 'var(--bg-panel)',
+                    color: 'var(--text-primary)',
+                    height: '42px',
+                    boxSizing: 'border-box'
+                  }}
                   value={field.type === 'currency'
                     ? formatThousand(dynamicInputs[field.key] ?? '')
                     : (dynamicInputs[field.key] !== undefined ? (dynamicInputs[field.key] === 0 ? '' : dynamicInputs[field.key]) : '')}
@@ -1225,7 +1383,18 @@ export const ItemsSection: React.FC = () => {
           <button
             className="btn-primary"
             onClick={handleAddItem}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', marginTop: '4px' }}
+            style={{
+              width: '100%',
+              height: '42px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              fontWeight: '600',
+              borderRadius: '8px',
+              marginTop: '4px',
+              boxSizing: 'border-box'
+            }}
           >
             + Tambah Item
           </button>
@@ -1234,14 +1403,34 @@ export const ItemsSection: React.FC = () => {
             <button
               className="btn-secondary"
               onClick={handleCancelEdit}
-              style={{ flex: 1, padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px' }}
+              style={{
+                flex: 1,
+                height: '42px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: '600',
+                borderRadius: '8px',
+                boxSizing: 'border-box'
+              }}
             >
               Batal
             </button>
             <button
               className="btn-primary"
               onClick={handleSaveEdit}
-              style={{ flex: 2, padding: '10px', fontSize: '14px', fontWeight: '600', borderRadius: '8px' }}
+              style={{
+                flex: 2,
+                height: '42px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: '600',
+                borderRadius: '8px',
+                boxSizing: 'border-box'
+              }}
             >
               💾 Simpan Perubahan
             </button>
@@ -1258,8 +1447,11 @@ export const ItemsSection: React.FC = () => {
               <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.item_title}"</div>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 {/* Tampilkan ringkasan item berdasarkan kolom yang aktif secara dinamis */}
-                {activeProfile?.tableColumns?.filter(col => col.type !== 'formula' && col.key !== 'item_title').map(col => {
-                  const val = item[col.key];
+                {activeProfile?.tableColumns?.filter(col => col.key !== 'item_title' && col.key !== 'total').map(col => {
+                  let val = item[col.key];
+                  if (col.type === 'formula' && col.formula) {
+                    val = evaluateItemFormula(col.formula, item);
+                  }
                   if (val === undefined || val === null || val === '') return null;
                   const displayVal = col.type === 'currency' ? formatPrice(Number(val)) : String(val);
                   return `${col.label}: ${displayVal}`;
