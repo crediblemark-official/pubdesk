@@ -1439,7 +1439,18 @@ export const ItemsSection: React.FC = () => {
 
 
 
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (editingIndex === null) {
+              handleAddItem();
+            } else {
+              handleSaveEdit();
+            }
+          }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}
+        >
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end', width: '100%' }}>
           {getRequiredFields().map((field) => {
             if (field.key === 'item_title') return null;
 
@@ -1485,6 +1496,7 @@ export const ItemsSection: React.FC = () => {
         {editingIndex === null ? (
           <button
             className="btn-primary"
+            type="submit"
             onClick={handleAddItem}
             style={{
               width: '100%',
@@ -1505,6 +1517,7 @@ export const ItemsSection: React.FC = () => {
           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
             <button
               className="btn-secondary"
+              type="button"
               onClick={handleCancelEdit}
               style={{
                 flex: 1,
@@ -1522,6 +1535,7 @@ export const ItemsSection: React.FC = () => {
             </button>
             <button
               className="btn-primary"
+              type="submit"
               onClick={handleSaveEdit}
               style={{
                 flex: 2,
@@ -1539,7 +1553,8 @@ export const ItemsSection: React.FC = () => {
             </button>
           </div>
         )}
-      </div>
+      </form>
+    </div>
 
       {/* List Item */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
