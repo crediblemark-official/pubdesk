@@ -86,6 +86,9 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     const val = e.target.value;
     setSearch(val);
     onSearchChange?.(val);
+    if (val === '') {
+      onChange('');
+    }
     if (mode === 'autocomplete') {
       setIsOpen(val.trim().length > 0);
     } else {
