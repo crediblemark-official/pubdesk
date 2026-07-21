@@ -3,7 +3,8 @@ name: 'Publish Release'
 on:
   push:
     tags:
-      - 'v*' # Memicu workflow saat push tag baru, misal v1.0.0
+      - 'v*'
+      - 'pub-desktop-v*'
 
 jobs:
   publish-tauri:
@@ -12,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-22.04, windows-latest]
+        platform: [ubuntu-22.04, windows-latest, macos-latest]
         app: [pub-admin, pub-billing, pub-files, pub-ops]
 
     runs-on: ${{ matrix.platform }}
@@ -57,19 +58,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ matrix.app }}-v__VERSION__
-          releaseName: '🚀 ${{ matrix.app }} v__VERSION__ - Pembaruan & Peningkatan Sistem'
+          tagName: pub-desktop-v__VERSION__
+          releaseName: '🚀 PubDesk Suite v__VERSION__ - Pembaruan & Peningkatan Sistem'
           releaseBody: |
-            ## 🎉 Rilis Terbaru: ${{ matrix.app }} v__VERSION__
+            ## 🎉 Rilis Terbaru: PubDesk Suite v__VERSION__
             
-            Pembaruan terbaru untuk **${{ matrix.app }}** kini tersedia! Rilis ini membawa sejumlah pembaruan penting untuk memastikan sistem berjalan lebih cepat dan stabil.
+            Pembaruan terbaru untuk seluruh paket aplikasi **PubDesk Suite** kini tersedia! Rilis ini mencakup 4 aplikasi:
+            - 📊 **pub-admin**
+            - 💳 **pub-billing**
+            - 📁 **pub-files**
+            - ⚙️ **pub-ops**
             
             ### 📝 Changelog Hari Ini
             ${{ steps.changelog.outputs.commits }}
             
             ---
             
-            💡 **Cara Install:** Unduh *installer* yang sesuai dengan PC Anda (Windows `.exe` atau Linux `.deb`) pada bagian **Assets** di bawah ini, lalu jalankan.
+            💡 **Cara Install:** Unduh *installer* aplikasi yang Anda butuhkan sesuai dengan OS Anda (Windows `.exe`/`.msi`, Linux `.deb`/`.AppImage`/`.rpm`, atau macOS `.dmg`) pada bagian **Assets** di bawah ini, lalu jalankan.
           releaseDraft: false
           prerelease: false
           projectPath: './apps/${{ matrix.app }}'
