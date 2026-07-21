@@ -1105,7 +1105,15 @@ export const ItemsSection: React.FC = () => {
         ) : (
           <>
             {/* Baris utama: Tipe + input nama + (match list ATAU extra fields + tombol) */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!hasMatches) {
+                  handleCreateItem();
+                }
+              }}
+              style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}
+            >
               {/* Tab Layanan / Karya */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '42px' }}>
                 <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
@@ -1322,7 +1330,7 @@ export const ItemsSection: React.FC = () => {
                       }}
                     />
                     <button
-                      type="button"
+                      type="submit"
                       className="btn-primary"
                       onClick={handleCreateItem}
                       disabled={isSaving}
@@ -1414,7 +1422,7 @@ export const ItemsSection: React.FC = () => {
                       )}
                     </div>
                     <button
-                      type="button"
+                      type="submit"
                       className="btn-primary"
                       onClick={handleCreateItem}
                       disabled={isSaving}
@@ -1425,7 +1433,7 @@ export const ItemsSection: React.FC = () => {
                   </>
                 )
               ) : null}
-            </div>
+            </form>
           </>
         )}
 
