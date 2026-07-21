@@ -337,7 +337,7 @@ const InvoiceGenerator: React.FC = () => {
                   type="button"
                   onClick={() => setSelectedLayoutId('')}
                   style={{
-                    padding: '4px 10px',
+                    padding: '2px 8px',
                     fontSize: '11px',
                     fontWeight: '600',
                     borderRadius: '4px',
@@ -356,7 +356,7 @@ const InvoiceGenerator: React.FC = () => {
                     type="button"
                     onClick={() => setSelectedLayoutId(layout.id)}
                     style={{
-                      padding: '4px 10px',
+                      padding: '2px 8px',
                       fontSize: '11px',
                       fontWeight: '600',
                       borderRadius: '4px',
