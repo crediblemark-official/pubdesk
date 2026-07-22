@@ -56,6 +56,8 @@ export const ItemsSection: React.FC = () => {
   const [linkedBookId, setLinkedBookId] = useState<string>('');
   const [linkedPackageQuery, setLinkedPackageQuery] = useState<string>('');
   const [linkedBookQuery, setLinkedBookQuery] = useState<string>('');
+  const [customLinkedPackageName, setCustomLinkedPackageName] = useState<string>('');
+  const [customLinkedBookTitle, setCustomLinkedBookTitle] = useState<string>('');
 
   // State untuk pencarian autocomplete Penulis
   const [authorSearchQuery, setAuthorSearchQuery] = useState<string>('');
@@ -207,6 +209,52 @@ export const ItemsSection: React.FC = () => {
         }));
       }
     }
+  };
+
+  const handleLinkCustomPackage = (pkgName: string) => {
+    const cleanPkg = pkgName.trim();
+    if (!cleanPkg) return;
+    setLinkedPackageId(`custom-${cleanPkg}`);
+    setCustomLinkedPackageName(cleanPkg);
+
+    let bookTitle = '';
+    if (selectedBookIdState) {
+      const book = books.find(b => b.id === parseInt(selectedBookIdState));
+      if (book) bookTitle = book.title;
+    } else if (selectedNaskahIdState) {
+      const n = naskah.find(nk => nk.id === parseInt(selectedNaskahIdState));
+      if (n) bookTitle = n.title;
+    }
+
+    setCustomTitle(bookTitle ? `${bookTitle} - ${cleanPkg}` : cleanPkg);
+    setDynamicInputs(prev => ({
+      ...prev,
+      package_name: cleanPkg,
+    }));
+    setLinkedPackageQuery('');
+  };
+
+  const handleLinkCustomBook = (title: string) => {
+    const cleanTitle = title.trim();
+    if (!cleanTitle) return;
+    setLinkedBookId(`custom-${cleanTitle}`);
+    setCustomLinkedBookTitle(cleanTitle);
+
+    let packageName = '';
+    if (selectedServiceIdState) {
+      const service = services.find(s => s.id === parseInt(selectedServiceIdState));
+      if (service) packageName = service.name;
+    } else if (linkedPackageId) {
+      if (linkedPackageId.startsWith('custom-')) {
+        packageName = linkedPackageId.replace('custom-', '');
+      } else {
+        const service = services.find(s => String(s.id) === linkedPackageId);
+        if (service) packageName = service.name;
+      }
+    }
+
+    setCustomTitle(packageName ? `${packageName} - ${cleanTitle}` : cleanTitle);
+    setLinkedBookQuery('');
   };
 
   const handleCreateItem = async () => {
@@ -970,11 +1018,16 @@ export const ItemsSection: React.FC = () => {
                       background: 'var(--bg-panel)'
                     }}>
                       <span style={{ fontSize: '14px', color: 'var(--text-primary)', flex: 1 }}>
-                        {services.find(s => String(s.id) === linkedPackageId)?.name}
+                        {linkedPackageId.startsWith('custom-')
+                          ? (customLinkedPackageName || linkedPackageId.replace('custom-', ''))
+                          : (services.find(s => String(s.id) === linkedPackageId)?.name || linkedPackageId)}
                       </span>
                       <button
                         type="button"
-                        onClick={() => handleLinkPackage('')}
+                        onClick={() => {
+                          handleLinkPackage('');
+                          setCustomLinkedPackageName('');
+                        }}
                         style={{
                           background: 'transparent',
                           border: 'none',
@@ -990,9 +1043,15 @@ export const ItemsSection: React.FC = () => {
                     <>
                       <input
                         type="text"
-                        placeholder="Cari paket layanan..."
+                        placeholder="Cari atau ketik nama paket..."
                         value={linkedPackageQuery}
                         onChange={(e) => setLinkedPackageQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && linkedPackageQuery.trim()) {
+                            e.preventDefault();
+                            handleLinkCustomPackage(linkedPackageQuery);
+                          }
+                        }}
                         style={{
                           width: '100%',
                           padding: '10px 14px',
@@ -1005,7 +1064,7 @@ export const ItemsSection: React.FC = () => {
                           boxSizing: 'border-box'
                         }}
                       />
-                      {matchedLinkedPackages.length > 0 && (
+                      {(matchedLinkedPackages.length > 0 || linkedPackageQuery.trim() !== '') && (
                         <div style={{
                           position: 'absolute',
                           top: '62px',
@@ -1041,6 +1100,23 @@ export const ItemsSection: React.FC = () => {
                               {s.name} ({formatPrice(s.price)})
                             </span>
                           ))}
+                          {linkedPackageQuery.trim() !== '' && (
+                            <span
+                              onClick={() => handleLinkCustomPackage(linkedPackageQuery)}
+                              style={{
+                                background: 'var(--bg-body)',
+                                color: 'var(--accent)',
+                                border: '1px dashed var(--accent)',
+                                padding: '3px 10px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              + Gunakan Paket Baru: "{linkedPackageQuery.trim()}"
+                            </span>
+                          )}
                         </div>
                       )}
                     </>
@@ -1067,11 +1143,16 @@ export const ItemsSection: React.FC = () => {
                       background: 'var(--bg-panel)'
                     }}>
                       <span style={{ fontSize: '14px', color: 'var(--text-primary)', flex: 1 }}>
-                        {bookAndNaskahOptions.find(b => b.id === linkedBookId)?.title}
+                        {linkedBookId.startsWith('custom-')
+                          ? (customLinkedBookTitle || linkedBookId.replace('custom-', ''))
+                          : (bookAndNaskahOptions.find(b => b.id === linkedBookId)?.title || linkedBookId)}
                       </span>
                       <button
                         type="button"
-                        onClick={() => handleLinkBook('')}
+                        onClick={() => {
+                          handleLinkBook('');
+                          setCustomLinkedBookTitle('');
+                        }}
                         style={{
                           background: 'transparent',
                           border: 'none',
@@ -1087,9 +1168,15 @@ export const ItemsSection: React.FC = () => {
                     <>
                       <input
                         type="text"
-                        placeholder="Cari buku atau naskah..."
+                        placeholder="Cari atau ketik judul buku..."
                         value={linkedBookQuery}
                         onChange={(e) => setLinkedBookQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && linkedBookQuery.trim()) {
+                            e.preventDefault();
+                            handleLinkCustomBook(linkedBookQuery);
+                          }
+                        }}
                         style={{
                           width: '100%',
                           padding: '10px 14px',
@@ -1102,7 +1189,7 @@ export const ItemsSection: React.FC = () => {
                           boxSizing: 'border-box'
                         }}
                       />
-                      {matchedLinkedBooks.length > 0 && (
+                      {(matchedLinkedBooks.length > 0 || linkedBookQuery.trim() !== '') && (
                         <div style={{
                           position: 'absolute',
                           top: '62px',
@@ -1138,6 +1225,23 @@ export const ItemsSection: React.FC = () => {
                               {opt.title} [{opt.type === 'book' ? 'Karya' : 'Naskah'}]
                             </span>
                           ))}
+                          {linkedBookQuery.trim() !== '' && (
+                            <span
+                              onClick={() => handleLinkCustomBook(linkedBookQuery)}
+                              style={{
+                                background: 'var(--bg-body)',
+                                color: 'var(--accent)',
+                                border: '1px dashed var(--accent)',
+                                padding: '3px 10px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              + Gunakan Judul Baru: "{linkedBookQuery.trim()}"
+                            </span>
+                          )}
                         </div>
                       )}
                     </>
