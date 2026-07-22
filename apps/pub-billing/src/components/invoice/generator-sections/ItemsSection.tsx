@@ -1524,7 +1524,7 @@ export const ItemsSection: React.FC = () => {
               return (
                 <div key={field.key} style={{ flex: 1, minWidth: '130px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
+                    <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label} <span style={{ fontSize: '11px', opacity: 0.75 }}>(Opsional)</span></label>
                     <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
                       <button
                         type="button"
@@ -1571,7 +1571,7 @@ export const ItemsSection: React.FC = () => {
                       const parsed = currentDiscType === 'percent' ? (parseFloat(val) || 0) : parseThousand(val);
                       setDynamicInputs(prev => ({ ...prev, discount: parsed }));
                     }}
-                    placeholder={currentDiscType === 'percent' ? '0 %' : '0'}
+                    placeholder={currentDiscType === 'percent' ? '0 % (Opsional)' : '0 (Opsional)'}
                   />
                 </div>
               );
