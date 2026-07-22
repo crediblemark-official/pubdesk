@@ -36,6 +36,8 @@ const defaultProfiles: InvoiceProfile[] = invoiceTemplates.map(t => {
 interface InvoiceContextType {
   customer: InvoiceCustomerData;
   items: InvoiceItem[];
+  setItems: (items: InvoiceItem[] | ((prev: InvoiceItem[]) => InvoiceItem[])) => void;
+  reorderItems: (startIndex: number, endIndex: number) => void;
   shippingCost: number;
   adminFee: number;
   additionalFees: AdditionalFee[];
@@ -293,6 +295,16 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setItems(prev => prev.filter((_, i) => i !== index));
   };
 
+  const reorderItems = (startIndex: number, endIndex: number) => {
+    if (startIndex === endIndex) return;
+    setItems(prev => {
+      const result = Array.from(prev);
+      const [removed] = result.splice(startIndex, 1);
+      result.splice(endIndex, 0, removed);
+      return result;
+    });
+  };
+
   const resetInvoice = () => {
     setCustomer({ name: '', wa_number: '', email: '', address: '', isPenulis: false });
     setItems([]);
@@ -452,6 +464,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     <InvoiceContext.Provider value={{
       customer,
       items,
+      setItems,
+      reorderItems,
       shippingCost,
       adminFee,
       additionalFees,
