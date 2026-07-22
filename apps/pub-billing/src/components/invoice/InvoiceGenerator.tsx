@@ -166,6 +166,8 @@ const InvoiceGenerator: React.FC = () => {
     const metadata = {
       invoiceNo, invoiceDate, invoiceHal, invoiceLampiran, paymentStatus,
       spesifikasiFasilitas, invoiceType,
+      profileId: activeProfile?.id,
+      pdfFilenameFormat: activeProfile?.pdfFilenameFormat,
       customerName: customerNameTrimmed, customerWa: customer.wa_number || '',
       customerEmail: customer.email || '', customerAddress: customer.address || '', isPenulis,
       selectedLayoutId,

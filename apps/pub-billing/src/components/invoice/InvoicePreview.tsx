@@ -62,7 +62,14 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
   const calculateItemTotal = contextData.calculateItemTotal;
   const profiles = contextData.profiles;
 
-  const profile = previewProfile || (overrideInvoice ? profiles.find(p => p.id === invoiceType) : contextData.activeProfile) || (profiles.length > 0 ? profiles[0] : null);
+  const profile = previewProfile 
+    || (overrideInvoice ? (
+          profiles.find(p => p.id === (overrideInvoice as any).profileId) ||
+          profiles.find(p => p.id === invoiceType) ||
+          profiles.find(p => p.tableType === invoiceType)
+       ) : contextData.activeProfile) 
+    || contextData.activeProfile 
+    || (profiles.length > 0 ? profiles[0] : null);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -101,12 +108,10 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
     panelRef.current.scrollTop = dragStart.current.scrollTop - dy;
   };
 
-  const handleMouseUpOrLeave = () => {
-    setIsDragScrolling(false);
-  };
+  const handleMouseUp = () => setIsDragScrolling(false);
 
-  const handleZoomIn = () => { if (externalZoom === undefined) setZoom(prev => Math.min(prev + 0.1, 2.0)); };
-  const handleZoomOut = () => { if (externalZoom === undefined) setZoom(prev => Math.max(prev - 0.1, 0.5)); };
+  const handleZoomIn = () => { if (externalZoom === undefined) setZoom(prev => Math.min(prev + 0.25, 3.0)); };
+  const handleZoomOut = () => { if (externalZoom === undefined) setZoom(prev => Math.max(prev - 0.25, 0.25)); };
   const handleZoomReset = () => { if (externalZoom === undefined) setZoom(1.0); };
 
   const [downloading, setDownloading] = useState(false);
@@ -118,7 +123,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
       const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('invoice-preview-export');
       const totalAmt = contextData.calculateTotal ? contextData.calculateTotal() : undefined;
-      const defaultFileName = formatPdfFilename(profile?.pdfFilenameFormat, {
+      const pdfFormatPattern = (overrideInvoice as any)?.pdfFilenameFormat || profile?.pdfFilenameFormat;
+      const defaultFileName = formatPdfFilename(pdfFormatPattern, {
         profileName: profile?.name,
         invoiceNo,
         invoiceHal,

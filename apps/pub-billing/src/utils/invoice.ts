@@ -150,7 +150,8 @@ export const formatPdfFilename = (
 
   let result = pattern;
   Object.entries(replacements).forEach(([key, val]) => {
-    result = result.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), val);
+    const escapedKey = key.replace(/[{}]/g, '\\$&');
+    result = result.replace(new RegExp(escapedKey, 'g'), () => val);
   });
 
   // Clean illegal characters for OS filenames: / \ : * ? " < > |
