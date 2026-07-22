@@ -39,7 +39,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
             <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.4" />
           </filter>
           <clipPath id="header-clip">
-            <rect x="0" y="50" width="657" height="100" />
+            <rect x="0" y="35" width="657" height="115" />
           </clipPath>
         </defs>
 
@@ -49,8 +49,8 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         </g>
 
         <g filter="url(#drop-shadow-middle)" clipPath="url(#header-clip)">
-          <polygon points="240,54 256,54 306,139 290,139" fill="#ffffff" />
-          <polygon points="256,54 295,54 346,139 306,139" fill={headerSecondaryColor} />
+          <polygon points="218,35 234,35 306,139 290,139" fill="#ffffff" />
+          <polygon points="234,35 273,35 346,139 306,139" fill={headerSecondaryColor} />
         </g>
 
         {(() => {
