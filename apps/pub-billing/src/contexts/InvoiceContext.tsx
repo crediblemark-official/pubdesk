@@ -296,8 +296,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
     const discAmount = calculateGlobalDiscountAmount();
     const afterDisc = Math.max(0, itemsTotal - discAmount);
-    const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
-    const globalShip = hasItemShipping ? 0 : shippingCost;
+    const globalShip = shippingCost || 0;
     const additionalFeesTotal = additionalFees.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
     const subtotalBeforeCashback = afterDisc + globalShip + adminFee + additionalFeesTotal;
 
@@ -315,8 +314,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       : (Number(globalDiscount.value) || 0);
     const afterDisc = Math.max(0, itemsTotal - discAmount);
 
-    const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
-    const globalShip = hasItemShipping ? 0 : shippingCost;
+    const globalShip = shippingCost || 0;
     const additionalFeesTotal = additionalFees.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
 
     const subtotalBeforeCashback = afterDisc + globalShip + adminFee + additionalFeesTotal;

@@ -49,8 +49,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   const targetTotalItems = allItemsForTotal || items;
   const itemsTotal = targetTotalItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
-  const hasItemShipping = profile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
-  const globalShip = hasItemShipping ? 0 : shippingCost;
+  const globalShip = shippingCost || 0;
   const additionalFeesTotal = additionalFees.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
 
   const calculatedDiscAmount = discAmount !== undefined ? discAmount : (
@@ -184,7 +183,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 </tr>
               )}
 
-              {!hasItemShipping && shippingCost > 0 && (
+              {shippingCost > 0 && (
                 <tr>
                   <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Ongkos Kirim

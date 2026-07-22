@@ -168,18 +168,17 @@ const ColumnsSection: React.FC = () => {
 
   return (
     <>
-      {/* Pengaturan Metode Ongkos Kirim / Biaya Global */}
+      {/* Pengaturan Status Fitur Ongkos Kirim */}
       <div style={{ marginBottom: '16px', padding: '12px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-        <label className="compact-label" style={{ fontWeight: '600', marginBottom: '6px', display: 'block' }}>🚚 Metode Ongkos Kirim & Biaya Global</label>
+        <label className="compact-label" style={{ fontWeight: '600', marginBottom: '6px', display: 'block' }}>🚚 Fitur Ongkos Kirim</label>
         <select
           className="compact-select"
           style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-body)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '6px' }}
-          value={shippingType}
+          value={shippingType === 'none' ? 'none' : 'item'}
           onChange={(e) => setShippingType(e.target.value as any)}
         >
-          <option value="none">Sembunyikan / Tanpa Ongkir</option>
-          <option value="global">Global (Di Akhir Invoice / Seksi Biaya Tambahan)</option>
-          <option value="item">Per Item (Di Dalam Kolom Tabel)</option>
+          <option value="item">Aktifkan (Tampilkan Pengaturan Ongkir di Form & Tabel)</option>
+          <option value="none">Nonaktifkan / Sembunyikan</option>
         </select>
       </div>
       {/* Tab bar untuk multi-layout */}
