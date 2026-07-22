@@ -446,7 +446,7 @@ const ColumnsSection: React.FC = () => {
             </div>
           ) : (
             activeCols.map((col, idx) => {
-              const isLocked = col.key === 'item_title' || col.key === 'quantity' || col.key === 'price';
+              const isLocked = col.key === 'item_title' || col.key === 'quantity' || col.key === 'price' || col.key === 'total';
 
               const inputBase: React.CSSProperties = {
                 width: '100%',
