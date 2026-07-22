@@ -371,7 +371,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
               <div style={{
                 padding: '20px 35px 12px',
                 display: 'flex',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 borderBottom: `2.5px solid ${accentColor}`,
                 fontSize: '9.5px',
