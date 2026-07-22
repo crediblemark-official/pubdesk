@@ -86,14 +86,7 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
       }
     });
 
-    const captureCanvas = await html2canvas(clonedElement, {
-      scale: 2.5,
-      useCORS: false,
-      allowTaint: false,
-      backgroundColor: '#ffffff',
-    });
-
-    const imgData = captureCanvas.toDataURL('image/png');
+    const pageElements = clonedElement.querySelectorAll<HTMLElement>('.a4-page');
 
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -101,7 +94,30 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
       format: 'a4',
     });
 
-    pdf.addImage(imgData, 'PNG', 0, 0, 595, 842);
+    if (pageElements.length > 1) {
+      for (let i = 0; i < pageElements.length; i++) {
+        if (i > 0) {
+          pdf.addPage('a4', 'portrait');
+        }
+        const captureCanvas = await html2canvas(pageElements[i], {
+          scale: 2.5,
+          useCORS: false,
+          allowTaint: false,
+          backgroundColor: '#ffffff',
+        });
+        const imgData = captureCanvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', 0, 0, 595, 842);
+      }
+    } else {
+      const captureCanvas = await html2canvas(clonedElement, {
+        scale: 2.5,
+        useCORS: false,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+      });
+      const imgData = captureCanvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, 595, 842);
+    }
 
     const arrayBuffer = pdf.output('arraybuffer');
     return new Uint8Array(arrayBuffer);

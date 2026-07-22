@@ -161,6 +161,20 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
   const footerPrimaryColor = profile?.footerPrimaryColor || profile?.headerPrimaryColor || profile?.accentColor || '#c01c1c';
   const footerSecondaryColor = profile?.footerSecondaryColor || profile?.headerSecondaryColor || profile?.accentColor || '#c01c1c';
 
+  const itemPages = useMemo(() => {
+    if (!items || items.length === 0) return [[]];
+    const pages: InvoiceItem[][] = [[]];
+    items.forEach((item) => {
+      pages[pages.length - 1].push(item);
+      if (item.pageBreakAfter) {
+        pages.push([]);
+      }
+    });
+    return pages.filter((p, i) => p.length > 0 || i === 0);
+  }, [items]);
+
+  const isMultiPage = itemPages.length > 1;
+
   return (
     <div 
       ref={panelRef}
@@ -175,7 +189,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         background: 'var(--bg-panel)', 
         overflow: 'auto',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMultiPage ? 'flex-start' : 'center',
         justifyContent: 'center',
         padding: '20px',
         cursor: isDragScrolling ? 'grabbing' : 'grab',
@@ -183,8 +197,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
       }}
     >
 
-
-      {/* Floating Zoom Controls + Download (hidden when controlled externally) */}
+      {/* Floating Zoom Controls + Download */}
       {!hideToolbar && (
         <div style={{
           position: 'absolute',
@@ -263,7 +276,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         style={{
           margin: 'auto',
           width: `${a4Width * scale * effectiveZoom}px`,
-          height: `${a4Height * scale * effectiveZoom}px`,
+          height: isMultiPage ? 'auto' : `${a4Height * scale * effectiveZoom}px`,
           position: 'relative',
           flexShrink: 0
         }}
@@ -273,65 +286,105 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
           style={{
             transform: `scale(${scale * effectiveZoom})`,
             transformOrigin: 'top left',
-            position: 'absolute',
+            position: isMultiPage ? 'relative' : 'absolute',
             top: 0,
             left: 0,
             width: `${a4Width}px`,
-            height: `${a4Height}px`,
-            background: '#ffffff',
-            borderRadius: '8px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-            overflow: 'hidden',
-            fontFamily: '"Montserrat", "Segoe UI", sans-serif',
             display: 'flex',
             flexDirection: 'column',
+            gap: '20px'
           }}>
-          
-          {/* Kop Surat SVG */}
-          <InvoiceHeader 
-            profile={profile}
-            headerBgColor={headerBgColor}
-            headerPrimaryColor={headerPrimaryColor}
-            headerSecondaryColor={headerSecondaryColor}
-            invoiceNo={invoiceNo}
-          />
-          
-          {/* Info detail (kepada, perihal, lampiran, dll.) */}
-          <InvoiceInfo
-            customer={customer}
-            profile={profile}
-            invoiceHal={invoiceHal}
-            invoiceLampiran={invoiceLampiran}
-            invoiceDate={invoiceDate}
-          />
-  
-          {/* Tabel rincian pesanan */}
-          <InvoiceTable
-            items={items}
-            profile={profile}
-            shippingCost={shippingCost}
-            accentColor={accentColor}
-            accentColorDark={accentColorDark}
-            adminFee={adminFee}
-            spesifikasiFasilitas={spesifikasiFasilitas}
-            calculateItemTotal={calculateItemTotal}
-            paymentStatus={paymentStatus}
-            paidAmount={paidAmount}
-            paymentNotes={paymentNotes}
-          />
-  
-          {/* Tanda tangan & Rekening Transfer */}
-          <InvoiceFooter
-            profile={profile}
-            invoiceDate={invoiceDate}
-            accentColor={accentColor}
-            footerBgColor={footerBgColor}
-            footerPrimaryColor={footerPrimaryColor}
-            footerSecondaryColor={footerSecondaryColor}
-          />
-  
-          {/* Stempel watermark pembayaran */}
-          <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
+
+          {itemPages.map((pageItems, pageIdx) => {
+            const isLastPage = pageIdx === itemPages.length - 1;
+            let startIndex = 0;
+            for (let k = 0; k < pageIdx; k++) {
+              startIndex += itemPages[k].length;
+            }
+
+            return (
+              <div
+                key={pageIdx}
+                className="a4-page"
+                style={{
+                  width: `${a4Width}px`,
+                  height: `${a4Height}px`,
+                  background: '#ffffff',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                  overflow: 'hidden',
+                  fontFamily: '"Montserrat", "Segoe UI", sans-serif',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  position: 'relative'
+                }}
+              >
+                {pageIdx === 0 ? (
+                  <>
+                    <InvoiceHeader 
+                      profile={profile}
+                      headerBgColor={headerBgColor}
+                      headerPrimaryColor={headerPrimaryColor}
+                      headerSecondaryColor={headerSecondaryColor}
+                      invoiceNo={invoiceNo}
+                    />
+                    <InvoiceInfo
+                      customer={customer}
+                      profile={profile}
+                      invoiceHal={invoiceHal}
+                      invoiceLampiran={invoiceLampiran}
+                      invoiceDate={invoiceDate}
+                    />
+                  </>
+                ) : (
+                  <div style={{
+                    padding: '20px 35px 12px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    borderBottom: `2.5px solid ${accentColor}`,
+                    fontSize: '9.5px',
+                    fontWeight: '700',
+                    color: '#374151'
+                  }}>
+                    <div>{profile?.name || 'PUBDESK'} — RINCIAN INVOICE (HALAMAN {pageIdx + 1} DARI {itemPages.length})</div>
+                    <div>NO: {invoiceNo || '-'}</div>
+                  </div>
+                )}
+
+                <InvoiceTable
+                  items={pageItems}
+                  profile={profile}
+                  shippingCost={shippingCost}
+                  accentColor={accentColor}
+                  accentColorDark={accentColorDark}
+                  adminFee={adminFee}
+                  spesifikasiFasilitas={spesifikasiFasilitas}
+                  calculateItemTotal={calculateItemTotal}
+                  paymentStatus={paymentStatus}
+                  paidAmount={paidAmount}
+                  paymentNotes={paymentNotes}
+                  showTotals={isLastPage}
+                  itemStartIndex={startIndex}
+                  allItemsForTotal={items}
+                />
+
+                {isLastPage && (
+                  <>
+                    <InvoiceFooter
+                      profile={profile}
+                      invoiceDate={invoiceDate}
+                      accentColor={accentColor}
+                      footerBgColor={footerBgColor}
+                      footerPrimaryColor={footerPrimaryColor}
+                      footerSecondaryColor={footerSecondaryColor}
+                    />
+                    <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

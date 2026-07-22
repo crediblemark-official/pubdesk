@@ -15,6 +15,9 @@ interface InvoiceTableProps {
   paymentStatus?: string;
   paidAmount?: number;
   paymentNotes?: string;
+  showTotals?: boolean;
+  itemStartIndex?: number;
+  allItemsForTotal?: InvoiceItem[];
 }
 
 export const InvoiceTable: React.FC<InvoiceTableProps> = ({
@@ -28,9 +31,13 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   accentColorDark,
   paymentStatus,
   paidAmount = 0,
-  paymentNotes
+  paymentNotes,
+  showTotals = true,
+  itemStartIndex = 0,
+  allItemsForTotal
 }) => {
-  const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  const targetTotalItems = allItemsForTotal || items;
+  const itemsTotal = targetTotalItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
   const hasItemShipping = profile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
   const globalShip = hasItemShipping ? 0 : shippingCost;
@@ -102,7 +109,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               return (
                 <tr key={index} style={{ background: rowBg }}>
                   <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
-                    {index + 1}.
+                    {itemStartIndex + index + 1}.
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
                     <div style={{ fontWeight: '700' }}>"{item.item_title || '-'}"</div>
@@ -126,7 +133,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
             })
           )}
           
-          {items.length > 0 && (
+          {items.length > 0 && showTotals && (
             <>
               {((!hasItemShipping && shippingCost > 0) || adminFee > 0) && (
                 <tr style={{ borderTop: '1.5px solid #d1d5db' }}>

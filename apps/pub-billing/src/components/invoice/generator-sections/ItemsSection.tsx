@@ -1611,7 +1611,8 @@ export const ItemsSection: React.FC = () => {
       {/* List Item */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {items.map((item, index) => (
-          <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
+          <React.Fragment key={index}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
             <span style={{ fontWeight: '600', width: '20px', color: 'var(--text-secondary)' }}>{index + 1}.</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.item_title}"</div>
@@ -1631,7 +1632,27 @@ export const ItemsSection: React.FC = () => {
             <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
               {formatPrice(calculateItemTotal(item))}
             </span>
-            <div style={{ display: 'flex', gap: '4px' }}>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className={item.pageBreakAfter ? 'btn-danger' : 'btn-secondary'}
+                onClick={() => updateItem(index, { pageBreakAfter: !item.pageBreakAfter })}
+                title={item.pageBreakAfter ? 'Hapus Pemisah Halaman setelah item ini' : 'Mulai Halaman Baru setelah item ini'}
+                style={{
+                  padding: '6px 8px',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: item.pageBreakAfter ? '#dc2626' : undefined,
+                  color: item.pageBreakAfter ? '#ffffff' : undefined,
+                  border: item.pageBreakAfter ? 'none' : undefined
+                }}
+              >
+                ✂️ {item.pageBreakAfter ? 'Halaman Baru (Aktif)' : 'Ganti Halaman'}
+              </button>
               <button
                 type="button"
                 className="btn-secondary"
@@ -1657,6 +1678,26 @@ export const ItemsSection: React.FC = () => {
               </button>
             </div>
           </div>
+          {item.pageBreakAfter && index < items.length - 1 && (
+            <div key={`break-${index}`} style={{
+              margin: '2px 0 6px',
+              padding: '6px 12px',
+              background: 'var(--bg-panel)',
+              border: '1px dashed var(--accent)',
+              borderRadius: '6px',
+              color: 'var(--accent)',
+              fontSize: '11px',
+              fontWeight: '600',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}>
+              ✂️ <span>Batas Halaman: Item berikutnya akan berpindah ke Halaman Baru di PDF</span>
+            </div>
+          )}
+        </React.Fragment>
         ))}
       </div>
 
