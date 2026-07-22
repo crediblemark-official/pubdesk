@@ -11,6 +11,7 @@ import SignatureSection from './invoice/SignatureSection';
 import BankSection from './invoice/BankSection';
 import ColumnsSection from './invoice/ColumnsSection';
 import ContactSection from './invoice/ContactSection';
+import PdfFilenameSection from './invoice/PdfFilenameSection';
 
 // Import custom hook modular
 import { useInvoiceSettingsForm } from './invoice/useInvoiceSettingsForm';
@@ -148,6 +149,7 @@ const InvoiceSettings: React.FC = () => {
               {renderAccordionSection(6, '6. Informasi Rekening Bank', <BankSection />)}
               {renderAccordionSection(7, '7. Kolom Tabel Rincian Invoice', <ColumnsSection />)}
               {renderAccordionSection(8, '8. Pengaturan Footer', <ContactSection />)}
+              {renderAccordionSection(9, '9. Format Nama File Export PDF', <PdfFilenameSection />)}
             </div>
           </SettingsFormContext.Provider>
 
