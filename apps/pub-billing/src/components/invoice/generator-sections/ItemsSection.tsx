@@ -1229,10 +1229,10 @@ export const ItemsSection: React.FC = () => {
                       {(matchedLinkedPackages.length === 0 || isForceCreatingLinkedPackage) && linkedPackageQuery.trim() !== '' && (
                         <>
                           <input
-                            type="number"
+                            type="text"
                             placeholder="Harga Satuan (Rp)"
-                            value={linkedPackagePrice || ''}
-                            onChange={(e) => setLinkedPackagePrice(parseFloat(e.target.value) || 0)}
+                            value={formatThousand(linkedPackagePrice)}
+                            onChange={(e) => setLinkedPackagePrice(parseThousand(e.target.value))}
                             style={{
                               flex: 1, minWidth: '120px',
                               padding: '10px 14px',
@@ -1444,10 +1444,10 @@ export const ItemsSection: React.FC = () => {
                       {(matchedLinkedBooks.length === 0 || isForceCreatingLinkedBook) && linkedBookQuery.trim() !== '' && (
                         <>
                           <input
-                            type="number"
+                            type="text"
                             placeholder="Harga (Rp)"
-                            value={linkedBookPrice || ''}
-                            onChange={(e) => setLinkedBookPrice(parseFloat(e.target.value) || 0)}
+                            value={formatThousand(linkedBookPrice)}
+                            onChange={(e) => setLinkedBookPrice(parseThousand(e.target.value))}
                             style={{
                               flex: 1, minWidth: '120px',
                               padding: '10px 14px',
@@ -1767,10 +1767,10 @@ export const ItemsSection: React.FC = () => {
                 createType === 'service' ? (
                   <>
                     <input
-                      type="number"
+                      type="text"
                       placeholder="Harga Satuan (Rp)"
-                      value={createFormData.price || ''}
-                      onChange={(e) => setCreateFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                      value={formatThousand(createFormData.price)}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, price: parseThousand(e.target.value) }))}
                       style={{
                         flex: 1, minWidth: '120px',
                         padding: '10px 14px',
@@ -1813,10 +1813,10 @@ export const ItemsSection: React.FC = () => {
                 ) : (
                   <>
                     <input
-                      type="number"
+                      type="text"
                       placeholder="Harga (Rp)"
-                      value={createFormData.regular_price || ''}
-                      onChange={(e) => setCreateFormData(prev => ({ ...prev, regular_price: parseFloat(e.target.value) || 0 }))}
+                      value={formatThousand(createFormData.regular_price)}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, regular_price: parseThousand(e.target.value) }))}
                       style={{
                         flex: 1, minWidth: '120px',
                         padding: '10px 14px',
