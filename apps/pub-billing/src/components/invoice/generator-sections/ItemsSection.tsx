@@ -1712,26 +1712,6 @@ export const ItemsSection: React.FC = () => {
                 <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                   <button
                     type="button"
-                    className={item.pageBreakAfter ? 'btn-danger' : 'btn-secondary'}
-                    onClick={() => updateItem(index, { pageBreakAfter: !item.pageBreakAfter })}
-                    title={item.pageBreakAfter ? 'Hapus Pemisah Halaman setelah item ini' : 'Mulai Halaman Baru setelah item ini'}
-                    style={{
-                      padding: '6px 8px',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: item.pageBreakAfter ? '#dc2626' : undefined,
-                      color: item.pageBreakAfter ? '#ffffff' : undefined,
-                      border: item.pageBreakAfter ? 'none' : undefined
-                    }}
-                  >
-                    ✂️ {item.pageBreakAfter ? 'Pemisah Halaman (Aktif)' : 'Pemisah Halaman'}
-                  </button>
-                  <button
-                    type="button"
                     className="btn-secondary"
                     onClick={() => handleStartEdit(index)}
                     title="Ubah Item"
@@ -1755,23 +1735,45 @@ export const ItemsSection: React.FC = () => {
                   </button>
                 </div>
               </div>
-              {item.pageBreakAfter && index < items.length - 1 && (
-                <div key={`break-${index}`} style={{
-                  margin: '2px 0 6px',
-                  padding: '6px 12px',
-                  background: 'var(--bg-panel)',
-                  border: '1px dashed var(--accent)',
-                  borderRadius: '6px',
-                  color: 'var(--accent)',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px'
-                }}>
-                  ✂️ <span>Batas Halaman: Item berikutnya akan berpindah ke Halaman Baru di PDF</span>
+
+              {/* Pemisah Halaman Di Antara Card */}
+              {index < items.length - 1 && (
+                <div
+                  key={`break-${index}`}
+                  style={{
+                    margin: '4px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{ flex: 1, height: '1px', background: item.pageBreakAfter ? '#dc2626' : 'var(--border)', borderStyle: item.pageBreakAfter ? 'dashed' : 'solid', opacity: item.pageBreakAfter ? 0.8 : 0.4 }} />
+                  <button
+                    type="button"
+                    onClick={() => updateItem(index, { pageBreakAfter: !item.pageBreakAfter })}
+                    title={item.pageBreakAfter ? 'Klik untuk menghapus pemisah halaman' : 'Klik untuk menyisipkan pemisah halaman di antara item ini'}
+                    style={{
+                      margin: '0 8px',
+                      padding: '4px 12px',
+                      borderRadius: '16px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      border: item.pageBreakAfter ? '1px dashed #dc2626' : '1px solid var(--border)',
+                      background: item.pageBreakAfter ? '#fef2f2' : 'var(--bg-card)',
+                      color: item.pageBreakAfter ? '#dc2626' : 'var(--text-secondary)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      transition: 'all 0.2s ease',
+                      zIndex: 1,
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                    }}
+                  >
+                    ✂️ {item.pageBreakAfter ? 'Batas Halaman: Item berikutnya ke Halaman Baru di PDF (Klik untuk Hapus)' : '+ Pemisah Halaman'}
+                  </button>
+                  <div style={{ flex: 1, height: '1px', background: item.pageBreakAfter ? '#dc2626' : 'var(--border)', borderStyle: item.pageBreakAfter ? 'dashed' : 'solid', opacity: item.pageBreakAfter ? 0.8 : 0.4 }} />
                 </div>
               )}
             </React.Fragment>
