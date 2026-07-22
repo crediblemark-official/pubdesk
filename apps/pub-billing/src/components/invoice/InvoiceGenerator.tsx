@@ -286,7 +286,6 @@ const InvoiceGenerator: React.FC = () => {
     }
   };
 
-  const showGlobalAdditions = !activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
 
   return (
     <div className="invoice-generator" style={{ padding: '20px', height: '100%', overflowY: 'auto' }}>
@@ -385,11 +384,9 @@ const InvoiceGenerator: React.FC = () => {
           <ItemsSection />
         </AccordionSection>
 
-        {showGlobalAdditions && (
-          <AccordionSection index={4} title="💰 Biaya Tambahan (Global)" expandedSection={expandedSection} onToggle={setExpandedSection}>
-            <GlobalCostsSection />
-          </AccordionSection>
-        )}
+        <AccordionSection index={4} title="💰 Biaya Tambahan (Global)" expandedSection={expandedSection} onToggle={setExpandedSection}>
+          <GlobalCostsSection />
+        </AccordionSection>
       </Accordion>
 
       {/* Aksi Utama */}
