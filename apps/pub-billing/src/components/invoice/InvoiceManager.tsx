@@ -19,6 +19,7 @@ interface InvoiceManagerProps {
 // Daftar status pembayaran invoice
 const PAYMENT_STATUSES = [
   { value: 'LUNAS', label: 'Lunas', color: '#16a34a' },
+  { value: 'BELUM LUNAS', label: 'Belum Lunas', color: '#dc2626' },
   { value: 'DP', label: 'DP', color: '#2563eb' },
   { value: 'BERMASALAH', label: 'Bermasalah', color: '#d97706' },
 ];
