@@ -235,52 +235,6 @@ export const ItemsSection: React.FC = () => {
     }
   };
 
-  const handleLinkCustomPackage = (pkgName: string) => {
-    const cleanPkg = pkgName.trim();
-    if (!cleanPkg) return;
-    setLinkedPackageId(`custom-${cleanPkg}`);
-    setCustomLinkedPackageName(cleanPkg);
-
-    let bookTitle = '';
-    if (selectedBookIdState) {
-      const book = books.find(b => b.id === parseInt(selectedBookIdState));
-      if (book) bookTitle = book.title;
-    } else if (selectedNaskahIdState) {
-      const n = naskah.find(nk => nk.id === parseInt(selectedNaskahIdState));
-      if (n) bookTitle = n.title;
-    }
-
-    setCustomTitle(bookTitle ? `${bookTitle} - ${cleanPkg}` : cleanPkg);
-    setDynamicInputs(prev => ({
-      ...prev,
-      package_name: cleanPkg,
-    }));
-    setLinkedPackageQuery('');
-  };
-
-  const handleLinkCustomBook = (title: string) => {
-    const cleanTitle = title.trim();
-    if (!cleanTitle) return;
-    setLinkedBookId(`custom-${cleanTitle}`);
-    setCustomLinkedBookTitle(cleanTitle);
-
-    let packageName = '';
-    if (selectedServiceIdState) {
-      const service = services.find(s => s.id === parseInt(selectedServiceIdState));
-      if (service) packageName = service.name;
-    } else if (linkedPackageId) {
-      if (linkedPackageId.startsWith('custom-')) {
-        packageName = linkedPackageId.replace('custom-', '');
-      } else {
-        const service = services.find(s => String(s.id) === linkedPackageId);
-        if (service) packageName = service.name;
-      }
-    }
-
-    setCustomTitle(packageName ? `${packageName} - ${cleanTitle}` : cleanTitle);
-    setLinkedBookQuery('');
-  };
-
   const handleCreateLinkedPackage = async () => {
     if (isSaving) return;
     if (!linkedPackageQuery.trim()) {
@@ -321,6 +275,8 @@ export const ItemsSection: React.FC = () => {
       const newBookId = await addBook({
         title: linkedBookQuery.trim(),
         regular_price: linkedBookPrice,
+        po_price: linkedBookPrice,
+        weight_grams: 0,
         author_id: linkedBookAuthorId ? parseInt(linkedBookAuthorId) : undefined,
       });
 
