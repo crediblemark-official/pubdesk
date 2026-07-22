@@ -44,13 +44,13 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         </defs>
 
         <g filter="url(#drop-shadow)">
-          <rect x="270" y="54" width="387" height="78" fill={headerBgColor} />
-          <polygon points="0,54 220,54 264.5,132 0,132" fill={headerPrimaryColor} />
+          <rect x="300" y="54" width="357" height="78" fill={headerBgColor} />
+          <polygon points="0,54 240,54 286,132 0,132" fill={headerPrimaryColor} />
         </g>
 
         <g filter="url(#drop-shadow-middle)" clipPath="url(#header-clip)">
-          <polygon points="220,54 236,54 284.5,139 268.5,139" fill="#ffffff" />
-          <polygon points="236,54 271,54 320.6,139 284.5,139" fill={headerSecondaryColor} />
+          <polygon points="240,54 256,54 306,139 290,139" fill="#ffffff" />
+          <polygon points="256,54 295,54 346,139 306,139" fill={headerSecondaryColor} />
         </g>
 
         {(() => {
