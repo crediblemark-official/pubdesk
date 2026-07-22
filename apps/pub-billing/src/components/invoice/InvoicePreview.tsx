@@ -108,7 +108,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
     panelRef.current.scrollTop = dragStart.current.scrollTop - dy;
   };
 
-  const handleMouseUp = () => setIsDragScrolling(false);
+  const handleMouseUpOrLeave = () => setIsDragScrolling(false);
 
   const handleZoomIn = () => { if (externalZoom === undefined) setZoom(prev => Math.min(prev + 0.25, 3.0)); };
   const handleZoomOut = () => { if (externalZoom === undefined) setZoom(prev => Math.max(prev - 0.25, 0.25)); };
