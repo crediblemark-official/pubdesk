@@ -92,10 +92,10 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                     height="52"
                     preserveAspectRatio="xMinYMid meet"
                   />
-                  <text x="90" y="87" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
+                  <text x="82" y="87" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
                     {profile?.companyName || 'CV KBM'}
                   </text>
-                  <text x="90" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1">
+                  <text x="82" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1">
                     {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                   </text>
                 </>
