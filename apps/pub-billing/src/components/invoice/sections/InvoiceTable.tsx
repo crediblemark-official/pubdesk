@@ -161,7 +161,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
           
           {items.length > 0 && showTotals && (
             <>
-              {((!hasItemShipping && shippingCost > 0) || adminFee > 0 || additionalFeesTotal > 0 || calculatedDiscAmount > 0 || calculatedCbAmount > 0) && (
+              {(shippingCost > 0 || adminFee > 0 || additionalFeesTotal > 0 || calculatedDiscAmount > 0 || calculatedCbAmount > 0) && (
                 <tr style={{ borderTop: '1.5px solid #d1d5db' }}>
                   <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Subtotal
