@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { InvoiceProfile, InvoiceItem } from '../../types/invoice.types';
 
