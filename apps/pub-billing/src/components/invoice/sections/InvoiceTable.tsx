@@ -202,48 +202,52 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </tbody>
       </table>
 
-      {profile?.showSpesifikasi && (spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas.trim() !== '' : !!profile.defaultSpesifikasi) && (
-        <div style={{ 
-          marginTop: '10px', 
-          border: `1.5px solid ${accentColor}`, 
-          borderRadius: '4px', 
-          padding: '6px 10px', 
-          fontSize: '8.5px', 
-          color: '#4b5563', 
-          background: '#fef3c7', 
-          textAlign: 'center', 
-          fontWeight: '600',
-          lineHeight: '1.4',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          overflowWrap: 'break-word'
-        }}>
-          {spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas : profile.defaultSpesifikasi}
-        </div>
-      )}
+      {showTotals && (
+        <>
+          {profile?.showSpesifikasi && (spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas.trim() !== '' : !!profile.defaultSpesifikasi) && (
+            <div style={{ 
+              marginTop: '10px', 
+              border: `1.5px solid ${accentColor}`, 
+              borderRadius: '4px', 
+              padding: '6px 10px', 
+              fontSize: '8.5px', 
+              color: '#4b5563', 
+              background: '#fef3c7', 
+              textAlign: 'center', 
+              fontWeight: '600',
+              lineHeight: '1.4',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
+            }}>
+              {spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas : profile.defaultSpesifikasi}
+            </div>
+          )}
 
-      {profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
-        <div style={{ marginTop: '10px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
-          <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
-          {profile.notes.map((note, idx) => (
-            <React.Fragment key={idx}>
-              {idx + 1}. {note}<br />
-            </React.Fragment>
-          ))}
-        </div>
-      )}
+          {profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
+            <div style={{ marginTop: '10px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
+              <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
+              {profile.notes.map((note, idx) => (
+                <React.Fragment key={idx}>
+                  {idx + 1}. {note}<br />
+                </React.Fragment>
+              ))}
+            </div>
+          )}
 
-      {paymentNotes && (
-        <div style={{ marginTop: '8px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
-          <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Catatan Pembayaran:</span> {paymentNotes}
-        </div>
-      )}
+          {paymentNotes && (
+            <div style={{ marginTop: '8px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
+              <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Catatan Pembayaran:</span> {paymentNotes}
+            </div>
+          )}
 
-      <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
-        {profile?.salamPenutup !== undefined && profile?.salamPenutup !== null
-          ? profile.salamPenutup 
-          : `Demikian rincian biaya ${profile?.actionLabel || 'cetak buku'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
-      </div>
+          <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
+            {profile?.salamPenutup !== undefined && profile?.salamPenutup !== null
+              ? profile.salamPenutup 
+              : `Demikian rincian biaya ${profile?.actionLabel || 'cetak buku'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
+          </div>
+        </>
+      )}
     </div>
   );
 };
