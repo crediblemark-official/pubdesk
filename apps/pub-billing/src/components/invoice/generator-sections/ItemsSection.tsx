@@ -485,18 +485,24 @@ export const ItemsSection: React.FC = () => {
       }
     });
 
+    if (!fieldsMap.has('discount')) {
+      fieldsMap.set('discount', { key: 'discount', label: 'Diskon', type: 'currency' });
+    }
+
     const fields = Array.from(fieldsMap.values());
     const titleField = fields.find(f => f.key === 'item_title');
     const priceField = fields.find(f => f.key === 'price');
     const qtyField = fields.find(f => f.key === 'quantity');
+    const discountField = fields.find(f => f.key === 'discount');
 
-    const otherFields = fields.filter(f => f.key !== 'item_title' && f.key !== 'price' && f.key !== 'quantity');
+    const otherFields = fields.filter(f => f.key !== 'item_title' && f.key !== 'price' && f.key !== 'quantity' && f.key !== 'discount');
 
     const sortedFields = [];
     if (titleField) sortedFields.push(titleField);
     sortedFields.push(...otherFields);
     if (qtyField) sortedFields.push(qtyField);
     if (priceField) sortedFields.push(priceField);
+    if (discountField) sortedFields.push(discountField);
 
     return sortedFields;
   };
@@ -762,6 +768,7 @@ export const ItemsSection: React.FC = () => {
       item_title: finalTitle,
       quantity: finalQty,
       price: finalPrice,
+      discountType: dynamicInputs.discountType || 'fixed',
     };
 
     activeProfile?.tableColumns?.forEach(col => {
