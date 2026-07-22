@@ -42,7 +42,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
     if (!tableRef.current) return;
     const el = tableRef.current;
     requestAnimationFrame(() => {
-      setIsOverflowing(el.scrollHeight > el.clientHeight && el.clientHeight > 0);
+      const overflowDiff = el.scrollHeight - el.clientHeight;
+      setIsOverflowing(items.length >= 7 && overflowDiff > 15 && el.clientHeight > 0);
     });
   }, [items, profile, shippingCost, adminFee]);
 
