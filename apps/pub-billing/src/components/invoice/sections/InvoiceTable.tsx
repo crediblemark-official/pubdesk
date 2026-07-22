@@ -40,24 +40,19 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
     return profile?.actionLabel || 'cetak buku';
   };
 
-  const isCompact = items.length >= 7;
-  const isUltraCompact = items.length >= 10;
-
-  const cellPaddingY = isUltraCompact ? '3px' : isCompact ? '4px' : '6px';
-  const cellPaddingX = isUltraCompact ? '5px' : isCompact ? '6px' : '8px';
-  const cellPadding = `${cellPaddingY} ${cellPaddingX}`;
-  const cellFontSize = isUltraCompact ? '8.5px' : isCompact ? '9px' : '9.5px';
-  const detailFontSize = isUltraCompact ? '7.5px' : isCompact ? '8px' : '8.5px';
-  const sectionMargin = isUltraCompact ? '4px' : isCompact ? '6px' : '10px';
+  const cellPadding = '6px 8px';
+  const cellFontSize = '9.5px';
+  const detailFontSize = '8.5px';
+  const sectionMargin = '10px';
 
   return (
-    <div style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
+    <div style={{ padding: '0 35px', flex: 1, overflow: 'visible', position: 'relative' }}>
       {profile?.salamPembuka && (
         <div style={{ 
-          fontSize: isCompact ? '8.5px' : '9px', 
+          fontSize: '9px', 
           color: '#4b5563', 
-          marginBottom: isCompact ? '4px' : '8px', 
-          lineHeight: '1.3',
+          marginBottom: '8px', 
+          lineHeight: '1.4',
           fontStyle: 'italic',
           borderLeft: `2.5px solid ${accentColor}`,
           paddingLeft: '8px'
@@ -68,11 +63,11 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: '"Montserrat", "Segoe UI", sans-serif' }}>
         <thead>
           <tr style={{ color: '#ffffff' }}>
-            <th style={{ background: accentColorDark, width: '28px', textAlign: 'center', padding: `${cellPaddingY} 4px`, fontSize: cellFontSize, fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
-            <th style={{ background: accentColor, textAlign: 'left', padding: cellPadding, fontSize: cellFontSize, fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul / Detail</th>
-            <th style={{ background: accentColor, textAlign: 'right', padding: cellPadding, fontSize: cellFontSize, fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '90px', whiteSpace: 'nowrap' }}>Harga</th>
-            <th style={{ background: accentColor, textAlign: 'center', padding: cellPadding, fontSize: cellFontSize, fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '50px' }}>Jml.</th>
-            <th style={{ background: accentColor, textAlign: 'right', padding: cellPadding, fontSize: cellFontSize, fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '95px', whiteSpace: 'nowrap' }}>Total</th>
+            <th style={{ background: accentColorDark, width: '28px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
+            <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul / Detail</th>
+            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '90px', whiteSpace: 'nowrap' }}>Harga</th>
+            <th style={{ background: accentColor, textAlign: 'center', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '50px' }}>Jml.</th>
+            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '95px', whiteSpace: 'nowrap' }}>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -115,13 +110,13 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               return (
                 <tr key={index} style={{ background: rowBg }}>
-                  <td style={{ padding: `${cellPaddingY} 4px`, textAlign: 'center', fontSize: cellFontSize, color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: cellFontSize, color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
                     {index + 1}.
                   </td>
                   <td style={{ padding: cellPadding, textAlign: 'left', fontSize: cellFontSize, color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
                     <div style={{ fontWeight: '700' }}>"{item.item_title || '-'}"</div>
                     {detailParts.length > 0 && (
-                      <div style={{ fontWeight: '400', color: '#6b7280', fontSize: detailFontSize, marginTop: '1px', lineHeight: '1.3' }}>
+                      <div style={{ fontWeight: '400', color: '#6b7280', fontSize: detailFontSize, marginTop: '2px', lineHeight: '1.4' }}>
                         {detailParts.join(' | ')}
                       </div>
                     )}
@@ -144,10 +139,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
             <>
               {((!hasItemShipping && shippingCost > 0) || adminFee > 0) && (
                 <tr style={{ borderTop: '1.5px solid #d1d5db' }}>
-                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '8.5px' : '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Subtotal
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '8.5px' : '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                     {formatPrice(subtotal)}
                   </td>
                 </tr>
@@ -155,10 +150,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               {!hasItemShipping && shippingCost > 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '8.5px' : '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Ongkos Kirim
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '8.5px' : '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                     {formatPrice(shippingCost)}
                   </td>
                 </tr>
@@ -166,10 +161,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               {adminFee > 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '8.5px' : '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Biaya Admin
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '8.5px' : '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                     {formatPrice(adminFee)}
                   </td>
                 </tr>
@@ -179,7 +174,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, fontWeight: '700', color: '#1f2937' }}>
                   Total
                 </td>
-                <td style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '9.5px' : '10px', fontWeight: '800', color: accentColorDark, whiteSpace: 'nowrap' }}>
+                <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '10px', fontWeight: '800', color: accentColorDark, whiteSpace: 'nowrap' }}>
                   {formatPrice(total)}
                 </td>
               </tr>
@@ -187,7 +182,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               {paymentStatus === 'DP' && (
                 <>
                   <tr>
-                    <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '8.5px' : '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                    <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                       Telah Dibayar (DP)
                     </td>
                     <td style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, fontWeight: '700', color: '#2563eb', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
@@ -198,7 +193,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, fontWeight: '700', color: '#1f2937' }}>
                       Sisa Pembayaran
                     </td>
-                    <td style={{ padding: cellPadding, textAlign: 'right', fontSize: isCompact ? '9.5px' : '10px', fontWeight: '800', color: '#dc2626', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '10px', fontWeight: '800', color: '#dc2626', whiteSpace: 'nowrap' }}>
                       {formatPrice(Math.max(0, total - paidAmount))}
                     </td>
                   </tr>
@@ -214,13 +209,13 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
           marginTop: sectionMargin, 
           border: `1.5px solid ${accentColor}`, 
           borderRadius: '4px', 
-          padding: isCompact ? '4px 8px' : '6px 10px', 
-          fontSize: isCompact ? '8px' : '8.5px', 
+          padding: '6px 10px', 
+          fontSize: '8.5px', 
           color: '#4b5563', 
           background: '#fef3c7', 
           textAlign: 'center', 
           fontWeight: '600',
-          lineHeight: '1.3',
+          lineHeight: '1.4',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           overflowWrap: 'break-word'
@@ -230,7 +225,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
       )}
 
       {profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
-        <div style={{ marginTop: sectionMargin, fontSize: isCompact ? '8px' : '8.5px', color: '#4b5563', lineHeight: '1.3' }}>
+        <div style={{ marginTop: sectionMargin, fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
           <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
           {profile.notes.map((note, idx) => (
             <React.Fragment key={idx}>
@@ -241,12 +236,12 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
       )}
 
       {paymentNotes && (
-        <div style={{ marginTop: isCompact ? '4px' : '8px', fontSize: isCompact ? '8px' : '8.5px', color: '#4b5563', lineHeight: '1.3' }}>
+        <div style={{ marginTop: '8px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
           <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Catatan Pembayaran:</span> {paymentNotes}
         </div>
       )}
 
-      <div style={{ marginTop: sectionMargin, fontSize: isCompact ? '8.5px' : '9px', color: '#4b5563', lineHeight: '1.3', whiteSpace: 'pre-line' }}>
+      <div style={{ marginTop: sectionMargin, fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
         {profile?.salamPenutup !== undefined && profile?.salamPenutup !== null
           ? profile.salamPenutup 
           : `Demikian rincian biaya ${getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
