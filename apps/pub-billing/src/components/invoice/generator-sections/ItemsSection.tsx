@@ -59,6 +59,16 @@ export const ItemsSection: React.FC = () => {
   const [customLinkedPackageName, setCustomLinkedPackageName] = useState<string>('');
   const [customLinkedBookTitle, setCustomLinkedBookTitle] = useState<string>('');
 
+  // State untuk form inline create saat linking
+  const [linkedPackagePrice, setLinkedPackagePrice] = useState<number>(0);
+  const [linkedPackageDesc, setLinkedPackageDesc] = useState<string>('');
+  const [isForceCreatingLinkedPackage, setIsForceCreatingLinkedPackage] = useState<boolean>(false);
+
+  const [linkedBookPrice, setLinkedBookPrice] = useState<number>(0);
+  const [linkedBookAuthorSearch, setLinkedBookAuthorSearch] = useState<string>('');
+  const [linkedBookAuthorId, setLinkedBookAuthorId] = useState<string>('');
+  const [isForceCreatingLinkedBook, setIsForceCreatingLinkedBook] = useState<boolean>(false);
+
   // State untuk pencarian autocomplete Penulis
   const [authorSearchQuery, setAuthorSearchQuery] = useState<string>('');
   const [editMasterAuthorSearchQuery, setEditMasterAuthorSearchQuery] = useState<string>('');
@@ -68,6 +78,20 @@ export const ItemsSection: React.FC = () => {
     const q = authorSearchQuery.toLowerCase();
     return penulisList.filter(p => p.name.toLowerCase().includes(q)).slice(0, 5);
   }, [authorSearchQuery, penulisList]);
+
+  const matchedLinkedBookAuthors = useMemo(() => {
+    if (!linkedBookAuthorSearch.trim()) return [];
+    const q = linkedBookAuthorSearch.toLowerCase();
+    return penulisList.filter(p => p.name.toLowerCase().includes(q)).slice(0, 5);
+  }, [linkedBookAuthorSearch, penulisList]);
+
+  const selectedLinkedBookAuthor = useMemo(() => {
+    return penulisList.find(p => String(p.id) === linkedBookAuthorId);
+  }, [linkedBookAuthorId, penulisList]);
+
+  const showLinkedBookAuthorDropdown = useMemo(() => {
+    return linkedBookAuthorSearch.trim() !== '' && (!selectedLinkedBookAuthor || selectedLinkedBookAuthor.name !== linkedBookAuthorSearch);
+  }, [linkedBookAuthorSearch, selectedLinkedBookAuthor]);
 
   const matchedEditMasterAuthors = useMemo(() => {
     if (!editMasterAuthorSearchQuery.trim()) return [];
@@ -255,6 +279,64 @@ export const ItemsSection: React.FC = () => {
 
     setCustomTitle(packageName ? `${packageName} - ${cleanTitle}` : cleanTitle);
     setLinkedBookQuery('');
+  };
+
+  const handleCreateLinkedPackage = async () => {
+    if (isSaving) return;
+    if (!linkedPackageQuery.trim()) {
+      showToast("Nama paket layanan harus diisi!", "error");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const newServiceId = await addService({
+        name: linkedPackageQuery.trim(),
+        price: linkedPackagePrice,
+        description: linkedPackageDesc.trim(),
+        category: 'umum',
+      });
+
+      handleLinkPackage(String(newServiceId));
+      setLinkedPackageQuery('');
+      setLinkedPackagePrice(0);
+      setLinkedPackageDesc('');
+      setIsForceCreatingLinkedPackage(false);
+      showToast("Layanan paket berhasil ditambahkan & dihubungkan!", "success");
+    } catch (err) {
+      console.error("Gagal menambahkan layanan paket baru:", err);
+      showToast("Gagal menambahkan layanan paket baru", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCreateLinkedBook = async () => {
+    if (isSaving) return;
+    if (!linkedBookQuery.trim()) {
+      showToast("Judul karya harus diisi!", "error");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const newBookId = await addBook({
+        title: linkedBookQuery.trim(),
+        regular_price: linkedBookPrice,
+        author_id: linkedBookAuthorId ? parseInt(linkedBookAuthorId) : undefined,
+      });
+
+      handleLinkBook(`book-${newBookId}`);
+      setLinkedBookQuery('');
+      setLinkedBookPrice(0);
+      setLinkedBookAuthorSearch('');
+      setLinkedBookAuthorId('');
+      setIsForceCreatingLinkedBook(false);
+      showToast("Karya berhasil ditambahkan & dihubungkan!", "success");
+    } catch (err) {
+      console.error("Gagal menambahkan karya baru:", err);
+      showToast("Gagal menambahkan karya baru", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCreateItem = async () => {
@@ -1040,86 +1122,174 @@ export const ItemsSection: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <>
-                      <input
-                        type="text"
-                        placeholder="Cari atau ketik nama paket..."
-                        value={linkedPackageQuery}
-                        onChange={(e) => setLinkedPackageQuery(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && linkedPackageQuery.trim()) {
-                            e.preventDefault();
-                            handleLinkCustomPackage(linkedPackageQuery);
-                          }
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          background: 'var(--bg-panel)',
-                          color: 'var(--text-primary)',
-                          height: '42px',
-                          boxSizing: 'border-box'
-                        }}
-                      />
-                      {(matchedLinkedPackages.length > 0 || linkedPackageQuery.trim() !== '') && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '62px',
-                          left: 0,
-                          right: 0,
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          zIndex: 10,
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '6px',
-                          padding: '8px',
-                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                        }}>
-                          {matchedLinkedPackages.map(s => (
-                            <span
-                              key={s.id}
-                              onClick={() => {
-                                handleLinkPackage(String(s.id));
-                                setLinkedPackageQuery('');
-                              }}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
+                      {/* Input Nama Paket */}
+                      <div style={{ flex: 2, minWidth: '180px', position: 'relative' }}>
+                        <input
+                          type="text"
+                          placeholder="Paket Baru — ketik untuk cari atau buat baru..."
+                          value={linkedPackageQuery}
+                          onChange={(e) => {
+                            setLinkedPackageQuery(e.target.value);
+                            if (isForceCreatingLinkedPackage) setIsForceCreatingLinkedPackage(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            background: 'var(--bg-card)',
+                            color: 'var(--text-primary)',
+                            height: '42px',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+
+                        {/* Dropdown Overlay ala Image 1 */}
+                        {matchedLinkedPackages.length > 0 && !isForceCreatingLinkedPackage && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '46px',
+                            left: 0,
+                            right: 0,
+                            background: 'var(--bg-panel)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                            zIndex: 50,
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}>
+                            {matchedLinkedPackages.map((s) => (
+                              <div
+                                key={s.id}
+                                onClick={() => {
+                                  handleLinkPackage(String(s.id));
+                                  setLinkedPackageQuery('');
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '10px 14px',
+                                  borderBottom: '1px solid var(--border)',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  color: 'var(--text-primary)',
+                                  transition: 'background 0.2s ease',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span>💼</span>
+                                  <span style={{ fontWeight: '500' }}>{s.name}</span>
+                                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>[Layanan]</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleEditMasterOption(`service-${s.id}`, e)}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '13px', padding: '4px' }}
+                                    title="Edit Master"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleDeleteMasterOption(`service-${s.id}`, e)}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '13px', padding: '4px' }}
+                                    title="Hapus Master"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            <div
+                              onClick={() => setIsForceCreatingLinkedPackage(true)}
                               style={{
-                                background: 'var(--accent)',
-                                color: '#fff',
-                                padding: '3px 10px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
+                                padding: '10px 14px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
                                 fontWeight: '600',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {s.name} ({formatPrice(s.price)})
-                            </span>
-                          ))}
-                          {linkedPackageQuery.trim() !== '' && (
-                            <span
-                              onClick={() => handleLinkCustomPackage(linkedPackageQuery)}
-                              style={{
-                                background: 'var(--bg-body)',
                                 color: 'var(--accent)',
-                                border: '1px dashed var(--accent)',
-                                padding: '3px 10px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer'
+                                background: 'var(--bg-card)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
                               }}
                             >
-                              + Gunakan Paket Baru: "{linkedPackageQuery.trim()}"
-                            </span>
-                          )}
-                        </div>
+                              <span>+ Buat Layanan Paket Baru "{linkedPackageQuery}"</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Input Extra Fields + Simpan Red Button ala Image 4 saat no matches / force create / typing new */}
+                      {(matchedLinkedPackages.length === 0 || isForceCreatingLinkedPackage) && linkedPackageQuery.trim() !== '' && (
+                        <>
+                          <input
+                            type="number"
+                            placeholder="Harga Satuan (Rp)"
+                            value={linkedPackagePrice || ''}
+                            onChange={(e) => setLinkedPackagePrice(parseFloat(e.target.value) || 0)}
+                            style={{
+                              flex: 1, minWidth: '120px',
+                              padding: '10px 14px',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              background: 'var(--bg-card)',
+                              color: 'var(--text-primary)',
+                              height: '42px',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Deskripsi (opsional)"
+                            value={linkedPackageDesc}
+                            onChange={(e) => setLinkedPackageDesc(e.target.value)}
+                            style={{
+                              flex: 2, minWidth: '140px',
+                              padding: '10px 14px',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              background: 'var(--bg-card)',
+                              color: 'var(--text-primary)',
+                              height: '42px',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleCreateLinkedPackage}
+                            disabled={isSaving}
+                            style={{
+                              padding: '10px 18px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              borderRadius: '8px',
+                              background: '#c5221f',
+                              color: '#ffffff',
+                              border: 'none',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              height: '42px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            {isSaving ? 'Menyimpan...' : 'Simpan'}
+                          </button>
+                        </>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               )}
@@ -1165,86 +1335,219 @@ export const ItemsSection: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <>
-                      <input
-                        type="text"
-                        placeholder="Cari atau ketik judul buku..."
-                        value={linkedBookQuery}
-                        onChange={(e) => setLinkedBookQuery(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && linkedBookQuery.trim()) {
-                            e.preventDefault();
-                            handleLinkCustomBook(linkedBookQuery);
-                          }
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          background: 'var(--bg-panel)',
-                          color: 'var(--text-primary)',
-                          height: '42px',
-                          boxSizing: 'border-box'
-                        }}
-                      />
-                      {(matchedLinkedBooks.length > 0 || linkedBookQuery.trim() !== '') && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '62px',
-                          left: 0,
-                          right: 0,
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          zIndex: 10,
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '6px',
-                          padding: '8px',
-                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                        }}>
-                          {matchedLinkedBooks.map(opt => (
-                            <span
-                              key={opt.id}
-                              onClick={() => {
-                                handleLinkBook(opt.id);
-                                setLinkedBookQuery('');
-                              }}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
+                      {/* Input Judul Karya */}
+                      <div style={{ flex: 2, minWidth: '180px', position: 'relative' }}>
+                        <input
+                          type="text"
+                          placeholder="Judul Baru — ketik untuk cari atau buat baru..."
+                          value={linkedBookQuery}
+                          onChange={(e) => {
+                            setLinkedBookQuery(e.target.value);
+                            if (isForceCreatingLinkedBook) setIsForceCreatingLinkedBook(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            background: 'var(--bg-card)',
+                            color: 'var(--text-primary)',
+                            height: '42px',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+
+                        {/* Dropdown Overlay ala Image 3 */}
+                        {matchedLinkedBooks.length > 0 && !isForceCreatingLinkedBook && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '46px',
+                            left: 0,
+                            right: 0,
+                            background: 'var(--bg-panel)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                            zIndex: 50,
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}>
+                            {matchedLinkedBooks.map((opt) => (
+                              <div
+                                key={opt.id}
+                                onClick={() => {
+                                  handleLinkBook(opt.id);
+                                  setLinkedBookQuery('');
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '10px 14px',
+                                  borderBottom: '1px solid var(--border)',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  color: 'var(--text-primary)',
+                                  transition: 'background 0.2s ease',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span>{opt.type === 'book' ? '📖' : '📄'}</span>
+                                  <span style={{ fontWeight: '500' }}>{opt.title}</span>
+                                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    [{opt.type === 'book' ? 'Karya' : 'Naskah'}]
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleEditMasterOption(opt.id, e)}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '13px', padding: '4px' }}
+                                    title="Edit Master"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleDeleteMasterOption(opt.id, e)}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '13px', padding: '4px' }}
+                                    title="Hapus Master"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            <div
+                              onClick={() => setIsForceCreatingLinkedBook(true)}
                               style={{
-                                background: 'var(--accent)',
-                                color: '#fff',
-                                padding: '3px 10px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
+                                padding: '10px 14px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
                                 fontWeight: '600',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {opt.title} [{opt.type === 'book' ? 'Karya' : 'Naskah'}]
-                            </span>
-                          ))}
-                          {linkedBookQuery.trim() !== '' && (
-                            <span
-                              onClick={() => handleLinkCustomBook(linkedBookQuery)}
-                              style={{
-                                background: 'var(--bg-body)',
                                 color: 'var(--accent)',
-                                border: '1px dashed var(--accent)',
-                                padding: '3px 10px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer'
+                                background: 'var(--bg-card)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
                               }}
                             >
-                              + Gunakan Judul Baru: "{linkedBookQuery.trim()}"
-                            </span>
-                          )}
-                        </div>
+                              <span>+ Buat Karya/Buku Baru dengan judul "{linkedBookQuery}"</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Input Extra Fields + Simpan Red Button ala Image 2 saat no matches / force create / typing new */}
+                      {(matchedLinkedBooks.length === 0 || isForceCreatingLinkedBook) && linkedBookQuery.trim() !== '' && (
+                        <>
+                          <input
+                            type="number"
+                            placeholder="Harga (Rp)"
+                            value={linkedBookPrice || ''}
+                            onChange={(e) => setLinkedBookPrice(parseFloat(e.target.value) || 0)}
+                            style={{
+                              flex: 1, minWidth: '120px',
+                              padding: '10px 14px',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              background: 'var(--bg-card)',
+                              color: 'var(--text-primary)',
+                              height: '42px',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          <div style={{ flex: 1, minWidth: '140px', position: 'relative' }}>
+                            <input
+                              type="text"
+                              placeholder="Cari Penulis..."
+                              value={linkedBookAuthorSearch}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setLinkedBookAuthorSearch(val);
+                                const selected = penulisList.find(p => String(p.id) === linkedBookAuthorId);
+                                if (!selected || selected.name !== val) {
+                                  setLinkedBookAuthorId('');
+                                }
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '10px 14px',
+                                border: '1px solid var(--border)',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                background: 'var(--bg-card)',
+                                color: 'var(--text-primary)',
+                                height: '42px',
+                                boxSizing: 'border-box'
+                              }}
+                            />
+                            {showLinkedBookAuthorDropdown && matchedLinkedBookAuthors.length > 0 && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '46px',
+                                left: 0,
+                                right: 0,
+                                background: 'var(--bg-panel)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '8px',
+                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                                zIndex: 50,
+                                maxHeight: '180px',
+                                overflowY: 'auto',
+                              }}>
+                                {matchedLinkedBookAuthors.map((p) => (
+                                  <div
+                                    key={p.id}
+                                    onClick={() => {
+                                      setLinkedBookAuthorId(String(p.id));
+                                      setLinkedBookAuthorSearch(p.name);
+                                    }}
+                                    style={{
+                                      padding: '8px 12px',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      color: 'var(--text-primary)',
+                                      borderBottom: '1px solid var(--border)',
+                                    }}
+                                  >
+                                    {p.name}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCreateLinkedBook}
+                            disabled={isSaving}
+                            style={{
+                              padding: '10px 18px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              borderRadius: '8px',
+                              background: '#c5221f',
+                              color: '#ffffff',
+                              border: 'none',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              height: '42px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            {isSaving ? 'Menyimpan...' : 'Simpan'}
+                          </button>
+                        </>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               )}
