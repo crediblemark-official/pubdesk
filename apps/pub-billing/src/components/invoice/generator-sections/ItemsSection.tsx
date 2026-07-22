@@ -148,6 +148,53 @@ export const ItemsSection: React.FC = () => {
   }, [editMasterAuthorSearchQuery, selectedEditMasterAuthor]);
 
 
+  const [titleOrder, setTitleOrder] = useState<'service_first' | 'book_first'>('service_first');
+
+  const formatTitleOrder = (pkgName: string, bookTitle: string, order: 'service_first' | 'book_first' = titleOrder) => {
+    const p = pkgName.trim();
+    const b = bookTitle.trim();
+    if (p && b) {
+      return order === 'service_first' ? `${p} - ${b}` : `${b} - ${p}`;
+    }
+    return p || b || '';
+  };
+
+  const toggleTitleOrder = () => {
+    const nextOrder = titleOrder === 'service_first' ? 'book_first' : 'service_first';
+    setTitleOrder(nextOrder);
+    setCreateType(nextOrder === 'service_first' ? 'service' : 'book');
+
+    let pkgName = '';
+    if (selectedServiceIdState) {
+      const s = services.find(srv => srv.id === parseInt(selectedServiceIdState));
+      if (s) pkgName = s.name;
+    } else if (linkedPackageId) {
+      const s = services.find(srv => String(srv.id) === linkedPackageId);
+      if (s) pkgName = s.name;
+    }
+
+    let bookTitle = '';
+    if (selectedBookIdState) {
+      const b = books.find(bk => bk.id === parseInt(selectedBookIdState));
+      if (b) bookTitle = b.title;
+    } else if (selectedNaskahIdState) {
+      const n = naskah.find(nk => nk.id === parseInt(selectedNaskahIdState));
+      if (n) bookTitle = n.title;
+    } else if (linkedBookId) {
+      if (linkedBookId.startsWith('book-')) {
+        const b = books.find(bk => bk.id === parseInt(linkedBookId.replace('book-', '')));
+        if (b) bookTitle = b.title;
+      } else if (linkedBookId.startsWith('naskah-')) {
+        const n = naskah.find(nk => nk.id === parseInt(linkedBookId.replace('naskah-', '')));
+        if (n) bookTitle = n.title;
+      }
+    }
+
+    if (pkgName || bookTitle) {
+      setCustomTitle(formatTitleOrder(pkgName, bookTitle, nextOrder));
+    }
+  };
+
   const handleLinkPackage = (serviceId: string) => {
     setLinkedPackageId(serviceId);
 
@@ -177,7 +224,7 @@ export const ItemsSection: React.FC = () => {
 
     const service = services.find(s => s.id === parseInt(serviceId));
     if (service) {
-      setCustomTitle(bookTitle ? `${bookTitle} - ${service.name}` : service.name);
+      setCustomTitle(formatTitleOrder(service.name, bookTitle, titleOrder));
       setDynamicInputs(prev => ({
         ...prev,
         price: service.price,
@@ -211,7 +258,7 @@ export const ItemsSection: React.FC = () => {
       const book = books.find(b => b.id === bookId);
       if (book) {
         const bookAuthorContact = contacts.find(c => c.id === book.author_id);
-        setCustomTitle(packageName ? `${packageName} - ${book.title}` : book.title);
+        setCustomTitle(formatTitleOrder(packageName, book.title, titleOrder));
         setDynamicInputs(prev => ({
           ...prev,
           pages: '',
@@ -224,7 +271,7 @@ export const ItemsSection: React.FC = () => {
       const n = naskah.find(nk => nk.id === naskahId);
       if (n) {
         const penulisContact = contacts.find(c => c.id === n.penulis_id);
-        setCustomTitle(packageName ? `${packageName} - ${n.title}` : n.title);
+        setCustomTitle(formatTitleOrder(packageName, n.title, titleOrder));
         setDynamicInputs(prev => ({
           ...prev,
           pages: n.total_pages ? String(n.total_pages) : '',
@@ -430,20 +477,15 @@ export const ItemsSection: React.FC = () => {
     return '';
   }, [selectedServiceIdState, selectedBookIdState, selectedNaskahIdState, customTitle, allItemOptions]);
 
-  // Matched items dari DB berdasarkan query yang diketik di form create
-  const searchQuery = createType === 'service' ? createFormData.name : createFormData.title;
+  // Matched items dari DB berdasarkan query yang diketik di form create (pencarian universal)
+  const searchQuery = (createFormData.name || createFormData.title);
   const matchedItems = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     return allItemOptions
-      .filter(o => {
-        const isRightType = createType === 'service'
-          ? !(o as any).isBook && !(o as any).isNaskah
-          : (o as any).isBook;
-        return isRightType && (o as any).name?.toLowerCase().includes(q);
-      })
-      .slice(0, 6);
-  }, [searchQuery, createType, allItemOptions]);
+      .filter(o => (o as any).name?.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [searchQuery, allItemOptions]);
 
   const hasMatches = matchedItems.length > 0;
 
@@ -1521,69 +1563,72 @@ export const ItemsSection: React.FC = () => {
               }}
               style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}
             >
-              {/* Tab Layanan / Karya */}
+              {/* Rolling Control: Urutan Format Nama */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '42px' }}>
                 <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                  Tipe:
+                  Urutan:
                 </span>
-                <div style={{
-                  display: 'flex',
-                  background: 'var(--bg-card)',
-                  padding: '3px',
-                  borderRadius: '8px',
-                  gap: '3px',
-                  border: '1px solid var(--border)',
-                  height: '42px',
-                  alignItems: 'center',
-                  boxSizing: 'border-box',
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => setCreateType('service')}
-                    style={{
-                      width: '34px',
-                      height: '34px',
-                      background: createType === 'service' ? 'var(--accent)' : 'transparent',
-                      color: createType === 'service' ? '#fff' : 'var(--text-secondary)',
-                      border: 'none', borderRadius: '6px', cursor: 'pointer',
-                      fontSize: '15px', transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxSizing: 'border-box',
-                    }}
-                    title="Layanan (Paket)"
-                  >
-                    💼
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCreateType('book')}
-                    style={{
-                      width: '34px',
-                      height: '34px',
-                      background: createType === 'book' ? 'var(--accent)' : 'transparent',
-                      color: createType === 'book' ? '#fff' : 'var(--text-secondary)',
-                      border: 'none', borderRadius: '6px', cursor: 'pointer',
-                      fontSize: '15px', transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxSizing: 'border-box',
-                    }}
-                    title="Karya (Buku)"
-                  >
-                    📖
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={toggleTitleOrder}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'var(--bg-card)',
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    height: '42px',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box',
+                    transition: 'all 0.2s ease',
+                    userSelect: 'none',
+                  }}
+                  title={`Urutan format: ${titleOrder === 'service_first' ? '💼 Paket dulu ➔ 📖 Karya' : '📖 Karya dulu ➔ 💼 Paket'}. Klik untuk ubah urutan (rolling).`}
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: titleOrder === 'service_first' ? 'var(--accent)' : 'transparent',
+                    color: titleOrder === 'service_first' ? '#fff' : 'var(--text-secondary)',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    <span>{titleOrder === 'service_first' ? '💼 Paket' : '📖 Karya'}</span>
+                  </div>
+
+                  <span style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                    🔄
+                  </span>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: titleOrder === 'book_first' ? 'var(--accent)' : 'transparent',
+                    color: titleOrder === 'book_first' ? '#fff' : 'var(--text-secondary)',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    <span>{titleOrder === 'service_first' ? '📖 Karya' : '💼 Paket'}</span>
+                  </div>
+                </button>
               </div>
 
-              {/* Input nama / judul — selalu tampil */}
+              {/* Input nama / judul — universal search */}
               <div style={{ flex: 2, minWidth: '200px', position: 'relative' }}>
                 <input
                   type="text"
-                  placeholder={createType === 'service' ? 'Nama layanan (paket) — ketik untuk cari atau buat baru...' : 'Judul karya — ketik untuk cari atau buat baru...'}
-                  value={createType === 'service' ? createFormData.name : createFormData.title}
+                  placeholder={createType === 'service' ? 'Ketik nama layanan 💼 atau karya 📖 (atau buat baru)...' : 'Ketik judul karya 📖 atau layanan 💼 (atau buat baru)...'}
+                  value={createFormData.name || createFormData.title}
                   onChange={(e) => {
                     const val = e.target.value;
                     setCreateFormData(prev =>
