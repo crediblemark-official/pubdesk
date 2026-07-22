@@ -18,6 +18,7 @@ export interface InvoiceItem {
   quantity: number;
   price: number;
   discount: number;
+  discountType?: 'fixed' | 'percent';
   pages?: string;
   paper_type?: string;
   copyright_holder?: string;
@@ -30,6 +31,18 @@ export interface AdditionalFee {
   id: string;
   name: string;
   amount: number;
+}
+
+export interface GlobalDiscount {
+  type: 'fixed' | 'percent';
+  value: number;
+  label?: string;
+}
+
+export interface GlobalCashback {
+  type: 'fixed' | 'percent';
+  value: number;
+  label?: string;
 }
 
 export interface Invoice {

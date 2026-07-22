@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
-import { InvoiceItem, InvoiceProfile, AdditionalFee } from '../types/invoice.types';
+import { InvoiceItem, InvoiceProfile, AdditionalFee, GlobalDiscount, GlobalCashback } from '../types/invoice.types';
 import { Contact } from '../types/contact.types';
 import { invoiceTemplates } from '../data/invoiceTemplates';
 import { evaluateItemFormula, getIndonesianDate } from '../utils/invoice';
@@ -41,6 +41,12 @@ interface InvoiceContextType {
   shippingCost: number;
   adminFee: number;
   additionalFees: AdditionalFee[];
+  globalDiscount: GlobalDiscount;
+  setGlobalDiscount: (disc: GlobalDiscount | ((prev: GlobalDiscount) => GlobalDiscount)) => void;
+  globalCashback: GlobalCashback;
+  setGlobalCashback: (cb: GlobalCashback | ((prev: GlobalCashback) => GlobalCashback)) => void;
+  calculateGlobalDiscountAmount: () => number;
+  calculateGlobalCashbackAmount: () => number;
   invoiceType: string;
   invoiceNo: string;
   invoiceHal: string;
@@ -140,6 +146,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [selectedLayoutId, setSelectedLayoutId] = useState<string>('');
   const [paidAmount, setPaidAmount] = useState(0);
   const [paymentNotes, setPaymentNotes] = useState('');
+  const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscount>({ type: 'fixed', value: 0, label: '' });
+  const [globalCashback, setGlobalCashback] = useState<GlobalCashback>({ type: 'fixed', value: 0, label: '' });
 
   // Load profiles from localStorage on mount
   useEffect(() => {
@@ -267,17 +275,57 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     
     // Fallback ke perhitungan bawaan jika tidak ada kolom formula khusus
     const itemShip = item.item_shipping_cost || 0;
-    return (item.price * item.quantity) - item.discount + itemShip;
+    const qty = Number(item.quantity) || 0;
+    const price = Number(item.price) || 0;
+    const rawTotal = price * qty;
+    const discVal = Number(item.discount) || 0;
+    const disc = item.discountType === 'percent' ? (rawTotal * discVal / 100) : discVal;
+    return Math.max(0, rawTotal - disc + itemShip);
+  };
+
+  const calculateGlobalDiscountAmount = () => {
+    const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+    const discVal = Number(globalDiscount.value) || 0;
+    if (globalDiscount.type === 'percent') {
+      return (itemsTotal * discVal) / 100;
+    }
+    return discVal;
+  };
+
+  const calculateGlobalCashbackAmount = () => {
+    const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+    const discAmount = calculateGlobalDiscountAmount();
+    const afterDisc = Math.max(0, itemsTotal - discAmount);
+    const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
+    const globalShip = hasItemShipping ? 0 : shippingCost;
+    const additionalFeesTotal = additionalFees.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+    const subtotalBeforeCashback = afterDisc + globalShip + adminFee + additionalFeesTotal;
+
+    const cbVal = Number(globalCashback.value) || 0;
+    if (globalCashback.type === 'percent') {
+      return (subtotalBeforeCashback * cbVal) / 100;
+    }
+    return cbVal;
   };
 
   const calculateTotalValue = useMemo(() => {
     const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    // Jika profil memiliki kolom ongkos kirim per item, abaikan ongkir global
+    const discAmount = globalDiscount.type === 'percent'
+      ? (itemsTotal * (Number(globalDiscount.value) || 0)) / 100
+      : (Number(globalDiscount.value) || 0);
+    const afterDisc = Math.max(0, itemsTotal - discAmount);
+
     const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
     const globalShip = hasItemShipping ? 0 : shippingCost;
     const additionalFeesTotal = additionalFees.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
-    return itemsTotal + globalShip + adminFee + additionalFeesTotal;
-  }, [items, shippingCost, adminFee, additionalFees, activeProfile]);
+
+    const subtotalBeforeCashback = afterDisc + globalShip + adminFee + additionalFeesTotal;
+    const cbAmount = globalCashback.type === 'percent'
+      ? (subtotalBeforeCashback * (Number(globalCashback.value) || 0)) / 100
+      : (Number(globalCashback.value) || 0);
+
+    return Math.max(0, subtotalBeforeCashback - cbAmount);
+  }, [items, shippingCost, adminFee, additionalFees, globalDiscount, globalCashback, activeProfile]);
 
   const calculateTotal = () => calculateTotalValue;
 
@@ -311,6 +359,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setShippingCost(0);
     setAdminFee(0);
     setAdditionalFees([]);
+    setGlobalDiscount({ type: 'fixed', value: 0, label: '' });
+    setGlobalCashback({ type: 'fixed', value: 0, label: '' });
     setInvoiceNo('');
     setInvoiceDate(getIndonesianDate());
     setPaymentStatus('LUNAS');
@@ -429,6 +479,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setShippingCost(invoice.shipping_cost || 0);
       setAdminFee(invoice.admin_fee || 0);
       setAdditionalFees(invoice.additional_fees || metadata.additionalFees || []);
+      setGlobalDiscount(metadata.globalDiscount || { type: 'fixed', value: 0, label: '' });
+      setGlobalCashback(metadata.globalCashback || { type: 'fixed', value: 0, label: '' });
       setInvoiceNo(metadata.invoiceNo || '');
       setInvoiceHal(metadata.invoiceHal || '');
       setInvoiceLampiran(metadata.invoiceLampiran || '');
@@ -469,6 +521,12 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       shippingCost,
       adminFee,
       additionalFees,
+      globalDiscount,
+      setGlobalDiscount,
+      globalCashback,
+      setGlobalCashback,
+      calculateGlobalDiscountAmount,
+      calculateGlobalCashbackAmount,
       invoiceType,
       invoiceNo,
       invoiceHal,

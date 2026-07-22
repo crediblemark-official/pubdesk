@@ -18,6 +18,8 @@ const InvoiceGenerator: React.FC = () => {
     shippingCost,
     adminFee,
     additionalFees,
+    globalDiscount,
+    globalCashback,
     invoiceType,
     invoiceNo,
     setInvoiceNo,
@@ -167,7 +169,9 @@ const InvoiceGenerator: React.FC = () => {
       selectedLayoutId,
       paidAmount: finalPaidAmount,
       paymentNotes,
-      additionalFees
+      additionalFees,
+      globalDiscount,
+      globalCashback
     };
 
     return {

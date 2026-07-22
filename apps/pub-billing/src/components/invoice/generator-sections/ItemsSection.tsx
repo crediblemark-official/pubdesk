@@ -1512,6 +1512,64 @@ export const ItemsSection: React.FC = () => {
 
             if (field.key === 'package_name') return null;
 
+            if (field.key === 'discount') {
+              const currentDiscType = dynamicInputs.discountType || 'fixed';
+              return (
+                <div key={field.key} style={{ flex: 1, minWidth: '130px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>
+                    <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <button
+                        type="button"
+                        onClick={() => setDynamicInputs(prev => ({ ...prev, discountType: 'fixed' }))}
+                        style={{
+                          padding: '1px 6px', fontSize: '10px', fontWeight: '600', border: 'none', cursor: 'pointer',
+                          background: currentDiscType === 'fixed' ? 'var(--accent)' : 'transparent',
+                          color: currentDiscType === 'fixed' ? '#fff' : 'var(--text-secondary)'
+                        }}
+                      >
+                        Rp
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDynamicInputs(prev => ({ ...prev, discountType: 'percent' }))}
+                        style={{
+                          padding: '1px 6px', fontSize: '10px', fontWeight: '600', border: 'none', cursor: 'pointer',
+                          background: currentDiscType === 'percent' ? 'var(--accent)' : 'transparent',
+                          color: currentDiscType === 'percent' ? '#fff' : 'var(--text-secondary)'
+                        }}
+                      >
+                        %
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      background: 'var(--bg-panel)',
+                      color: 'var(--text-primary)',
+                      height: '42px',
+                      boxSizing: 'border-box'
+                    }}
+                    value={currentDiscType === 'percent'
+                      ? (dynamicInputs.discount !== undefined && dynamicInputs.discount !== null ? dynamicInputs.discount : '')
+                      : formatThousand(dynamicInputs.discount ?? '')}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const parsed = currentDiscType === 'percent' ? (parseFloat(val) || 0) : parseThousand(val);
+                      setDynamicInputs(prev => ({ ...prev, discount: parsed }));
+                    }}
+                    placeholder={currentDiscType === 'percent' ? '0 %' : '0'}
+                  />
+                </div>
+              );
+            }
+
             return (
               <div key={field.key} style={{ flex: field.key === 'copyright_holder' ? 2 : 1, minWidth: '110px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</label>

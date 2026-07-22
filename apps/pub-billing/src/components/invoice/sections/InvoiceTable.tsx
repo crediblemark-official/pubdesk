@@ -1,5 +1,5 @@
 import React from 'react';
-import { InvoiceItem, InvoiceProfile, AdditionalFee } from '../../../types/invoice.types';
+import { InvoiceItem, InvoiceProfile, AdditionalFee, GlobalDiscount, GlobalCashback } from '../../../types/invoice.types';
 import { formatPrice } from '../../../utils/format';
 import { evaluateItemFormula } from '../../../utils/invoice';
 
@@ -9,6 +9,10 @@ interface InvoiceTableProps {
   shippingCost: number;
   adminFee: number;
   additionalFees?: AdditionalFee[];
+  globalDiscount?: GlobalDiscount;
+  globalCashback?: GlobalCashback;
+  discAmount?: number;
+  cbAmount?: number;
   spesifikasiFasilitas?: string;
   calculateItemTotal: (item: InvoiceItem) => number;
   accentColor: string;
@@ -27,6 +31,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   shippingCost,
   adminFee,
   additionalFees = [],
+  globalDiscount,
+  globalCashback,
+  discAmount,
+  cbAmount,
   spesifikasiFasilitas,
   calculateItemTotal,
   accentColor,
@@ -44,7 +52,23 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   const hasItemShipping = profile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
   const globalShip = hasItemShipping ? 0 : shippingCost;
   const additionalFeesTotal = additionalFees.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
-  const total = subtotal + globalShip + adminFee + additionalFeesTotal;
+
+  const calculatedDiscAmount = discAmount !== undefined ? discAmount : (
+    globalDiscount?.type === 'percent'
+      ? (subtotal * (Number(globalDiscount.value) || 0)) / 100
+      : (Number(globalDiscount?.value) || 0)
+  );
+
+  const subtotalAfterDisc = Math.max(0, subtotal - calculatedDiscAmount);
+  const subtotalBeforeCashback = subtotalAfterDisc + globalShip + adminFee + additionalFeesTotal;
+
+  const calculatedCbAmount = cbAmount !== undefined ? cbAmount : (
+    globalCashback?.type === 'percent'
+      ? (subtotalBeforeCashback * (Number(globalCashback.value) || 0)) / 100
+      : (Number(globalCashback?.value) || 0)
+  );
+
+  const total = Math.max(0, subtotalBeforeCashback - calculatedCbAmount);
 
   return (
     <div style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -138,13 +162,24 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
           
           {items.length > 0 && showTotals && (
             <>
-              {((!hasItemShipping && shippingCost > 0) || adminFee > 0 || additionalFeesTotal > 0) && (
+              {((!hasItemShipping && shippingCost > 0) || adminFee > 0 || additionalFeesTotal > 0 || calculatedDiscAmount > 0 || calculatedCbAmount > 0) && (
                 <tr style={{ borderTop: '1.5px solid #d1d5db' }}>
                   <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Subtotal
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                     {formatPrice(subtotal)}
+                  </td>
+                </tr>
+              )}
+
+              {calculatedDiscAmount > 0 && (
+                <tr>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#15803d', borderBottom: '1px solid #e5e7eb' }}>
+                    🏷️ {globalDiscount?.label ? `Diskon (${globalDiscount.label})` : 'Diskon Global'}
+                  </td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#15803d', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                    -{formatPrice(calculatedDiscAmount)}
                   </td>
                 </tr>
               )}
@@ -184,6 +219,17 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                   </tr>
                 );
               })}
+
+              {calculatedCbAmount > 0 && (
+                <tr>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#15803d', borderBottom: '1px solid #e5e7eb' }}>
+                    🎁 {globalCashback?.label ? `Cashback (${globalCashback.label})` : 'Cashback'}
+                  </td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#15803d', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                    -{formatPrice(calculatedCbAmount)}
+                  </td>
+                </tr>
+              )}
 
               <tr style={{ borderTop: '1.5px solid #9ca3af' }}>
                 <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#1f2937' }}>

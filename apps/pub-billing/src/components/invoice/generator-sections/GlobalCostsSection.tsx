@@ -12,7 +12,16 @@ export const GlobalCostsSection: React.FC = () => {
     addAdditionalFee,
     updateAdditionalFee,
     removeAdditionalFee,
+    globalDiscount,
+    setGlobalDiscount,
+    globalCashback,
+    setGlobalCashback,
+    calculateGlobalDiscountAmount,
+    calculateGlobalCashbackAmount,
   } = useInvoiceContext();
+
+  const discAmount = calculateGlobalDiscountAmount();
+  const cbAmount = calculateGlobalCashbackAmount();
 
   return (
     <>
@@ -36,6 +45,125 @@ export const GlobalCostsSection: React.FC = () => {
             onChange={(e) => setAdminFee(parseThousand(e.target.value))}
             placeholder="0"
           />
+        </div>
+      </div>
+
+      {/* Diskon Global & Cashback */}
+      <div style={{ borderTop: '1px dashed var(--border)', paddingTop: '12px', marginBottom: '16px' }}>
+        <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '10px' }}>
+          🏷️ Potongan & Insentif (Global)
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          {/* Diskon Global */}
+          <div style={{ background: 'var(--bg-card)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>🏷️ Diskon Global</label>
+              <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                <button
+                  type="button"
+                  onClick={() => setGlobalDiscount(prev => ({ ...prev, type: 'fixed' }))}
+                  style={{
+                    padding: '2px 8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer',
+                    background: globalDiscount.type === 'fixed' ? 'var(--accent)' : 'transparent',
+                    color: globalDiscount.type === 'fixed' ? '#fff' : 'var(--text-secondary)'
+                  }}
+                >
+                  Rp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGlobalDiscount(prev => ({ ...prev, type: 'percent' }))}
+                  style={{
+                    padding: '2px 8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer',
+                    background: globalDiscount.type === 'percent' ? 'var(--accent)' : 'transparent',
+                    color: globalDiscount.type === 'percent' ? '#fff' : 'var(--text-secondary)'
+                  }}
+                >
+                  %
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
+              <input
+                type="text"
+                style={{ width: '100px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-body)', color: 'var(--text-primary)', textAlign: 'right', fontWeight: '600' }}
+                value={globalDiscount.type === 'percent' ? (globalDiscount.value || '') : formatThousand(globalDiscount.value)}
+                onChange={(e) => {
+                  const val = globalDiscount.type === 'percent' ? parseFloat(e.target.value) || 0 : parseThousand(e.target.value);
+                  setGlobalDiscount(prev => ({ ...prev, value: val }));
+                }}
+                placeholder="0"
+              />
+              <input
+                type="text"
+                style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-body)', color: 'var(--text-primary)' }}
+                value={globalDiscount.label || ''}
+                onChange={(e) => setGlobalDiscount(prev => ({ ...prev, label: e.target.value }))}
+                placeholder="Ket. Diskon (Opsional)"
+              />
+            </div>
+            {discAmount > 0 && (
+              <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: '500', textAlign: 'right' }}>
+                Potongan: -Rp {discAmount.toLocaleString('id-ID')}
+              </div>
+            )}
+          </div>
+
+          {/* Cashback */}
+          <div style={{ background: 'var(--bg-card)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>🎁 Cashback</label>
+              <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                <button
+                  type="button"
+                  onClick={() => setGlobalCashback(prev => ({ ...prev, type: 'fixed' }))}
+                  style={{
+                    padding: '2px 8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer',
+                    background: globalCashback.type === 'fixed' ? 'var(--accent)' : 'transparent',
+                    color: globalCashback.type === 'fixed' ? '#fff' : 'var(--text-secondary)'
+                  }}
+                >
+                  Rp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGlobalCashback(prev => ({ ...prev, type: 'percent' }))}
+                  style={{
+                    padding: '2px 8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer',
+                    background: globalCashback.type === 'percent' ? 'var(--accent)' : 'transparent',
+                    color: globalCashback.type === 'percent' ? '#fff' : 'var(--text-secondary)'
+                  }}
+                >
+                  %
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
+              <input
+                type="text"
+                style={{ width: '100px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-body)', color: 'var(--text-primary)', textAlign: 'right', fontWeight: '600' }}
+                value={globalCashback.type === 'percent' ? (globalCashback.value || '') : formatThousand(globalCashback.value)}
+                onChange={(e) => {
+                  const val = globalCashback.type === 'percent' ? parseFloat(e.target.value) || 0 : parseThousand(e.target.value);
+                  setGlobalCashback(prev => ({ ...prev, value: val }));
+                }}
+                placeholder="0"
+              />
+              <input
+                type="text"
+                style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-body)', color: 'var(--text-primary)' }}
+                value={globalCashback.label || ''}
+                onChange={(e) => setGlobalCashback(prev => ({ ...prev, label: e.target.value }))}
+                placeholder="Ket. Cashback (Opsional)"
+              />
+            </div>
+            {cbAmount > 0 && (
+              <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: '500', textAlign: 'right' }}>
+                Potongan: -Rp {cbAmount.toLocaleString('id-ID')}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
