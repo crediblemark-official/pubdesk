@@ -36,17 +36,6 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   const globalShip = hasItemShipping ? 0 : shippingCost;
   const total = subtotal + globalShip + adminFee;
 
-  const tableRef = React.useRef<HTMLDivElement>(null);
-  const [isOverflowing, setIsOverflowing] = React.useState(false);
-  React.useLayoutEffect(() => {
-    if (!tableRef.current) return;
-    const el = tableRef.current;
-    requestAnimationFrame(() => {
-      const overflowDiff = el.scrollHeight - el.clientHeight;
-      setIsOverflowing(items.length >= 7 && overflowDiff > 15 && el.clientHeight > 0);
-    });
-  }, [items, profile, shippingCost, adminFee]);
-
   const getInvoiceTypeActionLabel = () => {
     return profile?.actionLabel || 'cetak buku';
   };
@@ -62,19 +51,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   const sectionMargin = isUltraCompact ? '4px' : isCompact ? '6px' : '10px';
 
   return (
-    <div ref={tableRef} style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
-      {isOverflowing && (
-        <div data-no-print="true" className="no-print" style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          background: '#fef2f2', border: '1px solid #fca5a5',
-          color: '#b91c1c', fontSize: '8px', fontWeight: '600',
-          padding: '4px 8px', textAlign: 'center', zIndex: 20,
-          borderRadius: '0 0 4px 4px'
-        }}>
-          ⚠ Beberapa item tidak termuat karena melebihi satu halaman A4.
-          Pertimbangkan untuk mengurangi jumlah item atau cetak manual per bagian.
-        </div>
-      )}
+    <div style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
       {profile?.salamPembuka && (
         <div style={{ 
           fontSize: isCompact ? '8.5px' : '9px', 
