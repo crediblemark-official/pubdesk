@@ -327,6 +327,22 @@ export function useInvoiceSettingsForm() {
     setTempPreviewProfile
   ]);
 
+  // Auto-save pdfFilenameFormat ke profile aktif di localStorage tanpa harus klik Simpan
+  useEffect(() => {
+    if (!selectedProfileId || isEditingNew) return;
+    const saved = localStorage.getItem('invoice_profiles');
+    if (!saved) return;
+    try {
+      const parsed: InvoiceProfile[] = JSON.parse(saved);
+      const idx = parsed.findIndex(p => p.id === selectedProfileId);
+      if (idx > -1 && parsed[idx].pdfFilenameFormat !== pdfFilenameFormat) {
+        parsed[idx] = { ...parsed[idx], pdfFilenameFormat };
+        localStorage.setItem('invoice_profiles', JSON.stringify(parsed));
+        addOrUpdateProfile(parsed[idx]);
+      }
+    } catch (_) { /* abaikan */ }
+  }, [pdfFilenameFormat, selectedProfileId, isEditingNew]);
+
   const handleSave = () => {
     if (!profileName.trim()) {
       showToast('Nama Profil tidak boleh kosong!', 'error');
