@@ -369,18 +369,18 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
                   allItemsForTotal={items}
                 />
 
+                <InvoiceFooter
+                  profile={profile}
+                  invoiceDate={invoiceDate}
+                  accentColor={accentColor}
+                  footerBgColor={footerBgColor}
+                  footerPrimaryColor={footerPrimaryColor}
+                  footerSecondaryColor={footerSecondaryColor}
+                  showSignatureAndBank={isLastPage}
+                />
+
                 {isLastPage && (
-                  <>
-                    <InvoiceFooter
-                      profile={profile}
-                      invoiceDate={invoiceDate}
-                      accentColor={accentColor}
-                      footerBgColor={footerBgColor}
-                      footerPrimaryColor={footerPrimaryColor}
-                      footerSecondaryColor={footerSecondaryColor}
-                    />
-                    <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
-                  </>
+                  <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
                 )}
               </div>
             );
