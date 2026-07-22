@@ -366,9 +366,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
                   showSignatureAndBank={isLastPage}
                 />
 
-                {isLastPage && (
-                  <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
-                )}
+                <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
               </div>
             );
           })}
