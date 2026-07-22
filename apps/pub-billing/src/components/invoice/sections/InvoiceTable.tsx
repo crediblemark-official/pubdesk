@@ -15,9 +15,6 @@ interface InvoiceTableProps {
   paymentStatus?: string;
   paidAmount?: number;
   paymentNotes?: string;
-  showTotals?: boolean;
-  itemStartIndex?: number;
-  allItemsForTotal?: InvoiceItem[];
 }
 
 export const InvoiceTable: React.FC<InvoiceTableProps> = ({
@@ -31,29 +28,16 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   accentColorDark,
   paymentStatus,
   paidAmount = 0,
-  paymentNotes,
-  showTotals = true,
-  itemStartIndex = 0,
-  allItemsForTotal
+  paymentNotes
 }) => {
-  const sourceItems = allItemsForTotal || items;
-  const itemsTotal = sourceItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
   const hasItemShipping = profile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
   const globalShip = hasItemShipping ? 0 : shippingCost;
   const total = subtotal + globalShip + adminFee;
 
-  const getInvoiceTypeActionLabel = () => {
-    return profile?.actionLabel || 'cetak buku';
-  };
-
-  const cellPadding = '6px 8px';
-  const cellFontSize = '9.5px';
-  const detailFontSize = '8.5px';
-  const sectionMargin = '10px';
-
   return (
-    <div style={{ padding: '0 35px', flex: 1, overflow: 'visible', position: 'relative' }}>
+    <div style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
       {profile?.salamPembuka && (
         <div style={{ 
           fontSize: '9px', 
@@ -117,24 +101,24 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               return (
                 <tr key={index} style={{ background: rowBg }}>
-                  <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: cellFontSize, color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
-                    {itemStartIndex + index + 1}.
+                  <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
+                    {index + 1}.
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'left', fontSize: cellFontSize, color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
                     <div style={{ fontWeight: '700' }}>"{item.item_title || '-'}"</div>
                     {detailParts.length > 0 && (
-                      <div style={{ fontWeight: '400', color: '#6b7280', fontSize: detailFontSize, marginTop: '2px', lineHeight: '1.4' }}>
+                      <div style={{ fontWeight: '400', color: '#6b7280', fontSize: '8.5px', marginTop: '2px', lineHeight: '1.4' }}>
                         {detailParts.join(' | ')}
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
                     {priceDisplay}
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'center', fontSize: cellFontSize, color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
                     {qtyVal}
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
                     {totalDisplay}
                   </td>
                 </tr>
@@ -142,14 +126,14 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
             })
           )}
           
-          {items.length > 0 && showTotals && (
+          {items.length > 0 && (
             <>
               {((!hasItemShipping && shippingCost > 0) || adminFee > 0) && (
                 <tr style={{ borderTop: '1.5px solid #d1d5db' }}>
-                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Subtotal
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                     {formatPrice(subtotal)}
                   </td>
                 </tr>
@@ -157,10 +141,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               {!hasItemShipping && shippingCost > 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Ongkos Kirim
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                     {formatPrice(shippingCost)}
                   </td>
                 </tr>
@@ -168,20 +152,20 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
               {adminFee > 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                  <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                     Biaya Admin
                   </td>
-                  <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#1f2937', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                     {formatPrice(adminFee)}
                   </td>
                 </tr>
               )}
 
               <tr style={{ borderTop: '1.5px solid #9ca3af' }}>
-                <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, fontWeight: '700', color: '#1f2937' }}>
+                <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#1f2937' }}>
                   Total
                 </td>
-                <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '10px', fontWeight: '800', color: accentColorDark, whiteSpace: 'nowrap' }}>
+                <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '10px', fontWeight: '800', color: accentColorDark, whiteSpace: 'nowrap' }}>
                   {formatPrice(total)}
                 </td>
               </tr>
@@ -189,18 +173,18 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               {paymentStatus === 'DP' && (
                 <>
                   <tr>
-                    <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
+                    <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9px', fontWeight: '600', color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
                       Telah Dibayar (DP)
                     </td>
-                    <td style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, fontWeight: '700', color: '#2563eb', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
+                    <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#2563eb', whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>
                       {formatPrice(paidAmount)}
                     </td>
                   </tr>
                   <tr>
-                    <td colSpan={4} style={{ padding: cellPadding, textAlign: 'right', fontSize: cellFontSize, fontWeight: '700', color: '#1f2937' }}>
+                    <td colSpan={4} style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', fontWeight: '700', color: '#1f2937' }}>
                       Sisa Pembayaran
                     </td>
-                    <td style={{ padding: cellPadding, textAlign: 'right', fontSize: '10px', fontWeight: '800', color: '#dc2626', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '10px', fontWeight: '800', color: '#dc2626', whiteSpace: 'nowrap' }}>
                       {formatPrice(Math.max(0, total - paidAmount))}
                     </td>
                   </tr>
@@ -211,15 +195,9 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </tbody>
       </table>
 
-      {!showTotals && (
-        <div style={{ textAlign: 'right', fontSize: '8.5px', fontStyle: 'italic', color: '#6b7280', marginTop: '10px', fontWeight: '500' }}>
-          * Bersambung ke Halaman Berikutnya...
-        </div>
-      )}
-
-      {showTotals && profile?.showSpesifikasi && (spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas.trim() !== '' : !!profile.defaultSpesifikasi) && (
+      {profile?.showSpesifikasi && (spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas.trim() !== '' : !!profile.defaultSpesifikasi) && (
         <div style={{ 
-          marginTop: sectionMargin, 
+          marginTop: '10px', 
           border: `1.5px solid ${accentColor}`, 
           borderRadius: '4px', 
           padding: '6px 10px', 
@@ -237,8 +215,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </div>
       )}
 
-      {showTotals && profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
-        <div style={{ marginTop: sectionMargin, fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
+      {profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
+        <div style={{ marginTop: '10px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
           <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
           {profile.notes.map((note, idx) => (
             <React.Fragment key={idx}>
@@ -248,19 +226,17 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </div>
       )}
 
-      {showTotals && paymentNotes && (
+      {paymentNotes && (
         <div style={{ marginTop: '8px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
           <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Catatan Pembayaran:</span> {paymentNotes}
         </div>
       )}
 
-      {showTotals && (
-        <div style={{ marginTop: sectionMargin, fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
-          {profile?.salamPenutup !== undefined && profile?.salamPenutup !== null
-            ? profile.salamPenutup 
-            : `Demikian rincian biaya ${getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
-        </div>
-      )}
+      <div style={{ marginTop: '10px', fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
+        {profile?.salamPenutup !== undefined && profile?.salamPenutup !== null
+          ? profile.salamPenutup 
+          : `Demikian rincian biaya ${profile?.actionLabel || 'cetak buku'} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
+      </div>
     </div>
   );
 };
