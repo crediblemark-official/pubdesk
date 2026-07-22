@@ -255,8 +255,8 @@ const InvoiceGenerator: React.FC = () => {
         actionLabel: activeProfile?.actionLabel,
         items,
         totalAmount,
-        paidAmount: finalPaidAmount,
-        remainingAmount: Math.max(0, totalAmount - finalPaidAmount)
+        paidAmount: paidAmount,
+        remainingAmount: Math.max(0, totalAmount - paidAmount)
       });
       a.href = url;
       a.download = filename;

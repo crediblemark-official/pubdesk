@@ -25,8 +25,8 @@ const PdfFilenameSection: React.FC = () => {
     companyName: companyName || 'Penerbit KBM Indonesia',
     actionLabel: 'penerbitan',
     items: [
-      { item_title: 'Pemrograman React & TypeScript', package_name: 'Paket Terbit Gold', quantity: 500, price: 15000, discount: 0 },
-      { item_title: 'Desain Cover Custom', package_name: 'Layanan Tambahan', quantity: 1, price: 250000, discount: 0 }
+      { item_title: 'Pemrograman React & TypeScript', package_name: 'Paket Terbit Gold', quantity: 500, price: 15000, discount: 0, book_id: '' },
+      { item_title: 'Desain Cover Custom', package_name: 'Layanan Tambahan', quantity: 1, price: 250000, discount: 0, book_id: '' }
     ],
     totalAmount: 7750000,
     paidAmount: 7750000,
@@ -136,7 +136,7 @@ const PdfFilenameSection: React.FC = () => {
                 <button
                   key={item.tag}
                   type="button"
-                  onClick={() => setPdfFilenameFormat(prev => (prev ? `${prev} - ${item.tag}` : item.tag))}
+                  onClick={() => setPdfFilenameFormat((pdfFilenameFormat ? `${pdfFilenameFormat} - ${item.tag}` : item.tag))}
                   style={{
                     padding: '3px 8px',
                     fontSize: '11px',
