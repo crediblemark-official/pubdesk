@@ -1728,7 +1728,7 @@ export const ItemsSection: React.FC = () => {
                       border: item.pageBreakAfter ? 'none' : undefined
                     }}
                   >
-                    ✂️ {item.pageBreakAfter ? 'Halaman Baru (Aktif)' : 'Ganti Halaman'}
+                    ✂️ {item.pageBreakAfter ? 'Pemisah Halaman (Aktif)' : 'Pemisah Halaman'}
                   </button>
                   <button
                     type="button"
