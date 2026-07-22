@@ -28,6 +28,9 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     clonedElement.style.boxShadow = 'none';
     clonedElement.style.borderRadius = '0';
 
+    // Hapus elemen yang tidak perlu dicetak (seperti banner peringatan UI)
+    clonedElement.querySelectorAll('[data-no-print="true"], .no-print').forEach(el => el.remove());
+
     // Hapus <img>, SVG <image> + nonaktifkan CSS backgroundImage yang pakai url()
     // (watermark pakai data:image/svg+xml — di WebKitGTK bikin canvas taint)
     // Kecualikan gambar berbasis Base64 Data URI (data:) agar tanda tangan/logo tetap tercetak
@@ -48,21 +51,16 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     container.appendChild(clonedElement);
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Watermark: teks 100% putih; background, border, shadow ikut opacity profil
+    // Watermark: Berikan transparansi RGBA menyeluruh (background, border, dan text) sesuai opacity profil
     clonedElement.querySelectorAll<HTMLElement>('*').forEach(el => {
       const pos = (el.style.position || getComputedStyle(el).position);
       if (pos === 'absolute' && el.style.opacity && parseFloat(el.style.opacity) < 1) {
         const wmOpacity = parseFloat(el.style.opacity);
-        el.style.opacity = '1';
 
         const rgbToRGBA = (str: string, alpha: number): string | null => {
           const m = str.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
           if (m) return `rgba(${m[1]},${m[2]},${m[3]},${alpha})`;
           return null;
-        };
-        const isWhiteRGB = (str: string): boolean => {
-          const m = str.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
-          return !!m && m[1] === '255' && m[2] === '255' && m[3] === '255';
         };
 
         el.querySelectorAll<HTMLElement>('*').forEach(inner => {
@@ -74,18 +72,16 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
           }
           const bc = cs.borderColor;
           const bw = cs.borderWidth;
-          if (bc && bw && bw !== '0px' && bc !== 'transparent' && !bc.includes('rgba(0,0,0,0)') && !isWhiteRGB(bc)) {
+          if (bc && bw && bw !== '0px' && bc !== 'transparent' && !bc.includes('rgba(0,0,0,0)')) {
             const rgba = rgbToRGBA(bc, wmOpacity);
             if (rgba) inner.style.borderColor = rgba;
           }
           const sh = cs.boxShadow;
           if (sh && sh !== 'none') {
             inner.style.boxShadow = sh.replace(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g, (_, r, g, b) => {
-              if (r === '255' && g === '255' && b === '255') return `rgb(${r},${g},${b})`;
               return `rgba(${r},${g},${b},${wmOpacity})`;
             });
           }
-          inner.style.opacity = '1';
         });
       }
     });

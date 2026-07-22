@@ -53,7 +53,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   return (
     <div ref={tableRef} style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
       {isOverflowing && (
-        <div style={{
+        <div data-no-print="true" className="no-print" style={{
           position: 'absolute', top: 0, left: 0, right: 0,
           background: '#fef2f2', border: '1px solid #fca5a5',
           color: '#b91c1c', fontSize: '8px', fontWeight: '600',

@@ -95,6 +95,7 @@ export const Watermark: React.FC<WatermarkProps> = ({ paymentStatus, activeProfi
         userSelect: 'none',
         zIndex: 10,
         opacity: opacityValue,
+        mixBlendMode: 'multiply',
         display: 'inline-block'
       }}
     >
