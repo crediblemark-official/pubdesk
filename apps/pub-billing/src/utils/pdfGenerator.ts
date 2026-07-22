@@ -12,8 +12,9 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
   container.style.top = '0';
   container.style.left = '-9999px';
   container.style.width = '595px';
-  container.style.height = '842px';
-  container.style.overflow = 'hidden';
+  container.style.height = 'auto';
+  container.style.minHeight = '842px';
+  container.style.overflow = 'visible';
   container.style.background = '#ffffff';
   document.body.appendChild(container);
 
@@ -23,10 +24,13 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     clonedElement.style.transform = 'none';
     clonedElement.style.top = '0';
     clonedElement.style.left = '0';
-    clonedElement.style.position = 'static';
+    clonedElement.style.position = 'relative';
     clonedElement.style.margin = '0';
     clonedElement.style.boxShadow = 'none';
     clonedElement.style.borderRadius = '0';
+    clonedElement.style.height = 'auto';
+    clonedElement.style.minHeight = '842px';
+    clonedElement.style.overflow = 'visible';
 
     // Hapus elemen yang tidak perlu dicetak (seperti banner peringatan UI)
     clonedElement.querySelectorAll('[data-no-print="true"], .no-print').forEach(el => el.remove());
@@ -93,15 +97,59 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
       backgroundColor: '#ffffff',
     });
 
-    const imgData = captureCanvas.toDataURL('image/png');
-
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
       format: 'a4',
     });
 
-    pdf.addImage(imgData, 'PNG', 0, 0, 595, 842);
+    const pageWidth = 595;
+    const pageHeight = 842;
+    const canvasWidth = captureCanvas.width;
+    const canvasHeight = captureCanvas.height;
+
+    const totalPdfHeight = (canvasHeight * pageWidth) / canvasWidth;
+
+    if (totalPdfHeight <= pageHeight + 10) {
+      const imgData = captureCanvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, totalPdfHeight);
+    } else {
+      // Paginasi Otomatis Multi-Halaman A4 jika konten memanjang ke bawah
+      let srcY = 0;
+      let pageIndex = 0;
+      const pageCanvasHeight = Math.floor((canvasWidth * pageHeight) / pageWidth);
+
+      while (srcY < canvasHeight) {
+        if (pageIndex > 0) {
+          pdf.addPage('a4', 'portrait');
+        }
+
+        const sliceHeight = Math.min(pageCanvasHeight, canvasHeight - srcY);
+
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvasWidth;
+        pageCanvas.height = sliceHeight;
+
+        const ctx = pageCanvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvasWidth, sliceHeight);
+          ctx.drawImage(
+            captureCanvas,
+            0, srcY, canvasWidth, sliceHeight,
+            0, 0, canvasWidth, sliceHeight
+          );
+        }
+
+        const sliceImgData = pageCanvas.toDataURL('image/png');
+        const slicePdfHeight = (sliceHeight * pageWidth) / canvasWidth;
+
+        pdf.addImage(sliceImgData, 'PNG', 0, 0, pageWidth, slicePdfHeight);
+
+        srcY += pageCanvasHeight;
+        pageIndex++;
+      }
+    }
 
     const arrayBuffer = pdf.output('arraybuffer');
     return new Uint8Array(arrayBuffer);

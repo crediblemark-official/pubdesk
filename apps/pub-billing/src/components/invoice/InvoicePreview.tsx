@@ -263,7 +263,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         style={{
           margin: 'auto',
           width: `${a4Width * scale * effectiveZoom}px`,
-          height: `${a4Height * scale * effectiveZoom}px`,
+          minHeight: `${a4Height * scale * effectiveZoom}px`,
+          height: 'auto',
           position: 'relative',
           flexShrink: 0
         }}
@@ -277,11 +278,12 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
             top: 0,
             left: 0,
             width: `${a4Width}px`,
-            height: `${a4Height}px`,
+            minHeight: `${a4Height}px`,
+            height: 'auto',
             background: '#ffffff',
             borderRadius: '8px',
             boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-            overflow: 'hidden',
+            overflow: 'visible',
             fontFamily: '"Montserrat", "Segoe UI", sans-serif',
             display: 'flex',
             flexDirection: 'column',
