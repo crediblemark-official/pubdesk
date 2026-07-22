@@ -161,6 +161,13 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
   const footerPrimaryColor = profile?.footerPrimaryColor || profile?.headerPrimaryColor || profile?.accentColor || '#c01c1c';
   const footerSecondaryColor = profile?.footerSecondaryColor || profile?.headerSecondaryColor || profile?.accentColor || '#c01c1c';
 
+  const isMultiPage = items.length > 6;
+  const page1Items = isMultiPage ? items.slice(0, 6) : items;
+  const page2Items = isMultiPage ? items.slice(6) : [];
+  const pageCount = isMultiPage ? 2 : 1;
+
+  const totalPreviewHeight = pageCount * a4Height + (pageCount - 1) * 20;
+
   return (
     <div 
       ref={panelRef}
@@ -182,7 +189,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         userSelect: isDragScrolling ? 'none' : 'auto'
       }}
     >
-
 
       {/* Floating Zoom Controls + Download (hidden when controlled externally) */}
       {!hideToolbar && (
@@ -263,8 +269,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         style={{
           margin: 'auto',
           width: `${a4Width * scale * effectiveZoom}px`,
-          minHeight: `${a4Height * scale * effectiveZoom}px`,
-          height: 'auto',
+          height: `${totalPreviewHeight * scale * effectiveZoom}px`,
           position: 'relative',
           flexShrink: 0
         }}
@@ -278,62 +283,137 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
             top: 0,
             left: 0,
             width: `${a4Width}px`,
-            minHeight: `${a4Height}px`,
-            height: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px'
+          }}>
+          
+          {/* HALAMAN 1 (Ukuran Eksplisit A4: 595px x 842px) */}
+          <div className="a4-page" style={{
+            width: `${a4Width}px`,
+            height: `${a4Height}px`,
             background: '#ffffff',
             borderRadius: '8px',
             boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-            overflow: 'visible',
+            overflow: 'hidden',
             fontFamily: '"Montserrat", "Segoe UI", sans-serif',
             display: 'flex',
             flexDirection: 'column',
+            position: 'relative'
           }}>
-          
-          {/* Kop Surat SVG */}
-          <InvoiceHeader 
-            profile={profile}
-            headerBgColor={headerBgColor}
-            headerPrimaryColor={headerPrimaryColor}
-            headerSecondaryColor={headerSecondaryColor}
-            invoiceNo={invoiceNo}
-          />
-          
-          {/* Info detail (kepada, perihal, lampiran, dll.) */}
-          <InvoiceInfo
-            customer={customer}
-            profile={profile}
-            invoiceHal={invoiceHal}
-            invoiceLampiran={invoiceLampiran}
-            invoiceDate={invoiceDate}
-          />
-  
-          {/* Tabel rincian pesanan */}
-          <InvoiceTable
-            items={items}
-            profile={profile}
-            shippingCost={shippingCost}
-            accentColor={accentColor}
-            accentColorDark={accentColorDark}
-            adminFee={adminFee}
-            spesifikasiFasilitas={spesifikasiFasilitas}
-            calculateItemTotal={calculateItemTotal}
-            paymentStatus={paymentStatus}
-            paidAmount={paidAmount}
-            paymentNotes={paymentNotes}
-          />
-  
-          {/* Tanda tangan & Rekening Transfer */}
-          <InvoiceFooter
-            profile={profile}
-            invoiceDate={invoiceDate}
-            accentColor={accentColor}
-            footerBgColor={footerBgColor}
-            footerPrimaryColor={footerPrimaryColor}
-            footerSecondaryColor={footerSecondaryColor}
-          />
-  
-          {/* Stempel watermark pembayaran */}
-          <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
+            {/* Kop Surat SVG */}
+            <InvoiceHeader 
+              profile={profile}
+              headerBgColor={headerBgColor}
+              headerPrimaryColor={headerPrimaryColor}
+              headerSecondaryColor={headerSecondaryColor}
+              invoiceNo={invoiceNo}
+            />
+            
+            {/* Info detail (kepada, perihal, lampiran, dll.) */}
+            <InvoiceInfo
+              customer={customer}
+              profile={profile}
+              invoiceHal={invoiceHal}
+              invoiceLampiran={invoiceLampiran}
+              invoiceDate={invoiceDate}
+            />
+
+            {/* Tabel rincian pesanan Halaman 1 */}
+            <InvoiceTable
+              items={page1Items}
+              profile={profile}
+              shippingCost={shippingCost}
+              accentColor={accentColor}
+              accentColorDark={accentColorDark}
+              adminFee={adminFee}
+              spesifikasiFasilitas={spesifikasiFasilitas}
+              calculateItemTotal={calculateItemTotal}
+              paymentStatus={paymentStatus}
+              paidAmount={paidAmount}
+              paymentNotes={paymentNotes}
+              showTotals={!isMultiPage}
+              itemStartIndex={0}
+              allItemsForTotal={items}
+            />
+
+            {/* Jika hanya 1 halaman, tampilkan Footer & Watermark di Halaman 1 */}
+            {!isMultiPage && (
+              <>
+                <InvoiceFooter
+                  profile={profile}
+                  invoiceDate={invoiceDate}
+                  accentColor={accentColor}
+                  footerBgColor={footerBgColor}
+                  footerPrimaryColor={footerPrimaryColor}
+                  footerSecondaryColor={footerSecondaryColor}
+                />
+                <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
+              </>
+            )}
+          </div>
+
+          {/* HALAMAN 2 (Ukuran Eksplisit A4: 595px x 842px - Hanya rilis jika item > 6) */}
+          {isMultiPage && (
+            <div className="a4-page" style={{
+              width: `${a4Width}px`,
+              height: `${a4Height}px`,
+              background: '#ffffff',
+              borderRadius: '8px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+              overflow: 'hidden',
+              fontFamily: '"Montserrat", "Segoe UI", sans-serif',
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative'
+            }}>
+              {/* Header Mini Halaman 2 */}
+              <div style={{
+                padding: '20px 35px 12px',
+                display: 'flex',
+                justify: 'space-between',
+                alignItems: 'center',
+                borderBottom: `2.5px solid ${accentColor}`,
+                fontSize: '9.5px',
+                fontWeight: '700',
+                color: '#374151'
+              }}>
+                <div>{profile?.name || 'PUBDESK'} — RINCIAN INVOICE (HALAMAN 2)</div>
+                <div>NO: {invoiceNo || '-'}</div>
+              </div>
+
+              {/* Tabel Sisa Item + Total + Notes di Halaman 2 */}
+              <InvoiceTable
+                items={page2Items}
+                profile={profile}
+                shippingCost={shippingCost}
+                accentColor={accentColor}
+                accentColorDark={accentColorDark}
+                adminFee={adminFee}
+                spesifikasiFasilitas={spesifikasiFasilitas}
+                calculateItemTotal={calculateItemTotal}
+                paymentStatus={paymentStatus}
+                paidAmount={paidAmount}
+                paymentNotes={paymentNotes}
+                showTotals={true}
+                itemStartIndex={6}
+                allItemsForTotal={items}
+              />
+
+              {/* Tanda tangan & Rekening Transfer di Halaman 2 */}
+              <InvoiceFooter
+                profile={profile}
+                invoiceDate={invoiceDate}
+                accentColor={accentColor}
+                footerBgColor={footerBgColor}
+                footerPrimaryColor={footerPrimaryColor}
+                footerSecondaryColor={footerSecondaryColor}
+              />
+
+              {/* Stempel watermark pembayaran di Halaman 2 */}
+              <Watermark paymentStatus={paymentStatus} activeProfile={profile} />
+            </div>
+          )}
         </div>
       </div>
     </div>

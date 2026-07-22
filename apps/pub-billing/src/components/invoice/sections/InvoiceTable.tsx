@@ -15,6 +15,9 @@ interface InvoiceTableProps {
   paymentStatus?: string;
   paidAmount?: number;
   paymentNotes?: string;
+  showTotals?: boolean;
+  itemStartIndex?: number;
+  allItemsForTotal?: InvoiceItem[];
 }
 
 export const InvoiceTable: React.FC<InvoiceTableProps> = ({
@@ -28,9 +31,13 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   accentColorDark,
   paymentStatus,
   paidAmount = 0,
-  paymentNotes
+  paymentNotes,
+  showTotals = true,
+  itemStartIndex = 0,
+  allItemsForTotal
 }) => {
-  const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  const sourceItems = allItemsForTotal || items;
+  const itemsTotal = sourceItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const subtotal = itemsTotal;
   const hasItemShipping = profile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
   const globalShip = hasItemShipping ? 0 : shippingCost;
@@ -111,7 +118,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               return (
                 <tr key={index} style={{ background: rowBg }}>
                   <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: cellFontSize, color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
-                    {index + 1}.
+                    {itemStartIndex + index + 1}.
                   </td>
                   <td style={{ padding: cellPadding, textAlign: 'left', fontSize: cellFontSize, color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
                     <div style={{ fontWeight: '700' }}>"{item.item_title || '-'}"</div>
@@ -135,7 +142,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
             })
           )}
           
-          {items.length > 0 && (
+          {items.length > 0 && showTotals && (
             <>
               {((!hasItemShipping && shippingCost > 0) || adminFee > 0) && (
                 <tr style={{ borderTop: '1.5px solid #d1d5db' }}>
@@ -204,7 +211,13 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </tbody>
       </table>
 
-      {profile?.showSpesifikasi && (spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas.trim() !== '' : !!profile.defaultSpesifikasi) && (
+      {!showTotals && (
+        <div style={{ textAlign: 'right', fontSize: '8.5px', fontStyle: 'italic', color: '#6b7280', marginTop: '10px', fontWeight: '500' }}>
+          * Bersambung ke Halaman Berikutnya...
+        </div>
+      )}
+
+      {showTotals && profile?.showSpesifikasi && (spesifikasiFasilitas !== undefined && spesifikasiFasilitas !== null ? spesifikasiFasilitas.trim() !== '' : !!profile.defaultSpesifikasi) && (
         <div style={{ 
           marginTop: sectionMargin, 
           border: `1.5px solid ${accentColor}`, 
@@ -224,7 +237,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </div>
       )}
 
-      {profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
+      {showTotals && profile?.showNotes !== false && profile?.notes && profile.notes.length > 0 && (
         <div style={{ marginTop: sectionMargin, fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
           <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Note:</span><br />
           {profile.notes.map((note, idx) => (
@@ -235,17 +248,19 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         </div>
       )}
 
-      {paymentNotes && (
+      {showTotals && paymentNotes && (
         <div style={{ marginTop: '8px', fontSize: '8.5px', color: '#4b5563', lineHeight: '1.4' }}>
           <span style={{ fontWeight: '700', fontStyle: 'italic' }}>Catatan Pembayaran:</span> {paymentNotes}
         </div>
       )}
 
-      <div style={{ marginTop: sectionMargin, fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
-        {profile?.salamPenutup !== undefined && profile?.salamPenutup !== null
-          ? profile.salamPenutup 
-          : `Demikian rincian biaya ${getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
-      </div>
+      {showTotals && (
+        <div style={{ marginTop: sectionMargin, fontSize: '9px', color: '#4b5563', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
+          {profile?.salamPenutup !== undefined && profile?.salamPenutup !== null
+            ? profile.salamPenutup 
+            : `Demikian rincian biaya ${getInvoiceTypeActionLabel()} anda. Dan lembar ini kami buat untuk dipergunakan sebagaimana semestinya. Atas kepercayaan anda, kami ucapkan terimakasih.`}
+        </div>
+      )}
     </div>
   );
 };

@@ -90,12 +90,7 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
       }
     });
 
-    const captureCanvas = await html2canvas(clonedElement, {
-      scale: 2.5,
-      useCORS: false,
-      allowTaint: false,
-      backgroundColor: '#ffffff',
-    });
+    const pageElements = clonedElement.querySelectorAll<HTMLElement>('.a4-page');
 
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -105,50 +100,33 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
 
     const pageWidth = 595;
     const pageHeight = 842;
-    const canvasWidth = captureCanvas.width;
-    const canvasHeight = captureCanvas.height;
 
-    const totalPdfHeight = (canvasHeight * pageWidth) / canvasWidth;
-
-    if (totalPdfHeight <= pageHeight + 10) {
-      const imgData = captureCanvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, totalPdfHeight);
-    } else {
-      // Paginasi Otomatis Multi-Halaman A4 jika konten memanjang ke bawah
-      let srcY = 0;
-      let pageIndex = 0;
-      const pageCanvasHeight = Math.floor((canvasWidth * pageHeight) / pageWidth);
-
-      while (srcY < canvasHeight) {
-        if (pageIndex > 0) {
+    if (pageElements.length > 0) {
+      for (let i = 0; i < pageElements.length; i++) {
+        if (i > 0) {
           pdf.addPage('a4', 'portrait');
         }
+        const pageEl = pageElements[i];
 
-        const sliceHeight = Math.min(pageCanvasHeight, canvasHeight - srcY);
+        const captureCanvas = await html2canvas(pageEl, {
+          scale: 2.5,
+          useCORS: false,
+          allowTaint: false,
+          backgroundColor: '#ffffff',
+        });
 
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = canvasWidth;
-        pageCanvas.height = sliceHeight;
-
-        const ctx = pageCanvas.getContext('2d');
-        if (ctx) {
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvasWidth, sliceHeight);
-          ctx.drawImage(
-            captureCanvas,
-            0, srcY, canvasWidth, sliceHeight,
-            0, 0, canvasWidth, sliceHeight
-          );
-        }
-
-        const sliceImgData = pageCanvas.toDataURL('image/png');
-        const slicePdfHeight = (sliceHeight * pageWidth) / canvasWidth;
-
-        pdf.addImage(sliceImgData, 'PNG', 0, 0, pageWidth, slicePdfHeight);
-
-        srcY += pageCanvasHeight;
-        pageIndex++;
+        const imgData = captureCanvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
       }
+    } else {
+      const captureCanvas = await html2canvas(clonedElement, {
+        scale: 2.5,
+        useCORS: false,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+      });
+      const imgData = captureCanvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
     }
 
     const arrayBuffer = pdf.output('arraybuffer');
