@@ -49,8 +49,8 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         </g>
 
         <g filter="url(#drop-shadow-middle)" clipPath="url(#header-clip)">
-          <polygon points="218,35 234,35 306,139 290,139" fill="#ffffff" />
-          <polygon points="234,35 273,35 346,139 306,139" fill={headerSecondaryColor} />
+          <polygon points="238,50 254,50 306,139 290,139" fill="#ffffff" />
+          <polygon points="254,50 293,50 346,139 306,139" fill={headerSecondaryColor} />
         </g>
 
         {(() => {
