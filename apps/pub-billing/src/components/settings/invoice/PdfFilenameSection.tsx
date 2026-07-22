@@ -25,8 +25,8 @@ const PdfFilenameSection: React.FC = () => {
     companyName: companyName || 'Penerbit KBM Indonesia',
     actionLabel: 'penerbitan',
     items: [
-      { item_title: 'Pemrograman React & TypeScript', package_name: 'Paket Terbit Gold', quantity: 500, price: 15000, discount: 0, book_id: '' },
-      { item_title: 'Desain Cover Custom', package_name: 'Layanan Tambahan', quantity: 1, price: 250000, discount: 0, book_id: '' }
+      { item_title: 'Pemrograman React & TypeScript', package_name: 'Paket Terbit Gold', quantity: 500, price: 15000, discount: 0, book_id: 0 },
+      { item_title: 'Desain Cover Custom', package_name: 'Layanan Tambahan', quantity: 1, price: 250000, discount: 0, book_id: 0 }
     ],
     totalAmount: 7750000,
     paidAmount: 7750000,
