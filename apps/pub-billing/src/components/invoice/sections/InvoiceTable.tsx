@@ -45,7 +45,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
   return (
     <div style={{ padding: '0 35px', flex: 1, overflow: 'hidden', position: 'relative' }}>
-      {profile?.salamPembuka && (
+      {itemStartIndex === 0 && profile?.salamPembuka && (
         <div style={{ 
           fontSize: '9px', 
           color: '#4b5563', 
