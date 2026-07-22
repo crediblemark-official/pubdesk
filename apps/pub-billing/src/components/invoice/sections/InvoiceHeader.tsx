@@ -44,7 +44,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         </defs>
 
         <g filter="url(#drop-shadow)">
-          <rect x="300" y="54" width="357" height="78" fill={headerBgColor} />
+          <rect x="256" y="54" width="401" height="78" fill={headerBgColor} />
           <polygon points="0,54 240,54 286,132 0,132" fill={headerPrimaryColor} />
         </g>
 
