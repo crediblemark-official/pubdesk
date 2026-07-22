@@ -319,37 +319,22 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
                   position: 'relative'
                 }}
               >
-                {pageIdx === 0 ? (
-                  <>
-                    <InvoiceHeader 
-                      profile={profile}
-                      headerBgColor={headerBgColor}
-                      headerPrimaryColor={headerPrimaryColor}
-                      headerSecondaryColor={headerSecondaryColor}
-                      invoiceNo={invoiceNo}
-                    />
-                    <InvoiceInfo
-                      customer={customer}
-                      profile={profile}
-                      invoiceHal={invoiceHal}
-                      invoiceLampiran={invoiceLampiran}
-                      invoiceDate={invoiceDate}
-                    />
-                  </>
-                ) : (
-                  <div style={{
-                    padding: '20px 35px 12px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderBottom: `2.5px solid ${accentColor}`,
-                    fontSize: '9.5px',
-                    fontWeight: '700',
-                    color: '#374151'
-                  }}>
-                    <div>{profile?.name || 'PUBDESK'} — RINCIAN INVOICE (HALAMAN {pageIdx + 1} DARI {itemPages.length})</div>
-                    <div>NO: {invoiceNo || '-'}</div>
-                  </div>
+                <InvoiceHeader 
+                  profile={profile}
+                  headerBgColor={headerBgColor}
+                  headerPrimaryColor={headerPrimaryColor}
+                  headerSecondaryColor={headerSecondaryColor}
+                  invoiceNo={invoiceNo}
+                />
+
+                {pageIdx === 0 && (
+                  <InvoiceInfo
+                    customer={customer}
+                    profile={profile}
+                    invoiceHal={invoiceHal}
+                    invoiceLampiran={invoiceLampiran}
+                    invoiceDate={invoiceDate}
+                  />
                 )}
 
                 <InvoiceTable
