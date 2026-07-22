@@ -57,7 +57,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           if (headerType === 'text_only' || (!profile?.companyLogo && headerType === 'logo_only')) {
             return (
               <>
-                <text x="120" y="88" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="16" fontWeight="900" letterSpacing="0.5">
+                <text x="120" y="92" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="16" fontWeight="900" letterSpacing="0.5">
                   {profile?.companyName || 'CV KBM'}
                 </text>
                 <text x="120" y="104" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7.5" fontWeight="600" letterSpacing="1">
@@ -92,7 +92,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                     height="52"
                     preserveAspectRatio="xMinYMid meet"
                   />
-                  <text x="82" y="87" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
+                  <text x="82" y="91" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
                     {profile?.companyName || 'CV KBM'}
                   </text>
                   <text x="82" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1">
@@ -105,7 +105,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                     <path d="M20 0 L38 10 L38 33 L20 44 L2 33 L2 10 Z" fill="#ffffff" />
                     <path d="M20 11 L29 16 L29 28 L20 33 L11 28 L11 16 Z" fill={headerPrimaryColor} />
                   </g>
-                  <text x="88" y="87" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
+                  <text x="88" y="91" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
                     {profile?.companyName || 'CV KBM'}
                   </text>
                   <text x="89" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1">
