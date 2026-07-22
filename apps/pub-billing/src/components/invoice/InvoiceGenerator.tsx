@@ -17,6 +17,7 @@ const InvoiceGenerator: React.FC = () => {
     items,
     shippingCost,
     adminFee,
+    additionalFees,
     invoiceType,
     invoiceNo,
     setInvoiceNo,
@@ -153,7 +154,8 @@ const InvoiceGenerator: React.FC = () => {
     const itemsTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
     const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
     const globalShip = hasItemShipping ? 0 : shippingCost;
-    const total = itemsTotal + globalShip + adminFee;
+    const additionalFeesTotal = (additionalFees || []).reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+    const total = itemsTotal + globalShip + adminFee + additionalFeesTotal;
     const finalPaidAmount = paymentStatus === 'LUNAS' ? total : paidAmount;
     const remainingAmount = Math.max(0, total - finalPaidAmount);
 
@@ -164,7 +166,8 @@ const InvoiceGenerator: React.FC = () => {
       customerEmail: customer.email || '', customerAddress: customer.address || '', isPenulis,
       selectedLayoutId,
       paidAmount: finalPaidAmount,
-      paymentNotes
+      paymentNotes,
+      additionalFees
     };
 
     return {
@@ -174,6 +177,7 @@ const InvoiceGenerator: React.FC = () => {
       items_json: JSON.stringify(items),
       shipping_cost: shippingCost,
       admin_fee: adminFee,
+      additional_fees: additionalFees,
       total,
       export_format: invoiceType,
       file_path: JSON.stringify(metadata),

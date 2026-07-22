@@ -26,6 +26,12 @@ export interface InvoiceItem {
   [key: string]: any; // Mendukung properti dinamis tambahan
 }
 
+export interface AdditionalFee {
+  id: string;
+  name: string;
+  amount: number;
+}
+
 export interface Invoice {
   id?: number;
   created_at: string;
@@ -33,6 +39,7 @@ export interface Invoice {
   items_json: string;
   shipping_cost: number;
   admin_fee: number;
+  additional_fees?: AdditionalFee[];
   total: number;
   export_format?: string;
   file_path?: string;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
-import { InvoiceItem, InvoiceProfile } from '../types/invoice.types';
+import { InvoiceItem, InvoiceProfile, AdditionalFee } from '../types/invoice.types';
 import { Contact } from '../types/contact.types';
 import { invoiceTemplates } from '../data/invoiceTemplates';
 import { evaluateItemFormula, getIndonesianDate } from '../utils/invoice';
@@ -38,6 +38,7 @@ interface InvoiceContextType {
   items: InvoiceItem[];
   shippingCost: number;
   adminFee: number;
+  additionalFees: AdditionalFee[];
   invoiceType: string;
   invoiceNo: string;
   invoiceHal: string;
@@ -57,6 +58,10 @@ interface InvoiceContextType {
   removeItem: (index: number) => void;
   setShippingCost: (cost: number) => void;
   setAdminFee: (fee: number) => void;
+  setAdditionalFees: (fees: AdditionalFee[] | ((prev: AdditionalFee[]) => AdditionalFee[])) => void;
+  addAdditionalFee: (name: string, amount?: number) => void;
+  updateAdditionalFee: (id: string, updates: Partial<AdditionalFee>) => void;
+  removeAdditionalFee: (id: string) => void;
   setInvoiceType: (type: string) => void;
   setInvoiceNo: (no: string) => void;
   setInvoiceHal: (hal: string) => void;
@@ -97,6 +102,24 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [shippingCost, setShippingCost] = useState(0);
   const [adminFee, setAdminFee] = useState(0);
+  const [additionalFees, setAdditionalFees] = useState<AdditionalFee[]>([]);
+
+  const addAdditionalFee = (name: string, amount: number = 0) => {
+    const newFee: AdditionalFee = {
+      id: `fee_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      name,
+      amount
+    };
+    setAdditionalFees(prev => [...prev, newFee]);
+  };
+
+  const updateAdditionalFee = (id: string, updates: Partial<AdditionalFee>) => {
+    setAdditionalFees(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
+  };
+
+  const removeAdditionalFee = (id: string) => {
+    setAdditionalFees(prev => prev.filter(f => f.id !== id));
+  };
   
   // Custom Invoice Profiles
   const [profiles, setProfilesState] = useState<InvoiceProfile[]>([]);
@@ -250,8 +273,9 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     // Jika profil memiliki kolom ongkos kirim per item, abaikan ongkir global
     const hasItemShipping = activeProfile?.tableColumns?.some(col => col.key === 'item_shipping_cost');
     const globalShip = hasItemShipping ? 0 : shippingCost;
-    return itemsTotal + globalShip + adminFee;
-  }, [items, shippingCost, adminFee, activeProfile]);
+    const additionalFeesTotal = additionalFees.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+    return itemsTotal + globalShip + adminFee + additionalFeesTotal;
+  }, [items, shippingCost, adminFee, additionalFees, activeProfile]);
 
   const calculateTotal = () => calculateTotalValue;
 
@@ -274,6 +298,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setItems([]);
     setShippingCost(0);
     setAdminFee(0);
+    setAdditionalFees([]);
     setInvoiceNo('');
     setInvoiceDate(getIndonesianDate());
     setPaymentStatus('LUNAS');
@@ -390,6 +415,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setShippingCost(invoice.shipping_cost || 0);
       setAdminFee(invoice.admin_fee || 0);
+      setAdditionalFees(invoice.additional_fees || metadata.additionalFees || []);
       setInvoiceNo(metadata.invoiceNo || '');
       setInvoiceHal(metadata.invoiceHal || '');
       setInvoiceLampiran(metadata.invoiceLampiran || '');
@@ -427,6 +453,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       items,
       shippingCost,
       adminFee,
+      additionalFees,
       invoiceType,
       invoiceNo,
       invoiceHal,
@@ -446,6 +473,10 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       removeItem,
       setShippingCost,
       setAdminFee,
+      setAdditionalFees,
+      addAdditionalFee,
+      updateAdditionalFee,
+      removeAdditionalFee,
       setInvoiceType,
       setInvoiceNo,
       setInvoiceHal,
