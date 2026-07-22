@@ -12,9 +12,8 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
   container.style.top = '0';
   container.style.left = '-9999px';
   container.style.width = '595px';
-  container.style.height = 'auto';
-  container.style.minHeight = '842px';
-  container.style.overflow = 'visible';
+  container.style.height = '842px';
+  container.style.overflow = 'hidden';
   container.style.background = '#ffffff';
   document.body.appendChild(container);
 
@@ -24,13 +23,10 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     clonedElement.style.transform = 'none';
     clonedElement.style.top = '0';
     clonedElement.style.left = '0';
-    clonedElement.style.position = 'relative';
+    clonedElement.style.position = 'static';
     clonedElement.style.margin = '0';
     clonedElement.style.boxShadow = 'none';
     clonedElement.style.borderRadius = '0';
-    clonedElement.style.height = 'auto';
-    clonedElement.style.minHeight = '842px';
-    clonedElement.style.overflow = 'visible';
 
     // Hapus elemen yang tidak perlu dicetak (seperti banner peringatan UI)
     clonedElement.querySelectorAll('[data-no-print="true"], .no-print').forEach(el => el.remove());
@@ -90,7 +86,14 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
       }
     });
 
-    const pageElements = clonedElement.querySelectorAll<HTMLElement>('.a4-page');
+    const captureCanvas = await html2canvas(clonedElement, {
+      scale: 2.5,
+      useCORS: false,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const imgData = captureCanvas.toDataURL('image/png');
 
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -98,36 +101,7 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
       format: 'a4',
     });
 
-    const pageWidth = 595;
-    const pageHeight = 842;
-
-    if (pageElements.length > 0) {
-      for (let i = 0; i < pageElements.length; i++) {
-        if (i > 0) {
-          pdf.addPage('a4', 'portrait');
-        }
-        const pageEl = pageElements[i];
-
-        const captureCanvas = await html2canvas(pageEl, {
-          scale: 2.5,
-          useCORS: false,
-          allowTaint: false,
-          backgroundColor: '#ffffff',
-        });
-
-        const imgData = captureCanvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
-      }
-    } else {
-      const captureCanvas = await html2canvas(clonedElement, {
-        scale: 2.5,
-        useCORS: false,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-      });
-      const imgData = captureCanvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
-    }
+    pdf.addImage(imgData, 'PNG', 0, 0, 595, 842);
 
     const arrayBuffer = pdf.output('arraybuffer');
     return new Uint8Array(arrayBuffer);
