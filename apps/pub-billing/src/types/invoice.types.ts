@@ -114,6 +114,7 @@ export interface InvoiceProfile {
   watermarkColor?: string;
   watermarkOpacity?: number;
   invoiceNoFormat?: string;
+  pdfFilenameFormat?: string;
   companyWebsite?: string;
   companyEmail?: string;
   companyYoutube?: string;

@@ -3,6 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { useDataMasterContext } from '../../contexts/DataMasterContext';
 import { Accordion, AccordionSection } from '../../ui/molecules/Accordion';
+import { formatPdfFilename } from '../../utils/invoice';
 import { MetadataSection } from './generator-sections/MetadataSection';
 import { CustomerSection } from './generator-sections/CustomerSection';
 import { ItemsSection } from './generator-sections/ItemsSection';
@@ -29,6 +30,7 @@ const InvoiceGenerator: React.FC = () => {
     paymentStatus,
     spesifikasiFasilitas,
     calculateItemTotal,
+    calculateTotal,
     resetInvoice,
     activeProfile,
     editingInvoiceId,
@@ -237,7 +239,25 @@ const InvoiceGenerator: React.FC = () => {
       const blob = new Blob([bytes as any], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const filename = `Invoice ${activeProfile?.name || 'Invoice'} - ${invoiceNo ? invoiceNo.replace(/\//g, '∕') : 'DRAF'} - ${paymentStatus}.pdf`;
+      const totalAmount = calculateTotal();
+      const filename = formatPdfFilename(activeProfile?.pdfFilenameFormat, {
+        profileName: activeProfile?.name,
+        invoiceNo,
+        invoiceHal,
+        invoiceLampiran,
+        invoiceDate,
+        customerName: customer.name,
+        customerWa: customer.wa_number,
+        customerEmail: customer.email,
+        customerAddress: customer.address,
+        paymentStatus,
+        companyName: activeProfile?.companyName,
+        actionLabel: activeProfile?.actionLabel,
+        items,
+        totalAmount,
+        paidAmount: finalPaidAmount,
+        remainingAmount: Math.max(0, totalAmount - finalPaidAmount)
+      });
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);

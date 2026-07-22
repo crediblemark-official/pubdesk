@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
 import { InvoiceProfile, InvoiceItem } from '../../types/invoice.types';
+import { formatPdfFilename } from '../../utils/invoice';
 
 // Import sub-komponen modular
 import { InvoiceHeader } from './sections/InvoiceHeader';
@@ -116,7 +117,25 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
     try {
       const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('invoice-preview-export');
-      const defaultFileName = `Invoice ${profile?.name || 'Invoice'} - ${invoiceNo ? invoiceNo.replace(/\//g, '∕') : 'DRAF'}.pdf`;
+      const totalAmt = contextData.calculateTotal ? contextData.calculateTotal() : undefined;
+      const defaultFileName = formatPdfFilename(profile?.pdfFilenameFormat, {
+        profileName: profile?.name,
+        invoiceNo,
+        invoiceHal,
+        invoiceLampiran,
+        invoiceDate,
+        customerName: customer.name,
+        customerWa: customer.wa_number,
+        customerEmail: customer.email,
+        customerAddress: customer.address,
+        paymentStatus,
+        companyName: profile?.companyName,
+        actionLabel: profile?.actionLabel,
+        items,
+        totalAmount: totalAmt,
+        paidAmount,
+        remainingAmount: totalAmt !== undefined ? Math.max(0, totalAmt - paidAmount) : undefined
+      });
       await downloadPDFBytes(bytes, defaultFileName);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -125,7 +144,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
     } finally {
       setDownloading(false);
     }
-  }, [invoiceNo, profile]);
+  }, [invoiceNo, profile, invoiceHal, invoiceLampiran, invoiceDate, customer, paymentStatus, items, paidAmount, contextData]);
 
   // Auto-clear error after 5s
   useEffect(() => {

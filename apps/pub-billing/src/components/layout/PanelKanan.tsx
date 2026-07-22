@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useFileState } from '../../contexts/FileContext';
 import { useInvoiceContext } from '../../contexts/InvoiceContext';
+import { formatPdfFilename } from '../../utils/invoice';
 import InvoicePreview from '../invoice/InvoicePreview';
 import FilePreviewPanel from './PanelKanan/FilePreviewPanel';
 import ServicePreviewPanel from './PanelKanan/ServicePreviewPanel';
@@ -20,7 +21,18 @@ const PanelKanan: React.FC = () => {
   } = useAppContext();
 
   const { files, selectedFileId, setSelectedFileId, setRightPanelVisible } = useFileState();
-  const { invoiceNo, activeProfile } = useInvoiceContext();
+  const {
+    invoiceNo,
+    invoiceHal,
+    invoiceLampiran,
+    invoiceDate,
+    customer,
+    items,
+    paymentStatus,
+    paidAmount,
+    calculateTotal,
+    activeProfile
+  } = useInvoiceContext();
 
   const { activeModule } = appState;
 
@@ -34,7 +46,25 @@ const PanelKanan: React.FC = () => {
     try {
       const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('panel-kanan-preview');
-      const defaultFileName = `Invoice ${activeProfile?.name || 'Invoice'} - ${invoiceNo ? invoiceNo.replace(/\//g, '∕') : 'DRAF'}.pdf`;
+      const totalAmt = calculateTotal();
+      const defaultFileName = formatPdfFilename(activeProfile?.pdfFilenameFormat, {
+        profileName: activeProfile?.name,
+        invoiceNo,
+        invoiceHal,
+        invoiceLampiran,
+        invoiceDate,
+        customerName: customer.name,
+        customerWa: customer.wa_number,
+        customerEmail: customer.email,
+        customerAddress: customer.address,
+        paymentStatus,
+        companyName: activeProfile?.companyName,
+        actionLabel: activeProfile?.actionLabel,
+        items,
+        totalAmount: totalAmt,
+        paidAmount,
+        remainingAmount: Math.max(0, totalAmt - paidAmount)
+      });
       const saved = await downloadPDFBytes(bytes, defaultFileName);
       if (saved) {
         showToast('PDF berhasil diunduh', 'success');

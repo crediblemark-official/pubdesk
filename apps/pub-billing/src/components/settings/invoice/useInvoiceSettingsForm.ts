@@ -55,6 +55,7 @@ export function useInvoiceSettingsForm() {
   const [watermarkColor, setWatermarkColor] = useState('');
   const [watermarkOpacity, setWatermarkOpacity] = useState<number>(8);
   const [invoiceNoFormat, setInvoiceNoFormat] = useState('KBM/{year}/{month}/{day}/{seq}');
+  const [pdfFilenameFormat, setPdfFilenameFormat] = useState('Invoice {profile_name} - {invoice_no} - {payment_status}');
   const [companyWebsite, setCompanyWebsite] = useState('');
   const [companyEmail, setCompanyEmail] = useState('');
   const [companyYoutube, setCompanyYoutube] = useState('');
@@ -134,6 +135,7 @@ export function useInvoiceSettingsForm() {
       setWatermarkColor('');
       setWatermarkOpacity(8);
       setInvoiceNoFormat('KBM/{year}/{month}/{day}/{seq}');
+      setPdfFilenameFormat('Invoice {profile_name} - {invoice_no} - {payment_status}');
       setCompanyWebsite('');
       setCompanyEmail('');
       setCompanyYoutube('');
@@ -192,6 +194,7 @@ export function useInvoiceSettingsForm() {
         setWatermarkColor(profile.watermarkColor || '');
         setWatermarkOpacity(profile.watermarkOpacity !== undefined ? profile.watermarkOpacity : 8);
         setInvoiceNoFormat(profile.invoiceNoFormat || 'KBM/{year}/{month}/{day}/{seq}');
+        setPdfFilenameFormat(profile.pdfFilenameFormat || 'Invoice {profile_name} - {invoice_no} - {payment_status}');
         setCustomLayouts(profile.customLayouts || []);
         setDefaultLayoutName(profile.defaultLayoutName || 'Default / Bawaan');
         setCompanyWebsite(profile.companyWebsite || '');
@@ -254,6 +257,7 @@ export function useInvoiceSettingsForm() {
     watermarkColor,
     watermarkOpacity,
     invoiceNoFormat,
+    pdfFilenameFormat,
     companyWebsite,
     companyEmail,
     companyYoutube,
@@ -587,6 +591,8 @@ export function useInvoiceSettingsForm() {
     setWatermarkOpacity,
     invoiceNoFormat,
     setInvoiceNoFormat,
+    pdfFilenameFormat,
+    setPdfFilenameFormat,
     companyWebsite,
     setCompanyWebsite,
     companyEmail,

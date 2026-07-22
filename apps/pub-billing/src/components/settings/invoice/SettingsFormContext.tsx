@@ -78,6 +78,8 @@ export interface SettingsFormContextType {
   setWatermarkOpacity: (v: number) => void;
   invoiceNoFormat: string;
   setInvoiceNoFormat: (v: string) => void;
+  pdfFilenameFormat: string;
+  setPdfFilenameFormat: (v: string) => void;
   companyWebsite: string;
   setCompanyWebsite: (v: string) => void;
   companyEmail: string;

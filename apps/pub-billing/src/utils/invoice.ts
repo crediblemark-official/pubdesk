@@ -62,3 +62,107 @@ export const getInvoiceMetadata = (invoice: any) => {
     spesifikasiFasilitas: ''
   };
 };
+
+export interface PdfFilenameData {
+  profileName?: string;
+  invoiceNo?: string;
+  invoiceHal?: string;
+  invoiceLampiran?: string;
+  invoiceDate?: string;
+  customerName?: string;
+  customerWa?: string;
+  customerEmail?: string;
+  customerAddress?: string;
+  paymentStatus?: string;
+  companyName?: string;
+  actionLabel?: string;
+  items?: InvoiceItem[];
+  totalAmount?: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+}
+
+export const formatPdfFilename = (
+  template: string | undefined,
+  data: PdfFilenameData
+): string => {
+  const defaultPattern = 'Invoice {profile_name} - {invoice_no} - {payment_status}';
+  let pattern = (template && template.trim()) ? template.trim() : defaultPattern;
+
+  const profileName = data.profileName || 'Invoice';
+  const invoiceNo = data.invoiceNo ? data.invoiceNo.trim() : 'DRAF';
+  const perihal = data.invoiceHal || '-';
+  const lampiran = data.invoiceLampiran || '-';
+  const customerName = data.customerName || 'Umum';
+  const customerWa = data.customerWa || '-';
+  const customerEmail = data.customerEmail || '-';
+  const customerAddress = data.customerAddress || '-';
+  const paymentStatus = data.paymentStatus || 'LUNAS';
+  const companyName = data.companyName || 'Perusahaan';
+  const actionLabel = data.actionLabel || 'transaksi';
+
+  // Date variables
+  const dateStr = data.invoiceDate || getIndonesianDate();
+  const dateParts = dateStr.split('-');
+  const year = dateParts[0] || String(new Date().getFullYear());
+  const month = dateParts[1] || String(new Date().getMonth() + 1).padStart(2, '0');
+  const day = dateParts[2] ? dateParts[2].padStart(2, '0') : String(new Date().getDate()).padStart(2, '0');
+
+  // Item variables
+  const items = data.items || [];
+  const firstItemTitle = items[0]?.item_title || '-';
+  const firstPackageName = items[0]?.package_name || items[0]?.item_title || '-';
+  const allTitles = items.map(i => i.item_title).filter(Boolean).join(' & ') || '-';
+  const totalQty = items.reduce((sum, i) => sum + (Number(i.quantity) || 1), 0);
+
+  // Amounts
+  const formatRp = (num?: number) => num !== undefined ? `Rp ${num.toLocaleString('id-ID')}` : '-';
+  const totalAmountStr = formatRp(data.totalAmount);
+  const paidAmountStr = formatRp(data.paidAmount);
+  const remainingAmountStr = formatRp(data.remainingAmount);
+
+  // Map placeholders
+  const replacements: Record<string, string> = {
+    '{profile_name}': profileName,
+    '{invoice_no}': invoiceNo,
+    '{perihal}': perihal,
+    '{lampiran}': lampiran,
+    '{customer_name}': customerName,
+    '{penulis}': customerName,
+    '{customer_wa}': customerWa,
+    '{customer_email}': customerEmail,
+    '{customer_address}': customerAddress,
+    '{book_title}': firstItemTitle,
+    '{package_name}': firstPackageName,
+    '{all_titles}': allTitles,
+    '{total_qty}': String(totalQty),
+    '{payment_status}': paymentStatus,
+    '{total_amount}': totalAmountStr,
+    '{paid_amount}': paidAmountStr,
+    '{remaining_amount}': remainingAmountStr,
+    '{company_name}': companyName,
+    '{action_label}': actionLabel,
+    '{date}': dateStr,
+    '{year}': year,
+    '{month}': month,
+    '{day}': day,
+  };
+
+  let result = pattern;
+  Object.entries(replacements).forEach(([key, val]) => {
+    result = result.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), val);
+  });
+
+  // Clean illegal characters for OS filenames: / \ : * ? " < > |
+  result = result
+    .replace(/\//g, '∕')
+    .replace(/\\/g, '⧵')
+    .replace(/:/g, ' - ')
+    .replace(/[*?"<>|]/g, '');
+
+  if (!result.toLowerCase().endsWith('.pdf')) {
+    result += '.pdf';
+  }
+
+  return result;
+};

@@ -15,7 +15,9 @@ const HeaderSection: React.FC = () => {
     headerType,
     setHeaderType,
     invoiceNoFormat,
-    setInvoiceNoFormat
+    setInvoiceNoFormat,
+    pdfFilenameFormat,
+    setPdfFilenameFormat
   } = useSettingsForm();
 
   const { showToast, rightPanelVisible } = useAppContext();
@@ -31,7 +33,7 @@ const HeaderSection: React.FC = () => {
             style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Contoh: CV DUMMY JAYA"
+            placeholder="Contoh: PENERBIT KBM INDONESIA"
           />
         </div>
 
@@ -43,7 +45,7 @@ const HeaderSection: React.FC = () => {
             style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
             value={companyTagline}
             onChange={(e) => setCompanyTagline(e.target.value)}
-            placeholder="Contoh: DUMMY JAYA ABADI"
+            placeholder="Contoh: Media Mitra Edukasi & Literasi"
           />
         </div>
 
@@ -72,6 +74,58 @@ const HeaderSection: React.FC = () => {
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
             Variabel: {"{year}"}, {"{month}"}, {"{day}"}, {"{seq}"} (no. urut 4 digit)
           </span>
+        </div>
+
+        <div style={{ gridColumn: rightPanelVisible ? 'span 1' : 'span 2' }} className="compact-form-group">
+          <label className="compact-label" style={{ fontWeight: '600' }}>📄 Format Nama File Export PDF</label>
+          <input
+            type="text"
+            className="compact-input"
+            style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: '600' }}
+            value={pdfFilenameFormat}
+            onChange={(e) => setPdfFilenameFormat(e.target.value)}
+            placeholder="Contoh: Invoice {profile_name} - {invoice_no} - {payment_status}"
+          />
+          <div style={{ marginTop: '6px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+              Klik chip untuk menyisipkan variabel dinamis:
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {[
+                { tag: '{profile_name}', label: 'Nama Profil' },
+                { tag: '{invoice_no}', label: 'No Invoice' },
+                { tag: '{perihal}', label: 'Perihal' },
+                { tag: '{customer_name}', label: 'Nama Pelanggan/Penulis' },
+                { tag: '{book_title}', label: 'Judul Buku' },
+                { tag: '{all_titles}', label: 'Semua Judul' },
+                { tag: '{payment_status}', label: 'Status Bayar' },
+                { tag: '{date}', label: 'Tgl Invoice' },
+                { tag: '{year}', label: 'Tahun' },
+                { tag: '{month}', label: 'Bulan' },
+                { tag: '{total_amount}', label: 'Total Tagihan' },
+                { tag: '{paid_amount}', label: 'Nominal Dibayar' },
+                { tag: '{company_name}', label: 'Nama Perusahaan' },
+              ].map(chip => (
+                <button
+                  key={chip.tag}
+                  type="button"
+                  onClick={() => setPdfFilenameFormat(prev => (prev ? `${prev} - ${chip.tag}` : chip.tag))}
+                  style={{
+                    padding: '2px 8px',
+                    fontSize: '11px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-body)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer'
+                  }}
+                  title={`Tambah ${chip.tag}`}
+                >
+                  + {chip.label} <code style={{ fontSize: '10px', opacity: 0.75 }}>{chip.tag}</code>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="compact-form-group">
