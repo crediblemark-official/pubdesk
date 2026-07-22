@@ -344,7 +344,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const loadInvoiceToForm = async (invoice: any) => {
     try {
-      let metadata = {
+      let metadata: any = {
         invoiceNo: '',
         invoiceDate: '',
         invoiceHal: '',
@@ -356,7 +356,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         customerAddress: '',
         selectedLayoutId: '',
         paidAmount: 0,
-        paymentNotes: ''
+        paymentNotes: '',
+        additionalFees: []
       };
       
       if (invoice.file_path) {
