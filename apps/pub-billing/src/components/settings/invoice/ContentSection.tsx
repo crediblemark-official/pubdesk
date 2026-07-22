@@ -8,8 +8,6 @@ const ContentSection: React.FC = () => {
     setSalamPembuka,
     salamPenutup,
     setSalamPenutup,
-    shippingType,
-    setShippingType
   } = useSettingsForm();
 
   const { rightPanelVisible } = useAppContext();
@@ -39,20 +37,6 @@ const ContentSection: React.FC = () => {
             placeholder="Teks salam penutup..."
             rows={2}
           />
-        </div>
-
-        <div className="compact-form-group">
-          <label className="compact-label">Metode Ongkos Kirim</label>
-          <select
-            className="compact-select"
-            style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-            value={shippingType}
-            onChange={(e) => setShippingType(e.target.value as any)}
-          >
-            <option value="none">Sembunyikan / Tanpa Ongkir</option>
-            <option value="global">Global (Di Akhir Invoice)</option>
-            <option value="item">Per Item (Di Dalam Tabel)</option>
-          </select>
         </div>
       </div>
     </>

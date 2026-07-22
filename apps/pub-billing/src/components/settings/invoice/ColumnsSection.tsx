@@ -13,7 +13,7 @@ const generateKeyFromLabel = (label: string, index: number): string => {
 };
 
 const ColumnsSection: React.FC = () => {
-  const { tableColumns, setTableColumns, customLayouts, setCustomLayouts, defaultLayoutName, setDefaultLayoutName } = useSettingsForm();
+  const { tableColumns, setTableColumns, customLayouts, setCustomLayouts, defaultLayoutName, setDefaultLayoutName, shippingType, setShippingType } = useSettingsForm();
   const { showConfirm } = useAppContext();
   const [activeLayoutId, setActiveLayoutId] = useState<string>('default');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -168,6 +168,20 @@ const ColumnsSection: React.FC = () => {
 
   return (
     <>
+      {/* Pengaturan Metode Ongkos Kirim / Biaya Global */}
+      <div style={{ marginBottom: '16px', padding: '12px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+        <label className="compact-label" style={{ fontWeight: '600', marginBottom: '6px', display: 'block' }}>🚚 Metode Ongkos Kirim & Biaya Global</label>
+        <select
+          className="compact-select"
+          style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--bg-body)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '6px' }}
+          value={shippingType}
+          onChange={(e) => setShippingType(e.target.value as any)}
+        >
+          <option value="none">Sembunyikan / Tanpa Ongkir</option>
+          <option value="global">Global (Di Akhir Invoice / Seksi Biaya Tambahan)</option>
+          <option value="item">Per Item (Di Dalam Kolom Tabel)</option>
+        </select>
+      </div>
       {/* Tab bar untuk multi-layout */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
         <button
