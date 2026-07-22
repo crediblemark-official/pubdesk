@@ -327,7 +327,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
                   invoiceNo={invoiceNo}
                 />
 
-                {pageIdx === 0 && (
+                {pageIdx === 0 ? (
                   <InvoiceInfo
                     customer={customer}
                     profile={profile}
@@ -335,6 +335,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
                     invoiceLampiran={invoiceLampiran}
                     invoiceDate={invoiceDate}
                   />
+                ) : (
+                  <div style={{ height: '18px', flexShrink: 0 }} />
                 )}
 
                 <InvoiceTable
