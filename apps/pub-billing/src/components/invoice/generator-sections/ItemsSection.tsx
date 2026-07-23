@@ -2203,16 +2203,35 @@ export const ItemsSection: React.FC = () => {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.item_title}"</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    {/* Tampilkan ringkasan item berdasarkan kolom yang aktif secara dinamis */}
-                    {activeProfile?.tableColumns?.filter(col => col.key !== 'item_title' && col.key !== 'total').map(col => {
-                      let val = item[col.key];
-                      if (col.type === 'formula' && col.formula) {
-                        val = evaluateItemFormula(col.formula, item);
+                    {(() => {
+                      const parts: string[] = [];
+                      activeProfile?.tableColumns?.filter(col => col.key !== 'item_title' && col.key !== 'total').forEach(col => {
+                        let val = item[col.key];
+                        if (col.type === 'formula' && col.formula) {
+                          val = evaluateItemFormula(col.formula, item);
+                        }
+                        if (val === undefined || val === null || val === '' || val === 0) return;
+                        if (col.key === 'discount') {
+                          const discStr = item.discountType === 'percent'
+                            ? `${val}%`
+                            : formatPrice(Number(val));
+                          parts.push(`${col.label}: ${discStr}`);
+                        } else {
+                          const displayVal = col.type === 'currency' ? formatPrice(Number(val)) : String(val);
+                          parts.push(`${col.label}: ${displayVal}`);
+                        }
+                      });
+
+                      const hasDiscCol = activeProfile?.tableColumns?.some(col => col.key === 'discount');
+                      if (!hasDiscCol && item.discount && Number(item.discount) > 0) {
+                        const discStr = item.discountType === 'percent'
+                          ? `${item.discount}%`
+                          : formatPrice(Number(item.discount));
+                        parts.push(`Diskon: ${discStr}`);
                       }
-                      if (val === undefined || val === null || val === '') return null;
-                      const displayVal = col.type === 'currency' ? formatPrice(Number(val)) : String(val);
-                      return `${col.label}: ${displayVal}`;
-                    }).filter(Boolean).join(' | ')}
+
+                      return parts.join(' | ');
+                    })()}
                   </div>
                 </div>
                 <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
