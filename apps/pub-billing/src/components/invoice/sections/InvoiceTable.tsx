@@ -108,6 +108,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               const keysToSkip = new Set(['item_title', 'price', 'quantity', 'total']);
               const detailParts: string[] = [];
 
+              const hasDiscCol = columns.some(c => c.key === 'discount');
               columns.forEach(col => {
                 if (keysToSkip.has(col.key)) return;
                 if (col.type === 'formula' && (col.key === 'total' || col.key.toLowerCase().includes('total'))) return;
@@ -120,11 +121,21 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 }
                 if (val === undefined || val === null || val === '' || val === 0) return;
 
-                const displayVal = col.type === 'currency'
-                  ? formatPrice(Number(val))
-                  : String(val);
-                detailParts.push(`${col.label}: ${displayVal}`);
+                if (col.key === 'discount') {
+                  const discStr = item.discountType === 'percent' ? `${val}%` : formatPrice(Number(val));
+                  detailParts.push(`${col.label}: ${discStr}`);
+                } else {
+                  const displayVal = col.type === 'currency'
+                    ? formatPrice(Number(val))
+                    : String(val);
+                  detailParts.push(`${col.label}: ${displayVal}`);
+                }
               });
+
+              if (!hasDiscCol && item.discount && Number(item.discount) > 0) {
+                const discStr = item.discountType === 'percent' ? `${item.discount}%` : formatPrice(Number(item.discount));
+                detailParts.push(`Diskon: ${discStr}`);
+              }
 
               const priceVal = item.price || 0;
               const priceDisplay = formatPrice(priceVal);
