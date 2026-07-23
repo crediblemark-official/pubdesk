@@ -51,19 +51,19 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     container.appendChild(clonedElement);
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Pre-render semua elemen <svg> inline ke gambar PNG 4x resolusi tinggi
-    // Tujuan: html2canvas tidak mampu merender SVG filter (feDropShadow) secara tajam.
-    // Dengan menggantikan setiap <svg> menjadi <img> PNG beresolusi 4x, header/footer
-    // tercetak tajam dan tidak blur meskipun di-zoom.
+    // ── LANGKAH 1: Pre-render SVG inline → PNG beresolusi tinggi ────────────────────────────
+    // html2canvas tidak mendukung SVG filter (feDropShadow, dll.) secara tajam.
+    // Coba render SVG → canvas → PNG. Jika toDataURL() melempar SecurityError
+    // di WebKitGTK, fallback ke LANGKAH 2 (strip filter attributes).
     const RENDER_SCALE = 4;
     const svgEls = Array.from(clonedElement.querySelectorAll<SVGSVGElement>('svg'));
+    let svgPreRenderOk = false;
+
     await Promise.all(svgEls.map(svg => new Promise<void>(resolve => {
-      // Hitung ukuran CSS tampak di DOM
       const rect = svg.getBoundingClientRect();
       const svgW = rect.width > 0 ? rect.width : (svg.clientWidth || 595);
       const svgH = rect.height > 0 ? rect.height : (svg.clientHeight || 80);
 
-      // Paksa atribut width/height agar SVG dirender dengan dimensi yang benar
       svg.setAttribute('width', String(svgW));
       svg.setAttribute('height', String(svgH));
 
@@ -72,27 +72,46 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
 
       const imgLoader = new Image();
       imgLoader.onload = () => {
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = Math.round(svgW * RENDER_SCALE);
-        offCanvas.height = Math.round(svgH * RENDER_SCALE);
-        const ctx = offCanvas.getContext('2d');
-        if (ctx) {
-          ctx.scale(RENDER_SCALE, RENDER_SCALE);
-          ctx.drawImage(imgLoader, 0, 0, svgW, svgH);
-        }
-        const pngUri = offCanvas.toDataURL('image/png');
+        try {
+          const offCanvas = document.createElement('canvas');
+          offCanvas.width = Math.round(svgW * RENDER_SCALE);
+          offCanvas.height = Math.round(svgH * RENDER_SCALE);
+          const ctx = offCanvas.getContext('2d');
+          if (ctx) {
+            ctx.scale(RENDER_SCALE, RENDER_SCALE);
+            ctx.drawImage(imgLoader, 0, 0, svgW, svgH);
+          }
+          // Bisa melempar SecurityError di WebKitGTK jika canvas tainted
+          const pngUri = offCanvas.toDataURL('image/png');
 
-        const replacement = document.createElement('img');
-        replacement.src = pngUri;
-        replacement.style.cssText = `display:block;width:${svgW}px;height:${svgH}px;`;
-        svg.parentNode?.replaceChild(replacement, svg);
+          const replacement = document.createElement('img');
+          replacement.src = pngUri;
+          replacement.style.cssText = `display:block;width:${svgW}px;height:${svgH}px;`;
+          svg.parentNode?.replaceChild(replacement, svg);
+          svgPreRenderOk = true;
+        } catch {
+          // SecurityError: canvas tainted di WebKitGTK — gunakan fallback LANGKAH 2
+        }
         resolve();
       };
-      imgLoader.onerror = () => resolve(); // jangan blokir jika gagal
+      imgLoader.onerror = () => resolve();
       imgLoader.src = dataUri;
     })));
 
-    // Watermark: Berikan transparansi RGBA menyeluruh (background, border, dan text) sesuai opacity profil
+    // ── LANGKAH 2 (Fallback): Strip SVG filter attributes ───────────────────────────────────
+    // Jika pre-render gagal (SecurityError), html2canvas akan merender SVG path secara langsung.
+    // Dengan menghapus atribut `filter="url(#...)"`, path shape dirender tanpa drop-shadow
+    // oleh html2canvas — hasilnya tajam dan tidak blur meskipun tanpa efek bayangan.
+    if (!svgPreRenderOk) {
+      clonedElement.querySelectorAll('svg *').forEach(el => {
+        el.removeAttribute('filter');
+        el.removeAttribute('clip-path');
+      });
+      clonedElement.querySelectorAll('svg defs filter').forEach(el => el.remove());
+      clonedElement.querySelectorAll('svg defs clipPath').forEach(el => el.remove());
+    }
+
+    // ── LANGKAH 3: Watermark transparansi ───────────────────────────────────────────────────
     clonedElement.querySelectorAll<HTMLElement>('*').forEach(el => {
       const pos = (el.style.position || getComputedStyle(el).position);
       if (pos === 'absolute' && el.style.opacity && parseFloat(el.style.opacity) < 1) {
