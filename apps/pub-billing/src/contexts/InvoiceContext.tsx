@@ -279,8 +279,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (totalCol && totalCol.formula) {
         const val = evaluateItemFormula(totalCol.formula, item);
         const evalNum = typeof val === 'number' ? val : parseFloat(val) || 0;
-        // Jika formula adalah standar "{price} * {quantity}" tanpa diskon, kurangi diskon item
-        if (discAmount > 0 && (totalCol.formula.trim() === '{price} * {quantity}' || totalCol.formula.trim() === '{quantity} * {price}')) {
+        // Jika formula tidak mengandung variabel diskon dan ada diskon item, kurangi diskon item
+        if (discAmount > 0 && !totalCol.formula.toLowerCase().includes('discount')) {
           return Math.max(0, evalNum - discAmount + itemShip);
         }
         return evalNum;
