@@ -129,12 +129,17 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               const priceVal = item.price || 0;
               const priceDisplay = formatPrice(priceVal);
               const qtyVal = item.quantity ?? 1;
-              const rawTotalVal = priceVal * qtyVal + (Number(item.item_shipping_cost) || 0);
-              const rawTotalDisplay = formatPrice(rawTotalVal);
               const totalVal = calculateItemTotal(item);
               const totalDisplay = formatPrice(totalVal);
 
               const hasItemDiscount = item.discount && Number(item.discount) > 0;
+              const discVal = Number(item.discount) || 0;
+              const discPerUnit = item.discountType === 'percent'
+                ? (priceVal * discVal / 100)
+                : (discVal / Math.max(1, qtyVal));
+              const netPriceVal = Math.max(0, priceVal - discPerUnit);
+              const netPriceDisplay = formatPrice(netPriceVal);
+
               const itemDiscountDisplay = hasItemDiscount
                 ? (item.discountType === 'percent' ? `Diskon: ${item.discount}%` : `Diskon: ${formatPrice(Number(item.discount))}`)
                 : '';
@@ -153,17 +158,21 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     )}
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
-                    {priceDisplay}
+                    {hasItemDiscount ? (
+                      <>
+                        <div style={{ fontSize: '8.5px', color: '#9ca3af', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px' }}>
+                          {priceDisplay}
+                        </div>
+                        <div>{netPriceDisplay}</div>
+                      </>
+                    ) : (
+                      priceDisplay
+                    )}
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
                     {qtyVal}
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
-                    {hasItemDiscount && (
-                      <div style={{ fontSize: '8.5px', color: '#9ca3af', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px' }}>
-                        {rawTotalDisplay}
-                      </div>
-                    )}
                     <div>{totalDisplay}</div>
                     {hasItemDiscount && (
                       <div style={{ fontSize: '8px', fontWeight: '500', color: '#6b7280', marginTop: '1px' }}>

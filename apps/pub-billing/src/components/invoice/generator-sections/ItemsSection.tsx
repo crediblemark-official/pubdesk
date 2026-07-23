@@ -2205,17 +2205,33 @@ export const ItemsSection: React.FC = () => {
                         val = evaluateItemFormula(col.formula, item);
                       }
                       if (val === undefined || val === null || val === '' || val === 0) return null;
+
+                      if (col.key === 'price' && item.discount && Number(item.discount) > 0) {
+                        const priceVal = Number(val) || 0;
+                        const qtyVal = item.quantity ?? 1;
+                        const discVal = Number(item.discount) || 0;
+                        const discPerUnit = item.discountType === 'percent'
+                          ? (priceVal * discVal / 100)
+                          : (discVal / Math.max(1, qtyVal));
+                        const netPriceVal = Math.max(0, priceVal - discPerUnit);
+                        return (
+                          <span key={col.key}>
+                            {col.label}: <span style={{ textDecoration: 'line-through', opacity: 0.7 }}>{formatPrice(priceVal)}</span> <span>{formatPrice(netPriceVal)}</span>
+                          </span>
+                        );
+                      }
+
                       const displayVal = col.type === 'currency' ? formatPrice(Number(val)) : String(val);
                       return `${col.label}: ${displayVal}`;
-                    }).filter(Boolean).join(' | ')}
+                    }).filter(Boolean).map((elem, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && ' | '}
+                        {elem}
+                      </React.Fragment>
+                    ))}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', minWidth: '100px' }}>
-                  {item.discount && Number(item.discount) > 0 && (
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px' }}>
-                      {formatPrice((item.price || 0) * (item.quantity ?? 1) + (Number(item.item_shipping_cost) || 0))}
-                    </div>
-                  )}
                   <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
                     {formatPrice(calculateItemTotal(item))}
                   </div>
