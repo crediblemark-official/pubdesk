@@ -77,7 +77,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               ) : (
                 <div style={{
                   fontFamily: '"Playball", cursive',
-                  fontSize: '22px',
+                  fontSize: '16px',
                   color: accentColor,
                   lineHeight: '1',
                   marginBottom: '-4px',
