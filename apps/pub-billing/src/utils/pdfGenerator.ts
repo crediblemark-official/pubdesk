@@ -43,7 +43,7 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
         }
       }
       const htmlEl = el as HTMLElement;
-      if (htmlEl.style?.backgroundImage && htmlEl.style.backgroundImage.includes('url(')) {
+      if (htmlEl.style?.backgroundImage && htmlEl.style.backgroundImage.includes('url(') && !htmlEl.style.backgroundImage.includes('data:image/svg+xml')) {
         htmlEl.style.backgroundImage = 'none';
       }
     });
@@ -55,7 +55,7 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     clonedElement.querySelectorAll<HTMLElement>('*').forEach(el => {
       const pos = (el.style.position || getComputedStyle(el).position);
       if (pos === 'absolute' && el.style.opacity && parseFloat(el.style.opacity) < 1) {
-        const wmOpacity = parseFloat(el.style.opacity);
+        const wmOpacity = Math.max(parseFloat(el.style.opacity), 0.15);
 
         const rgbToRGBA = (str: string, alpha: number): string | null => {
           const m = str.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
@@ -65,6 +65,11 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
 
         el.querySelectorAll<HTMLElement>('*').forEach(inner => {
           const cs = getComputedStyle(inner);
+          const fg = cs.color;
+          if (fg && fg !== 'transparent' && !fg.includes('rgba(0,0,0,0)')) {
+            const rgba = rgbToRGBA(fg, wmOpacity);
+            if (rgba) inner.style.color = rgba;
+          }
           const bg = cs.backgroundColor;
           if (bg && bg !== 'transparent' && !bg.includes('rgba(0,0,0,0)') && !bg.includes('rgba(0, 0, 0, 0)')) {
             const rgba = rgbToRGBA(bg, wmOpacity);
