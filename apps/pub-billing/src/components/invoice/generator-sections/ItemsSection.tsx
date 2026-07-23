@@ -2211,11 +2211,16 @@ export const ItemsSection: React.FC = () => {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', minWidth: '100px' }}>
+                  {item.discount && Number(item.discount) > 0 && (
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px' }}>
+                      {formatPrice((item.price || 0) * (item.quantity ?? 1) + (Number(item.item_shipping_cost) || 0))}
+                    </div>
+                  )}
                   <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
                     {formatPrice(calculateItemTotal(item))}
                   </div>
                   {item.discount && Number(item.discount) > 0 && (
-                    <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-secondary)', marginTop: '1px' }}>
                       {item.discountType === 'percent'
                         ? `Diskon: ${item.discount}%`
                         : `Diskon: ${formatPrice(Number(item.discount))}`}

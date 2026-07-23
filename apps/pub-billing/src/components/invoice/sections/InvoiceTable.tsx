@@ -129,6 +129,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               const priceVal = item.price || 0;
               const priceDisplay = formatPrice(priceVal);
               const qtyVal = item.quantity ?? 1;
+              const rawTotalVal = priceVal * qtyVal + (Number(item.item_shipping_cost) || 0);
+              const rawTotalDisplay = formatPrice(rawTotalVal);
               const totalVal = calculateItemTotal(item);
               const totalDisplay = formatPrice(totalVal);
 
@@ -157,9 +159,14 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     {qtyVal}
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                    {hasItemDiscount && (
+                      <div style={{ fontSize: '8.5px', color: '#9ca3af', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px' }}>
+                        {rawTotalDisplay}
+                      </div>
+                    )}
                     <div>{totalDisplay}</div>
                     {hasItemDiscount && (
-                      <div style={{ fontSize: '8px', fontWeight: '500', color: '#6b7280', marginTop: '2px' }}>
+                      <div style={{ fontSize: '8px', fontWeight: '500', color: '#6b7280', marginTop: '1px' }}>
                         {itemDiscountDisplay}
                       </div>
                     )}
