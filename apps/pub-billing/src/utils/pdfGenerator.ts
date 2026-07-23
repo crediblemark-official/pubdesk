@@ -2,9 +2,14 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8Array> {
-  const originalElement = document.getElementById(elementId);
+  let originalElement = document.getElementById(elementId);
   if (!originalElement) {
-    throw new Error(`Elemen pratinjau dengan ID "${elementId}" tidak ditemukan di DOM.`);
+    originalElement = (document.querySelector('.a4-page')?.parentElement ||
+                       document.querySelector('[id*="preview"]') ||
+                       document.querySelector('.invoice-preview')) as HTMLElement | null;
+  }
+  if (!originalElement) {
+    throw new Error(`Elemen pratinjau invoice tidak ditemukan di layar.`);
   }
 
   const container = document.createElement('div');

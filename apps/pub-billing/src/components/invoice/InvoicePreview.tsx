@@ -312,7 +312,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         }}
       >
         <div 
-          id={id || "invoice-preview-content"}
+          id={id || "invoice-preview-export"}
           style={{
             transform: `scale(${scale * effectiveZoom})`,
             transformOrigin: 'top left',

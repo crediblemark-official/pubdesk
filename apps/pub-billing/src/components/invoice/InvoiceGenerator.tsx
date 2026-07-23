@@ -236,11 +236,8 @@ const InvoiceGenerator: React.FC = () => {
       }
 
       // Generate & download PDF
-      const { generateInvoicePDFBytes } = await import('../../utils/pdfGenerator');
+      const { generateInvoicePDFBytes, downloadPDFBytes } = await import('../../utils/pdfGenerator');
       const bytes = await generateInvoicePDFBytes('invoice-preview-export');
-      const blob = new Blob([bytes as any], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
       const totalAmount = calculateTotal();
       const filename = formatPdfFilename(activeProfile?.pdfFilenameFormat, {
         profileName: activeProfile?.name,
@@ -260,12 +257,7 @@ const InvoiceGenerator: React.FC = () => {
         paidAmount: paidAmount,
         remainingAmount: Math.max(0, totalAmount - paidAmount)
       });
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await downloadPDFBytes(bytes, filename);
 
       // Simpan ke disk & register file entry
       const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
