@@ -936,12 +936,35 @@ export const ItemsSection: React.FC = () => {
   };
 
   const handleAddItem = () => {
-    let finalTitle = customTitle.trim();
+    const typedTitle = (createFormData.name || createFormData.title).trim();
+    let finalTitle = customTitle.trim() || typedTitle;
     let finalPrice = parseFloat(dynamicInputs['price']) || 0;
     const finalQty = parseInt(dynamicInputs['quantity']) || 1;
 
+    let finalServiceId = selectedServiceIdState ? parseInt(selectedServiceIdState) : undefined;
     let finalBookId = selectedBookIdState ? parseInt(selectedBookIdState) : 0;
     let finalNaskahId = selectedNaskahIdState ? parseInt(selectedNaskahIdState) : undefined;
+
+    if (!finalServiceId && !finalBookId && !finalNaskahId && typedTitle) {
+      const exactMatch = allItemOptions.find(o => (o as any).name?.toLowerCase() === typedTitle.toLowerCase());
+      if (exactMatch) {
+        if ((exactMatch as any).source === 'Layanan') {
+          const sId = exactMatch.value.replace('service-', '');
+          const s = services.find(srv => String(srv.id) === sId);
+          if (s) {
+            finalServiceId = parseInt(sId);
+            if (finalPrice === 0) finalPrice = s.price;
+          }
+        } else if ((exactMatch as any).source === 'Karya') {
+          const bId = exactMatch.value.replace('book-', '');
+          const b = books.find(bk => String(bk.id) === bId);
+          if (b) {
+            finalBookId = parseInt(bId);
+            if (finalPrice === 0) finalPrice = b.regular_price;
+          }
+        }
+      }
+    }
 
     if (selectedServiceIdState) {
       const service = services.find((s) => s.id === parseInt(selectedServiceIdState));
@@ -981,7 +1004,7 @@ export const ItemsSection: React.FC = () => {
     }
 
     const newItem: InvoiceItem = {
-      service_id: selectedServiceIdState ? parseInt(selectedServiceIdState) : undefined,
+      service_id: finalServiceId,
       book_id: finalBookId,
       naskah_id: finalNaskahId,
       item_title: finalTitle,
@@ -1002,6 +1025,15 @@ export const ItemsSection: React.FC = () => {
     setLinkedBookId('');
     setLinkedPackageQuery('');
     setLinkedBookQuery('');
+    setCreateFormData({
+      name: '',
+      price: 0,
+      description: '',
+      title: '',
+      regular_price: 0,
+      author_id: '',
+    });
+    setAuthorSearchQuery('');
 
     if (activeProfile?.tableColumns) {
       const initialInputs: Record<string, any> = {};
