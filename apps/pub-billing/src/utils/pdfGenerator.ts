@@ -51,6 +51,47 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     container.appendChild(clonedElement);
     await new Promise((resolve) => setTimeout(resolve, 200));
 
+    // Pre-render semua elemen <svg> inline ke gambar PNG 4x resolusi tinggi
+    // Tujuan: html2canvas tidak mampu merender SVG filter (feDropShadow) secara tajam.
+    // Dengan menggantikan setiap <svg> menjadi <img> PNG beresolusi 4x, header/footer
+    // tercetak tajam dan tidak blur meskipun di-zoom.
+    const RENDER_SCALE = 4;
+    const svgEls = Array.from(clonedElement.querySelectorAll<SVGSVGElement>('svg'));
+    await Promise.all(svgEls.map(svg => new Promise<void>(resolve => {
+      // Hitung ukuran CSS tampak di DOM
+      const rect = svg.getBoundingClientRect();
+      const svgW = rect.width > 0 ? rect.width : (svg.clientWidth || 595);
+      const svgH = rect.height > 0 ? rect.height : (svg.clientHeight || 80);
+
+      // Paksa atribut width/height agar SVG dirender dengan dimensi yang benar
+      svg.setAttribute('width', String(svgW));
+      svg.setAttribute('height', String(svgH));
+
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+
+      const imgLoader = new Image();
+      imgLoader.onload = () => {
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = Math.round(svgW * RENDER_SCALE);
+        offCanvas.height = Math.round(svgH * RENDER_SCALE);
+        const ctx = offCanvas.getContext('2d');
+        if (ctx) {
+          ctx.scale(RENDER_SCALE, RENDER_SCALE);
+          ctx.drawImage(imgLoader, 0, 0, svgW, svgH);
+        }
+        const pngUri = offCanvas.toDataURL('image/png');
+
+        const replacement = document.createElement('img');
+        replacement.src = pngUri;
+        replacement.style.cssText = `display:block;width:${svgW}px;height:${svgH}px;`;
+        svg.parentNode?.replaceChild(replacement, svg);
+        resolve();
+      };
+      imgLoader.onerror = () => resolve(); // jangan blokir jika gagal
+      imgLoader.src = dataUri;
+    })));
+
     // Watermark: Berikan transparansi RGBA menyeluruh (background, border, dan text) sesuai opacity profil
     clonedElement.querySelectorAll<HTMLElement>('*').forEach(el => {
       const pos = (el.style.position || getComputedStyle(el).position);
