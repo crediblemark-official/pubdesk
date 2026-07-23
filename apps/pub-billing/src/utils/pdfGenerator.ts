@@ -52,9 +52,11 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     // ── LANGKAH 1: Pre-render SVG inline → PNG beresolusi tinggi ────────────────────────────
-    // html2canvas tidak mendukung SVG filter (feDropShadow, dll.) secara tajam.
-    // Coba render SVG → canvas → PNG. Jika toDataURL() melempar SecurityError
-    // di WebKitGTK, fallback ke LANGKAH 2 (strip filter attributes).
+    // Masalah: html2canvas merender SVG path di resolusi CSS (1x) lalu upscale → blur + jagged.
+    // Solusi:
+    //   A) Set intrinsic SVG size ke 4x → browser render vector path di resolusi penuh
+    //   B) Gunakan Blob URL (bukan data: URI) → tidak taint canvas di WebKitGTK
+    //   C) drawImage langsung ke canvas 4x tanpa ctx.scale (canvas sudah di ukuran target)
     const RENDER_SCALE = 4;
     const svgEls = Array.from(clonedElement.querySelectorAll<SVGSVGElement>('svg'));
     let svgPreRenderOk = false;
@@ -64,51 +66,59 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
       const svgW = rect.width > 0 ? rect.width : (svg.clientWidth || 595);
       const svgH = rect.height > 0 ? rect.height : (svg.clientHeight || 80);
 
-      svg.setAttribute('width', String(svgW));
-      svg.setAttribute('height', String(svgH));
+      // Set intrinsic size ke 4x → browser render SVG vector di resolusi penuh (bukan upscale)
+      const hiW = Math.round(svgW * RENDER_SCALE);
+      const hiH = Math.round(svgH * RENDER_SCALE);
+      svg.setAttribute('width', String(hiW));
+      svg.setAttribute('height', String(hiH));
 
       const svgData = new XMLSerializer().serializeToString(svg);
-      const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+
+      // Blob URL: same-origin → tidak taint canvas (vs data: URI yang bisa taint di WebKitGTK)
+      const blob = new Blob([svgData], { type: 'image/svg+xml' });
+      const blobUrl = URL.createObjectURL(blob);
 
       const imgLoader = new Image();
       imgLoader.onload = () => {
         try {
           const offCanvas = document.createElement('canvas');
-          offCanvas.width = Math.round(svgW * RENDER_SCALE);
-          offCanvas.height = Math.round(svgH * RENDER_SCALE);
+          offCanvas.width = hiW;
+          offCanvas.height = hiH;
           const ctx = offCanvas.getContext('2d');
           if (ctx) {
-            ctx.scale(RENDER_SCALE, RENDER_SCALE);
-            ctx.drawImage(imgLoader, 0, 0, svgW, svgH);
+            // Render langsung di ukuran 4x — tidak pakai ctx.scale agar tidak upscale bitmap
+            ctx.drawImage(imgLoader, 0, 0, hiW, hiH);
           }
-          // Bisa melempar SecurityError di WebKitGTK jika canvas tainted
+          // toDataURL aman karena Blob URL tidak taint canvas
           const pngUri = offCanvas.toDataURL('image/png');
 
           const replacement = document.createElement('img');
           replacement.src = pngUri;
+          // Tampilkan di ukuran CSS asli (agar layout tidak berubah)
           replacement.style.cssText = `display:block;width:${svgW}px;height:${svgH}px;`;
           svg.parentNode?.replaceChild(replacement, svg);
           svgPreRenderOk = true;
         } catch {
-          // SecurityError: canvas tainted di WebKitGTK — gunakan fallback LANGKAH 2
+          // SecurityError fallback: lanjut ke LANGKAH 2
+        } finally {
+          URL.revokeObjectURL(blobUrl);
         }
         resolve();
       };
-      imgLoader.onerror = () => resolve();
-      imgLoader.src = dataUri;
+      imgLoader.onerror = () => {
+        URL.revokeObjectURL(blobUrl);
+        resolve();
+      };
+      imgLoader.src = blobUrl;
     })));
 
-    // ── LANGKAH 2 (Fallback): Strip SVG filter attributes ───────────────────────────────────
-    // Jika pre-render gagal (SecurityError), html2canvas akan merender SVG path secara langsung.
-    // Dengan menghapus atribut `filter="url(#...)"`, path shape dirender tanpa drop-shadow
-    // oleh html2canvas — hasilnya tajam dan tidak blur meskipun tanpa efek bayangan.
+    // ── LANGKAH 2 (Fallback): Strip SVG filter attributes saja ─────────────────────────────
+    // Jika Blob URL toDataURL masih SecurityError, strip hanya `filter` attribute.
+    // clip-path TIDAK dihapus agar bentuk masking geometris tetap konsisten.
+    // Tanpa filter, html2canvas render flat path → warna konsisten antara header & footer.
     if (!svgPreRenderOk) {
-      clonedElement.querySelectorAll('svg *').forEach(el => {
-        el.removeAttribute('filter');
-        el.removeAttribute('clip-path');
-      });
+      clonedElement.querySelectorAll<Element>('svg [filter]').forEach(el => el.removeAttribute('filter'));
       clonedElement.querySelectorAll('svg defs filter').forEach(el => el.remove());
-      clonedElement.querySelectorAll('svg defs clipPath').forEach(el => el.remove());
     }
 
     // ── LANGKAH 3: Watermark transparansi ───────────────────────────────────────────────────
