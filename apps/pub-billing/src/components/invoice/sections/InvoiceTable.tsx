@@ -108,9 +108,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               const keysToSkip = new Set(['item_title', 'price', 'quantity', 'total']);
               const detailParts: string[] = [];
 
-              const hasDiscCol = columns.some(c => c.key === 'discount');
               columns.forEach(col => {
-                if (keysToSkip.has(col.key)) return;
+                if (keysToSkip.has(col.key) || col.key === 'discount') return;
                 if (col.type === 'formula' && (col.key === 'total' || col.key.toLowerCase().includes('total'))) return;
 
                 let val: any;
@@ -121,27 +120,22 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 }
                 if (val === undefined || val === null || val === '' || val === 0) return;
 
-                if (col.key === 'discount') {
-                  const discStr = item.discountType === 'percent' ? `${val}%` : formatPrice(Number(val));
-                  detailParts.push(`${col.label}: ${discStr}`);
-                } else {
-                  const displayVal = col.type === 'currency'
-                    ? formatPrice(Number(val))
-                    : String(val);
-                  detailParts.push(`${col.label}: ${displayVal}`);
-                }
+                const displayVal = col.type === 'currency'
+                  ? formatPrice(Number(val))
+                  : String(val);
+                detailParts.push(`${col.label}: ${displayVal}`);
               });
-
-              if (!hasDiscCol && item.discount && Number(item.discount) > 0) {
-                const discStr = item.discountType === 'percent' ? `${item.discount}%` : formatPrice(Number(item.discount));
-                detailParts.push(`Diskon: ${discStr}`);
-              }
 
               const priceVal = item.price || 0;
               const priceDisplay = formatPrice(priceVal);
               const qtyVal = item.quantity ?? 1;
               const totalVal = calculateItemTotal(item);
               const totalDisplay = formatPrice(totalVal);
+
+              const hasItemDiscount = item.discount && Number(item.discount) > 0;
+              const itemDiscountDisplay = hasItemDiscount
+                ? (item.discountType === 'percent' ? `Diskon: ${item.discount}%` : `Diskon: ${formatPrice(Number(item.discount))}`)
+                : '';
 
               return (
                 <tr key={index} style={{ background: rowBg }}>
@@ -163,7 +157,12 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     {qtyVal}
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
-                    {totalDisplay}
+                    <div>{totalDisplay}</div>
+                    {hasItemDiscount && (
+                      <div style={{ fontSize: '8px', fontWeight: '500', color: '#6b7280', marginTop: '2px' }}>
+                        {itemDiscountDisplay}
+                      </div>
+                    )}
                   </td>
                 </tr>
               );

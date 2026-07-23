@@ -2199,40 +2199,29 @@ export const ItemsSection: React.FC = () => {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>"{item.item_title}"</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    {(() => {
-                      const parts: string[] = [];
-                      activeProfile?.tableColumns?.filter(col => col.key !== 'item_title' && col.key !== 'total').forEach(col => {
-                        let val = item[col.key];
-                        if (col.type === 'formula' && col.formula) {
-                          val = evaluateItemFormula(col.formula, item);
-                        }
-                        if (val === undefined || val === null || val === '' || val === 0) return;
-                        if (col.key === 'discount') {
-                          const discStr = item.discountType === 'percent'
-                            ? `${val}%`
-                            : formatPrice(Number(val));
-                          parts.push(`${col.label}: ${discStr}`);
-                        } else {
-                          const displayVal = col.type === 'currency' ? formatPrice(Number(val)) : String(val);
-                          parts.push(`${col.label}: ${displayVal}`);
-                        }
-                      });
-
-                      const hasDiscCol = activeProfile?.tableColumns?.some(col => col.key === 'discount');
-                      if (!hasDiscCol && item.discount && Number(item.discount) > 0) {
-                        const discStr = item.discountType === 'percent'
-                          ? `${item.discount}%`
-                          : formatPrice(Number(item.discount));
-                        parts.push(`Diskon: ${discStr}`);
+                    {activeProfile?.tableColumns?.filter(col => col.key !== 'item_title' && col.key !== 'total' && col.key !== 'discount').map(col => {
+                      let val = item[col.key];
+                      if (col.type === 'formula' && col.formula) {
+                        val = evaluateItemFormula(col.formula, item);
                       }
-
-                      return parts.join(' | ');
-                    })()}
+                      if (val === undefined || val === null || val === '' || val === 0) return null;
+                      const displayVal = col.type === 'currency' ? formatPrice(Number(val)) : String(val);
+                      return `${col.label}: ${displayVal}`;
+                    }).filter(Boolean).join(' | ')}
                   </div>
                 </div>
-                <span style={{ fontWeight: '700', color: 'var(--text-primary)', minWidth: '100px', textAlign: 'right' }}>
-                  {formatPrice(calculateItemTotal(item))}
-                </span>
+                <div style={{ textAlign: 'right', minWidth: '100px' }}>
+                  <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
+                    {formatPrice(calculateItemTotal(item))}
+                  </div>
+                  {item.discount && Number(item.discount) > 0 && (
+                    <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      {item.discountType === 'percent'
+                        ? `Diskon: ${item.discount}%`
+                        : `Diskon: ${formatPrice(Number(item.discount))}`}
+                    </div>
+                  )}
+                </div>
                 <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                   <button
                     type="button"
