@@ -2206,7 +2206,7 @@ export const ItemsSection: React.FC = () => {
                       }
                       if (val === undefined || val === null || val === '' || val === 0) return null;
 
-                      if (col.key === 'price' && item.discount && Number(item.discount) > 0) {
+                      if (col.key === 'price' && Boolean(Number(item.discount) > 0)) {
                         const priceVal = Number(val) || 0;
                         const qtyVal = item.quantity ?? 1;
                         const discVal = Number(item.discount) || 0;
@@ -2235,7 +2235,7 @@ export const ItemsSection: React.FC = () => {
                   <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
                     {formatPrice(calculateItemTotal(item))}
                   </div>
-                  {item.discount && Number(item.discount) > 0 && (
+                  {Boolean(Number(item.discount) > 0) && (
                     <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-secondary)', marginTop: '1px' }}>
                       {item.discountType === 'percent'
                         ? `Diskon: ${item.discount}%`

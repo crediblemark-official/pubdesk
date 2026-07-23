@@ -132,7 +132,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               const totalVal = calculateItemTotal(item);
               const totalDisplay = formatPrice(totalVal);
 
-              const hasItemDiscount = item.discount && Number(item.discount) > 0;
+              const hasItemDiscount = Boolean(Number(item.discount) > 0);
               const discVal = Number(item.discount) || 0;
               const discPerUnit = item.discountType === 'percent'
                 ? (priceVal * discVal / 100)
