@@ -54,10 +54,10 @@ export const GlobalCostsSection: React.FC = () => {
           🏷️ Potongan & Insentif (Global)
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
           {/* Diskon Global */}
           <div style={{ background: 'var(--bg-card)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '4px' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>🏷️ Diskon Global</label>
               <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
                 <button
@@ -84,10 +84,10 @@ export const GlobalCostsSection: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
               <input
                 type="text"
-                style={{ width: '100px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-body)', color: 'var(--text-primary)', textAlign: 'right', fontWeight: '600' }}
+                style={{ flex: '1 1 80px', minWidth: '70px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-body)', color: 'var(--text-primary)', textAlign: 'right', fontWeight: '600' }}
                 value={globalDiscount.type === 'percent' ? (globalDiscount.value || '') : formatThousand(globalDiscount.value)}
                 onChange={(e) => {
                   const val = globalDiscount.type === 'percent' ? parseFloat(e.target.value) || 0 : parseThousand(e.target.value);
@@ -97,7 +97,7 @@ export const GlobalCostsSection: React.FC = () => {
               />
               <input
                 type="text"
-                style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-body)', color: 'var(--text-primary)' }}
+                style={{ flex: '2 1 120px', minWidth: '100px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-body)', color: 'var(--text-primary)' }}
                 value={globalDiscount.label || ''}
                 onChange={(e) => setGlobalDiscount(prev => ({ ...prev, label: e.target.value }))}
                 placeholder="Ket. Diskon (Opsional)"
@@ -112,7 +112,7 @@ export const GlobalCostsSection: React.FC = () => {
 
           {/* Cashback */}
           <div style={{ background: 'var(--bg-card)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '4px' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>🎁 Cashback</label>
               <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
                 <button
@@ -139,10 +139,10 @@ export const GlobalCostsSection: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
               <input
                 type="text"
-                style={{ width: '100px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-body)', color: 'var(--text-primary)', textAlign: 'right', fontWeight: '600' }}
+                style={{ flex: '1 1 80px', minWidth: '70px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-body)', color: 'var(--text-primary)', textAlign: 'right', fontWeight: '600' }}
                 value={globalCashback.type === 'percent' ? (globalCashback.value || '') : formatThousand(globalCashback.value)}
                 onChange={(e) => {
                   const val = globalCashback.type === 'percent' ? parseFloat(e.target.value) || 0 : parseThousand(e.target.value);
@@ -152,7 +152,7 @@ export const GlobalCostsSection: React.FC = () => {
               />
               <input
                 type="text"
-                style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-body)', color: 'var(--text-primary)' }}
+                style={{ flex: '2 1 120px', minWidth: '100px', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-body)', color: 'var(--text-primary)' }}
                 value={globalCashback.label || ''}
                 onChange={(e) => setGlobalCashback(prev => ({ ...prev, label: e.target.value }))}
                 placeholder="Ket. Cashback (Opsional)"
@@ -169,11 +169,11 @@ export const GlobalCostsSection: React.FC = () => {
 
       {/* Biaya Lain-lain (Global) */}
       <div style={{ borderTop: '1px dashed var(--border)', paddingTop: '12px', marginTop: '8px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
           <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>
             🏷️ Biaya Lain-lain
           </label>
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button
               type="button"
               className="btn-secondary"
