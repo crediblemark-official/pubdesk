@@ -128,6 +128,9 @@ const MainLayout = () => {
     }
   };
 
+  const isSettingsModule = appState.activeModule === 'settings-invoice';
+  const isModuleLocked = isSessionRunning === false && !isSettingsModule;
+
   return (
     <div className="main-layout" style={{ flexDirection: 'column' }}>
       <TopBar 
@@ -157,7 +160,7 @@ const MainLayout = () => {
           flexShrink: 0
         }}>
           <span>⚠️</span>
-          <span><strong>Mode Baca-Saja:</strong> Silakan klik tombol <strong style={{ color: 'var(--accent, #c01c1c)' }}>"Mulai Kerja"</strong> di kanan atas untuk mengaktifkan pengisian form dan tombol aksi.</span>
+          <span><strong>Mode Baca-Saja Transaksi:</strong> Silakan klik tombol <strong style={{ color: 'var(--accent, #c01c1c)' }}>"Mulai Kerja"</strong> di kanan atas untuk mengaktifkan pengisian form invoice dan aksi operasional.</span>
         </div>
       )}
 
@@ -169,7 +172,7 @@ const MainLayout = () => {
 
         <div className="main-content">
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden', height: '100%' }}>
-            <div className={`module-area ${isSessionRunning === false ? 'session-locked' : ''}`}>
+            <div className={`module-area ${isModuleLocked ? 'session-locked' : ''}`}>
               {renderModule()}
             </div>
 

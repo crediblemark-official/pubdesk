@@ -207,7 +207,7 @@ export function useInvoiceSettingsForm() {
         setFooterNoteText(profile.footerNoteText || '');
       }
     }
-  }, [selectedProfileId, isEditingNew, profiles]);
+  }, [selectedProfileId, isEditingNew]);
 
   // Sinkronisasi selectedProfileId ketika activeProfileId berubah secara global
   useEffect(() => {
