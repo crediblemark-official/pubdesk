@@ -144,12 +144,14 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 ? (item.discountType === 'percent' ? `Diskon: ${item.discount}%` : `Diskon: ${formatPrice(Number(item.discount))}`)
                 : '';
 
+              const cellVerticalAlign = detailParts.length === 0 ? 'middle' : 'top';
+
               return (
                 <tr key={index} style={{ background: rowBg }}>
-                  <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: cellVerticalAlign }}>
                     {itemStartIndex + index + 1}.
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: cellVerticalAlign }}>
                     <div style={{ fontWeight: '700' }}>"{item.item_title || '-'}"</div>
                     {detailParts.length > 0 && (
                       <div style={{ fontWeight: '400', color: '#6b7280', fontSize: '8.5px', marginTop: '2px', lineHeight: '1.4' }}>
@@ -157,7 +159,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: cellVerticalAlign }}>
                     {hasItemDiscount ? (
                       <>
                         <div style={{ fontSize: '8.5px', color: '#9ca3af', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px' }}>
@@ -169,10 +171,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                       priceDisplay
                     )}
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: cellVerticalAlign }}>
                     {qtyVal}
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: cellVerticalAlign }}>
                     <div>{totalDisplay}</div>
                     {hasItemDiscount && (
                       <div style={{ fontSize: '8px', fontWeight: '500', color: '#6b7280', marginTop: '1px' }}>
