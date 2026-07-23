@@ -312,7 +312,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
         }}
       >
         <div 
-          id={id || "invoice-preview-export"}
+          id={id || "invoice-preview-content"}
           style={{
             transform: `scale(${scale * effectiveZoom})`,
             transformOrigin: 'top left',
@@ -343,7 +343,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ id, previewProfile, ove
                   borderRadius: '8px',
                   boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
                   overflow: 'hidden',
-                  fontFamily: '"Montserrat", "Segoe UI", sans-serif',
+                  fontFamily: 'Arial, "Segoe UI", sans-serif',
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative'

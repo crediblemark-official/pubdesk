@@ -50,19 +50,13 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
 
     container.appendChild(clonedElement);
 
-    // ── PRELOAD FONT: Pastikan semua web font (Montserrat, Playball, Impact) ter-load ────────
-    // Tanpa ini, html2canvas dan SVG pre-render bisa fallback ke system font → bold hilang.
+    // ── PRELOAD FONT: Pastikan Playball ter-load sebelum capture ─────────────────────────────
+    // Arial adalah system font — tidak perlu load eksplisit.
+    // Hanya Playball (kursif tanda tangan) yang perlu dipastikan ter-load.
     try {
       await document.fonts.ready;
-      // Load eksplisit semua weight Montserrat yang dipakai di invoice
       await Promise.allSettled([
-        document.fonts.load('400 12px Montserrat'),
-        document.fonts.load('600 12px Montserrat'),
-        document.fonts.load('700 12px Montserrat'),
-        document.fonts.load('800 12px Montserrat'),
-        document.fonts.load('900 12px Montserrat'),
         document.fonts.load('400 12px Playball'),
-        document.fonts.load('700 12px "Segoe UI"'),
       ]);
     } catch {
       // Tidak memblokir proses jika font API tidak tersedia

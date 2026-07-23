@@ -47,7 +47,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   return (
     <>
       {showSignatureAndBank && (
-        <div style={{ padding: '10px 35px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontFamily: '"Montserrat", "Segoe UI", sans-serif', flexShrink: 0 }}>
+        <div style={{ padding: '10px 35px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontFamily: 'Arial, "Segoe UI", sans-serif', flexShrink: 0 }}>
           {/* Tanda Tangan (Kiri) */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#1f2937', position: 'relative' }}>
             <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '2px' }}>{getSignatureOfficeLabel()}</div>
@@ -113,7 +113,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               color: '#1f2937',
               textAlign: 'right',
               lineHeight: '1.6',
-              fontFamily: '"Montserrat", "Segoe UI", sans-serif',
+              fontFamily: 'Arial, "Segoe UI", sans-serif',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
@@ -179,7 +179,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               x="61"
               y="49"
               fill="#ffffff"
-              fontFamily='"Montserrat", "Segoe UI", sans-serif'
+              fontFamily='Arial, "Segoe UI", sans-serif'
               fontSize="11.5"
               fontWeight="700"
             >
@@ -193,7 +193,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
               y="48"
               textAnchor="end"
               fill="#ffffff"
-              fontFamily='"Montserrat", "Segoe UI", sans-serif'
+              fontFamily='Arial, "Segoe UI", sans-serif'
               fontSize="9.2"
               fontWeight="600"
             >

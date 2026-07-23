@@ -112,7 +112,7 @@ export const Watermark: React.FC<WatermarkProps> = ({ paymentStatus, activeProfi
             whiteSpace: 'nowrap',
             textAlign: 'center',
             lineHeight: '1',
-            fontFamily: '"Impact", "Arial Black", "Montserrat", "Segoe UI", sans-serif',
+            fontFamily: '"Impact", "Arial Black", Arial, "Segoe UI", sans-serif',
             boxShadow: `0 0 2px ${color}`
           }}
         >

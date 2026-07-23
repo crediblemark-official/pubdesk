@@ -84,7 +84,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
           {profile.salamPembuka}
         </div>
       )}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: '"Montserrat", "Segoe UI", sans-serif' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Arial, "Segoe UI", sans-serif' }}>
         <thead>
           <tr style={{ color: '#ffffff' }}>
             <th style={{ background: accentColorDark, width: '28px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
