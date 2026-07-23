@@ -34,7 +34,7 @@ export const Watermark: React.FC<WatermarkProps> = ({ paymentStatus, activeProfi
   }
 
   const color = activeProfile?.watermarkColor || baseColor;
-  const opacityValue = activeProfile?.watermarkOpacity !== undefined ? Math.max(0.12, activeProfile.watermarkOpacity / 100) : 0.18;
+  const opacityValue = activeProfile?.watermarkOpacity !== undefined ? Math.max(0.15, activeProfile.watermarkOpacity / 100) : 0.22;
 
   const isMultiLine = text === 'BELUM LUNAS';
   const fontSize = isMultiLine ? '36px' : (text === 'LUNAS' || text === 'DP') ? '54px' : text === 'BERMASALAH' ? '34px' : '44px';

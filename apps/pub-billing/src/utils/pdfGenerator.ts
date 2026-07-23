@@ -55,7 +55,8 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
     clonedElement.querySelectorAll<HTMLElement>('*').forEach(el => {
       const pos = (el.style.position || getComputedStyle(el).position);
       if (pos === 'absolute' && el.style.opacity && parseFloat(el.style.opacity) < 1) {
-        const wmOpacity = Math.max(parseFloat(el.style.opacity), 0.15);
+        const rawOp = parseFloat(el.style.opacity);
+        const wmOpacity = Math.max(rawOp, 0.22);
 
         const rgbToRGBA = (str: string, alpha: number): string | null => {
           const m = str.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
@@ -88,6 +89,9 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
             });
           }
         });
+
+        // Reset opacity parent ke 1 agar tidak terjadi akumulasi transparansi ganda (double-compounding)
+        el.style.opacity = '1';
       }
     });
 
