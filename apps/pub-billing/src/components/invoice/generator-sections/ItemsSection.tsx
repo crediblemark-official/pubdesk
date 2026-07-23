@@ -843,7 +843,10 @@ export const ItemsSection: React.FC = () => {
     setLinkedBookQuery('');
 
     // Muat dynamic inputs
-    const inputs: Record<string, any> = {};
+    const inputs: Record<string, any> = {
+      discount: item.discount ?? 0,
+      discountType: item.discountType || 'fixed',
+    };
     activeProfile?.tableColumns?.forEach(col => {
       if (col.key in item) {
         inputs[col.key] = item[col.key];
@@ -896,6 +899,7 @@ export const ItemsSection: React.FC = () => {
       item_title: finalTitle,
       quantity: finalQty,
       price: finalPrice,
+      discount: typeof dynamicInputs.discount === 'number' ? dynamicInputs.discount : (parseFloat(dynamicInputs.discount) || 0),
       discountType: dynamicInputs.discountType || 'fixed',
     };
 

@@ -264,6 +264,13 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const calculateItemTotal = (item: InvoiceItem) => {
+    const qty = Number(item.quantity) || 0;
+    const price = Number(item.price) || 0;
+    const rawTotal = price * qty;
+    const discVal = Number(item.discount) || 0;
+    const discAmount = item.discountType === 'percent' ? (rawTotal * discVal / 100) : discVal;
+    const itemShip = Number(item.item_shipping_cost) || 0;
+
     // Jika ada kolom formula total pada profil aktif, gunakan formula tersebut
     if (activeProfile?.tableColumns) {
       const totalCol = activeProfile.tableColumns.find(
@@ -271,18 +278,16 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       );
       if (totalCol && totalCol.formula) {
         const val = evaluateItemFormula(totalCol.formula, item);
-        return typeof val === 'number' ? val : parseFloat(val) || 0;
+        const evalNum = typeof val === 'number' ? val : parseFloat(val) || 0;
+        // Jika formula adalah standar "{price} * {quantity}" tanpa diskon, kurangi diskon item
+        if (discAmount > 0 && (totalCol.formula.trim() === '{price} * {quantity}' || totalCol.formula.trim() === '{quantity} * {price}')) {
+          return Math.max(0, evalNum - discAmount + itemShip);
+        }
+        return evalNum;
       }
     }
     
-    // Fallback ke perhitungan bawaan jika tidak ada kolom formula khusus
-    const itemShip = item.item_shipping_cost || 0;
-    const qty = Number(item.quantity) || 0;
-    const price = Number(item.price) || 0;
-    const rawTotal = price * qty;
-    const discVal = Number(item.discount) || 0;
-    const disc = item.discountType === 'percent' ? (rawTotal * discVal / 100) : discVal;
-    return Math.max(0, rawTotal - disc + itemShip);
+    return Math.max(0, rawTotal - discAmount + itemShip);
   };
 
   const calculateGlobalDiscountAmount = () => {
