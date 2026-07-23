@@ -89,9 +89,9 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
           <tr style={{ color: '#ffffff' }}>
             <th style={{ background: accentColorDark, width: '28px', textAlign: 'center', padding: '8px 4px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>No</th>
             <th style={{ background: accentColor, textAlign: 'left', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none' }}>Judul / Detail</th>
-            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '90px', whiteSpace: 'nowrap' }}>Harga</th>
-            <th style={{ background: accentColor, textAlign: 'center', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '50px' }}>Jml.</th>
-            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '95px', whiteSpace: 'nowrap' }}>Total</th>
+            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '100px', whiteSpace: 'nowrap' }}>Harga</th>
+            <th style={{ background: accentColor, textAlign: 'center', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '45px', whiteSpace: 'nowrap' }}>Jml.</th>
+            <th style={{ background: accentColor, textAlign: 'right', padding: '8px 8px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', border: 'none', width: '105px', whiteSpace: 'nowrap' }}>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -144,14 +144,12 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 ? (item.discountType === 'percent' ? `Diskon: ${item.discount}%` : `Diskon: ${formatPrice(Number(item.discount))}`)
                 : '';
 
-              const cellVerticalAlign = detailParts.length === 0 ? 'middle' : 'top';
-
               return (
                 <tr key={index} style={{ background: rowBg }}>
-                  <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: cellVerticalAlign }}>
+                  <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>
                     {itemStartIndex + index + 1}.
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: cellVerticalAlign }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'left', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', wordBreak: 'break-word', verticalAlign: 'middle' }}>
                     <div style={{ fontWeight: '700' }}>"{item.item_title || '-'}"</div>
                     {detailParts.length > 0 && (
                       <div style={{ fontWeight: '400', color: '#6b7280', fontSize: '8.5px', marginTop: '2px', lineHeight: '1.4' }}>
@@ -159,25 +157,25 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: cellVerticalAlign }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                     {hasItemDiscount ? (
                       <>
-                        <div style={{ fontSize: '8.5px', color: '#9ca3af', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px' }}>
+                        <div style={{ fontSize: '8.5px', color: '#9ca3af', textDecoration: 'line-through', fontWeight: '400', marginBottom: '1px', whiteSpace: 'nowrap' }}>
                           {priceDisplay}
                         </div>
-                        <div>{netPriceDisplay}</div>
+                        <div style={{ whiteSpace: 'nowrap' }}>{netPriceDisplay}</div>
                       </>
                     ) : (
-                      priceDisplay
+                      <div style={{ whiteSpace: 'nowrap' }}>{priceDisplay}</div>
                     )}
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: cellVerticalAlign }}>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '9.5px', color: '#1f2937', fontWeight: '500', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                     {qtyVal}
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: cellVerticalAlign }}>
-                    <div>{totalDisplay}</div>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '9.5px', color: '#1f2937', fontWeight: '700', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
+                    <div style={{ whiteSpace: 'nowrap' }}>{totalDisplay}</div>
                     {hasItemDiscount && (
-                      <div style={{ fontSize: '8px', fontWeight: '500', color: '#6b7280', marginTop: '1px' }}>
+                      <div style={{ fontSize: '8px', fontWeight: '500', color: '#6b7280', marginTop: '1px', whiteSpace: 'nowrap' }}>
                         {itemDiscountDisplay}
                       </div>
                     )}
