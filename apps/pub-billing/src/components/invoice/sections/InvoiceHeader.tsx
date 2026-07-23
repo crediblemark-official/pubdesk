@@ -9,7 +9,7 @@ interface InvoiceHeaderProps {
   invoiceNo: string;
 }
 
-const FONT_FAMILY = '"Arial Black", "Arial Bold", Arial, sans-serif';
+const FONT_FAMILY = '"Montserrat", Arial, sans-serif';
 
 export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   profile,

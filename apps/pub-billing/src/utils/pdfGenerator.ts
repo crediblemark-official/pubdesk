@@ -50,12 +50,15 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
 
     container.appendChild(clonedElement);
 
-    // ── PRELOAD FONT: Pastikan Playball ter-load sebelum capture ─────────────────────────────
+    // ── PRELOAD FONT: Pastikan Montserrat (header SVG) & Playball (tanda tangan) ter-load ────
     // Arial adalah system font — tidak perlu load eksplisit.
-    // Hanya Playball (kursif tanda tangan) yang perlu dipastikan ter-load.
+    // Montserrat dipakai di header/footer SVG → harus dipastikan ter-load sebelum pre-render.
     try {
       await document.fonts.ready;
       await Promise.allSettled([
+        document.fonts.load('700 12px Montserrat'),
+        document.fonts.load('800 12px Montserrat'),
+        document.fonts.load('900 12px Montserrat'),
         document.fonts.load('400 12px Playball'),
       ]);
     } catch {
