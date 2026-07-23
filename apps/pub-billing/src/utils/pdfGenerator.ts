@@ -109,20 +109,22 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
           pdf.addPage('a4', 'portrait');
         }
         const captureCanvas = await html2canvas(pageElements[i], {
-          scale: 2.5,
-          useCORS: false,
+          scale: 4,
+          useCORS: true,
           allowTaint: false,
           backgroundColor: '#ffffff',
+          logging: false,
         });
         const imgData = captureCanvas.toDataURL('image/png');
         pdf.addImage(imgData, 'PNG', 0, 0, 595, 842);
       }
     } else {
       const captureCanvas = await html2canvas(clonedElement, {
-        scale: 2.5,
-        useCORS: false,
+        scale: 4,
+        useCORS: true,
         allowTaint: false,
         backgroundColor: '#ffffff',
+        logging: false,
       });
       const imgData = captureCanvas.toDataURL('image/png');
       pdf.addImage(imgData, 'PNG', 0, 0, 595, 842);
