@@ -21,9 +21,7 @@ export const AccordionSection: React.FC<AccordionSectionProps> = ({
       overflow: isOpen ? 'visible' : 'hidden', 
       background: 'var(--bg-card)' 
     }}>
-      <button
-        type="button"
-        onClick={() => onToggle(isOpen ? null : index)}
+      <div
         style={{
           width: '100%',
           display: 'flex',
@@ -38,13 +36,15 @@ export const AccordionSection: React.FC<AccordionSectionProps> = ({
           fontSize: '12px',
           fontWeight: '700',
           textAlign: 'left',
-          cursor: 'pointer',
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
           outline: 'none',
         }}
       >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <span 
+          onClick={() => onToggle(isOpen ? null : index)} 
+          style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', flex: 1 }}
+        >
           <span>{icon && <span>{icon} </span>}{title}</span>
           {headerAction && (
             <span
@@ -55,8 +55,13 @@ export const AccordionSection: React.FC<AccordionSectionProps> = ({
             </span>
           )}
         </span>
-        <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{isOpen ? '▲' : '▼'}</span>
-      </button>
+        <span 
+          onClick={() => onToggle(isOpen ? null : index)} 
+          style={{ fontSize: '10px', color: 'var(--text-secondary)', cursor: 'pointer', paddingLeft: '8px' }}
+        >
+          {isOpen ? '▲' : '▼'}
+        </span>
+      </div>
       {isOpen && (
         <div style={{ padding: '16px', borderTop: '1px solid var(--border)' }}>
           {children}

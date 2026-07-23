@@ -2,14 +2,9 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8Array> {
-  let originalElement = document.getElementById(elementId);
+  const originalElement = document.getElementById(elementId);
   if (!originalElement) {
-    originalElement = (document.querySelector('.a4-page')?.parentElement ||
-                       document.querySelector('[id*="preview"]') ||
-                       document.querySelector('.invoice-preview')) as HTMLElement | null;
-  }
-  if (!originalElement) {
-    throw new Error(`Elemen pratinjau invoice tidak ditemukan di layar.`);
+    throw new Error(`Elemen pratinjau dengan ID "${elementId}" tidak ditemukan di DOM.`);
   }
 
   const container = document.createElement('div');
@@ -48,7 +43,7 @@ export async function generateInvoicePDFBytes(elementId: string): Promise<Uint8A
         }
       }
       const htmlEl = el as HTMLElement;
-      if (htmlEl.style?.backgroundImage && htmlEl.style.backgroundImage.includes('url(') && !htmlEl.style.backgroundImage.includes('data:image/svg+xml')) {
+      if (htmlEl.style?.backgroundImage && htmlEl.style.backgroundImage.includes('url(')) {
         htmlEl.style.backgroundImage = 'none';
       }
     });

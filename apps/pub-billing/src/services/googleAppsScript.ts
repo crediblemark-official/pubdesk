@@ -199,11 +199,11 @@ export const googleAppsScriptService = {
         } catch (errDefault) {
           cachedUrl = originalUrl;
           cachedToken = originalToken;
-          console.error('[GAS] Gagal mengambil konfigurasi cloud dari URL default:', errDefault);
+          console.warn('[GAS] Konfigurasi cloud opsional (AppConfig) tidak ditemukan pada URL default.');
           return;
         }
       } else {
-        console.error('[GAS] Gagal mengambil konfigurasi cloud:', err);
+        console.warn('[GAS] Konfigurasi cloud opsional (AppConfig) tidak ditemukan.');
         return;
       }
     }
