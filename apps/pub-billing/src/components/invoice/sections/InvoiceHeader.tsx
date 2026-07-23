@@ -60,7 +60,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                 <text x="120" y="92" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="16" fontWeight="900" letterSpacing="0.5">
                   {profile?.companyName || 'CV KBM'}
                 </text>
-                <text x="120" y="104" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7.5" fontWeight="600" letterSpacing="1">
+                <text x="120" y="104" textAnchor="middle" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7.5" fontWeight="700" letterSpacing="1">
                   {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                 </text>
               </>
@@ -95,7 +95,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                   <text x="82" y="91" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
                     {profile?.companyName || 'CV KBM'}
                   </text>
-                  <text x="82" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1">
+                  <text x="82" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="700" letterSpacing="1">
                     {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                   </text>
                 </>
@@ -108,7 +108,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                   <text x="88" y="91" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="15" fontWeight="900" letterSpacing="0.5">
                     {profile?.companyName || 'CV KBM'}
                   </text>
-                  <text x="89" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="600" letterSpacing="1">
+                  <text x="89" y="101" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="7" fontWeight="700" letterSpacing="1">
                     {profile?.companyTagline || 'KARYA BAKTI MAKMUR'}
                   </text>
                 </>
@@ -117,10 +117,10 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           );
         })()}
 
-        <text x="622" y="98" textAnchor="end" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="44" fontWeight="700" letterSpacing="2">
+        <text x="622" y="98" textAnchor="end" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="44" fontWeight="900" letterSpacing="2">
           {profile?.invoiceTitleText || 'INVOICE'}
         </text>
-        <text x="622" y="118" textAnchor="end" fill="#dddddd" fontFamily={FONT_FAMILY} fontSize="10" fontWeight="700" letterSpacing="1">
+        <text x="622" y="118" textAnchor="end" fill="#ffffff" fontFamily={FONT_FAMILY} fontSize="10" fontWeight="700" letterSpacing="1">
           NO. {invoiceNo || 'RA.01/11/06/2026'}
         </text>
       </svg>
