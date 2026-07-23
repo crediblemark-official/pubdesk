@@ -49,9 +49,9 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
       {showSignatureAndBank && (
         <div style={{ padding: '10px 35px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontFamily: 'Arial, "Segoe UI", sans-serif', flexShrink: 0 }}>
           {/* Tanda Tangan (Kiri) */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#1f2937', position: 'relative' }}>
-            <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '2px' }}>{getSignatureOfficeLabel()}</div>
-            <div style={{ fontWeight: '600', color: '#4b5563', marginBottom: '6px' }}>{getSignatureLocationDateLabel()}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '220px', fontSize: '9.5px', color: '#000000', position: 'relative' }}>
+            <div style={{ fontWeight: '600', color: '#000000', marginBottom: '2px' }}>{getSignatureOfficeLabel()}</div>
+            <div style={{ fontWeight: '600', color: '#000000', marginBottom: '6px' }}>{getSignatureLocationDateLabel()}</div>
 
             <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '25px' }}>
               {profile?.signatureImg ? (
@@ -97,10 +97,10 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             </div>
 
             {/* Garis / Underline */}
-            <div style={{ width: '100%', height: '1px', background: '#1f2937', margin: '2px 0 4px 0', zIndex: 1 }} />
+            <div style={{ width: '100%', height: '1px', background: '#000000', margin: '2px 0 4px 0', zIndex: 1 }} />
 
             {/* Jabatan */}
-            <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#6b7280', zIndex: 1 }}>
+            <div style={{ fontWeight: '600', fontSize: '8.5px', textTransform: 'uppercase', color: '#000000', zIndex: 1 }}>
               {getSignatureRoleLabel()}
             </div>
           </div>
@@ -110,7 +110,7 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             <div style={{
               width: '500px',
               fontSize: '9.5px',
-              color: '#1f2937',
+              color: '#000000',
               textAlign: 'right',
               lineHeight: '1.6',
               fontFamily: 'Arial, "Segoe UI", sans-serif',
@@ -136,11 +136,11 @@ export const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                 if (!name && !no && !owner) return null;
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end', width: '100%' }}>
-                    <span style={{ fontWeight: '700', color: '#4b5563' }}>{name}</span>
+                    <span style={{ fontWeight: '700', color: '#000000' }}>{name}</span>
                     <span style={{ color: '#9ca3af' }}>|</span>
-                    <span style={{ fontWeight: '600' }}>{no}</span>
+                    <span style={{ fontWeight: '600', color: '#000000' }}>{no}</span>
                     <span style={{ color: '#9ca3af' }}>|</span>
-                    <span style={{ color: '#6b7280', fontSize: '9px' }}>a/n. {owner}</span>
+                    <span style={{ color: '#000000', fontSize: '9px' }}>a/n. {owner}</span>
                   </div>
                 );
               })}

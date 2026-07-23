@@ -37,47 +37,47 @@ export const InvoiceInfo: React.FC<InvoiceInfoProps> = ({
     const secondPart = words.slice(mid).join(' ');
     return (
       <>
-        <span style={{ color: '#1f2937' }}>{firstPart} </span>
+        <span style={{ color: '#000000' }}>{firstPart} </span>
         <span style={{ color: profile?.accentColor || '#1e70cd' }}>{secondPart}</span>
       </>
     );
   };
 
   return (
-    <div style={{ padding: '20px 35px 12px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', fontFamily: 'Arial, "Segoe UI", sans-serif', flexShrink: 0, color: '#1f2937' }}>
+    <div style={{ padding: '20px 35px 12px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', fontFamily: 'Arial, "Segoe UI", sans-serif', flexShrink: 0, color: '#000000' }}>
       <div>
-        <div style={{ fontSize: '10px', fontWeight: '700', color: '#6b7280', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kepada Yth.</div>
+        <div style={{ fontSize: '10px', fontWeight: '700', color: '#000000', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kepada Yth.</div>
         <div style={{ fontSize: '12px', fontWeight: '800', marginBottom: '8px', lineHeight: '1.1', wordBreak: 'break-word' }}>
           {renderCustomerName()}
         </div>
-        <div style={{ fontSize: '10px', color: '#1f2937', marginBottom: '4px', fontWeight: '600' }}>
-          Alamat : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.address || 'Di Tempat'}</span>
+        <div style={{ fontSize: '10px', color: '#000000', marginBottom: '4px', fontWeight: '600' }}>
+          Alamat : <span style={{ fontWeight: '500', color: '#000000' }}>{customer.address || 'Di Tempat'}</span>
         </div>
-        <div style={{ fontSize: '10px', color: '#1f2937', fontWeight: '600' }}>
-          No. WA : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.wa_number || '-'}</span>
+        <div style={{ fontSize: '10px', color: '#000000', fontWeight: '600' }}>
+          No. WA : <span style={{ fontWeight: '500', color: '#000000' }}>{customer.wa_number || '-'}</span>
         </div>
         {customer.email && (
-          <div style={{ fontSize: '10px', color: '#1f2937', fontWeight: '600', marginTop: '2px' }}>
-            Email : <span style={{ fontWeight: '500', color: '#4b5563' }}>{customer.email}</span>
+          <div style={{ fontSize: '10px', color: '#000000', fontWeight: '600', marginTop: '2px' }}>
+            Email : <span style={{ fontWeight: '500', color: '#000000' }}>{customer.email}</span>
           </div>
         )}
       </div>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: '#4b5563' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: '#000000' }}>
         <div style={{ display: 'flex', alignItems: 'baseline' }}>
-          <span style={{ fontWeight: '700', color: '#1f2937', width: '70px', flexShrink: 0 }}>Perihal</span>
-          <span style={{ marginRight: '6px', color: '#4b5563', fontWeight: '700' }}>:</span>
+          <span style={{ fontWeight: '700', color: '#000000', width: '70px', flexShrink: 0 }}>Perihal</span>
+          <span style={{ marginRight: '6px', color: '#000000', fontWeight: '700' }}>:</span>
           <span style={{ fontWeight: '600', color: profile?.accentColor || '#1e70cd', wordBreak: 'break-word' }}>"{invoiceHal || getHalDefault()}"</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline' }}>
-          <span style={{ fontWeight: '700', color: '#1f2937', width: '70px', flexShrink: 0 }}>Lampiran</span>
-          <span style={{ marginRight: '6px', color: '#4b5563', fontWeight: '700' }}>:</span>
-          <span style={{ fontWeight: '500' }}>{invoiceLampiran || '-'}</span>
+          <span style={{ fontWeight: '700', color: '#000000', width: '70px', flexShrink: 0 }}>Lampiran</span>
+          <span style={{ marginRight: '6px', color: '#000000', fontWeight: '700' }}>:</span>
+          <span style={{ fontWeight: '500', color: '#000000' }}>{invoiceLampiran || '-'}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline' }}>
-          <span style={{ fontWeight: '700', color: '#1f2937', width: '70px', flexShrink: 0 }}>Tanggal</span>
-          <span style={{ marginRight: '6px', color: '#4b5563', fontWeight: '700' }}>:</span>
-          <span style={{ fontWeight: '500' }}>{formatDateId(invoiceDate)}</span>
+          <span style={{ fontWeight: '700', color: '#000000', width: '70px', flexShrink: 0 }}>Tanggal</span>
+          <span style={{ marginRight: '6px', color: '#000000', fontWeight: '700' }}>:</span>
+          <span style={{ fontWeight: '500', color: '#000000' }}>{formatDateId(invoiceDate)}</span>
         </div>
       </div>
     </div>
