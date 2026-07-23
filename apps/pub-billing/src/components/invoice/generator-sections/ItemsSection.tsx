@@ -1839,7 +1839,6 @@ export const ItemsSection: React.FC = () => {
                     <button
                       type="submit"
                       className="btn-primary"
-                      onClick={handleCreateItem}
                       disabled={isSaving}
                       style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
@@ -1931,7 +1930,6 @@ export const ItemsSection: React.FC = () => {
                     <button
                       type="submit"
                       className="btn-primary"
-                      onClick={handleCreateItem}
                       disabled={isSaving}
                       style={{ padding: '10px 16px', fontSize: '14px', fontWeight: '600', borderRadius: '8px', whiteSpace: 'nowrap', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                     >
@@ -2062,7 +2060,6 @@ export const ItemsSection: React.FC = () => {
           <button
             className="btn-primary"
             type="submit"
-            onClick={handleAddItem}
             style={{
               width: '100%',
               height: '42px',
@@ -2101,7 +2098,6 @@ export const ItemsSection: React.FC = () => {
             <button
               className="btn-primary"
               type="submit"
-              onClick={handleSaveEdit}
               style={{
                 flex: 2,
                 height: '42px',
